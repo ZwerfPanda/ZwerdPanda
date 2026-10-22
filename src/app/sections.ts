@@ -2,6 +2,7 @@ import {
   BookHeart,
   Gift,
   House,
+  ListChecks,
   Images,
   Mail,
   Music,
@@ -9,6 +10,7 @@ import {
   Rabbit,
   Settings2,
   Telescope,
+  UsersRound,
   type LucideIcon,
 } from 'lucide-react';
 import type { RoutePath } from '../lib/router';
@@ -95,6 +97,22 @@ export const SECTIONS: Section[] = [
     blurb: 'Our little rabbit',
     icon: Rabbit,
     tint: '#f0dcc4',
+  },
+  {
+    path: '/us',
+    label: 'Mini Us',
+    short: 'Mini us',
+    blurb: 'The two of us, but tiny',
+    icon: UsersRound,
+    tint: '#f8d3dc',
+  },
+  {
+    path: '/lists',
+    label: 'Our Lists',
+    short: 'Lists',
+    blurb: 'Names, films, places to eat',
+    icon: ListChecks,
+    tint: '#dbe6f2',
   },
   {
     path: '/settings',

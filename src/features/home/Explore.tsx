@@ -269,6 +269,49 @@ export function Explore() {
             <span className="ex-sub">our little rabbit</span>
           </span>
         </a>
+        <a className="ex-sticker ex-sticker--us" href={href('/us')}>
+          <svg viewBox="0 0 80 80" aria-hidden="true">
+            <circle cx="40" cy="40" r="34" fill="#fde4ea" />
+            <path d="M18 62q0-16 12-16t12 16z" fill="#f2c3d3" stroke={INK} strokeWidth="2" />
+            <path d="M19 34q0-14 11-14t11 14v14h-22z" fill="#1b1413" />
+            <circle cx="30" cy="35" r="9" fill="#8f5a3b" stroke={INK} strokeWidth="2" />
+            <path d="M40 66q0-20 14-20t14 20z" fill="#1f1d22" stroke={INK} strokeWidth="2" />
+            <circle cx="54" cy="30" r="10" fill="#a46d48" stroke={INK} strokeWidth="2" />
+            <path d="M44 27q2-9 10-9t10 9q-4-3-10-3t-10 3z" fill="#1b1413" />
+            <HeartShape x={42} y={14} size={9} fill="#e6889b" />
+          </svg>
+          <span>
+            <h3 className="ex-label">Mini us</h3>
+            <span className="ex-sub">the two of us, but tiny</span>
+          </span>
+        </a>
+
+        <a className="ex-sticker ex-sticker--lists" href={href('/lists')}>
+          <svg viewBox="0 0 80 80" aria-hidden="true">
+            <circle cx="40" cy="40" r="34" fill="#e7eef6" />
+            <rect
+              x="24"
+              y="18"
+              width="32"
+              height="44"
+              rx="4"
+              fill="#fffcf6"
+              stroke={INK}
+              strokeWidth="2"
+            />
+            <path
+              d="M30 30h20M30 40h20M30 50h12"
+              stroke="#8f7a89"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <HeartShape x={56} y={56} size={10} fill="#e6889b" />
+          </svg>
+          <span>
+            <h3 className="ex-label">Our lists</h3>
+            <span className="ex-sub">baby names & more</span>
+          </span>
+        </a>
       </div>
     </section>
   );

@@ -194,3 +194,50 @@ describe('mergePet', () => {
     expect(merged.welcome.seenAt).toBe('2026-10-22T11:00:00.000Z');
   });
 });
+
+describe('lists and mini us', () => {
+  const item = (id: string, text: string) => ({
+    id,
+    text,
+    hearts: [] as ('you' | 'partner')[],
+    done: false,
+    createdAt: '2026-10-22T00:00:00.000Z',
+  });
+
+  it('merges items added and hearted on both phones', () => {
+    const base = createDefaultContent();
+    base.lists[0].items = [item('i1', 'Noor')];
+    const local = structuredClone(base);
+    const remote = structuredClone(base);
+    local.lists[0].items.push(item('i2', 'Amara'));
+    local.lists[0].items[0].hearts = ['you'];
+    remote.lists[0].items.push(item('i3', 'Liya'));
+    remote.lists.push({
+      id: 'l2',
+      title: 'Films',
+      icon: 'film',
+      items: [],
+      createdAt: base.lists[0].createdAt,
+    });
+    const merged = mergeContent(base, local, remote);
+    expect(merged.lists.map((l) => l.id)).toEqual(['list-baby-names', 'l2']);
+    expect(merged.lists[0].items.map((i) => i.text).sort()).toEqual(['Amara', 'Liya', 'Noor']);
+    expect(merged.lists[0].items.find((i) => i.id === 'i1')?.hearts).toEqual(['you']);
+  });
+
+  it('merges looks, details and the chat from both phones', () => {
+    const base = createDefaultContent();
+    const local = structuredClone(base);
+    const remote = structuredClone(base);
+    local.us.partner.look = { ...local.us.partner.look, outfit: 'blue-dress' };
+    remote.us.you.birthday = '2004-08-01';
+    local.us.chat = [{ id: 'c1', who: 'you', text: 'Hi baby', at: '2026-10-22T10:00:00.000Z' }];
+    remote.us.chat = [
+      { id: 'c2', who: 'partner', text: 'Hi handsome', at: '2026-10-22T11:00:00.000Z' },
+    ];
+    const merged = mergeContent(base, local, remote);
+    expect(merged.us.partner.look.outfit).toBe('blue-dress');
+    expect(merged.us.you.birthday).toBe('2004-08-01');
+    expect(merged.us.chat.map((c) => c.id)).toEqual(['c2', 'c1']);
+  });
+});

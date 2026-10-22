@@ -309,6 +309,81 @@ export interface Welcome {
   seenAt?: string;
 }
 
+/* ------------------------------------------------------------- our lists */
+
+export type ListIcon =
+  | 'baby'
+  | 'heart'
+  | 'star'
+  | 'film'
+  | 'plane'
+  | 'utensils'
+  | 'gift'
+  | 'music'
+  | 'book'
+  | 'home';
+
+export interface ListItem {
+  id: ID;
+  text: string;
+  note?: string;
+  /** Who hearted it — both of us means we both love it. */
+  hearts: Person[];
+  done: boolean;
+  by?: Person;
+  createdAt: string;
+}
+
+export interface OurList {
+  id: ID;
+  title: string;
+  icon: ListIcon;
+  items: ListItem[];
+  by?: Person;
+  createdAt: string;
+}
+
+/* --------------------------------------------------------------- mini us */
+
+export interface Look {
+  outfit: string;
+  hair: 'straight' | 'wavy';
+  accessories: string[];
+}
+
+export interface MiniMe {
+  /** Optional, filled in by us in the app (never shipped with the site). */
+  fullName: string;
+  birthday: string;
+  heightCm: number;
+  look: Look;
+  /** Things we taught our mini to say. */
+  lines: string[];
+}
+
+export interface PetName {
+  id: ID;
+  name: string;
+  /** Who uses it: `you` calls `partner` this, or the other way round, or both. */
+  from: Person | 'both';
+}
+
+export interface ChatLine {
+  id: ID;
+  /** Which mini said it. */
+  who: Person;
+  text: string;
+  at: string;
+}
+
+export interface UsContent {
+  you: MiniMe;
+  partner: MiniMe;
+  /** Most used first. */
+  petNames: PetName[];
+  chat: ChatLine[];
+}
+
 export type ThemeName = 'blush' | 'lavender' | 'matcha' | 'midnight';
 
 export interface Profile {
@@ -340,6 +415,8 @@ export interface AppContent {
   pet: CocoPet;
   countdowns: Countdown[];
   welcome: Welcome;
+  lists: OurList[];
+  us: UsContent;
 }
 
 /** Per-device preferences. These never travel with exported content. */

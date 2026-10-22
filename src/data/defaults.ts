@@ -3,6 +3,8 @@ import type {
   AppContent,
   CocoContent,
   CocoPet,
+  OurList,
+  UsContent,
   Welcome,
   Dream,
   Letter,
@@ -427,6 +429,64 @@ export const defaultWelcome: Welcome = {
   signature: '',
 };
 
+/** Our lists start with one empty list to fill together. */
+export const defaultLists: OurList[] = [
+  {
+    id: 'list-baby-names',
+    title: 'Baby names we love',
+    icon: 'baby',
+    items: [],
+    createdAt: '2026-10-22T00:00:00.000Z',
+  },
+];
+
+/**
+ * Mini us. Heights and the names we call each other ship with the site;
+ * full names and birthdays don't — we fill those in ourselves in the app.
+ */
+export const defaultUs: UsContent = {
+  you: {
+    fullName: '',
+    birthday: '',
+    heightCm: 192,
+    look: { outfit: 'black-fit', hair: 'straight', accessories: ['chain', 'bracelet'] },
+    lines: [],
+  },
+  partner: {
+    fullName: '',
+    birthday: '',
+    heightCm: 158,
+    look: { outfit: 'pink-top', hair: 'straight', accessories: ['necklace', 'ring', 'stanley'] },
+    lines: [],
+  },
+  petNames: [
+    { id: 'pet-baby', name: 'baby', from: 'both' },
+    { id: 'pet-schatje', name: 'schatje', from: 'both' },
+    { id: 'pet-beautiful', name: 'beautiful', from: 'you' },
+    { id: 'pet-princess', name: 'my princess', from: 'you' },
+    { id: 'pet-babygirl', name: 'baby girl', from: 'you' },
+    { id: 'pet-handsome', name: 'handsome', from: 'partner' },
+    { id: 'pet-sexy', name: 'sexy', from: 'both' },
+    { id: 'pet-booboo', name: 'booboo', from: 'partner' },
+    { id: 'pet-pookie', name: 'pookie wookie cookie', from: 'both' },
+  ],
+  chat: [],
+};
+
+export function cloneUs(us: UsContent): UsContent {
+  const me = (m: UsContent['you']) => ({
+    ...m,
+    look: { ...m.look, accessories: [...m.look.accessories] },
+    lines: [...m.lines],
+  });
+  return {
+    you: me(us.you),
+    partner: me(us.partner),
+    petNames: us.petNames.map((p) => ({ ...p })),
+    chat: us.chat.map((c) => ({ ...c })),
+  };
+}
+
 export function createDefaultContent(): AppContent {
   return {
     version: 1,
@@ -447,6 +507,8 @@ export function createDefaultContent(): AppContent {
     pet: { ...defaultPet, treats: { ...defaultPet.treats }, tricks: {}, log: [] },
     countdowns: [],
     welcome: { ...defaultWelcome },
+    lists: defaultLists.map((l) => ({ ...l, items: [] })),
+    us: cloneUs(defaultUs),
   };
 }
 

@@ -1,5 +1,5 @@
-import { PET_LOG_LIMIT } from '../data/normalize';
-import type { AppContent, CocoPet } from '../data/types';
+import { CHAT_LIMIT, PET_LOG_LIMIT } from '../data/normalize';
+import type { AppContent, CocoPet, OurList, UsContent } from '../data/types';
 
 /**
  * Merging two people's edits.
@@ -167,6 +167,28 @@ export function mergePet(base: CocoPet, local: CocoPet, remote: CocoPet): CocoPe
   };
 }
 
+/** Lists: the lists themselves by id, and the items inside each list by id too. */
+export function mergeLists(base: OurList[], local: OurList[], remote: OurList[]): OurList[] {
+  const strip = (l: OurList) => ({ ...l, items: [] });
+  const merged = mergeList(base.map(strip), local.map(strip), remote.map(strip));
+  const find = (all: OurList[], id: string) => all.find((l) => l.id === id)?.items ?? [];
+  return merged.map((l) => ({
+    ...l,
+    items: mergeList(find(base, l.id), find(local, l.id), find(remote, l.id)),
+  }));
+}
+
+export function mergeUs(base: UsContent, local: UsContent, remote: UsContent): UsContent {
+  return {
+    you: mergeFields(base.you, local.you, remote.you),
+    partner: mergeFields(base.partner, local.partner, remote.partner),
+    petNames: mergeList(base.petNames, local.petNames, remote.petNames),
+    chat: mergeList(base.chat, local.chat, remote.chat)
+      .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
+      .slice(0, CHAT_LIMIT),
+  };
+}
+
 export function mergeContent(base: AppContent, local: AppContent, remote: AppContent): AppContent {
   return {
     version: 1,
@@ -190,6 +212,8 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
     pet: mergePet(base.pet, local.pet, remote.pet),
     countdowns: mergeList(base.countdowns, local.countdowns, remote.countdowns),
     welcome: mergeFields(base.welcome, local.welcome, remote.welcome),
+    lists: mergeLists(base.lists, local.lists, remote.lists),
+    us: mergeUs(base.us, local.us, remote.us),
   };
 }
 
@@ -226,6 +250,10 @@ export function mergeFirstJoin(local: AppContent, remote: AppContent): AppConten
     songs: addPlain(local.songs, remote.songs),
     coco: { ...remote.coco, notes: addPlain(local.coco.notes, remote.coco.notes) },
     countdowns: addPlain(local.countdowns, remote.countdowns),
+    lists: addPlain(
+      local.lists.filter((l) => l.items.length > 0 || !remote.lists.some((r) => r.id === l.id)),
+      remote.lists,
+    ),
   };
 }
 

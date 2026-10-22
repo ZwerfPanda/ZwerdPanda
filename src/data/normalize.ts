@@ -1,8 +1,11 @@
 import {
   createDefaultContent,
   defaultPet,
+  cloneUs,
+  defaultLists,
   defaultPreferences,
   defaultProfile,
+  defaultUs,
   defaultWelcome,
 } from './defaults';
 import type {
@@ -10,8 +13,15 @@ import type {
   AppContent,
   ArtKey,
   CocoContent,
+  ChatLine,
   CocoPet,
   Countdown,
+  ListIcon,
+  ListItem,
+  MiniMe,
+  OurList,
+  PetName,
+  UsContent,
   CountdownIcon,
   Person,
   PetAction,
@@ -415,6 +425,101 @@ function normalizeWelcome(v: unknown): Welcome {
   };
 }
 
+const LIST_ICONS: readonly ListIcon[] = [
+  'baby',
+  'heart',
+  'star',
+  'film',
+  'plane',
+  'utensils',
+  'gift',
+  'music',
+  'book',
+  'home',
+];
+export const CHAT_LIMIT = 80;
+
+function normalizeListItem(v: unknown, i: number): ListItem | null {
+  if (!isObj(v) || !optStr(v.text)) return null;
+  const hearts = arr(v.hearts).filter(
+    (h): h is 'you' | 'partner' => h === 'you' || h === 'partner',
+  );
+  return {
+    id: id(v.id, 'item', i),
+    text: str(v.text, '', 200),
+    note: optStr(v.note, 500),
+    hearts: [...new Set(hearts)],
+    done: bool(v.done),
+    by: person(v.by),
+    createdAt: stamp(v.createdAt),
+  };
+}
+
+function normalizeList(v: unknown, i: number): OurList | null {
+  if (!isObj(v) || !optStr(v.title)) return null;
+  return {
+    id: id(v.id, 'list', i),
+    title: str(v.title, '', 80),
+    icon: oneOf(v.icon, LIST_ICONS, 'heart'),
+    items: list(v.items, normalizeListItem).slice(0, 500),
+    by: person(v.by),
+    createdAt: stamp(v.createdAt),
+  };
+}
+
+function normalizeMiniMe(v: unknown, fallback: MiniMe): MiniMe {
+  if (!isObj(v)) return { ...fallback, look: { ...fallback.look }, lines: [...fallback.lines] };
+  const look = isObj(v.look) ? v.look : {};
+  const accessories = arr(look.accessories)
+    .filter((a): a is string => typeof a === 'string' && a.length < 30)
+    .slice(0, 12);
+  return {
+    fullName: str(v.fullName, '', 120),
+    birthday: optDate(v.birthday) ?? '',
+    heightCm: Math.round(clampNumber(v.heightCm, 100, 230, fallback.heightCm)),
+    look: {
+      outfit:
+        typeof look.outfit === 'string' && look.outfit
+          ? look.outfit.slice(0, 30)
+          : fallback.look.outfit,
+      hair: oneOf(look.hair, ['straight', 'wavy'] as const, fallback.look.hair),
+      accessories: Array.isArray(look.accessories)
+        ? [...new Set(accessories)]
+        : [...fallback.look.accessories],
+    },
+    lines: arr(v.lines)
+      .filter((l): l is string => typeof l === 'string' && l.trim().length > 0)
+      .map((l) => l.slice(0, 200))
+      .slice(0, 40),
+  };
+}
+
+function normalizeUs(v: unknown): UsContent {
+  if (!isObj(v)) return cloneUs(defaultUs);
+  return {
+    you: normalizeMiniMe(v.you, defaultUs.you),
+    partner: normalizeMiniMe(v.partner, defaultUs.partner),
+    petNames: Array.isArray(v.petNames)
+      ? list(v.petNames, (p, i): PetName | null =>
+          isObj(p) && optStr(p.name)
+            ? {
+                id: id(p.id, 'pet', i),
+                name: str(p.name, '', 40),
+                from: oneOf(p.from, ['you', 'partner', 'both'] as const, 'both'),
+              }
+            : null,
+        ).slice(0, 40)
+      : defaultUs.petNames.map((p) => ({ ...p })),
+    chat: list(v.chat, (c, i): ChatLine | null =>
+      isObj(c) && optStr(c.text) && (c.who === 'you' || c.who === 'partner')
+        ? { id: id(c.id, 'chat', i), who: c.who, text: str(c.text, '', 300), at: stamp(c.at) }
+        : null,
+    )
+      .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
+      .slice(0, CHAT_LIMIT),
+  };
+}
+
 function list<T>(v: unknown, fn: (item: unknown, i: number) => T | null): T[] {
   const seen = new Set<string>();
   const out: T[] = [];
@@ -449,6 +554,10 @@ export function normalizeContent(raw: unknown): AppContent {
     pet: normalizePet(raw.pet),
     countdowns: list(raw.countdowns, normalizeCountdown),
     welcome: normalizeWelcome(raw.welcome),
+    lists: Array.isArray(raw.lists)
+      ? list(raw.lists, normalizeList).slice(0, 60)
+      : defaultLists.map((l) => ({ ...l, items: [] })),
+    us: normalizeUs(raw.us),
   };
 }
 

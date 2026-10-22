@@ -1,5 +1,15 @@
 import { getContent, getPrefs, updateContent } from './store';
-import type { AppContent, MediaSource, Profile, SurpriseContent, CocoContent } from './types';
+import type {
+  AppContent,
+  CocoContent,
+  MediaSource,
+  MiniMe,
+  OurList,
+  Person,
+  Profile,
+  SurpriseContent,
+  UsContent,
+} from './types';
 import { deleteMedia, listMediaIds } from '../lib/media';
 
 /** Collections that hold a list of items with ids. */
@@ -143,4 +153,16 @@ export async function cleanupOrphanMedia(): Promise<number> {
   const orphans = stored.filter((mediaId) => !used.has(mediaId));
   await Promise.all(orphans.map((mediaId) => deleteMedia(mediaId)));
   return orphans.length;
+}
+
+export function updateUs(recipe: (us: UsContent) => UsContent) {
+  updateContent((c) => ({ ...c, us: recipe(c.us) }));
+}
+
+export function updateMini(who: Person, patch: Partial<MiniMe>) {
+  updateUs((us) => ({ ...us, [who]: { ...us[who], ...patch } }));
+}
+
+export function updateLists(recipe: (lists: OurList[]) => OurList[]) {
+  updateContent((c) => ({ ...c, lists: recipe(c.lists) }));
 }

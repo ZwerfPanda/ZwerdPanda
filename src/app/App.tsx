@@ -30,6 +30,8 @@ const pages = {
     import('../features/surprises/SurprisesPage').then((m) => ({ default: m.SurprisesPage })),
   music: () => import('../features/music/MusicPage').then((m) => ({ default: m.MusicPage })),
   coco: () => import('../features/coco/CocoPage').then((m) => ({ default: m.CocoPage })),
+  us: () => import('../features/us/MiniUsPage').then((m) => ({ default: m.MiniUsPage })),
+  lists: () => import('../features/lists/ListsPage').then((m) => ({ default: m.ListsPage })),
   settings: () =>
     import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 };
@@ -41,6 +43,8 @@ const FuturePage = lazy(pages.future);
 const SurprisesPage = lazy(pages.surprises);
 const MusicPage = lazy(pages.music);
 const CocoPage = lazy(pages.coco);
+const MiniUsPage = lazy(pages.us);
+const ListsPage = lazy(pages.lists);
 const SettingsPage = lazy(pages.settings);
 
 const PAGES: Record<RoutePath, () => React.ReactNode> = {
@@ -53,6 +57,8 @@ const PAGES: Record<RoutePath, () => React.ReactNode> = {
   '/surprises': () => <SurprisesPage />,
   '/music': () => <MusicPage />,
   '/coco': () => <CocoPage />,
+  '/us': () => <MiniUsPage />,
+  '/lists': () => <ListsPage />,
   '/settings': () => <SettingsPage />,
 };
 

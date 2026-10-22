@@ -519,7 +519,9 @@
     'mem letters'
     'future gift'
     'music music'
-    'coco coco';
+    'coco coco'
+    'us us'
+    'lists lists';
   gap: 14px;
 }
 
@@ -530,7 +532,8 @@
       'story story'
       'mem letters'
       'future gift'
-      'music coco';
+      'music coco'
+      'us lists';
   }
 }
 
@@ -541,7 +544,8 @@
       'world world world world mem mem'
       'world world world world letters letters'
       'story story story future future gift'
-      'music music music coco coco coco';
+      'music music music coco coco coco'
+      'us us us lists lists lists';
     gap: 18px;
   }
 }
@@ -930,6 +934,19 @@
 
 .ex-sticker--coco {
   grid-area: coco;
+}
+
+.ex-sticker--us {
+  grid-area: us;
+}
+
+.ex-sticker--lists {
+  grid-area: lists;
+}
+
+.ex-sticker--us:hover svg,
+.ex-sticker--lists:hover svg {
+  transform: translateY(-4px) rotate(5deg);
 }
 
 .ex-sticker--music:hover svg {

@@ -77,6 +77,21 @@ export function upcoming(content: AppContent, today: Date): Upcoming[] {
       auto: true,
     });
   }
+  for (const who of ['partner', 'you'] as const) {
+    const birthday = content.us[who].birthday;
+    const next = birthday ? nextOccurrence(birthday, true, today) : null;
+    if (next && next.years > 0) {
+      const name = who === 'you' ? content.profile.yourName : content.profile.partnerName;
+      list.push({
+        id: `auto-birthday-${who}`,
+        title: `${name} turns ${next.years}`,
+        icon: 'cake',
+        date: next.date,
+        days: next.days,
+        auto: true,
+      });
+    }
+  }
   return list.sort((a, b) => a.days - b.days || a.title.localeCompare(b.title));
 }
 
