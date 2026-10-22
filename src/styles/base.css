@@ -132,7 +132,8 @@ button:disabled {
   border-radius: var(--radius-pill);
   background: var(--plum-800);
   color: #fff;
-  transform: translateY(-160%);
+  /* Fully off-screen, also behind a notch / Dynamic Island. */
+  transform: translateY(calc(-100% - var(--safe-top) - 16px));
   transition: transform 0.2s var(--ease-out);
 }
 

@@ -26,8 +26,8 @@ export type Face = 'smile' | 'grin' | 'kiss' | 'talk' | 'wink' | 'happy' | 'calm
 
 type P = { x: number; y: number };
 
-const SKIN = { you: '#a46d48', partner: '#8f5a3b' };
-const SKIN_SHADE = { you: '#8d5a39', partner: '#7a4a2f' };
+const SKIN = { you: '#bb855e', partner: '#946040' };
+const SKIN_SHADE = { you: '#a06c48', partner: '#7d4d31' };
 const HAIR = '#1b1413';
 const HAIR_LIGHT = '#3a2621';
 const S = {
@@ -48,7 +48,7 @@ interface Build {
 }
 
 const BUILD: Record<Person, Build> = {
-  you: { headR: 33, shoulder: 40, waist: 31, hip: 30, upper: 52, fore: 50, arm: 15 },
+  you: { headR: 32, shoulder: 47, waist: 32, hip: 31, upper: 52, fore: 50, arm: 18 },
   partner: { headR: 30, shoulder: 30, waist: 25, hip: 36, upper: 41, fore: 40, arm: 12.5 },
 };
 
@@ -116,8 +116,9 @@ export function Figure({
   const holdsCup = acc.has('stanley') && (pose === 'idle' || pose === 'talk' || pose === 'point');
   const sL: P = { x: -B.shoulder + 6, y: shY + 7 };
   const sR: P = { x: B.shoulder - 6, y: shY + 7 };
-  const reach = (B.upper + B.fore) * 0.96;
-  const rest = (side: -1 | 1): P => ({ x: side * (B.shoulder + 2), y: shY + 7 + reach });
+  const reach = (B.upper + B.fore) * 0.985;
+  // Arms hang almost straight, just clear of the body.
+  const rest = (side: -1 | 1): P => ({ x: side * (B.shoulder + 3), y: shY + 7 + reach });
   const t = toward;
   let targetL = rest(-1);
   let targetR = rest(1);
@@ -126,7 +127,7 @@ export function Figure({
       targetR = { x: B.shoulder + 30, y: shY - 62 };
       break;
     case 'peace':
-      targetR = { x: B.headR * 0.95, y: cy + 4 };
+      targetR = { x: B.headR * 1.3, y: cy - 2 };
       break;
     case 'heart':
       targetL = { x: -7, y: shY + 26 };
@@ -136,12 +137,24 @@ export function Figure({
       targetR = { x: B.shoulder * 0.45, y: shY + 8 };
       break;
     case 'hug':
-      targetL = { x: t * (B.shoulder + 22) - (t < 0 ? 6 : -6), y: shY + 34 };
-      targetR = { x: t * (B.shoulder + 40), y: shY + 18 };
+      // She's shorter: her arms go round his waist, below her own face.
+      if (her) {
+        targetL = { x: t * (B.shoulder + 26), y: shY + 52 };
+        targetR = { x: t * (B.shoulder + 44), y: shY + 40 };
+        if (t < 0)
+          [targetL, targetR] = [
+            { x: -(B.shoulder + 44), y: shY + 40 },
+            { x: -(B.shoulder + 26), y: shY + 52 },
+          ];
+        break;
+      }
+      // He's taller: his arms go round her shoulders, under her face.
+      targetL = { x: t * (B.shoulder + 24), y: shY + 70 };
+      targetR = { x: t * (B.shoulder + 44), y: shY + 52 };
       if (t < 0)
         [targetL, targetR] = [
-          { x: -(B.shoulder + 40), y: shY + 18 },
-          { x: -(B.shoulder + 22) + 6, y: shY + 34 },
+          { x: -(B.shoulder + 44), y: shY + 52 },
+          { x: -(B.shoulder + 24), y: shY + 70 },
         ];
       break;
     case 'highfive':
@@ -178,62 +191,55 @@ export function Figure({
   const torso = `M${-B.shoulder} ${shY + 10}Q${-B.shoulder} ${shY} ${-B.shoulder + 12} ${shY}H${B.shoulder - 12}Q${B.shoulder} ${shY} ${B.shoulder} ${shY + 10}C${B.shoulder - 2} ${waistY - 10} ${B.waist} ${waistY - 6} ${B.waist} ${waistY}C${B.waist} ${waistY + 10} ${B.hip} ${hipY - 14} ${B.hip} ${hipY + 4}H${-B.hip}C${-B.hip} ${hipY - 14} ${-B.waist} ${waistY + 10} ${-B.waist} ${waistY}C${-B.waist} ${waistY - 6} ${-B.shoulder + 2} ${waistY - 10} ${-B.shoulder} ${shY + 10}Z`;
 
   const arm = (a: { elbow: P; hand: P }, s: P, side: -1 | 1, front: boolean) => {
-    const path = `M${s.x} ${s.y}L${a.elbow.x} ${a.elbow.y}L${a.hand.x} ${a.hand.y}`;
-    const upperPath = `M${s.x} ${s.y}L${a.elbow.x} ${a.elbow.y}`;
-    const shortEnd = { x: s.x + (a.elbow.x - s.x) * 0.6, y: s.y + (a.elbow.y - s.y) * 0.6 };
+    // One smooth curve through the elbow, so arms bend instead of hinging.
+    const c = { x: 2 * a.elbow.x - (s.x + a.hand.x) / 2, y: 2 * a.elbow.y - (s.y + a.hand.y) / 2 };
+    const path = `M${s.x} ${s.y}Q${c.x} ${c.y} ${a.hand.x} ${a.hand.y}`;
+    const at = (t: number) => ({
+      x: (1 - t) * (1 - t) * s.x + 2 * t * (1 - t) * c.x + t * t * a.hand.x,
+      y: (1 - t) * (1 - t) * s.y + 2 * t * (1 - t) * c.y + t * t * a.hand.y,
+    });
     const w = B.arm;
     const ringHand = her && side === -1 && acc.has('ring');
+    const wrist = at(0.9);
+    const part = (share: number, color: string, width: number) => (
+      <path
+        d={path}
+        pathLength={100}
+        strokeDasharray={`${share} 200`}
+        fill="none"
+        stroke={color}
+        strokeWidth={width}
+        strokeLinecap="round"
+      />
+    );
     return (
       <g key={`arm${side}${front}`}>
-        <path
-          d={path}
-          fill="none"
-          stroke={INK}
-          strokeWidth={w + 5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d={path}
-          fill="none"
-          stroke={skin}
-          strokeWidth={w}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        {sleeve && (
+        <path d={path} fill="none" stroke={INK} strokeWidth={w + 5} strokeLinecap="round" />
+        <path d={path} fill="none" stroke={skin} strokeWidth={w} strokeLinecap="round" />
+        {!her && !sleeve && (
+          // a bit of definition on his arms
           <path
-            d={`M${s.x} ${s.y}L${a.elbow.x} ${a.elbow.y}L${a.elbow.x + (a.hand.x - a.elbow.x) * 0.82} ${a.elbow.y + (a.hand.y - a.elbow.y) * 0.82}`}
+            d={`M${at(0.18).x - side * w * 0.22} ${at(0.18).y}Q${at(0.3).x - side * w * 0.42} ${at(0.3).y} ${at(0.44).x - side * w * 0.2} ${at(0.44).y}`}
             fill="none"
-            stroke={sleeve}
-            strokeWidth={w + 2.5}
+            stroke={shade}
+            strokeWidth="2"
             strokeLinecap="round"
-            strokeLinejoin="round"
+            opacity="0.6"
           />
         )}
-        {shortSleeve && (
-          <path
-            d={`M${s.x} ${s.y}L${shortEnd.x} ${shortEnd.y}`}
-            fill="none"
-            stroke={shortSleeve}
-            strokeWidth={w + 4}
-            strokeLinecap="round"
-          />
-        )}
-        {!sleeve && !shortSleeve && (
-          <path d={upperPath} fill="none" stroke={skin} strokeWidth={w} strokeLinecap="round" />
-        )}
+        {sleeve && part(86, sleeve, w + 3)}
+        {shortSleeve && part(32, shortSleeve, w + 5)}
         {(acc.has('bracelet') && !her && side === 1) || (her && side === 1) ? (
           <circle
-            cx={a.elbow.x + (a.hand.x - a.elbow.x) * 0.84}
-            cy={a.elbow.y + (a.hand.y - a.elbow.y) * 0.84}
+            cx={wrist.x}
+            cy={wrist.y}
             r={w * 0.42}
             fill="none"
             stroke={her ? '#e2b65a' : '#c9cdd3'}
             strokeWidth="2"
           />
         ) : null}
-        <circle cx={a.hand.x} cy={a.hand.y} r={w * 0.62} fill={skin} {...S} strokeWidth={2.2} />
+        <circle cx={a.hand.x} cy={a.hand.y} r={w * 0.58} fill={skin} {...S} strokeWidth={2.2} />
         {her && (
           <path
             d={`M${a.hand.x - 3} ${a.hand.y + w * 0.5}l-1 3M${a.hand.x + 1} ${a.hand.y + w * 0.58}v3.2M${a.hand.x + 4} ${a.hand.y + w * 0.5}l1 3`}
@@ -299,28 +305,28 @@ export function Figure({
       <rect x={-8} y={cy + B.headR - 8} width="16" height="22" fill={shade} />
       {!her && (
         <>
-          <circle cx={-B.headR * 0.98} cy={cy + 3} r="7.5" fill={skin} {...S} strokeWidth={2.2} />
-          <circle cx={B.headR * 0.98} cy={cy + 3} r="7.5" fill={skin} {...S} strokeWidth={2.2} />
+          <ellipse
+            cx={-B.headR * 0.84}
+            cy={cy + 2}
+            rx="6"
+            ry="8"
+            fill={skin}
+            {...S}
+            strokeWidth={2.2}
+          />
+          <ellipse
+            cx={B.headR * 0.84}
+            cy={cy + 2}
+            rx="6"
+            ry="8"
+            fill={skin}
+            {...S}
+            strokeWidth={2.2}
+          />
         </>
       )}
-      <ellipse cx="0" cy={cy} rx={B.headR * 0.9} ry={B.headR} fill={skin} {...S} />
-      {/* jaw shading */}
-      <path
-        d={`M${-B.headR * 0.62} ${cy + B.headR * 0.55}q${B.headR * 0.62} ${B.headR * 0.5} ${B.headR * 1.24} 0`}
-        fill="none"
-        stroke={shade}
-        strokeWidth="3"
-        opacity="0.45"
-      />
-      <FaceFeatures
-        who={who}
-        cy={cy}
-        r={B.headR}
-        face={face}
-        blink={blink}
-        skin={skin}
-        shade={shade}
-      />
+      <path d={headPath(B.headR, cy, her)} fill={skin} {...S} />
+      <FaceFeatures who={who} cy={cy} r={B.headR} face={face} blink={blink} shade={shade} />
       {her ? (
         <HerFrontHair cy={cy} r={B.headR} wavy={look.hair === 'wavy'} uid={uid} />
       ) : (
@@ -436,6 +442,17 @@ export function Figure({
             waistY={waistY}
             skin={skin}
           />
+          {!her && !outfit.layer && (
+            // a hint of chest under his tee
+            <path
+              d={`M${-B.shoulder * 0.62} ${shY + 30}q${B.shoulder * 0.3} 8 ${B.shoulder * 0.56} 2M${B.shoulder * 0.62} ${shY + 30}q${-B.shoulder * 0.3} 8 ${-B.shoulder * 0.56} 2`}
+              fill="none"
+              stroke="#000"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              opacity="0.28"
+            />
+          )}
           {acc.has('chain') && !her && (
             <g>
               <path d={`M-12 ${shY + 1}q12 26 24 0`} fill="none" stroke="#d6dbe1" strokeWidth="2" />
@@ -519,13 +536,26 @@ export function Figure({
 
 /* ------------------------------------------------------------- the parts */
 
+/** Face outline: his longer with a defined jaw, hers rounder and softer. */
+function headPath(r: number, cy: number, her: boolean) {
+  const w = her ? r * 0.9 : r * 0.84;
+  const top = cy - r;
+  const chin = cy + (her ? r * 0.98 : r * 1.08);
+  const jaw = her ? r * 0.5 : r * 0.42;
+  return (
+    `M0 ${top}C${w * 0.62} ${top} ${w} ${cy - r * 0.6} ${w} ${cy - r * 0.05}` +
+    `C${w} ${cy + r * 0.45} ${jaw + 6} ${chin - 4} 0 ${chin}` +
+    `C${-jaw - 6} ${chin - 4} ${-w} ${cy + r * 0.45} ${-w} ${cy - r * 0.05}` +
+    `C${-w} ${cy - r * 0.6} ${-w * 0.62} ${top} 0 ${top}Z`
+  );
+}
+
 function FaceFeatures({
   who,
   cy,
   r,
   face,
   blink,
-  skin,
   shade,
 }: {
   who: Person;
@@ -533,185 +563,275 @@ function FaceFeatures({
   r: number;
   face: Face;
   blink: boolean;
-  skin: string;
   shade: string;
 }) {
   const her = who === 'partner';
-  const ex = r * 0.36;
-  const ey = cy + r * 0.04;
+  const ex = r * (her ? 0.36 : 0.33);
+  const ey = cy + r * 0.02;
   const closed = blink || face === 'happy';
-  const eye = (x: number, wink = false) =>
-    closed || wink ? (
-      <path
-        d={`M${x - 5} ${ey}q5 -5 10 0`}
-        fill="none"
-        stroke={INK}
-        strokeWidth="2.6"
-        strokeLinecap="round"
-      />
-    ) : (
-      <g>
-        <ellipse cx={x} cy={ey} rx="4" ry="5" fill="#1a1214" />
-        <circle cx={x + 1.4} cy={ey - 1.8} r="1.5" fill="#fff" />
-        {her && (
+  const lip = her ? '#7a3a43' : '#6a3a2c';
+
+  const eye = (x: number, wink = false) => {
+    const out = x > 0 ? 1 : -1;
+    if (closed || wink) {
+      return (
+        <g>
           <path
-            d={`M${x + (x > 0 ? 3 : -3)} ${ey - 4}l${x > 0 ? 3 : -3} -3`}
-            stroke="#1a1214"
-            strokeWidth="1.6"
+            d={`M${x - 6} ${ey}q6 5 12 0`}
+            fill="none"
+            stroke={INK}
+            strokeWidth="2.4"
             strokeLinecap="round"
           />
-        )}
+          {her && (
+            <path
+              d={`M${x + out * 5} ${ey + 1}l${out * 3} 2M${x + out * 2} ${ey + 3}l${out * 1.5} 3`}
+              stroke={INK}
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          )}
+        </g>
+      );
+    }
+    return her ? (
+      <g>
+        {/* almond eyes, lined, with lashes */}
+        <path d={`M${x - 7} ${ey}q7 -8 14 0q-7 6 -14 0z`} fill="#fff" />
+        <circle cx={x + out * 0.5} cy={ey - 0.5} r="4.4" fill="#3a2119" />
+        <circle cx={x + out * 0.5} cy={ey - 0.5} r="2.4" fill="#120b0c" />
+        <circle cx={x + out * 0.5 + 1.6} cy={ey - 2.4} r="1.4" fill="#fff" />
+        <path
+          d={`M${x - 7.5} ${ey + 0.5}q7.5 -9.5 15 -0.5l${out * 3} -2.5`}
+          fill="none"
+          stroke={INK}
+          strokeWidth="2.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d={`M${x + out * 5.5} ${ey - 3.5}l${out * 2.6} -1.6`}
+          stroke={INK}
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+      </g>
+    ) : (
+      <g>
+        <path d={`M${x - 6} ${ey}q6 -6.5 12 0q-6 5 -12 0z`} fill="#fff" />
+        <circle cx={x} cy={ey - 0.3} r="3.8" fill="#2a1914" />
+        <circle cx={x} cy={ey - 0.3} r="2" fill="#0f0a0a" />
+        <circle cx={x + 1.3} cy={ey - 1.8} r="1.1" fill="#fff" />
+        <path
+          d={`M${x - 6.5} ${ey + 0.3}q6.5 -8 13 0`}
+          fill="none"
+          stroke={INK}
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
       </g>
     );
-  const my = cy + r * 0.46;
-  const lip = her ? '#6e3a3c' : '#5c3428';
-  return (
-    <g>
-      {/* brows */}
-      <path
-        d={`M${-ex - 6} ${ey - 10}q6 ${her ? -4 : -3} 12 -1M${ex - 6} ${ey - 11}q6 ${her ? -3 : -3} 12 1`}
-        fill="none"
-        stroke="#1b1413"
-        strokeWidth={her ? 2.2 : 3}
-        strokeLinecap="round"
-      />
-      {eye(-ex)}
-      {eye(ex, face === 'wink')}
-      {/* nose */}
-      <path
-        d={`M-1 ${cy + r * 0.18}q3 4 0 7`}
-        fill="none"
-        stroke={shade}
-        strokeWidth="2.2"
-        strokeLinecap="round"
-      />
-      <circle cx={-r * 0.55} cy={cy + r * 0.3} r="5" fill="#d27c74" opacity={her ? 0.35 : 0.18} />
-      <circle cx={r * 0.55} cy={cy + r * 0.3} r="5" fill="#d27c74" opacity={her ? 0.35 : 0.18} />
-      {/* mouth */}
-      {face === 'kiss' ? (
-        <g>
-          <ellipse cx="2" cy={my} rx="5" ry="4.2" fill={lip} {...S} strokeWidth={1.6} />
-          <path d={`M-1 ${my}h6`} stroke="#3d1f22" strokeWidth="1.2" />
-        </g>
-      ) : face === 'grin' || face === 'happy' ? (
-        <g>
-          <path
-            d={`M-10 ${my - 2}q10 13 20 0z`}
-            fill="#fff"
-            stroke={her ? lip : INK}
-            strokeWidth="2"
-            strokeLinejoin="round"
-          />
-          <path d={`M-10 ${my - 2}h20`} stroke={her ? lip : INK} strokeWidth="2" />
-        </g>
-      ) : face === 'talk' ? (
-        <ellipse
-          cx="0"
-          cy={my}
-          rx="5"
-          ry="4"
-          fill="#4a2326"
-          stroke={her ? lip : INK}
-          strokeWidth="1.8"
-        />
-      ) : face === 'calm' ? (
+  };
+
+  const my = cy + r * (her ? 0.5 : 0.52);
+  const happy = face === 'grin' || face === 'happy';
+  const mouth =
+    face === 'kiss' ? (
+      <g>
+        <ellipse cx="2" cy={my} rx="5" ry="4.4" fill={lip} {...S} strokeWidth={1.6} />
+        <path d={`M-1 ${my}h6`} stroke="#3d1f22" strokeWidth="1.2" />
+      </g>
+    ) : happy ? (
+      <g>
         <path
-          d={`M-5 ${my}q5 2 10 0`}
-          fill="none"
+          d={`M-10 ${my - 2}q10 ${her ? 12 : 11} 20 0z`}
+          fill="#fff"
           stroke={her ? lip : INK}
           strokeWidth="2.2"
+          strokeLinejoin="round"
+        />
+        {her && <path d={`M-10 ${my - 2}q10 -3 20 0`} fill="none" stroke={lip} strokeWidth="3" />}
+      </g>
+    ) : face === 'talk' ? (
+      <ellipse
+        cx="0"
+        cy={my}
+        rx="5"
+        ry="4.2"
+        fill="#4a2326"
+        stroke={her ? lip : INK}
+        strokeWidth="1.8"
+      />
+    ) : her ? (
+      // full lips with a cupid's bow and a little shine
+      <g>
+        <path
+          d={`M-8 ${my}q3 -4.5 5.5 -3.5q2.5 1.2 2.5 1.2q0 0 2.5 -1.2q2.5 -1 5.5 3.5q-8 ${face === 'calm' ? 1.5 : 2.5} -16 0z`}
+          fill={lip}
+          stroke={INK}
+          strokeWidth="1.4"
+          strokeLinejoin="round"
+        />
+        <path
+          d={`M-8 ${my}q8 ${face === 'calm' ? 7 : 9} 16 0q-8 ${face === 'calm' ? 1.5 : 2.5} -16 0z`}
+          fill="#8e4650"
+          stroke={INK}
+          strokeWidth="1.4"
+          strokeLinejoin="round"
+        />
+        <path
+          d={`M-2.5 ${my + 3.5}q2.5 1 5 0`}
+          stroke="#f2c6c8"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+      </g>
+    ) : (
+      // his easy closed smile
+      <path
+        d={`M-8 ${my - 1}q8 ${face === 'calm' ? 3 : 6} 16 0`}
+        fill="none"
+        stroke={INK}
+        strokeWidth="2.3"
+        strokeLinecap="round"
+      />
+    );
+
+  return (
+    <g>
+      {/* brows: hers arched and neat, his straight and thick */}
+      {her ? (
+        <path
+          d={`M${-ex - 7} ${ey - 9}q5 -6 13 -3M${ex + 7} ${ey - 9}q-5 -6 -13 -3`}
+          fill="none"
+          stroke="#1b1413"
+          strokeWidth="2.4"
           strokeLinecap="round"
         />
       ) : (
         <path
-          d={`M-7 ${my - 1}q7 7 14 0`}
-          fill="none"
-          stroke={her ? lip : INK}
-          strokeWidth={her ? 3 : 2.4}
-          strokeLinecap="round"
+          d={`M${-ex - 8} ${ey - 8.5}l14 -2.5l0.6 2.2l-14.6 1.6zM${ex + 8} ${ey - 8.5}l-14 -2.5l-0.6 2.2l14.6 1.6z`}
+          fill="#1b1413"
+          stroke="#1b1413"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
         />
       )}
-      {!her && (
-        <>
-          {/* thin moustache and a small chin beard, like in the photos */}
-          <path
-            d={`M-8 ${my - 6}q8 -4 16 0`}
-            fill="none"
-            stroke="#1b1413"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-          />
-          <path d={`M-5 ${cy + r * 0.82}q5 6 10 0q-5 -4 -10 0z`} fill="#1b1413" />
-          <path
-            d={`M${-r * 0.5} ${cy + r * 0.6}q${r * 0.5} ${r * 0.42} ${r} 0`}
-            fill="none"
-            stroke="#1b1413"
-            strokeWidth="1.2"
-            opacity="0.25"
-          />
-        </>
+      {eye(-ex)}
+      {eye(ex, face === 'wink')}
+      {/* nose */}
+      {her ? (
+        <path
+          d={`M-4 ${cy + r * 0.32}q-2 3 1 3.6M4 ${cy + r * 0.32}q2 3 -1 3.6`}
+          fill="none"
+          stroke={shade}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+      ) : (
+        <path
+          d={`M-1.5 ${cy + r * 0.04}q0 ${r * 0.24} -3 ${r * 0.32}q4 3 9 -0.5`}
+          fill="none"
+          stroke={shade}
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       )}
-      {skin && null}
+      <ellipse
+        cx={-r * 0.56}
+        cy={cy + r * 0.3}
+        rx="6"
+        ry="4"
+        fill="#e07f86"
+        opacity={her ? 0.38 : 0.12}
+      />
+      <ellipse
+        cx={r * 0.56}
+        cy={cy + r * 0.3}
+        rx="6"
+        ry="4"
+        fill="#e07f86"
+        opacity={her ? 0.38 : 0.12}
+      />
+      {mouth}
+      {!her && (
+        <g fill="#1b1413">
+          {/* thin moustache, a narrow chin beard below the lip, like in the photos */}
+          <path d={`M-9 ${my - 5}q9 -5 18 0q-2 1.6 -4 0.6q-5 -2 -10 0q-2 1 -4 -0.6z`} />
+          <path
+            d={`M-2.2 ${my + 5.5}h4.4q2.2 ${r * 0.14} 1.8 ${r * 0.3}q-4 2.4 -8 0q-0.4 ${-r * 0.16} 1.8 ${-r * 0.3}z`}
+          />
+        </g>
+      )}
     </g>
   );
 }
 
+/** Deterministic little wobble so the curls don't look stamped. */
+const wob = (i: number) => Math.sin(i * 12.9898) * 0.5 + 0.5;
+
 function HisHair({ cy, r }: { cy: number; r: number }) {
-  // Short faded sides, a crown of tight curls falling forward.
-  const curls: P[] = [];
-  for (let i = 0; i < 9; i++) {
-    const a = Math.PI * (1.08 + (i / 8) * 0.84);
-    curls.push({ x: Math.cos(a) * r * 0.78, y: cy - r * 0.42 + Math.sin(a) * r * 0.62 });
+  // Loose curls on top with volume, falling forward a little; short taper on the sides.
+  const n = 11;
+  const crown: P[] = [];
+  for (let i = 0; i <= n; i++) {
+    const a = Math.PI * (1.04 + (i / n) * 0.92);
+    const lift = 1 + wob(i) * 0.12;
+    crown.push({
+      x: Math.cos(a) * r * 0.98 * lift,
+      y: cy - r * 0.32 + Math.sin(a) * r * 0.98 * lift,
+    });
   }
-  for (let i = 0; i < 7; i++) {
-    const a = Math.PI * (1.15 + (i / 6) * 0.7);
-    curls.push({ x: Math.cos(a) * r * 0.5, y: cy - r * 0.55 + Math.sin(a) * r * 0.48 });
-  }
-  const fringe: P[] = [-0.42, -0.16, 0.1, 0.36].map((f, i) => ({
-    x: f * r,
-    y: cy - r * 0.48 + (i % 2) * 3,
-  }));
+  let d = `M${-r * 0.82} ${cy - r * 0.18}`;
+  crown.forEach((p, i) => {
+    const prev = i ? crown[i - 1] : { x: -r * 0.82, y: cy - r * 0.18 };
+    const mx = (prev.x + p.x) / 2;
+    const my = (prev.y + p.y) / 2;
+    const out = Math.hypot(mx, my - cy) || 1;
+    const bulge = 5 + wob(i + 3) * 4;
+    d += `Q${mx + (mx / out) * bulge} ${my + ((my - cy) / out) * bulge} ${p.x} ${p.y}`;
+  });
+  // fringe: curls tumbling onto the forehead
+  const fringe = [0.82, 0.55, 0.3, 0.06, -0.2, -0.46, -0.72];
+  let x0 = r * 0.82;
+  d += `L${x0} ${cy - r * 0.18}`;
+  fringe.slice(1).forEach((f, i) => {
+    const x = f * r;
+    const dip = cy - r * 0.42 + (i % 2 ? 6 : 11) + wob(i) * 3;
+    d += `Q${(x0 + x) / 2} ${dip} ${x} ${cy - r * 0.48}`;
+    x0 = x;
+  });
+  d += `Q${-r * 0.8} ${cy - r * 0.36} ${-r * 0.82} ${cy - r * 0.18}Z`;
+
+  const texture = Array.from({ length: 9 }, (_, i) => {
+    const a = Math.PI * (1.12 + wob(i + 7) * 0.76);
+    const rr = r * (0.35 + wob(i + 11) * 0.5);
+    return { x: Math.cos(a) * rr, y: cy - r * 0.5 + Math.sin(a) * rr * 0.75, flip: i % 2 };
+  });
   return (
     <g>
+      {/* taper: short hair above the ears */}
       <path
-        d={`M${-r * 0.9} ${cy - r * 0.1}C${-r * 0.95} ${cy - r * 1.2} ${r * 0.95} ${cy - r * 1.2} ${r * 0.9} ${cy - r * 0.1}C${r * 0.7} ${cy - r * 0.5} ${-r * 0.7} ${cy - r * 0.5} ${-r * 0.9} ${cy - r * 0.1}z`}
+        d={`M${-r * 0.86} ${cy - r * 0.3}Q${-r * 0.92} ${cy + r * 0.1} ${-r * 0.8} ${cy + r * 0.2}L${-r * 0.74} ${cy - r * 0.2}zM${r * 0.86} ${cy - r * 0.3}Q${r * 0.92} ${cy + r * 0.1} ${r * 0.8} ${cy + r * 0.2}L${r * 0.74} ${cy - r * 0.2}z`}
         fill={HAIR}
+        opacity="0.55"
       />
-      {[...curls, ...fringe].map((c, i) => (
-        <circle
-          key={i}
-          cx={c.x}
-          cy={c.y}
-          r={r * 0.2}
-          fill={i % 3 ? HAIR : HAIR_LIGHT}
-          stroke={INK}
-          strokeWidth="1.6"
-        />
-      ))}
-      {[...curls, ...fringe].map((c, i) => (
+      <path d={d} fill={HAIR} stroke={INK} strokeWidth="2.2" strokeLinejoin="round" />
+      {texture.map((t, i) => (
         <path
-          key={`s${i}`}
-          d={`M${c.x - 2} ${c.y - 1}q2 -3 4 0`}
+          key={i}
+          d={
+            t.flip
+              ? `M${t.x - 4} ${t.y + 2}q1 -6 5 -4q3 2 0 5`
+              : `M${t.x + 4} ${t.y + 2}q-1 -6 -5 -4q-3 2 0 5`
+          }
           fill="none"
-          stroke="#4a3530"
-          strokeWidth="1.2"
+          stroke={HAIR_LIGHT}
+          strokeWidth="1.8"
+          strokeLinecap="round"
         />
       ))}
-      {/* fade */}
-      <path
-        d={`M${-r * 0.9} ${cy - r * 0.15}q-2 ${r * 0.35} 2 ${r * 0.55}`}
-        stroke={HAIR}
-        strokeWidth="4"
-        opacity="0.55"
-        fill="none"
-      />
-      <path
-        d={`M${r * 0.9} ${cy - r * 0.15}q2 ${r * 0.35} -2 ${r * 0.55}`}
-        stroke={HAIR}
-        strokeWidth="4"
-        opacity="0.55"
-        fill="none"
-      />
     </g>
   );
 }
@@ -729,26 +849,28 @@ function HerBackHair({
   wavy: boolean;
   uid: string;
 }) {
-  const bottom = shY + 92;
-  const w = r * 1.2;
+  // Just past the shoulders.
+  const bottom = shY + 34;
+  const w = r * 1.12;
   const d = wavy
-    ? `M${-w} ${cy}C${-w} ${cy - r * 1.4} ${w} ${cy - r * 1.4} ${w} ${cy}Q${w + 14} ${cy + 30} ${w + 4} ${cy + 60}Q${w - 6} ${cy + 90} ${w + 8} ${bottom}Q0 ${bottom + 16} ${-w - 8} ${bottom}Q${-w + 6} ${cy + 90} ${-w - 4} ${cy + 60}Q${-w - 14} ${cy + 30} ${-w} ${cy}z`
-    : `M${-w} ${cy}C${-w} ${cy - r * 1.4} ${w} ${cy - r * 1.4} ${w} ${cy}L${w + 6} ${bottom}Q0 ${bottom + 14} ${-w - 6} ${bottom}z`;
+    ? `M${-w} ${cy}C${-w} ${cy - r * 1.4} ${w} ${cy - r * 1.4} ${w} ${cy}Q${w + 12} ${cy + 26} ${w + 2} ${cy + 46}Q${w - 6} ${bottom - 10} ${w + 8} ${bottom}Q0 ${bottom + 12} ${-w - 8} ${bottom}Q${-w + 6} ${bottom - 10} ${-w - 2} ${cy + 46}Q${-w - 12} ${cy + 26} ${-w} ${cy}z`
+    : `M${-w} ${cy}C${-w} ${cy - r * 1.4} ${w} ${cy - r * 1.4} ${w} ${cy}L${w + 5} ${bottom}Q0 ${bottom + 10} ${-w - 5} ${bottom}z`;
   return <path d={d} fill={`url(#hairshine-${uid})`} {...S} />;
 }
 
 function HerFrontHair({ cy, r, wavy, uid }: { cy: number; r: number; wavy: boolean; uid: string }) {
-  // Middle part, long curtains framing the face.
+  // Middle part, curtains framing her face down to the shoulders.
   const top = cy - r * 1.04;
+  const end = cy + r * 1.5;
   const side = (dir: 1 | -1) => {
     const outer = wavy
-      ? `Q${dir * r * 1.3} ${cy + r * 0.4} ${dir * r * 1.1} ${cy + r * 0.8}Q${dir * r * 0.92} ${cy + r * 1.2} ${dir * r * 1.18} ${cy + r * 1.62}`
-      : `L${dir * r * 1.16} ${cy + r * 1.62}`;
+      ? `Q${dir * r * 1.28} ${cy + r * 0.4} ${dir * r * 1.08} ${cy + r * 0.85}Q${dir * r * 0.95} ${cy + r * 1.2} ${dir * r * 1.14} ${end}`
+      : `L${dir * r * 1.1} ${end}`;
     return (
-      `M0 ${top}C${dir * r * 0.55} ${top - 3} ${dir * r * 1.1} ${cy - r * 0.72} ${dir * r * 1.1} ${cy}` +
+      `M0 ${top}C${dir * r * 0.55} ${top - 3} ${dir * r * 1.08} ${cy - r * 0.72} ${dir * r * 1.08} ${cy}` +
       outer +
-      `L${dir * r * 0.8} ${cy + r * 1.55}C${dir * r * 0.76} ${cy + r * 0.8} ${dir * r * 0.86} ${cy - r * 0.15} ${dir * r * 0.66} ${cy - r * 0.55}` +
-      `C${dir * r * 0.48} ${cy - r * 0.85} ${dir * r * 0.18} ${top + 8} 0 ${top + 6}z`
+      `L${dir * r * 0.82} ${end - 4}C${dir * r * 0.8} ${cy + r * 0.7} ${dir * r * 0.9} ${cy - r * 0.1} ${dir * r * 0.7} ${cy - r * 0.55}` +
+      `C${dir * r * 0.5} ${cy - r * 0.86} ${dir * r * 0.18} ${top + 8} 0 ${top + 6}z`
     );
   };
   return (
@@ -764,11 +886,11 @@ function HerFrontHair({ cy, r, wavy, uid }: { cy: number; r: number; wavy: boole
         />
       ))}
       <path
-        d={`M${-r * 0.58} ${cy - r * 0.62}q-6 20 -4 44M${r * 0.58} ${cy - r * 0.62}q6 20 4 44`}
+        d={`M${-r * 0.55} ${cy - r * 0.66}q-7 18 -5 40M${r * 0.55} ${cy - r * 0.66}q7 18 5 40`}
         fill="none"
-        stroke="#4b322b"
+        stroke="#5a3b32"
         strokeWidth="1.6"
-        opacity="0.7"
+        opacity="0.75"
       />
     </g>
   );

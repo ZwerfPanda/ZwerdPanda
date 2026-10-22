@@ -38,7 +38,8 @@
 .us-bubble {
   position: absolute;
   z-index: 2;
-  max-width: min(48%, 260px);
+  width: max-content;
+  max-width: min(62%, 300px);
   margin: 0;
   padding: 9px 14px;
   border-radius: 18px;

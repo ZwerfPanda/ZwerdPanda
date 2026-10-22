@@ -87,8 +87,8 @@ const MOMENTS: Record<MomentKind, Omit<Moment, 'lean'> & { lean?: Moment['lean']
   kiss: {
     pose: { you: 'idle', partner: 'idle' },
     face: { you: 'kiss', partner: 'happy' },
-    x: { partner: -22, you: 42 },
-    lean: { you: -9, partner: 3 },
+    x: { partner: -24, you: 50 },
+    lean: { you: -8, partner: 4 },
   },
   heart: {
     pose: { you: 'heart', partner: 'heart' },
@@ -231,8 +231,9 @@ function Stage() {
   };
   // Where the bubble points, as a share of the stage.
   const pct = (who: Person) => ({
-    left: `${Math.min(74, Math.max(26, ((moment.x[who] + 240) / 480) * 100))}%`,
-    top: `${((top[who] - 14 + 380) / 400) * 100}%`,
+    left: `${Math.min(68, Math.max(32, ((moment.x[who] + 240) / 480) * 100))}%`,
+    // Never so high that a long line runs off the top.
+    top: `${Math.max(21, ((top[who] - 14 + 380) / 400) * 100)}%`,
   });
 
   return (
