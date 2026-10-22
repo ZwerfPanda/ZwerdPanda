@@ -65,7 +65,10 @@ export function TextField({ label, value, onChange, hint, error, optional, ...re
   );
 }
 
-type TextAreaProps = Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange' | 'value'> & {
+type TextAreaProps = Omit<
+  React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+  'onChange' | 'value'
+> & {
   label: ReactNode;
   value: string;
   onChange: (value: string) => void;
@@ -75,7 +78,16 @@ type TextAreaProps = Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'on
   variant?: 'default' | 'letter';
 };
 
-export function TextArea({ label, value, onChange, hint, error, optional, variant, ...rest }: TextAreaProps) {
+export function TextArea({
+  label,
+  value,
+  onChange,
+  hint,
+  error,
+  optional,
+  variant,
+  ...rest
+}: TextAreaProps) {
   return (
     <Field label={label} hint={hint} error={error} optional={optional}>
       {({ inputId, describedBy, invalid }) => (

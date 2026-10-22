@@ -51,7 +51,11 @@ function HomeNote() {
   if (!homeMessage.trim()) return null;
   return (
     <article className="home-note paper" aria-label="A note from the person who made this">
-      <span className="tape" style={{ top: -12, left: '50%', marginLeft: -43, transform: 'rotate(-3deg)' }} aria-hidden="true" />
+      <span
+        className="tape"
+        style={{ top: -12, left: '50%', marginLeft: -43, transform: 'rotate(-3deg)' }}
+        aria-hidden="true"
+      />
       {homeGreeting && <p className="home-note__greeting">{homeGreeting}</p>}
       {homeMessage.split(/\n{2,}/).map((paragraph, i) => (
         <p className="home-note__p" key={i}>

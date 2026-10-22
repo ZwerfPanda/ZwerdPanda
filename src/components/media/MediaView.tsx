@@ -14,7 +14,13 @@ interface MediaViewProps {
   fit?: 'cover' | 'contain';
 }
 
-export function MediaView({ source, alt, mode = 'thumb', className = '', fit = 'cover' }: MediaViewProps) {
+export function MediaView({
+  source,
+  alt,
+  mode = 'thumb',
+  className = '',
+  fit = 'cover',
+}: MediaViewProps) {
   if (source.type === 'sample') {
     return (
       <div className={`media media--sample ${className}`}>
@@ -41,11 +47,17 @@ function LocalMedia({
   const state = useMediaUrl(source.mediaId);
 
   if (state.status === 'loading') {
-    return <div className={`media media--loading ${className}`} aria-label="Loading photo" role="img" />;
+    return (
+      <div className={`media media--loading ${className}`} aria-label="Loading photo" role="img" />
+    );
   }
   if (state.status === 'missing') {
     return (
-      <div className={`media media--missing ${className}`} role="img" aria-label="This photo isn't stored on this device">
+      <div
+        className={`media media--missing ${className}`}
+        role="img"
+        aria-label="This photo isn't stored on this device"
+      >
         <ImageOff aria-hidden="true" />
         <span>Not on this device</span>
       </div>
@@ -64,7 +76,14 @@ function LocalMedia({
       />
     ) : (
       <div className={`media media--video-thumb ${className}`}>
-        <video src={`${state.url}#t=0.1`} muted playsInline preload="metadata" aria-hidden="true" tabIndex={-1} />
+        <video
+          src={`${state.url}#t=0.1`}
+          muted
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+          tabIndex={-1}
+        />
         <span className="media__play" aria-hidden="true">
           <Play fill="currentColor" />
         </span>

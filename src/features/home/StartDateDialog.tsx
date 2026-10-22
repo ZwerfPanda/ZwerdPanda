@@ -56,8 +56,8 @@ export function StartDateDialog({ open, onClose }: { open: boolean; onClose: () 
     >
       <form id="start-date-form" className="form" onSubmit={save} noValidate>
         <p style={{ color: 'var(--ink-soft)' }}>
-          The first date, the day we made it official — whichever day feels like the beginning to us. You can change it
-          any time in Settings.
+          The first date, the day we made it official — whichever day feels like the beginning to
+          us. You can change it any time in Settings.
         </p>
         <TextField
           label="Our start date"

@@ -39,7 +39,8 @@ export const PLACES: Record<PlaceId, PlaceInfo> = {
     name: 'The Matcha Corner',
     sign: 'Matcha Corner',
     tagline: 'vanilla matcha, extra syrup',
-    blurb: 'Her order, perfected. Plus bubble tea for when we’re feeling adventurous — and all the dates that started with a drink.',
+    blurb:
+      'Her order, perfected. Plus bubble tea for when we’re feeling adventurous — and all the dates that started with a drink.',
     cta: { label: 'See our date memories', path: '/memories', params: { album: 'album-dates' } },
     Body: MatchaBody,
   },
@@ -48,7 +49,8 @@ export const PLACES: Record<PlaceId, PlaceInfo> = {
     name: 'The Arcade',
     sign: 'Arcade',
     tagline: 'one more round',
-    blurb: 'Bright lights, too many coins, and the claw machine that never lets go. This one is rigged in your favour.',
+    blurb:
+      'Bright lights, too many coins, and the claw machine that never lets go. This one is rigged in your favour.',
     cta: { label: 'More little surprises', path: '/surprises' },
     Body: ArcadeBody,
   },
@@ -57,7 +59,8 @@ export const PLACES: Record<PlaceId, PlaceInfo> = {
     name: 'The Karaoke Booth',
     sign: 'Karaoke',
     tagline: 'our songs live here',
-    blurb: 'The songs that sound like us — and a little music box tune that belongs to this universe.',
+    blurb:
+      'The songs that sound like us — and a little music box tune that belongs to this universe.',
     cta: { label: 'Open the music corner', path: '/music' },
     Body: KaraokeBody,
   },
@@ -93,7 +96,8 @@ export const PLACES: Record<PlaceId, PlaceInfo> = {
     name: 'The Little Garden',
     sign: 'Garden',
     tagline: 'things we’re growing',
-    blurb: 'We’re both still growing and learning. Some things take time to bloom — tap a bud and see.',
+    blurb:
+      'We’re both still growing and learning. Some things take time to bloom — tap a bud and see.',
     cta: { label: 'Find more surprises', path: '/surprises' },
     Body: GardenBody,
   },
@@ -102,13 +106,24 @@ export const PLACES: Record<PlaceId, PlaceInfo> = {
     name: 'Our Home, One Day',
     sign: 'Home, one day',
     tagline: 'at the end of the path',
-    blurb: 'A home with our names on the door, room for Coco to run, and maybe — one day — a family of our own.',
+    blurb:
+      'A home with our names on the door, room for Coco to run, and maybe — one day — a family of our own.',
     cta: { label: 'Dream with me', path: '/future' },
     Body: HouseBody,
   },
 };
 
-export const PLACE_ORDER: PlaceId[] = ['station', 'cafe', 'arcade', 'karaoke', 'tree', 'hutch', 'garden', 'moonpost', 'house'];
+export const PLACE_ORDER: PlaceId[] = [
+  'station',
+  'cafe',
+  'arcade',
+  'karaoke',
+  'tree',
+  'hutch',
+  'garden',
+  'moonpost',
+  'house',
+];
 
 /* ------------------------------------------------------------------ Bodies */
 
@@ -126,7 +141,11 @@ function StationBody() {
       <ul aria-label="Departures — the first chapters">
         {departures.map((m) => (
           <li key={m.id}>
-            <button type="button" className="departures__row" onClick={() => navigate('/story', { chapter: m.id })}>
+            <button
+              type="button"
+              className="departures__row"
+              onClick={() => navigate('/story', { chapter: m.id })}
+            >
               <span className="departures__no">{roman(milestones.indexOf(m) + 1)}</span>
               <span className="departures__title">{m.title}</span>
               <span className="departures__platform" aria-hidden="true">
@@ -169,10 +188,29 @@ function MatchaBody() {
           <g clipPath="url(#mg-cup)">
             <rect x="0" y="40" width="120" height="110" fill="#fbf0dc" />
             <rect x="0" y="92" width="120" height="60" fill="#a7c191" />
-            <motion.rect x="0" width="120" fill="#e8bd6a" initial={false} animate={{ y: 138 - level * 9, height: level * 9 + 4 }} transition={{ type: 'spring', damping: 14 }} />
-            <path d="M20 88c16-6 30 6 46 0s28 4 40-2" stroke="#fffcf6" strokeWidth="3" fill="none" opacity="0.6" />
+            <motion.rect
+              x="0"
+              width="120"
+              fill="#e8bd6a"
+              initial={false}
+              animate={{ y: 138 - level * 9, height: level * 9 + 4 }}
+              transition={{ type: 'spring', damping: 14 }}
+            />
+            <path
+              d="M20 88c16-6 30 6 46 0s28 4 40-2"
+              stroke="#fffcf6"
+              strokeWidth="3"
+              fill="none"
+              opacity="0.6"
+            />
           </g>
-          <path d="M24 30h72l-9 108H33z" fill="none" stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+          <path
+            d="M24 30h72l-9 108H33z"
+            fill="none"
+            stroke={INK}
+            strokeWidth="3.5"
+            strokeLinejoin="round"
+          />
           <path d="M18 30h84" stroke={INK} strokeWidth="4" strokeLinecap="round" />
           <path d="M70 4l-8 40" stroke="#b9646f" strokeWidth="7" strokeLinecap="round" />
           <HeartShape x={60} y={112} size={18} fill="#fffcf6" stroke={INK} strokeWidth={2} />
@@ -223,7 +261,16 @@ function ArcadeBody() {
     <div className="claw">
       <div className="claw__machine" ref={boxRef} aria-hidden="true">
         <svg viewBox="0 0 160 150">
-          <rect x="10" y="6" width="140" height="138" rx="10" fill="#52294f" stroke={INK} strokeWidth="3" />
+          <rect
+            x="10"
+            y="6"
+            width="140"
+            height="138"
+            rx="10"
+            fill="#52294f"
+            stroke={INK}
+            strokeWidth="3"
+          />
           <rect x="20" y="16" width="120" height="96" rx="6" fill="#e4ddf5" opacity="0.9" />
           <motion.g
             initial={false}
@@ -231,8 +278,25 @@ function ArcadeBody() {
             transition={{ duration: 1.6, times: [0, 0.4, 0.6, 1] }}
           >
             <path d="M80 16v26" stroke={INK} strokeWidth="2.5" />
-            <path d="M68 52l6-10h12l6 10M68 52l2 8M92 52l-2 8" stroke={INK} strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-            {state !== 'idle' && <circle cx="80" cy="64" r="8" fill="#d48d96" stroke={INK} strokeWidth="2" opacity={state === 'won' ? 0 : 1} />}
+            <path
+              d="M68 52l6-10h12l6 10M68 52l2 8M92 52l-2 8"
+              stroke={INK}
+              strokeWidth="3"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            {state !== 'idle' && (
+              <circle
+                cx="80"
+                cy="64"
+                r="8"
+                fill="#d48d96"
+                stroke={INK}
+                strokeWidth="2"
+                opacity={state === 'won' ? 0 : 1}
+              />
+            )}
           </motion.g>
           {[
             [40, 100, '#f6c5a6'],
@@ -260,10 +324,17 @@ function ArcadeBody() {
           </div>
         ) : (
           <p className="claw__hint" aria-live="polite">
-            {state === 'grabbing' ? 'The claw is going down…' : 'Every round wins. No coins needed.'}
+            {state === 'grabbing'
+              ? 'The claw is going down…'
+              : 'Every round wins. No coins needed.'}
           </p>
         )}
-        <button type="button" className="btn btn--primary btn--small" onClick={play} disabled={state === 'grabbing'}>
+        <button
+          type="button"
+          className="btn btn--primary btn--small"
+          onClick={play}
+          disabled={state === 'grabbing'}
+        >
           {state === 'won' ? 'Play again' : 'Press to play'}
         </button>
       </div>
@@ -298,8 +369,12 @@ function KaraokeBody() {
 
 function TreeBody() {
   const memories = useContent((c) => c.memories);
-  const picks = useMemo(() => [...memories].sort((a, b) => Number(b.favorite) - Number(a.favorite)).slice(0, 4), [memories]);
-  if (picks.length === 0) return <p className="muted">The branches are waiting for our first photo.</p>;
+  const picks = useMemo(
+    () => [...memories].sort((a, b) => Number(b.favorite) - Number(a.favorite)).slice(0, 4),
+    [memories],
+  );
+  if (picks.length === 0)
+    return <p className="muted">The branches are waiting for our first photo.</p>;
   return (
     <div className="branch">
       <div className="branch__line" aria-hidden="true" />
@@ -308,7 +383,12 @@ function TreeBody() {
           key={m.id}
           type="button"
           className="branch__polaroid"
-          style={{ '--r': `${[-6, 4, -3, 6][i]}deg`, animationDelay: `${i * -0.8}s` } as React.CSSProperties}
+          style={
+            {
+              '--r': `${[-6, 4, -3, 6][i]}deg`,
+              animationDelay: `${i * -0.8}s`,
+            } as React.CSSProperties
+          }
           onClick={() => navigate('/memories')}
           aria-label={`Open the scrapbook — ${m.caption || 'memory'}`}
         >
@@ -326,15 +406,30 @@ function MoonPostBody() {
   const letters = useContent((c) => c.letters);
   const waiting = letters.filter((l) => l.status === 'shared' && !l.readAt).slice(0, 3);
   if (waiting.length === 0) {
-    return <p className="muted">Every letter has been opened. Maybe it’s time to write a new one?</p>;
+    return (
+      <p className="muted">Every letter has been opened. Maybe it’s time to write a new one?</p>
+    );
   }
   return (
     <ul className="mail-list">
       {waiting.map((l) => (
         <li key={l.id}>
-          <button type="button" className="mail-list__item" onClick={() => navigate('/letters', { open: l.id })}>
+          <button
+            type="button"
+            className="mail-list__item"
+            onClick={() => navigate('/letters', { open: l.id })}
+          >
             <svg viewBox="0 0 40 28" aria-hidden="true">
-              <rect x="1.5" y="1.5" width="37" height="25" rx="2" fill="#fbeeec" stroke={INK} strokeWidth="2" />
+              <rect
+                x="1.5"
+                y="1.5"
+                width="37"
+                height="25"
+                rx="2"
+                fill="#fbeeec"
+                stroke={INK}
+                strokeWidth="2"
+              />
               <path d="M1.5 3l18.5 13L38.5 3" fill="none" stroke={INK} strokeWidth="2" />
               <HeartShape x={20} y={17} size={7} fill="#b9646f" />
             </svg>
@@ -369,7 +464,11 @@ function HutchBody() {
       </div>
       <div className="stack-12">
         <p className="muted" aria-live="polite">
-          {pats === 0 ? 'Coco is having a quiet day.' : pats < 3 ? 'A happy little binky!' : 'Coco loves you. Obviously.'}
+          {pats === 0
+            ? 'Coco is having a quiet day.'
+            : pats < 3
+              ? 'A happy little binky!'
+              : 'Coco loves you. Obviously.'}
         </p>
         <button
           type="button"
@@ -399,7 +498,10 @@ function HutchBody() {
 function GardenBody() {
   const reasons = useContent((c) => c.surprises.reasons);
   const [open, setOpen] = useState<number | null>(null);
-  const offset = useMemo(() => Math.floor(Math.random() * Math.max(1, reasons.length)), [reasons.length]);
+  const offset = useMemo(
+    () => Math.floor(Math.random() * Math.max(1, reasons.length)),
+    [reasons.length],
+  );
   const colors = ['#d48d96', '#cbbfe9', '#f6c5a6'];
   if (reasons.length === 0) return null;
   return (
@@ -419,7 +521,17 @@ function GardenBody() {
               <path d="M0 24q-14-6-16 4 10 4 16-4z" fill="#a7c191" stroke={INK} strokeWidth="1.6" />
               <g className="bud__petals">
                 {[0, 60, 120, 180, 240, 300].map((a) => (
-                  <ellipse key={a} cx="0" cy="-11" rx="7" ry="11" fill={color} stroke={INK} strokeWidth="1.6" transform={`rotate(${a})`} />
+                  <ellipse
+                    key={a}
+                    cx="0"
+                    cy="-11"
+                    rx="7"
+                    ry="11"
+                    fill={color}
+                    stroke={INK}
+                    strokeWidth="1.6"
+                    transform={`rotate(${a})`}
+                  />
                 ))}
               </g>
               <circle r="6" fill="#e8bd6a" stroke={INK} strokeWidth="1.6" />
@@ -444,7 +556,8 @@ function HouseBody() {
         <ul className="oneday-list">
           {somedays.map((d) => (
             <li key={d.id}>
-              <span className="hand">one day,</span> {d.title.charAt(0).toLowerCase() + d.title.slice(1)}
+              <span className="hand">one day,</span>{' '}
+              {d.title.charAt(0).toLowerCase() + d.title.slice(1)}
             </li>
           ))}
         </ul>

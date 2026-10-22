@@ -29,7 +29,10 @@ export function Intro({ onEnter }: { onEnter: () => void }) {
   };
 
   useEffect(() => {
-    const timer = window.setTimeout(() => enterRef.current?.focus({ preventScroll: true }), reduce ? 0 : 900);
+    const timer = window.setTimeout(
+      () => enterRef.current?.focus({ preventScroll: true }),
+      reduce ? 0 : 900,
+    );
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') enter();
     };
@@ -88,7 +91,11 @@ export function Intro({ onEnter }: { onEnter: () => void }) {
           <motion.g
             initial={{ x: reduce ? 128 : 36, opacity: reduce ? 0 : 1 }}
             animate={{ x: 128, opacity: [1, 1, 0] }}
-            transition={{ duration: meetAt, ease: [0.5, 0, 0.3, 1], opacity: { duration: meetAt + 0.2, times: [0, 0.85, 1] } }}
+            transition={{
+              duration: meetAt,
+              ease: [0.5, 0, 0.3, 1],
+              opacity: { duration: meetAt + 0.2, times: [0, 0.85, 1] },
+            }}
           >
             <circle cx="0" cy="85" r="16" fill="url(#intro-glow)" />
             <SparkleShape x={0} y={85} size={16} fill="#fffaf0" />
@@ -99,7 +106,11 @@ export function Intro({ onEnter }: { onEnter: () => void }) {
           <motion.g
             initial={{ x: reduce ? 192 : 284, opacity: reduce ? 0 : 1 }}
             animate={{ x: 192, opacity: [1, 1, 0] }}
-            transition={{ duration: meetAt, ease: [0.5, 0, 0.3, 1], opacity: { duration: meetAt + 0.2, times: [0, 0.85, 1] } }}
+            transition={{
+              duration: meetAt,
+              ease: [0.5, 0, 0.3, 1],
+              opacity: { duration: meetAt + 0.2, times: [0, 0.85, 1] },
+            }}
           >
             <circle cx="0" cy="85" r="16" fill="url(#intro-glow)" />
             <SparkleShape x={0} y={85} size={16} fill="#fffaf0" />
@@ -116,10 +127,32 @@ export function Intro({ onEnter }: { onEnter: () => void }) {
             transition={{ delay: meetAt, type: 'spring', damping: 11, stiffness: 120 }}
           >
             <circle cx="160" cy="85" r="64" fill="url(#intro-glow)" opacity="0.5" />
-            <ellipse cx="160" cy="88" rx="58" ry="13" fill="none" stroke="#e8bd6a" strokeWidth="2.4" transform="rotate(-14 160 88)" />
+            <ellipse
+              cx="160"
+              cy="88"
+              rx="58"
+              ry="13"
+              fill="none"
+              stroke="#e8bd6a"
+              strokeWidth="2.4"
+              transform="rotate(-14 160 88)"
+            />
             <circle cx="160" cy="85" r="32" fill="url(#intro-planet)" />
-            <path d="M134 96c14 8 38 8 52-4" fill="none" stroke="#fffcf6" strokeWidth="2.5" strokeLinecap="round" opacity="0.5" />
-            <path d="M103.72 102.03A58 13 -14 0 0 216.28 73.97" fill="none" stroke="#e8bd6a" strokeWidth="2.4" strokeLinecap="round" />
+            <path
+              d="M134 96c14 8 38 8 52-4"
+              fill="none"
+              stroke="#fffcf6"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              opacity="0.5"
+            />
+            <path
+              d="M103.72 102.03A58 13 -14 0 0 216.28 73.97"
+              fill="none"
+              stroke="#e8bd6a"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+            />
             <HeartShape x={203} y={46} size={14} fill="#d48d96" />
             <SparkleShape x={116} y={44} size={10} fill="#f8e6bb" />
           </motion.g>

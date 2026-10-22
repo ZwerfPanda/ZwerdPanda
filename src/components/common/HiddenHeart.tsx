@@ -8,7 +8,13 @@ import './common.css';
  * A tiny heart tucked somewhere in the universe. Easy to miss on purpose;
  * finding one opens a little note. No counters, no score.
  */
-export function HiddenHeart({ className = '', tone = 'light' }: { className?: string; tone?: 'light' | 'dark' }) {
+export function HiddenHeart({
+  className = '',
+  tone = 'light',
+}: {
+  className?: string;
+  tone?: 'light' | 'dark';
+}) {
   const note = useContent((c) => c.surprises.hiddenHeartNote);
   const [open, setOpen] = useState(false);
   return (
@@ -21,7 +27,13 @@ export function HiddenHeart({ className = '', tone = 'light' }: { className?: st
       >
         <HeartIcon size={14} />
       </button>
-      <Dialog open={open} onClose={() => setOpen(false)} title="You found a hidden heart" eyebrow="psst" size="sm">
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="You found a hidden heart"
+        eyebrow="psst"
+        size="sm"
+      >
         <div className="hidden-heart__note">
           <HeartIcon size={40} color="var(--rose-400)" />
           <p>{note}</p>

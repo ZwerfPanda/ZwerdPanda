@@ -17,7 +17,9 @@ interface BackupFile {
   media?: Record<string, { name: string; dataUrl: string }>;
 }
 
-export async function createBackup(includeMedia: boolean): Promise<{ blob: Blob; filename: string; mediaCount: number }> {
+export async function createBackup(
+  includeMedia: boolean,
+): Promise<{ blob: Blob; filename: string; mediaCount: number }> {
   const backup: BackupFile = {
     app: 'our-little-universe',
     exportedAt: new Date().toISOString(),
@@ -57,7 +59,8 @@ export interface ImportPreview {
 
 /** Reads and validates a backup file without changing anything yet. */
 export async function readBackup(file: File): Promise<ImportPreview> {
-  if (file.size > 600 * 1024 * 1024) throw new Error('That file is too large to be one of our backups.');
+  if (file.size > 600 * 1024 * 1024)
+    throw new Error('That file is too large to be one of our backups.');
   let parsed: unknown;
   try {
     parsed = JSON.parse(await file.text());
@@ -89,7 +92,8 @@ export async function readBackup(file: File): Promise<ImportPreview> {
 export async function applyBackup(preview: ImportPreview) {
   if (preview.media) {
     for (const [mediaId, entry] of Object.entries(preview.media)) {
-      if (!entry || typeof entry.dataUrl !== 'string' || !entry.dataUrl.startsWith('data:')) continue;
+      if (!entry || typeof entry.dataUrl !== 'string' || !entry.dataUrl.startsWith('data:'))
+        continue;
       const blob = await dataUrlToBlob(entry.dataUrl);
       await putMedia(blob, String(entry.name ?? 'imported'), mediaId);
     }

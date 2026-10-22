@@ -18,7 +18,7 @@ import type {
  * clearly-marked sample (`isSample: true`) built only from details Valencio
  * shared. No dates, conversations or promises are invented — chapters carry
  * writing prompts instead, and every sample can be removed in one click from
- * Settings → Your data.
+ * Settings → Our data & backups.
  */
 
 const SEED = '2026-10-01T12:00:00.000Z';

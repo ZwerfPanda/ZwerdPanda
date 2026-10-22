@@ -27,7 +27,9 @@ export function describeLink(value: string | undefined): LinkInfo | null {
   const host = url.hostname.replace(/^www\./, '');
 
   if (host === 'open.spotify.com') {
-    const match = url.pathname.match(/^\/(?:intl-[a-z]+\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/);
+    const match = url.pathname.match(
+      /^\/(?:intl-[a-z]+\/)?(track|album|playlist|episode)\/([A-Za-z0-9]+)/,
+    );
     return {
       platform: 'spotify',
       label: 'Open in Spotify',
@@ -36,7 +38,12 @@ export function describeLink(value: string | undefined): LinkInfo | null {
     };
   }
 
-  if (host === 'youtube.com' || host === 'm.youtube.com' || host === 'music.youtube.com' || host === 'youtu.be') {
+  if (
+    host === 'youtube.com' ||
+    host === 'm.youtube.com' ||
+    host === 'music.youtube.com' ||
+    host === 'youtu.be'
+  ) {
     const videoId = host === 'youtu.be' ? url.pathname.slice(1) : url.searchParams.get('v');
     const safeId = videoId && /^[A-Za-z0-9_-]{6,20}$/.test(videoId) ? videoId : null;
     return {

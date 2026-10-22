@@ -48,7 +48,9 @@
   font-style: italic;
   font-size: 1.12rem;
   font-weight: 460;
-  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-variation-settings:
+    'SOFT' 100,
+    'WONK' 1;
   letter-spacing: -0.01em;
   white-space: nowrap;
 }
@@ -445,4 +447,23 @@
 
 .site-footer__small {
   font-size: 0.8rem;
+}
+
+/* ---------- Page loading ---------- */
+
+.page-loading {
+  display: grid;
+  place-items: center;
+  min-height: 70vh;
+}
+
+.page-loading__mark {
+  animation: loading-float 1.4s ease-in-out infinite;
+}
+
+@keyframes loading-float {
+  50% {
+    transform: translateY(-8px) rotate(-8deg);
+    opacity: 0.6;
+  }
 }

@@ -41,11 +41,21 @@ export function Envelope({
         <span className="env__letter-lines" />
       </motion.div>
       <div className="env__front">
-        <svg className="env__folds" viewBox="0 0 300 200" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M0 200L120 108M300 200L180 108" fill="none" stroke="rgba(45,23,47,.14)" strokeWidth="1.5" />
+        <svg
+          className="env__folds"
+          viewBox="0 0 300 200"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path
+            d="M0 200L120 108M300 200L180 108"
+            fill="none"
+            stroke="rgba(45,23,47,.14)"
+            strokeWidth="1.5"
+          />
         </svg>
         <p className="env__label">
-          <span className="env__open-when">open when</span>
+          <span className="env__open-when">open when</span>{' '}
           <span className="env__occasion">{letter.occasion}</span>
         </p>
       </div>

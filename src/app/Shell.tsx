@@ -42,9 +42,16 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
               const s = sectionFor(p);
               const active = path === p;
               return (
-                <a key={p} href={href(p)} className="topnav__link" aria-current={active ? 'page' : undefined}>
+                <a
+                  key={p}
+                  href={href(p)}
+                  className="topnav__link"
+                  aria-current={active ? 'page' : undefined}
+                >
                   {s.short}
-                  {active && <motion.span layoutId="topnav-dot" className="topnav__dot" aria-hidden="true" />}
+                  {active && (
+                    <motion.span layoutId="topnav-dot" className="topnav__dot" aria-hidden="true" />
+                  )}
                 </a>
               );
             })}
@@ -53,11 +60,21 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
 
         <div className="topbar__actions">
           {desktop && (
-            <a className="icon-btn" href={href('/settings')} aria-label="Settings" aria-current={path === '/settings' ? 'page' : undefined}>
+            <a
+              className="icon-btn"
+              href={href('/settings')}
+              aria-label="Settings"
+              aria-current={path === '/settings' ? 'page' : undefined}
+            >
               <Settings2 />
             </a>
           )}
-          <button type="button" className="topbar__menu" onClick={onOpenMenu} aria-haspopup="dialog">
+          <button
+            type="button"
+            className="topbar__menu"
+            onClick={onOpenMenu}
+            aria-haspopup="dialog"
+          >
             <LayoutGrid aria-hidden="true" />
             <span>{desktop ? 'Everything' : 'Menu'}</span>
           </button>
@@ -77,7 +94,12 @@ export function TabBar() {
         const active = path === p;
         if (p === '/world') {
           return (
-            <a key={p} href={href(p)} className={`tabbar__world ${active ? 'is-active' : ''}`} aria-current={active ? 'page' : undefined}>
+            <a
+              key={p}
+              href={href(p)}
+              className={`tabbar__world ${active ? 'is-active' : ''}`}
+              aria-current={active ? 'page' : undefined}
+            >
               <span className="tabbar__orb" aria-hidden="true">
                 <WorldOrb />
               </span>
@@ -86,10 +108,17 @@ export function TabBar() {
           );
         }
         return (
-          <a key={p} href={href(p)} className="tabbar__item" aria-current={active ? 'page' : undefined}>
+          <a
+            key={p}
+            href={href(p)}
+            className="tabbar__item"
+            aria-current={active ? 'page' : undefined}
+          >
             <Icon aria-hidden="true" />
             <span className="tabbar__label">{s.short}</span>
-            {active && <motion.span layoutId="tab-dot" className="tabbar__dot" aria-hidden="true" />}
+            {active && (
+              <motion.span layoutId="tab-dot" className="tabbar__dot" aria-hidden="true" />
+            )}
           </a>
         );
       })}
@@ -108,9 +137,26 @@ function WorldOrb() {
         </radialGradient>
       </defs>
       <circle cx="28" cy="28" r="20" fill="url(#orb-fill)" />
-      <path d="M12 33c4 3 14 5 22 2 4-1 8-4 10-7" fill="none" stroke="#a7c191" strokeWidth="5" strokeLinecap="round" opacity="0.9" />
+      <path
+        d="M12 33c4 3 14 5 22 2 4-1 8-4 10-7"
+        fill="none"
+        stroke="#a7c191"
+        strokeWidth="5"
+        strokeLinecap="round"
+        opacity="0.9"
+      />
       <circle cx="21" cy="20" r="3" fill="#fffcf6" opacity="0.7" />
-      <ellipse cx="28" cy="30" rx="26" ry="7.5" fill="none" stroke="#e8bd6a" strokeWidth="2" transform="rotate(-16 28 30)" strokeDasharray="60 12" />
+      <ellipse
+        cx="28"
+        cy="30"
+        rx="26"
+        ry="7.5"
+        fill="none"
+        stroke="#e8bd6a"
+        strokeWidth="2"
+        transform="rotate(-16 28 30)"
+        strokeDasharray="60 12"
+      />
     </svg>
   );
 }
@@ -124,15 +170,29 @@ export function MenuSheet({ open, onClose }: { open: boolean; onClose: () => voi
   }, [path]);
 
   return (
-    <Dialog open={open} onClose={onClose} title="Everything in our universe" eyebrow="a little map" size="md">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title="Everything in our universe"
+      eyebrow="a little map"
+      size="md"
+    >
       <nav aria-label="All sections">
         <ul className="menu-grid">
           {SECTIONS.map((s) => {
             const Icon = s.icon;
             return (
               <li key={s.path}>
-                <a className="menu-tile" href={href(s.path)} aria-current={path === s.path ? 'page' : undefined}>
-                  <span className="menu-tile__icon" style={{ background: s.tint }} aria-hidden="true">
+                <a
+                  className="menu-tile"
+                  href={href(s.path)}
+                  aria-current={path === s.path ? 'page' : undefined}
+                >
+                  <span
+                    className="menu-tile__icon"
+                    style={{ background: s.tint }}
+                    aria-hidden="true"
+                  >
                     <Icon />
                   </span>
                   <span className="menu-tile__text">
@@ -175,7 +235,12 @@ export function MiniPlayer() {
             <i />
           </span>
           <span className="miniplayer__label">{music.label}</span>
-          <button type="button" className="miniplayer__btn" onClick={music.toggle} aria-label={music.playing ? 'Pause music' : 'Play music'}>
+          <button
+            type="button"
+            className="miniplayer__btn"
+            onClick={music.toggle}
+            aria-label={music.playing ? 'Pause music' : 'Play music'}
+          >
             {music.playing ? <Pause /> : <Play />}
           </button>
           <button

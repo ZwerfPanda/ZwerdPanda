@@ -3,8 +3,8 @@
 .hero {
   position: relative;
   overflow: hidden;
-  padding: calc(var(--topbar-h) + var(--safe-top) + 18px) calc(var(--gutter) + var(--safe-right)) 64px
-    calc(var(--gutter) + var(--safe-left));
+  padding: calc(var(--topbar-h) + var(--safe-top) + 18px) calc(var(--gutter) + var(--safe-right))
+    64px calc(var(--gutter) + var(--safe-left));
   background: linear-gradient(
     180deg,
     #24112a 0%,
@@ -18,11 +18,27 @@
 }
 
 [data-theme='lavender'] .hero {
-  background: linear-gradient(180deg, #1e1433 0%, #352757 24%, #6a5a97 46%, #b39bd0 66%, #ead6e6 82%, var(--bg) 100%);
+  background: linear-gradient(
+    180deg,
+    #1e1433 0%,
+    #352757 24%,
+    #6a5a97 46%,
+    #b39bd0 66%,
+    #ead6e6 82%,
+    var(--bg) 100%
+  );
 }
 
 [data-theme='matcha'] .hero {
-  background: linear-gradient(180deg, #17201a 0%, #2c3b2f 24%, #57705a 46%, #a7b98f 66%, #ece4c8 82%, var(--bg) 100%);
+  background: linear-gradient(
+    180deg,
+    #17201a 0%,
+    #2c3b2f 24%,
+    #57705a 46%,
+    #a7b98f 66%,
+    #ece4c8 82%,
+    var(--bg) 100%
+  );
 }
 
 [data-theme='midnight'] .hero {
@@ -260,8 +276,8 @@
   position: relative;
   max-width: var(--page-max);
   margin: -40px auto 0;
-  padding: 0 calc(var(--gutter) + var(--safe-right)) calc(var(--tabbar-h) + var(--safe-bottom) + 40px)
-    calc(var(--gutter) + var(--safe-left));
+  padding: 0 calc(var(--gutter) + var(--safe-right))
+    calc(var(--tabbar-h) + var(--safe-bottom) + 40px) calc(var(--gutter) + var(--safe-left));
 }
 
 @media (min-width: 900px) {
@@ -372,7 +388,9 @@
   font-weight: 400;
   line-height: 1;
   font-variant-numeric: tabular-nums lining-nums;
-  font-variation-settings: 'SOFT' 100, 'WONK' 0;
+  font-variation-settings:
+    'SOFT' 100,
+    'WONK' 0;
   color: var(--ink);
 }
 
@@ -425,7 +443,9 @@
     var(--paper);
   background-position: 0 var(--rule);
   background-repeat: repeat-y;
-  background-size: 100% var(--rule), auto;
+  background-size:
+    100% var(--rule),
+    auto;
   background-clip: content-box, padding-box;
 }
 
@@ -442,7 +462,9 @@
   font-family: var(--font-display);
   font-size: 1.05rem;
   line-height: var(--rule);
-  font-variation-settings: 'SOFT' 100, 'WONK' 0;
+  font-variation-settings:
+    'SOFT' 100,
+    'WONK' 0;
   color: var(--paper-ink);
 }
 
@@ -482,7 +504,9 @@
 
 .explore__title em {
   font-style: italic;
-  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-variation-settings:
+    'SOFT' 100,
+    'WONK' 1;
   color: var(--accent-strong);
 }
 
@@ -629,16 +653,19 @@
   min-height: 140px;
   border-radius: 16px;
   background:
-    radial-gradient(circle at 100% 0, rgba(212, 141, 150, 0.18), transparent 50%),
-    #fdf0e6;
+    radial-gradient(circle at 100% 0, rgba(212, 141, 150, 0.18), transparent 50%), #fdf0e6;
   color: var(--paper-ink) !important;
   filter: drop-shadow(0 8px 14px rgba(45, 23, 47, 0.12));
   -webkit-mask:
-    radial-gradient(circle 11px at calc(100% - 100px) 0, transparent 98%, #000) top / 100% 51% no-repeat,
-    radial-gradient(circle 11px at calc(100% - 100px) 100%, transparent 98%, #000) bottom / 100% 51% no-repeat;
+    radial-gradient(circle 11px at calc(100% - 100px) 0, transparent 98%, #000) top / 100% 51%
+      no-repeat,
+    radial-gradient(circle 11px at calc(100% - 100px) 100%, transparent 98%, #000) bottom / 100% 51%
+      no-repeat;
   mask:
-    radial-gradient(circle 11px at calc(100% - 100px) 0, transparent 98%, #000) top / 100% 51% no-repeat,
-    radial-gradient(circle 11px at calc(100% - 100px) 100%, transparent 98%, #000) bottom / 100% 51% no-repeat;
+    radial-gradient(circle 11px at calc(100% - 100px) 0, transparent 98%, #000) top / 100% 51%
+      no-repeat,
+    radial-gradient(circle 11px at calc(100% - 100px) 100%, transparent 98%, #000) bottom / 100% 51%
+      no-repeat;
 }
 
 .ex-ticket:hover {
@@ -803,8 +830,7 @@
   padding: 16px;
   border-radius: 6px;
   background:
-    repeating-linear-gradient(180deg, transparent 0 25px, rgba(63, 33, 64, 0.07) 25px 26px),
-    #fffcf6;
+    repeating-linear-gradient(180deg, transparent 0 25px, rgba(63, 33, 64, 0.07) 25px 26px), #fffcf6;
   background-position: 0 10px;
   color: var(--paper-ink) !important;
   box-shadow: var(--shadow-1);
@@ -942,7 +968,9 @@
   font-family: var(--font-display);
   font-size: clamp(1.3rem, 5vw, 1.7rem);
   font-style: italic;
-  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-variation-settings:
+    'SOFT' 100,
+    'WONK' 1;
   line-height: 1.35;
   max-width: 28ch;
 }

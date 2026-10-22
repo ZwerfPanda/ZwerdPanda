@@ -1,4 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { MusicBox } from '../../lib/audio/musicBox';
 import { getMediaUrl } from '../../lib/media';
 import { updatePrefs, usePrefs } from '../../data/store';
@@ -53,7 +62,9 @@ export function MusicProvider({ children }: { children: ReactNode }) {
         const url = await getMediaUrl(prefs.customSoundtrackId);
         if (!url) {
           updatePrefs({ soundtrack: 'musicbox' });
-          throw new Error('Your uploaded song isn’t on this device any more — switched back to the music box.');
+          throw new Error(
+            'Your uploaded song isn’t on this device any more — switched back to the music box.',
+          );
         }
         if (!audioRef.current) {
           audioRef.current = new Audio();
@@ -72,9 +83,14 @@ export function MusicProvider({ children }: { children: ReactNode }) {
       setPlaying(true);
     } catch (error) {
       setPlaying(false);
-      toast(error instanceof Error && error.message ? error.message : 'Sound couldn’t start in this browser.', {
-        tone: 'error',
-      });
+      toast(
+        error instanceof Error && error.message
+          ? error.message
+          : 'Sound couldn’t start in this browser.',
+        {
+          tone: 'error',
+        },
+      );
     }
   }, [prefs.customSoundtrackId, prefs.volume, source, stopAll]);
 
@@ -98,6 +114,9 @@ export function MusicProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => () => stopAll(), [stopAll]);
 
-  const api = useMemo(() => ({ playing, label, source, play, pause, toggle }), [playing, label, source, play, pause, toggle]);
+  const api = useMemo(
+    () => ({ playing, label, source, play, pause, toggle }),
+    [playing, label, source, play, pause, toggle],
+  );
   return <MusicContext.Provider value={api}>{children}</MusicContext.Provider>;
 }

@@ -42,7 +42,10 @@ function openDb(): Promise<IDBDatabase> {
   return dbPromise;
 }
 
-function run<T>(mode: IDBTransactionMode, fn: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+function run<T>(
+  mode: IDBTransactionMode,
+  fn: (store: IDBObjectStore) => IDBRequest<T>,
+): Promise<T> {
   return openDb().then(
     (db) =>
       new Promise<T>((resolve, reject) => {
@@ -97,7 +100,10 @@ export function getMediaUrl(id: string): Promise<string | null> {
   return cached;
 }
 
-export type MediaUrlState = { status: 'loading' } | { status: 'ready'; url: string } | { status: 'missing' };
+export type MediaUrlState =
+  | { status: 'loading' }
+  | { status: 'ready'; url: string }
+  | { status: 'missing' };
 
 /** Resolves a stored media id to a displayable URL. */
 export function useMediaUrl(id: string | undefined): MediaUrlState {

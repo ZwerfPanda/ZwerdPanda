@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { useRoute, type RoutePath } from '../lib/router';
 import { onPersistError, useContent, usePrefs } from '../data/store';
@@ -10,15 +10,33 @@ import { MusicProvider } from '../components/music/MusicProvider';
 import { CelebrationHost, ConfirmHost, Toaster, toast } from '../components/ui/feedback';
 import { Intro } from '../features/intro/Intro';
 import { HomePage } from '../features/home/HomePage';
-import { StoryPage } from '../features/story/StoryPage';
-import { MemoriesPage } from '../features/memories/MemoriesPage';
-import { WorldPage } from '../features/world/WorldPage';
-import { LettersPage } from '../features/letters/LettersPage';
-import { FuturePage } from '../features/future/FuturePage';
-import { SurprisesPage } from '../features/surprises/SurprisesPage';
-import { MusicPage } from '../features/music/MusicPage';
-import { CocoPage } from '../features/coco/CocoPage';
-import { SettingsPage } from '../features/settings/SettingsPage';
+import { PageLoading } from './PageLoading';
+
+// Home ships with the first load; every other page is loaded on demand.
+const pages = {
+  story: () => import('../features/story/StoryPage').then((m) => ({ default: m.StoryPage })),
+  memories: () =>
+    import('../features/memories/MemoriesPage').then((m) => ({ default: m.MemoriesPage })),
+  world: () => import('../features/world/WorldPage').then((m) => ({ default: m.WorldPage })),
+  letters: () =>
+    import('../features/letters/LettersPage').then((m) => ({ default: m.LettersPage })),
+  future: () => import('../features/future/FuturePage').then((m) => ({ default: m.FuturePage })),
+  surprises: () =>
+    import('../features/surprises/SurprisesPage').then((m) => ({ default: m.SurprisesPage })),
+  music: () => import('../features/music/MusicPage').then((m) => ({ default: m.MusicPage })),
+  coco: () => import('../features/coco/CocoPage').then((m) => ({ default: m.CocoPage })),
+  settings: () =>
+    import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
+};
+const StoryPage = lazy(pages.story);
+const MemoriesPage = lazy(pages.memories);
+const WorldPage = lazy(pages.world);
+const LettersPage = lazy(pages.letters);
+const FuturePage = lazy(pages.future);
+const SurprisesPage = lazy(pages.surprises);
+const MusicPage = lazy(pages.music);
+const CocoPage = lazy(pages.coco);
+const SettingsPage = lazy(pages.settings);
 
 const PAGES: Record<RoutePath, () => React.ReactNode> = {
   '/': () => <HomePage />,
@@ -45,7 +63,12 @@ function shouldShowIntro(mode: 'session' | 'always' | 'never'): boolean {
   }
 }
 
-const THEME_COLORS = { blush: '#2a1530', lavender: '#2a1d3f', matcha: '#22301f', midnight: '#1b1222' } as const;
+const THEME_COLORS = {
+  blush: '#2a1530',
+  lavender: '#2a1d3f',
+  matcha: '#22301f',
+  midnight: '#1b1222',
+} as const;
 
 export function App() {
   const route = useRoute();
@@ -59,7 +82,9 @@ export function App() {
   useEffect(() => {
     const root = document.documentElement;
     root.dataset.theme = profile.theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_COLORS[profile.theme]);
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', THEME_COLORS[profile.theme]);
   }, [profile.theme]);
 
   useEffect(() => {
@@ -68,7 +93,8 @@ export function App() {
 
   useEffect(() => {
     const section = sectionFor(route.path);
-    document.title = route.path === '/' ? profile.siteTitle : `${section.label} · ${profile.siteTitle}`;
+    document.title =
+      route.path === '/' ? profile.siteTitle : `${section.label} · ${profile.siteTitle}`;
   }, [route.path, profile.siteTitle]);
 
   useEffect(() => onPersistError((message) => toast(message, { tone: 'error' })), []);
@@ -78,6 +104,8 @@ export function App() {
       cleanupOrphanMedia().catch(() => {
         // Media storage unavailable (private mode); nothing to tidy.
       });
+      // Warm up the other pages so moving around feels instant.
+      Object.values(pages).forEach((load) => load().catch(() => undefined));
     }, 4000);
     return () => window.clearTimeout(timer);
   }, []);
@@ -113,7 +141,7 @@ export function App() {
             animate={{ opacity: 1, y: 0, transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] } }}
             exit={{ opacity: 0, y: reduce ? 0 : -8, transition: { duration: 0.16 } }}
           >
-            {PAGES[route.path]()}
+            <Suspense fallback={<PageLoading />}>{PAGES[route.path]()}</Suspense>
           </motion.main>
         </AnimatePresence>
         <TabBar />

@@ -1,7 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, type PanInfo } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Heart, Music, Pause, Pencil, Play, Trash2, X } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  Music,
+  Pause,
+  Pencil,
+  Play,
+  Trash2,
+  X,
+} from 'lucide-react';
 import type { Memory } from '../../data/types';
 import { useContent } from '../../data/store';
 import { toggleFavorite } from '../../data/actions';
@@ -25,10 +35,23 @@ interface LightboxProps {
 
 export function Lightbox(props: LightboxProps) {
   const open = props.index !== null && props.items.length > 0;
-  return createPortal(<AnimatePresence>{open && <LightboxInner key="lightbox" {...props} index={props.index!} />}</AnimatePresence>, document.body);
+  return createPortal(
+    <AnimatePresence>
+      {open && <LightboxInner key="lightbox" {...props} index={props.index!} />}
+    </AnimatePresence>,
+    document.body,
+  );
 }
 
-function LightboxInner({ items, index, onIndex, onClose, onEdit, onDelete, startPlaying = false }: LightboxProps & { index: number }) {
+function LightboxInner({
+  items,
+  index,
+  onIndex,
+  onClose,
+  onEdit,
+  onDelete,
+  startPlaying = false,
+}: LightboxProps & { index: number }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const albums = useContent((c) => c.albums);
   const music = useMusic();
@@ -83,8 +106,12 @@ function LightboxInner({ items, index, onIndex, onClose, onEdit, onDelete, start
   };
 
   if (!memory) return null;
-  const albumNames = memory.albumIds.map((id) => albums.find((a) => a.id === id)?.name).filter(Boolean);
-  const meta = [formatDate(memory.date), memory.location, ...albumNames].filter(Boolean).join(' · ');
+  const albumNames = memory.albumIds
+    .map((id) => albums.find((a) => a.id === id)?.name)
+    .filter(Boolean);
+  const meta = [formatDate(memory.date), memory.location, ...albumNames]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <motion.div
@@ -139,13 +166,28 @@ function LightboxInner({ items, index, onIndex, onClose, onEdit, onDelete, start
           >
             <Heart />
           </button>
-          <button type="button" className="icon-btn icon-btn--on-dark" aria-label="Edit memory" onClick={() => onEdit(memory)}>
+          <button
+            type="button"
+            className="icon-btn icon-btn--on-dark"
+            aria-label="Edit memory"
+            onClick={() => onEdit(memory)}
+          >
             <Pencil />
           </button>
-          <button type="button" className="icon-btn icon-btn--on-dark" aria-label="Delete memory" onClick={() => onDelete(memory)}>
+          <button
+            type="button"
+            className="icon-btn icon-btn--on-dark"
+            aria-label="Delete memory"
+            onClick={() => onDelete(memory)}
+          >
             <Trash2 />
           </button>
-          <button type="button" className="icon-btn icon-btn--on-dark" aria-label="Close" onClick={onClose}>
+          <button
+            type="button"
+            className="icon-btn icon-btn--on-dark"
+            aria-label="Close"
+            onClick={onClose}
+          >
             <X />
           </button>
         </div>
@@ -158,9 +200,17 @@ function LightboxInner({ items, index, onIndex, onClose, onEdit, onDelete, start
             className="lightbox__frame"
             custom={direction}
             variants={{
-              enter: (d: number) => ({ opacity: 0, x: reduce ? 0 : d * 60, scale: reduce ? 1 : 0.98 }),
+              enter: (d: number) => ({
+                opacity: 0,
+                x: reduce ? 0 : d * 60,
+                scale: reduce ? 1 : 0.98,
+              }),
               center: { opacity: 1, x: 0, scale: 1 },
-              exit: (d: number) => ({ opacity: 0, x: reduce ? 0 : d * -60, scale: reduce ? 1 : 0.98 }),
+              exit: (d: number) => ({
+                opacity: 0,
+                x: reduce ? 0 : d * -60,
+                scale: reduce ? 1 : 0.98,
+              }),
             }}
             initial="enter"
             animate="center"
@@ -172,16 +222,32 @@ function LightboxInner({ items, index, onIndex, onClose, onEdit, onDelete, start
             onDragEnd={onDragEnd}
             style={{ touchAction: 'pan-y' }}
           >
-            <MediaView source={memory.media} alt={memory.caption || 'Memory'} mode="full" fit="contain" className="lightbox__media" />
+            <MediaView
+              source={memory.media}
+              alt={memory.caption || 'Memory'}
+              mode="full"
+              fit="contain"
+              className="lightbox__media"
+            />
           </motion.div>
         </AnimatePresence>
 
         {items.length > 1 && (
           <>
-            <button type="button" className="lightbox__nav lightbox__nav--prev" onClick={() => go(-1)} aria-label="Previous memory">
+            <button
+              type="button"
+              className="lightbox__nav lightbox__nav--prev"
+              onClick={() => go(-1)}
+              aria-label="Previous memory"
+            >
               <ChevronLeft />
             </button>
-            <button type="button" className="lightbox__nav lightbox__nav--next" onClick={() => go(1)} aria-label="Next memory">
+            <button
+              type="button"
+              className="lightbox__nav lightbox__nav--next"
+              onClick={() => go(1)}
+              aria-label="Next memory"
+            >
               <ChevronRight />
             </button>
           </>
@@ -189,7 +255,9 @@ function LightboxInner({ items, index, onIndex, onClose, onEdit, onDelete, start
       </div>
 
       <div className="lightbox__caption">
-        {memory.isSample && <span className="tag tag--sample lightbox__sample">Sample · replace with your photo</span>}
+        {memory.isSample && (
+          <span className="tag tag--sample lightbox__sample">Sample · replace with your photo</span>
+        )}
         {memory.caption && <p className="lightbox__title">{memory.caption}</p>}
         {memory.note && <p className="lightbox__note">{memory.note}</p>}
         {meta && <p className="lightbox__meta">{meta}</p>}

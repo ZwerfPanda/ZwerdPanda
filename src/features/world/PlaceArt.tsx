@@ -7,10 +7,24 @@ import { HeartShape, INK, StarShape } from '../../components/art/shapes';
  * Windows use `--w-window`, which glows warmer as night falls.
  */
 
-const S = { stroke: INK, strokeWidth: 2.6, strokeLinejoin: 'round', strokeLinecap: 'round' } as const;
+const S = {
+  stroke: INK,
+  strokeWidth: 2.6,
+  strokeLinejoin: 'round',
+  strokeLinecap: 'round',
+} as const;
 const WINDOW = 'var(--w-window)';
 
-export type PlaceId = 'station' | 'cafe' | 'arcade' | 'karaoke' | 'tree' | 'moonpost' | 'hutch' | 'garden' | 'house';
+export type PlaceId =
+  | 'station'
+  | 'cafe'
+  | 'arcade'
+  | 'karaoke'
+  | 'tree'
+  | 'moonpost'
+  | 'hutch'
+  | 'garden'
+  | 'house';
 
 export function PlaceArt({ id }: { id: PlaceId }) {
   switch (id) {
@@ -49,7 +63,12 @@ function Station() {
       <rect x="16" y="-50" width="15" height="17" rx="2" fill={WINDOW} {...S} strokeWidth={2} />
       <path d="M-10-9v-22a10 10 0 0 1 20 0v22z" fill="#52294f" {...S} />
       <path d="M-52-60l7-18h90l7 18z" fill="#b9646f" {...S} />
-      <path d="M-52-60q6.5 7 13 0t13 0 13 0 13 0 13 0 13 0 13 0 13 0" fill="#fbf4ea" {...S} strokeWidth={2} />
+      <path
+        d="M-52-60q6.5 7 13 0t13 0 13 0 13 0 13 0 13 0 13 0 13 0"
+        fill="#fbf4ea"
+        {...S}
+        strokeWidth={2}
+      />
       <circle cx="0" cy="-86" r="10" fill="#fffcf6" {...S} />
       <path d="M0-86v-5M0-86l4 2" stroke={INK} strokeWidth="1.8" strokeLinecap="round" />
       <HeartShape x={0} y={-38} size={8} fill="#d48d96" />
@@ -71,7 +90,11 @@ function Cafe() {
         {stripes.map((x, i) => (
           <path key={x} d={`M${x} -58h11v12q-5.5 5-11 0z`} fill={i % 2 ? '#fffcf6' : '#a7c191'} />
         ))}
-        <path d="M-44-58h88v12q-5.5 5-11 0-5.5 5-11 0-5.5 5-11 0-5.5 5-11 0-5.5 5-11 0-5.5 5-11 0-5.5 5-11 0-5.5 5-11 0z" fill="none" {...S} />
+        <path
+          d="M-44-58h88v12q-5.5 5-11 0-5.5 5-11 0-5.5 5-11 0-5.5 5-11 0-5.5 5-11 0-5.5 5-11 0-5.5 5-11 0-5.5 5-11 0z"
+          fill="none"
+          {...S}
+        />
       </g>
       <g transform="translate(0 -74)">
         <path d="M-9-12h18l-2.5 22h-13z" fill="#fffcf6" {...S} strokeWidth={2.2} />
@@ -98,8 +121,26 @@ function Arcade() {
       </g>
       <path d="M6 0v-30h22v30z" fill={WINDOW} {...S} />
       <path d="M10-26h14M10-20h14" stroke={INK} strokeWidth="1.4" opacity="0.35" />
-      <rect x="-32" y="-82" width="64" height="18" rx="9" fill="#2d172f" {...S} className="place__neon" />
-      <text x="0" y="-69" textAnchor="middle" fontSize="10" fontWeight="800" fill="#f8e6bb" fontFamily="system-ui, sans-serif" letterSpacing="2">
+      <rect
+        x="-32"
+        y="-82"
+        width="64"
+        height="18"
+        rx="9"
+        fill="#2d172f"
+        {...S}
+        className="place__neon"
+      />
+      <text
+        x="0"
+        y="-69"
+        textAnchor="middle"
+        fontSize="10"
+        fontWeight="800"
+        fill="#f8e6bb"
+        fontFamily="system-ui, sans-serif"
+        letterSpacing="2"
+      >
         ARCADE
       </text>
       <StarShape x={-34} y={-90} size={9} fill="#f8e6bb" />
@@ -150,8 +191,22 @@ function MemoryTree() {
       ].map(([x, y, r], i) => (
         <g key={i} transform={`translate(${x} ${y}) rotate(${r})`}>
           <path d="M0-10v6" stroke={INK} strokeWidth="1.2" />
-          <rect x="-6" y="-4" width="12" height="14" fill="#fffcf6" stroke={INK} strokeWidth="1.4" />
-          <rect x="-4.5" y="-2.5" width="9" height="8" fill={['#f6c5a6', '#cbbfe9', '#ebbfba'][i]} />
+          <rect
+            x="-6"
+            y="-4"
+            width="12"
+            height="14"
+            fill="#fffcf6"
+            stroke={INK}
+            strokeWidth="1.4"
+          />
+          <rect
+            x="-4.5"
+            y="-2.5"
+            width="9"
+            height="8"
+            fill={['#f6c5a6', '#cbbfe9', '#ebbfba'][i]}
+          />
         </g>
       ))}
       <circle cx="-14" cy="-96" r="3.5" fill="#d48d96" />
@@ -176,7 +231,16 @@ function MoonPost() {
       <path d="M0-30v-14a14 14 0 0 1 28 0v14z" fill="#b9646f" {...S} />
       <path d="M28-44v-12h9v6h-9" fill="#f8e6bb" {...S} strokeWidth={2} />
       <g transform="translate(14 -48) rotate(-8)">
-        <rect x="-9" y="-8" width="18" height="12" rx="1.5" fill="#fffcf6" stroke={INK} strokeWidth="1.6" />
+        <rect
+          x="-9"
+          y="-8"
+          width="18"
+          height="12"
+          rx="1.5"
+          fill="#fffcf6"
+          stroke={INK}
+          strokeWidth="1.6"
+        />
         <path d="M-9-8l9 7 9-7" fill="none" stroke={INK} strokeWidth="1.4" />
         <HeartShape x={0} y={0} size={5} fill="#d48d96" />
       </g>
@@ -192,7 +256,12 @@ function Hutch() {
       <rect x="-32" y="-46" width="64" height="36" rx="3" fill="#e9c9a8" {...S} />
       <path d="M-38-44l38-26 38 26z" fill="#d48d96" {...S} />
       <rect x="-24" y="-38" width="20" height="22" rx="2" fill="#fffcf6" {...S} strokeWidth={2} />
-      <path d="M-24-31h20M-24-24h20M-17-38v22M-10-38v22" stroke={INK} strokeWidth="1" opacity="0.4" />
+      <path
+        d="M-24-31h20M-24-24h20M-17-38v22M-10-38v22"
+        stroke={INK}
+        strokeWidth="1"
+        opacity="0.4"
+      />
       <path d="M4-10v-18a10 10 0 0 1 20 0v18z" fill="#6a3a63" {...S} strokeWidth={2} />
       <HeartShape x={0} y={-56} size={8} fill="#fffcf6" />
       <g className="place__coco">
@@ -215,11 +284,32 @@ function Garden() {
       <Shadow w={52} />
       {flowers.map(([x, y, color], i) => (
         <g key={i} className="place__flower" style={{ animationDelay: `${i * -0.7}s` }}>
-          <path d={`M${x} 0q-3 ${y / 2} 0 ${y}`} stroke="#5f7d52" strokeWidth="2.6" fill="none" strokeLinecap="round" />
-          <path d={`M${x} ${y / 2}q-10-4-12 4 8 2 12-4`} fill="#a7c191" stroke={INK} strokeWidth="1.4" />
+          <path
+            d={`M${x} 0q-3 ${y / 2} 0 ${y}`}
+            stroke="#5f7d52"
+            strokeWidth="2.6"
+            fill="none"
+            strokeLinecap="round"
+          />
+          <path
+            d={`M${x} ${y / 2}q-10-4-12 4 8 2 12-4`}
+            fill="#a7c191"
+            stroke={INK}
+            strokeWidth="1.4"
+          />
           <g transform={`translate(${x} ${y})`}>
             {[0, 72, 144, 216, 288].map((a) => (
-              <ellipse key={a} cx="0" cy="-6" rx="4.5" ry="6.5" fill={color} stroke={INK} strokeWidth="1.4" transform={`rotate(${a})`} />
+              <ellipse
+                key={a}
+                cx="0"
+                cy="-6"
+                rx="4.5"
+                ry="6.5"
+                fill={color}
+                stroke={INK}
+                strokeWidth="1.4"
+                transform={`rotate(${a})`}
+              />
             ))}
             <circle r="3.6" fill="#e8bd6a" stroke={INK} strokeWidth="1.4" />
           </g>

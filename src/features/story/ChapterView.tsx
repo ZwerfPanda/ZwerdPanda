@@ -70,7 +70,9 @@ export function ChapterView({
     const position = getContent().milestones.findIndex((m) => m.id === milestone.id);
     removeItem('milestones', milestone.id);
     onClose();
-    toast('Chapter deleted', { action: { label: 'Undo', run: () => restoreItem('milestones', milestone, position) } });
+    toast('Chapter deleted', {
+      action: { label: 'Undo', run: () => restoreItem('milestones', milestone, position) },
+    });
   };
 
   const motif = milestone ? motifFor(milestone.motif) : null;
@@ -84,18 +86,32 @@ export function ChapterView({
       onClose={onClose}
       size="lg"
       className="chapter-dialog"
-      eyebrow={milestone ? (milestone.future ? 'still to be written' : `chapter ${roman(index + 1)}`) : ''}
+      eyebrow={
+        milestone ? (milestone.future ? 'still to be written' : `chapter ${roman(index + 1)}`) : ''
+      }
       title={milestone?.title ?? ''}
       footer={
         milestone && (
           <>
-            <button type="button" className="icon-btn icon-btn--filled" onClick={() => go(-1)} disabled={index <= 0} aria-label="Previous chapter">
+            <button
+              type="button"
+              className="icon-btn icon-btn--filled"
+              onClick={() => go(-1)}
+              disabled={index <= 0}
+              aria-label="Previous chapter"
+            >
               <ChevronLeft />
             </button>
             <span className="pager-count" aria-live="polite">
               {index + 1} / {milestones.length}
             </span>
-            <button type="button" className="icon-btn icon-btn--filled" onClick={() => go(1)} disabled={index >= milestones.length - 1} aria-label="Next chapter">
+            <button
+              type="button"
+              className="icon-btn icon-btn--filled"
+              onClick={() => go(1)}
+              disabled={index >= milestones.length - 1}
+              aria-label="Next chapter"
+            >
               <ChevronRight />
             </button>
             <span className="spacer" />
@@ -108,7 +124,12 @@ export function ChapterView({
             >
               <Heart />
             </button>
-            <button type="button" className="icon-btn" aria-label="Edit chapter" onClick={() => onEdit(milestone.id)}>
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="Edit chapter"
+              onClick={() => onEdit(milestone.id)}
+            >
               <Pencil />
             </button>
             <button type="button" className="icon-btn" aria-label="Delete chapter" onClick={remove}>
@@ -141,11 +162,19 @@ export function ChapterView({
           >
             <div className="chapter__meta">
               {Icon && (
-                <span className="chapter__motif" style={{ background: motif!.tint }} aria-hidden="true">
+                <span
+                  className="chapter__motif"
+                  style={{ background: motif!.tint }}
+                  aria-hidden="true"
+                >
                   <Icon />
                 </span>
               )}
-              <span>{milestone.date ? formatDate(milestone.date) : milestone.dateLabel || (milestone.future ? 'someday' : 'date to add')}</span>
+              <span>
+                {milestone.date
+                  ? formatDate(milestone.date)
+                  : milestone.dateLabel || (milestone.future ? 'someday' : 'date to add')}
+              </span>
               {milestone.isSample && <span className="tag tag--sample">Sample chapter</span>}
               {milestone.favorite && (
                 <span className="tag">
@@ -157,7 +186,12 @@ export function ChapterView({
             {current && (
               <figure className="chapter__figure">
                 <div className="chapter__media">
-                  <MediaView source={current} alt={`${milestone.title} — photo ${mediaIndex + 1}`} mode="full" fit="contain" />
+                  <MediaView
+                    source={current}
+                    alt={`${milestone.title} — photo ${mediaIndex + 1}`}
+                    mode="full"
+                    fit="contain"
+                  />
                 </div>
                 {media.length > 1 && (
                   <div className="chapter__thumbs" role="group" aria-label="Choose a photo">
@@ -195,7 +229,12 @@ export function ChapterView({
             {milestone.song && <SongLink {...milestone.song} />}
 
             <div className="chapter__order">
-              <button type="button" className="btn btn--quiet btn--small" disabled={index <= 0} onClick={() => moveItem('milestones', milestone.id, -1)}>
+              <button
+                type="button"
+                className="btn btn--quiet btn--small"
+                disabled={index <= 0}
+                onClick={() => moveItem('milestones', milestone.id, -1)}
+              >
                 <ArrowUp aria-hidden="true" /> Move earlier
               </button>
               <button

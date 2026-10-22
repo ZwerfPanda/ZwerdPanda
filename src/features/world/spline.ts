@@ -20,7 +20,15 @@ export function smoothPath(points: Point[], tension = 0.5): string {
 }
 
 /** A gentle wavy hill top spanning far beyond the viewBox, filled down to `bottom`. */
-export function hillPath(y: number, amplitude: number, waves: number, phase: number, from = -1200, to = 2400, bottom = 2400): string {
+export function hillPath(
+  y: number,
+  amplitude: number,
+  waves: number,
+  phase: number,
+  from = -1200,
+  to = 2400,
+  bottom = 2400,
+): string {
   const steps = 48;
   let d = `M${from} ${bottom} L${from} ${y}`;
   for (let i = 0; i <= steps; i++) {

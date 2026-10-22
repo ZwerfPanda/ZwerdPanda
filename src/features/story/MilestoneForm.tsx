@@ -58,8 +58,10 @@ function validate(d: Draft): Errors {
   if (!d.title.trim()) errors.title = 'Give this chapter a title.';
   else if (d.title.length > 120) errors.title = 'Keep the title under 120 characters.';
   if (d.date && !isValidIsoDate(d.date)) errors.date = 'That date doesn’t look right.';
-  if (d.songUrl && !isHttpUrl(d.songUrl)) errors.songUrl = 'Paste a full link, starting with https://';
-  if ((d.songUrl || d.songArtist) && !d.songTitle.trim()) errors.songTitle = 'Add the song’s title too.';
+  if (d.songUrl && !isHttpUrl(d.songUrl))
+    errors.songUrl = 'Paste a full link, starting with https://';
+  if ((d.songUrl || d.songArtist) && !d.songTitle.trim())
+    errors.songTitle = 'Add the song’s title too.';
   return errors;
 }
 
@@ -109,7 +111,11 @@ export function MilestoneForm({
       motif: draft.motif,
       media: draft.media,
       song: draft.songTitle.trim()
-        ? { title: draft.songTitle.trim(), artist: draft.songArtist.trim() || undefined, url: draft.songUrl.trim() || undefined }
+        ? {
+            title: draft.songTitle.trim(),
+            artist: draft.songArtist.trim() || undefined,
+            url: draft.songUrl.trim() || undefined,
+          }
         : undefined,
       favorite: draft.favorite,
       future: milestone?.future,
@@ -119,7 +125,8 @@ export function MilestoneForm({
 
     updateContent((c) => {
       const exists = c.milestones.some((m) => m.id === item.id);
-      if (exists) return { ...c, milestones: c.milestones.map((m) => (m.id === item.id ? item : m)) };
+      if (exists)
+        return { ...c, milestones: c.milestones.map((m) => (m.id === item.id ? item : m)) };
       // New chapters go before the "still to be written" page so it stays last.
       const futureIndex = c.milestones.findIndex((m) => m.future);
       const list = c.milestones.slice();
@@ -150,9 +157,23 @@ export function MilestoneForm({
       }
     >
       <form id="milestone-form" className="form" onSubmit={save} noValidate>
-        <TextField label="Title" value={draft.title} onChange={(v) => set('title', v)} error={errors.title} maxLength={140} placeholder="e.g. The first time you laughed at my joke" />
+        <TextField
+          label="Title"
+          value={draft.title}
+          onChange={(v) => set('title', v)}
+          error={errors.title}
+          maxLength={140}
+          placeholder="e.g. The first time you laughed at my joke"
+        />
         <div className="form-row form-row--2">
-          <TextField label="Date" type="date" optional value={draft.date} onChange={(v) => set('date', v)} error={errors.date} />
+          <TextField
+            label="Date"
+            type="date"
+            optional
+            value={draft.date}
+            onChange={(v) => set('date', v)}
+            error={errors.date}
+          />
           <TextField
             label="Or roughly when"
             optional
@@ -171,7 +192,13 @@ export function MilestoneForm({
               const Icon = m.icon;
               return (
                 <label key={m.value} className="motif-picker__option" title={m.label}>
-                  <input type="radio" name="motif" value={m.value} checked={draft.motif === m.value} onChange={() => set('motif', m.value)} />
+                  <input
+                    type="radio"
+                    name="motif"
+                    value={m.value}
+                    checked={draft.motif === m.value}
+                    onChange={() => set('motif', m.value)}
+                  />
                   <span style={{ background: m.tint }}>
                     <Icon aria-hidden="true" />
                     <span className="visually-hidden">{m.label}</span>
@@ -181,11 +208,35 @@ export function MilestoneForm({
             })}
           </div>
         </fieldset>
-        <TextArea label="The story" value={draft.story} onChange={(v) => set('story', v)} optional rows={6} placeholder="What happened, how it felt, what we want to remember…" />
-        <MediaPicker label="Photos & clips" value={draft.media} onChange={(v) => set('media', v)} allowVideo hint="Stored privately on this device." />
+        <TextArea
+          label="The story"
+          value={draft.story}
+          onChange={(v) => set('story', v)}
+          optional
+          rows={6}
+          placeholder="What happened, how it felt, what we want to remember…"
+        />
+        <MediaPicker
+          label="Photos & clips"
+          value={draft.media}
+          onChange={(v) => set('media', v)}
+          allowVideo
+          hint="Stored privately on this device."
+        />
         <div className="form-row form-row--2">
-          <TextField label="A song for this chapter" optional value={draft.songTitle} onChange={(v) => set('songTitle', v)} error={errors.songTitle} />
-          <TextField label="Artist" optional value={draft.songArtist} onChange={(v) => set('songArtist', v)} />
+          <TextField
+            label="A song for this chapter"
+            optional
+            value={draft.songTitle}
+            onChange={(v) => set('songTitle', v)}
+            error={errors.songTitle}
+          />
+          <TextField
+            label="Artist"
+            optional
+            value={draft.songArtist}
+            onChange={(v) => set('songArtist', v)}
+          />
         </div>
         <TextField
           label="Song link"
@@ -198,7 +249,11 @@ export function MilestoneForm({
           placeholder="https://open.spotify.com/track/…"
           hint="Spotify and YouTube links can play right here."
         />
-        <Checkbox label="One of our favourite chapters" checked={draft.favorite} onChange={(v) => set('favorite', v)} />
+        <Checkbox
+          label="One of our favourite chapters"
+          checked={draft.favorite}
+          onChange={(v) => set('favorite', v)}
+        />
       </form>
     </Dialog>
   );

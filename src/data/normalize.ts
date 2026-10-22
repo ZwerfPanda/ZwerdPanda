@@ -36,27 +36,67 @@ const str = (v: unknown, fallback = '', max = 20_000): string =>
   typeof v === 'string' ? v.slice(0, max) : fallback;
 const optStr = (v: unknown, max = 20_000): string | undefined =>
   typeof v === 'string' && v.trim() ? v.slice(0, max) : undefined;
-const optDate = (v: unknown): string | undefined => (isValidIsoDate(v as string) ? (v as string) : undefined);
+const optDate = (v: unknown): string | undefined =>
+  isValidIsoDate(v as string) ? (v as string) : undefined;
 const bool = (v: unknown, fallback = false): boolean => (typeof v === 'boolean' ? v : fallback);
 const oneOf = <T extends string>(v: unknown, options: readonly T[], fallback: T): T =>
   options.includes(v as T) ? (v as T) : fallback;
 const arr = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 const id = (v: unknown, prefix: string, index: number) =>
   typeof v === 'string' && v ? v.slice(0, 120) : `${prefix}-imported-${index}`;
-const stamp = (v: unknown) => (typeof v === 'string' && !Number.isNaN(Date.parse(v)) ? v : new Date().toISOString());
+const stamp = (v: unknown) =>
+  typeof v === 'string' && !Number.isNaN(Date.parse(v)) ? v : new Date().toISOString();
 
 const ART_KEYS: readonly ArtKey[] = [
-  'phone', 'meet', 'mall', 'matcha', 'boba', 'arcade', 'karaoke', 'train', 'car', 'growth', 'coco',
-  'house', 'nails', 'stars', 'future',
+  'phone',
+  'meet',
+  'mall',
+  'matcha',
+  'boba',
+  'arcade',
+  'karaoke',
+  'train',
+  'car',
+  'growth',
+  'coco',
+  'house',
+  'nails',
+  'stars',
+  'future',
 ];
 const MOTIFS: readonly Motif[] = [
-  'phone', 'sparkle', 'bag', 'matcha', 'train', 'car', 'leaf', 'rabbit', 'house', 'star', 'heart',
+  'phone',
+  'sparkle',
+  'bag',
+  'matcha',
+  'train',
+  'car',
+  'leaf',
+  'rabbit',
+  'house',
+  'star',
+  'heart',
   'music',
 ];
-const LETTER_COLORS: readonly LetterColor[] = ['blush', 'lavender', 'peach', 'cream', 'sage', 'plum'];
+const LETTER_COLORS: readonly LetterColor[] = [
+  'blush',
+  'lavender',
+  'peach',
+  'cream',
+  'sage',
+  'plum',
+];
 const SEALS: readonly SealIcon[] = ['heart', 'star', 'moon', 'flower', 'rabbit', 'matcha'];
 const CATEGORIES: readonly DreamCategory[] = [
-  'places', 'dates', 'try', 'home', 'milestones', 'family', 'learn', 'anniversary', 'bucket',
+  'places',
+  'dates',
+  'try',
+  'home',
+  'milestones',
+  'family',
+  'learn',
+  'anniversary',
+  'bucket',
 ];
 const THEMES: readonly ThemeName[] = ['blush', 'lavender', 'matcha', 'midnight'];
 
@@ -108,7 +148,10 @@ function normalizeMilestone(v: unknown, i: number): Milestone | null {
     story: str(v.story),
     prompt: optStr(v.prompt, 300),
     motif: oneOf(v.motif, MOTIFS, 'heart'),
-    media: arr(v.media).map(normalizeMedia).filter((m): m is MediaSource => m !== null).slice(0, 24),
+    media: arr(v.media)
+      .map(normalizeMedia)
+      .filter((m): m is MediaSource => m !== null)
+      .slice(0, 24),
     song: normalizeSong(v.song),
     favorite: bool(v.favorite),
     future: bool(v.future) || undefined,
@@ -213,7 +256,9 @@ function normalizeSurprises(v: unknown, fallback: SurpriseContent): SurpriseCont
   if (!isObj(v)) return fallback;
   const reasons = arr(v.reasons).filter((r): r is string => typeof r === 'string' && !!r.trim());
   const stars = arr(v.stars)
-    .map((s, i) => (isObj(s) && optStr(s.text) ? { id: id(s.id, 'star', i), text: str(s.text, '', 300) } : null))
+    .map((s, i) =>
+      isObj(s) && optStr(s.text) ? { id: id(s.id, 'star', i), text: str(s.text, '', 300) } : null,
+    )
     .filter((s): s is { id: string; text: string } => s !== null);
   return {
     reasons: reasons.length ? reasons.map((r) => r.slice(0, 300)) : fallback.reasons,
@@ -270,7 +315,9 @@ export function normalizeContent(raw: unknown): AppContent {
   return {
     version: 1,
     profile: normalizeProfile(raw.profile),
-    milestones: Array.isArray(raw.milestones) ? list(raw.milestones, normalizeMilestone) : defaults.milestones,
+    milestones: Array.isArray(raw.milestones)
+      ? list(raw.milestones, normalizeMilestone)
+      : defaults.milestones,
     albums: Array.isArray(raw.albums) ? albums : defaults.albums,
     memories: Array.isArray(raw.memories) ? list(raw.memories, normalizeMemory) : defaults.memories,
     letters: Array.isArray(raw.letters) ? list(raw.letters, normalizeLetter) : defaults.letters,
@@ -296,7 +343,13 @@ export function normalizePreferences(raw: unknown): Preferences {
     customSoundtrackId: optStr(p.customSoundtrackId, 120),
     customSoundtrackName: optStr(p.customSoundtrackName, 200),
     volume:
-      typeof p.volume === 'number' && p.volume >= 0 && p.volume <= 1 ? p.volume : defaultPreferences.volume,
-    worldLight: oneOf(p.worldLight, ['auto', 'day', 'dusk', 'night'] as const, defaultPreferences.worldLight),
+      typeof p.volume === 'number' && p.volume >= 0 && p.volume <= 1
+        ? p.volume
+        : defaultPreferences.volume,
+    worldLight: oneOf(
+      p.worldLight,
+      ['auto', 'day', 'dusk', 'night'] as const,
+      defaultPreferences.worldLight,
+    ),
   };
 }

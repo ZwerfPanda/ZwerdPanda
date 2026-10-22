@@ -18,7 +18,8 @@ export function AlbumsDialog({ open, onClose }: { open: boolean; onClose: () => 
     }
   }, [open]);
 
-  const rename = (id: string, name: string) => setList((l) => l.map((a) => (a.id === id ? { ...a, name } : a)));
+  const rename = (id: string, name: string) =>
+    setList((l) => l.map((a) => (a.id === id ? { ...a, name } : a)));
 
   const remove = async (album: Album) => {
     const used = getContent().memories.filter((m) => m.albumIds.includes(album.id)).length;
@@ -76,14 +77,29 @@ export function AlbumsDialog({ open, onClose }: { open: boolean; onClose: () => 
               <label className="visually-hidden" htmlFor={`album-${album.id}`}>
                 Album {i + 1} name
               </label>
-              <input id={`album-${album.id}`} className="input" value={album.name} maxLength={40} onChange={(e) => rename(album.id, e.target.value)} />
-              <button type="button" className="icon-btn" aria-label={`Remove album ${album.name}`} onClick={() => remove(album)}>
+              <input
+                id={`album-${album.id}`}
+                className="input"
+                value={album.name}
+                maxLength={40}
+                onChange={(e) => rename(album.id, e.target.value)}
+              />
+              <button
+                type="button"
+                className="icon-btn"
+                aria-label={`Remove album ${album.name}`}
+                onClick={() => remove(album)}
+              >
                 <Trash2 />
               </button>
             </li>
           ))}
         </ul>
-        <button type="button" className="btn btn--soft" onClick={() => setList((l) => [...l, { id: createId('album'), name: '' }])}>
+        <button
+          type="button"
+          className="btn btn--soft"
+          onClick={() => setList((l) => [...l, { id: createId('album'), name: '' }])}
+        >
           <Plus aria-hidden="true" /> New album
         </button>
         {error && (

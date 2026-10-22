@@ -156,7 +156,9 @@ export function WorldScene({ layout, light, selected, onSelect, animate }: Scene
       })),
     [layout],
   );
-  const ordered = (Object.keys(layout.places) as PlaceId[]).sort((a, b) => layout.places[a][1] - layout.places[b][1]);
+  const ordered = (Object.keys(layout.places) as PlaceId[]).sort(
+    (a, b) => layout.places[a][1] - layout.places[b][1],
+  );
   const hillClasses = ['w-hill-far', 'w-hill-mid', 'w-hill-near', 'w-hill-front'];
 
   return (
@@ -169,7 +171,14 @@ export function WorldScene({ layout, light, selected, onSelect, animate }: Scene
       aria-label="Our Little World: an illustrated map with places to visit"
     >
       <defs>
-        <linearGradient id="w-sky" gradientUnits="userSpaceOnUse" x1="0" y1={-300} x2="0" y2={layout.horizon + 20}>
+        <linearGradient
+          id="w-sky"
+          gradientUnits="userSpaceOnUse"
+          x1="0"
+          y1={-300}
+          x2="0"
+          y2={layout.horizon + 20}
+        >
           <stop offset="0" className="w-sky-top" />
           <stop offset="0.62" className="w-sky-mid" />
           <stop offset="1" className="w-sky-bottom" />
@@ -181,11 +190,24 @@ export function WorldScene({ layout, light, selected, onSelect, animate }: Scene
       </defs>
 
       {/* Sky — drawn far wider and taller than the viewBox so any screen shape is covered. */}
-      <rect x={-3000} y={-3000} width={layout.width + 6000} height={3000 + layout.horizon + 40} fill="url(#w-sky)" />
+      <rect
+        x={-3000}
+        y={-3000}
+        width={layout.width + 6000}
+        height={3000 + layout.horizon + 40}
+        fill="url(#w-sky)"
+      />
 
       <g className="w-stars">
         {stars.map((s, i) => (
-          <circle key={i} cx={s.x} cy={s.y} r={s.r} className="w-star" style={{ animationDelay: `${s.d}s` }} />
+          <circle
+            key={i}
+            cx={s.x}
+            cy={s.y}
+            r={s.r}
+            className="w-star"
+            style={{ animationDelay: `${s.d}s` }}
+          />
         ))}
         {animate && <path className="w-shooting" d={`M${layout.width * 0.2} 40 l60 22`} />}
       </g>
@@ -194,7 +216,10 @@ export function WorldScene({ layout, light, selected, onSelect, animate }: Scene
         <circle r="46" fill="url(#w-glow)" opacity="0.5" />
         <path d="M-6-22a22 22 0 1 0 22 30 26 26 0 0 1-22-30z" fill="#fcf3dc" />
       </g>
-      <g className="w-sun" transform={`translate(${layout.moon[0] - layout.width * 0.12} ${layout.moon[1] + 10})`}>
+      <g
+        className="w-sun"
+        transform={`translate(${layout.moon[0] - layout.width * 0.12} ${layout.moon[1] + 10})`}
+      >
         <circle r="54" fill="url(#w-glow)" opacity="0.7" />
         <circle r="22" fill="#fde7c4" />
       </g>
@@ -205,7 +230,11 @@ export function WorldScene({ layout, light, selected, onSelect, animate }: Scene
 
       <g className="w-clouds">
         {layout.clouds.map(([x, y], i) => (
-          <g key={i} className={`w-cloud ${animate ? 'is-drifting' : ''}`} style={{ animationDelay: `${i * -14}s` }}>
+          <g
+            key={i}
+            className={`w-cloud ${animate ? 'is-drifting' : ''}`}
+            style={{ animationDelay: `${i * -14}s` }}
+          >
             <path
               transform={`translate(${x} ${y}) scale(${i ? 0.8 : 1})`}
               d="M-50 0h100a16 16 0 0 0-14-22 20 20 0 0 0-30-14 24 24 0 0 0-40 8 16 16 0 0 0-16 28z"
@@ -224,11 +253,23 @@ export function WorldScene({ layout, light, selected, onSelect, animate }: Scene
         <path d={`M-3000 ${layout.track + 6}H${layout.width + 3000}`} className="w-rail" />
         <path d={`M-3000 ${layout.track + 3}H${layout.width + 3000}`} className="w-sleepers" />
       </g>
-      <g className={`w-train ${animate ? 'is-running' : ''}`} style={{ '--station': `${layout.stationX + 46}px` } as React.CSSProperties}>
+      <g
+        className={`w-train ${animate ? 'is-running' : ''}`}
+        style={{ '--station': `${layout.stationX + 46}px` } as React.CSSProperties}
+      >
         <g transform={`translate(0 ${layout.track - 1})`}>
           {[-112, -74, -36].map((x, i) => (
             <g key={x} transform={`translate(${x} 0)`}>
-              <rect x="0" y="-22" width="34" height="20" rx={i === 2 ? 8 : 4} fill={i === 2 ? '#b9646f' : '#fbf4ea'} stroke={INK} strokeWidth="2" />
+              <rect
+                x="0"
+                y="-22"
+                width="34"
+                height="20"
+                rx={i === 2 ? 8 : 4}
+                fill={i === 2 ? '#b9646f' : '#fbf4ea'}
+                stroke={INK}
+                strokeWidth="2"
+              />
               <rect x="5" y="-17" width="9" height="7" rx="1.5" className="w-window" />
               <rect x="19" y="-17" width="9" height="7" rx="1.5" className="w-window" />
               <circle cx="8" cy="-1" r="3" fill={INK} />
@@ -247,11 +288,28 @@ export function WorldScene({ layout, light, selected, onSelect, animate }: Scene
         <g className="w-car">
           <g>
             <path d="M10-3l26-9v24z" className="w-headlights" />
-            <rect x="-9" y="-6" width="20" height="12" rx="5" fill="#d48d96" stroke={INK} strokeWidth="1.8" />
+            <rect
+              x="-9"
+              y="-6"
+              width="20"
+              height="12"
+              rx="5"
+              fill="#d48d96"
+              stroke={INK}
+              strokeWidth="1.8"
+            />
             <rect x="0" y="-4.5" width="5" height="9" rx="1.5" fill="#e4ddf5" />
             <HeartShape x={-4} y={0} size={5} fill="#fffcf6" />
           </g>
-          <animateMotion dur="46s" repeatCount="indefinite" rotate="auto" path={pathD} keyPoints="0;1" keyTimes="0;1" calcMode="linear" />
+          <animateMotion
+            dur="46s"
+            repeatCount="indefinite"
+            rotate="auto"
+            path={pathD}
+            keyPoints="0;1"
+            keyTimes="0;1"
+            calcMode="linear"
+          />
         </g>
       )}
 
@@ -259,7 +317,15 @@ export function WorldScene({ layout, light, selected, onSelect, animate }: Scene
         const [x, y] = layout.places[id];
         const s = depthScale(layout, y);
         return (
-          <Place key={id} id={id} x={x} y={y} scale={s} selected={selected === id} onSelect={onSelect} />
+          <Place
+            key={id}
+            id={id}
+            x={x}
+            y={y}
+            scale={s}
+            selected={selected === id}
+            onSelect={onSelect}
+          />
         );
       })}
 
@@ -271,9 +337,20 @@ export function WorldScene({ layout, light, selected, onSelect, animate }: Scene
           const w = text.length * layout.labelSize * 0.47 + 22;
           const h = layout.labelSize + 9;
           return (
-            <g key={id} transform={`translate(${x} ${y + 8 + depthScale(layout, y) * 6})`} className={`w-sign ${selected === id ? 'is-selected' : ''}`} onClick={() => onSelect(id)} aria-hidden="true">
+            <g
+              key={id}
+              transform={`translate(${x} ${y + 8 + depthScale(layout, y) * 6})`}
+              className={`w-sign ${selected === id ? 'is-selected' : ''}`}
+              onClick={() => onSelect(id)}
+              aria-hidden="true"
+            >
               <rect x={-w / 2} y={0} width={w} height={h} rx={h / 2} />
-              <text x={0} y={h / 2 + layout.labelSize * 0.34} textAnchor="middle" fontSize={layout.labelSize}>
+              <text
+                x={0}
+                y={h / 2 + layout.labelSize * 0.34}
+                textAnchor="middle"
+                fontSize={layout.labelSize}
+              >
                 {text}
               </text>
             </g>
@@ -284,7 +361,14 @@ export function WorldScene({ layout, light, selected, onSelect, animate }: Scene
       {animate && (
         <g className="w-fireflies">
           {fireflies.map((f, i) => (
-            <circle key={i} cx={f.x} cy={f.y} r="2.2" className="w-firefly" style={{ animationDelay: `${f.d}s` }} />
+            <circle
+              key={i}
+              cx={f.x}
+              cy={f.y}
+              r="2.2"
+              className="w-firefly"
+              style={{ animationDelay: `${f.d}s` }}
+            />
           ))}
         </g>
       )}
@@ -292,7 +376,21 @@ export function WorldScene({ layout, light, selected, onSelect, animate }: Scene
   );
 }
 
-function Place({ id, x, y, scale, selected, onSelect }: { id: PlaceId; x: number; y: number; scale: number; selected: boolean; onSelect: (id: PlaceId) => void }) {
+function Place({
+  id,
+  x,
+  y,
+  scale,
+  selected,
+  onSelect,
+}: {
+  id: PlaceId;
+  x: number;
+  y: number;
+  scale: number;
+  selected: boolean;
+  onSelect: (id: PlaceId) => void;
+}) {
   const info = PLACES[id];
   return (
     <g

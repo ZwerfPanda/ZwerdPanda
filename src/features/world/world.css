@@ -77,7 +77,9 @@ html[data-world-light='day'] .topbar.is-dark .topnav {
   font-size: clamp(2rem, 8vw, 3.2rem);
   font-weight: 400;
   font-style: italic;
-  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-variation-settings:
+    'SOFT' 100,
+    'WONK' 1;
   letter-spacing: -0.02em;
   text-shadow: 0 2px 20px rgba(29, 15, 34, 0.35);
 }
@@ -1002,8 +1004,8 @@ html[data-world-light='day'] .topbar.is-dark .topnav {
 .world-index {
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: 40px calc(var(--gutter) + var(--safe-right)) calc(var(--tabbar-h) + var(--safe-bottom) + 40px)
-    calc(var(--gutter) + var(--safe-left));
+  padding: 40px calc(var(--gutter) + var(--safe-right))
+    calc(var(--tabbar-h) + var(--safe-bottom) + 40px) calc(var(--gutter) + var(--safe-left));
 }
 
 @media (min-width: 900px) {

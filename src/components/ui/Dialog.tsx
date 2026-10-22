@@ -128,7 +128,11 @@ function DialogInner({
         dragElastic={{ top: 0, bottom: 0.6 }}
         onDragEnd={onDragEnd}
       >
-        <div className="dialog__grab" onPointerDown={(e) => !wide && drag.start(e)} style={{ touchAction: 'none' }}>
+        <div
+          className="dialog__grab"
+          onPointerDown={(e) => !wide && drag.start(e)}
+          style={{ touchAction: 'none' }}
+        >
           <div className="dialog__handle" aria-hidden="true" />
           <div className="dialog__header">
             <div className={`dialog__titles ${hideTitle ? 'visually-hidden' : ''}`}>

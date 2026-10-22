@@ -6,7 +6,11 @@ import { deleteMedia, listMediaIds } from '../lib/media';
 export type CollectionKey = 'milestones' | 'memories' | 'letters' | 'dreams' | 'capsules' | 'songs';
 type ItemOf<K extends CollectionKey> = AppContent[K][number];
 
-export function upsertItem<K extends CollectionKey>(key: K, item: ItemOf<K>, position: 'start' | 'end' = 'end') {
+export function upsertItem<K extends CollectionKey>(
+  key: K,
+  item: ItemOf<K>,
+  position: 'start' | 'end' = 'end',
+) {
   updateContent((c) => {
     const list = c[key] as ItemOf<K>[];
     const index = list.findIndex((existing) => existing.id === item.id);
@@ -85,7 +89,9 @@ export function setAlbums(albums: AppContent['albums']) {
       ...c,
       albums,
       memories: c.memories.map((m) =>
-        m.albumIds.every((a) => valid.has(a)) ? m : { ...m, albumIds: m.albumIds.filter((a) => valid.has(a)) },
+        m.albumIds.every((a) => valid.has(a))
+          ? m
+          : { ...m, albumIds: m.albumIds.filter((a) => valid.has(a)) },
       ),
     };
   });

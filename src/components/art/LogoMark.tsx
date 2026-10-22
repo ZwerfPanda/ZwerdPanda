@@ -11,9 +11,25 @@ export function LogoMark({ size = 34, className = '' }: { size?: number; classNa
           <stop offset="1" stopColor="#8e7cc3" />
         </linearGradient>
       </defs>
-      <ellipse cx="24" cy="26" rx="21" ry="7" fill="none" stroke="#e8bd6a" strokeWidth="2.2" transform="rotate(-18 24 26)" />
+      <ellipse
+        cx="24"
+        cy="26"
+        rx="21"
+        ry="7"
+        fill="none"
+        stroke="#e8bd6a"
+        strokeWidth="2.2"
+        transform="rotate(-18 24 26)"
+      />
       <circle cx="24" cy="26" r="13" fill="url(#logo-planet)" />
-      <path d="M13.5 30.5c6 2.6 15 2.6 21.5-1.5" fill="none" stroke="#fffcf6" strokeWidth="1.6" strokeLinecap="round" opacity="0.6" />
+      <path
+        d="M13.5 30.5c6 2.6 15 2.6 21.5-1.5"
+        fill="none"
+        stroke="#fffcf6"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        opacity="0.6"
+      />
       <path
         d="M4.03 32.49A21 7 -18 0 0 43.97 19.51"
         fill="none"

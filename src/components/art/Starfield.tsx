@@ -3,7 +3,15 @@ import { hashUnit } from '../../lib/id';
 import './starfield.css';
 
 /** A field of softly twinkling stars. Positions are stable per `seed`. */
-export function Starfield({ count = 60, seed = 'sky', className = '' }: { count?: number; seed?: string; className?: string }) {
+export function Starfield({
+  count = 60,
+  seed = 'sky',
+  className = '',
+}: {
+  count?: number;
+  seed?: string;
+  className?: string;
+}) {
   const stars = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => {

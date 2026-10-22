@@ -4,7 +4,14 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Lock, Mail, Pencil, Trash2, X } from 'lucide-react';
 import type { Letter } from '../../data/types';
 import { patchItem } from '../../data/actions';
-import { daysUntil, formatDate, formatTimestamp, parseIsoDate, plural, todayIso } from '../../lib/dates';
+import {
+  daysUntil,
+  formatDate,
+  formatTimestamp,
+  parseIsoDate,
+  plural,
+  todayIso,
+} from '../../lib/dates';
 import { nowIso } from '../../lib/id';
 import { lockScroll, trapTab } from '../../components/ui/scrollLock';
 import { useReducedMotion } from '../../hooks/useMotion';
@@ -25,7 +32,12 @@ interface OpenerProps {
 }
 
 export function LetterOpener(props: OpenerProps) {
-  return createPortal(<AnimatePresence>{props.letter && <OpenerInner key={props.letter.id} {...props} letter={props.letter} />}</AnimatePresence>, document.body);
+  return createPortal(
+    <AnimatePresence>
+      {props.letter && <OpenerInner key={props.letter.id} {...props} letter={props.letter} />}
+    </AnimatePresence>,
+    document.body,
+  );
 }
 
 function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { letter: Letter }) {
@@ -90,8 +102,19 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
     >
-      <button type="button" className="opener__backdrop" aria-label="Close letter" tabIndex={-1} onClick={onClose} />
-      <button type="button" className="icon-btn icon-btn--on-dark opener__close" onClick={onClose} aria-label="Close">
+      <button
+        type="button"
+        className="opener__backdrop"
+        aria-label="Close letter"
+        tabIndex={-1}
+        onClick={onClose}
+      />
+      <button
+        type="button"
+        className="icon-btn icon-btn--on-dark opener__close"
+        onClick={onClose}
+        aria-label="Close"
+      >
         <X />
       </button>
 
@@ -109,7 +132,9 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
               letter={letter}
               stage={stage}
               size="large"
-              sealSlot={needsHold && !dateLocked ? <HoldSeal letter={letter} onDone={open} /> : undefined}
+              sealSlot={
+                needsHold && !dateLocked ? <HoldSeal letter={letter} onDone={open} /> : undefined
+              }
             />
             <div className="opener__under" aria-live="polite">
               {dateLocked ? (
@@ -118,9 +143,15 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
                     <Lock aria-hidden="true" /> Sealed until {formatDate(until)}
                   </p>
                   <p className="opener__hint">
-                    {daysLeft === 1 ? 'Just one more day.' : `${plural(daysLeft, 'day')} to go. Good things are worth waiting for.`}
+                    {daysLeft === 1
+                      ? 'Just one more day.'
+                      : `${plural(daysLeft, 'day')} to go. Good things are worth waiting for.`}
                   </p>
-                  <button type="button" className="btn btn--ghost btn--small opener__ghost" onClick={() => onEdit(letter)}>
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--small opener__ghost"
+                    onClick={() => onEdit(letter)}
+                  >
                     <Pencil aria-hidden="true" /> Edit (for the writer)
                   </button>
                 </>
@@ -150,7 +181,9 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
                   <span>open when</span> {letter.occasion}
                 </h2>
                 {letter.isSample && (
-                  <p className="tag tag--sample letter-paper__sample">Starter letter — Valencio, rewrite it in your own words</p>
+                  <p className="tag tag--sample letter-paper__sample">
+                    Starter letter — Valencio, rewrite it in your own words
+                  </p>
                 )}
               </header>
               <div className="letter-paper__body">
@@ -161,7 +194,9 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
               {letter.signature && <p className="letter-paper__sign">{letter.signature}</p>}
             </div>
             <footer className="letter-paper__foot">
-              <span className="letter-paper__read">{letter.readAt ? `Opened ${formatTimestamp(letter.readAt)}` : ''}</span>
+              <span className="letter-paper__read">
+                {letter.readAt ? `Opened ${formatTimestamp(letter.readAt)}` : ''}
+              </span>
               <button
                 type="button"
                 className="btn btn--quiet btn--small"
@@ -172,10 +207,20 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
               >
                 <Mail aria-hidden="true" /> Seal it again
               </button>
-              <button type="button" className="icon-btn" aria-label="Edit letter" onClick={() => onEdit(letter)}>
+              <button
+                type="button"
+                className="icon-btn"
+                aria-label="Edit letter"
+                onClick={() => onEdit(letter)}
+              >
                 <Pencil />
               </button>
-              <button type="button" className="icon-btn" aria-label="Delete letter" onClick={() => onDelete(letter)}>
+              <button
+                type="button"
+                className="icon-btn"
+                aria-label="Delete letter"
+                onClick={() => onDelete(letter)}
+              >
                 <Trash2 />
               </button>
             </footer>

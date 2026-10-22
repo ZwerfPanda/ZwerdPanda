@@ -1,6 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Eraser, HardDrive, Music, Pause, Play, RotateCcw, ShieldCheck, Upload, Volume2 } from 'lucide-react';
-import { resetAllLocalData, storageAvailable, updatePrefs, useContent, usePrefs } from '../../data/store';
+import {
+  Download,
+  Eraser,
+  HardDrive,
+  Music,
+  Pause,
+  Play,
+  RotateCcw,
+  ShieldCheck,
+  Upload,
+  Volume2,
+} from 'lucide-react';
+import {
+  resetAllLocalData,
+  storageAvailable,
+  updatePrefs,
+  useContent,
+  usePrefs,
+} from '../../data/store';
 import { countSamples, removeSampleContent, updateProfile } from '../../data/actions';
 import { applyBackup, createBackup, downloadBlob, readBackup } from '../../data/backup';
 import type { Profile, ThemeName } from '../../data/types';
@@ -44,7 +61,17 @@ export function SettingsPage() {
   );
 }
 
-function Section({ id, title, kicker, children }: { id: string; title: string; kicker: string; children: React.ReactNode }) {
+function Section({
+  id,
+  title,
+  kicker,
+  children,
+}: {
+  id: string;
+  title: string;
+  kicker: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="settings-card" aria-labelledby={`${id}-title`}>
       <p className="settings-card__kicker hand">{kicker}</p>
@@ -58,7 +85,16 @@ function Section({ id, title, kicker, children }: { id: string; title: string; k
 
 /* ---------------------------------------------------------------- Profile */
 
-type ProfileDraft = Pick<Profile, 'yourName' | 'partnerName' | 'siteTitle' | 'subtitle' | 'homeGreeting' | 'homeMessage' | 'signature'> & {
+type ProfileDraft = Pick<
+  Profile,
+  | 'yourName'
+  | 'partnerName'
+  | 'siteTitle'
+  | 'subtitle'
+  | 'homeGreeting'
+  | 'homeMessage'
+  | 'signature'
+> & {
   startDate: string;
 };
 
@@ -120,8 +156,22 @@ function ProfileSection() {
     <Section id="profile" title="Us & our words" kicker="the important bits">
       <form className="form" onSubmit={save} noValidate>
         <div className="form-row form-row--2">
-          <TextField label="Your name" value={draft.yourName} onChange={(v) => set('yourName', v)} error={errors.yourName} maxLength={60} autoComplete="off" />
-          <TextField label="Her name" value={draft.partnerName} onChange={(v) => set('partnerName', v)} error={errors.partnerName} maxLength={60} autoComplete="off" />
+          <TextField
+            label="Your name"
+            value={draft.yourName}
+            onChange={(v) => set('yourName', v)}
+            error={errors.yourName}
+            maxLength={60}
+            autoComplete="off"
+          />
+          <TextField
+            label="Her name"
+            value={draft.partnerName}
+            onChange={(v) => set('partnerName', v)}
+            error={errors.partnerName}
+            maxLength={60}
+            autoComplete="off"
+          />
         </div>
         <TextField
           label="Our start date"
@@ -134,10 +184,28 @@ function ProfileSection() {
           hint="Used for the “together for” counter and anniversary countdown. Never guessed — only what we enter here."
         />
         <div className="form-row form-row--2">
-          <TextField label="Name of our universe" value={draft.siteTitle} onChange={(v) => set('siteTitle', v)} error={errors.siteTitle} maxLength={80} />
-          <TextField label="Subtitle" optional value={draft.subtitle} onChange={(v) => set('subtitle', v)} maxLength={160} />
+          <TextField
+            label="Name of our universe"
+            value={draft.siteTitle}
+            onChange={(v) => set('siteTitle', v)}
+            error={errors.siteTitle}
+            maxLength={80}
+          />
+          <TextField
+            label="Subtitle"
+            optional
+            value={draft.subtitle}
+            onChange={(v) => set('subtitle', v)}
+            maxLength={160}
+          />
         </div>
-        <TextField label="Greeting on the home note" optional value={draft.homeGreeting} onChange={(v) => set('homeGreeting', v)} maxLength={80} />
+        <TextField
+          label="Greeting on the home note"
+          optional
+          value={draft.homeGreeting}
+          onChange={(v) => set('homeGreeting', v)}
+          maxLength={80}
+        />
         <TextArea
           label="The note on the home page"
           optional
@@ -146,13 +214,27 @@ function ProfileSection() {
           rows={6}
           hint="Leave an empty line between paragraphs. Leave it blank to hide the note."
         />
-        <TextField label="Signature" optional value={draft.signature} onChange={(v) => set('signature', v)} maxLength={120} hint="Shown at the bottom of every page." />
+        <TextField
+          label="Signature"
+          optional
+          value={draft.signature}
+          onChange={(v) => set('signature', v)}
+          maxLength={120}
+          hint="Shown at the bottom of every page."
+        />
         <div className="settings-actions">
           <button type="submit" className="btn btn--primary" disabled={!dirty}>
             Save changes
           </button>
           {dirty && (
-            <button type="button" className="btn btn--quiet" onClick={() => { setDraft(saved); setErrors({}); }}>
+            <button
+              type="button"
+              className="btn btn--quiet"
+              onClick={() => {
+                setDraft(saved);
+                setErrors({});
+              }}
+            >
               Undo edits
             </button>
           )}
@@ -176,7 +258,12 @@ function LookSection() {
         <div className="theme-cards">
           {THEMES.map((t) => (
             <label key={t.value} className="theme-card">
-              <input type="radio" name="theme" checked={theme === t.value} onChange={() => updateProfile({ theme: t.value })} />
+              <input
+                type="radio"
+                name="theme"
+                checked={theme === t.value}
+                onChange={() => updateProfile({ theme: t.value })}
+              />
               <span className="theme-card__face">
                 <span className="theme-card__swatch" style={{ background: t.colors[0] }}>
                   <i style={{ background: t.colors[1] }} />
@@ -245,13 +332,19 @@ function SoundSection() {
       return;
     }
     if (file.size > MAX_AUDIO_BYTES) {
-      setError(`That song is ${formatBytes(file.size)} — up to ${formatBytes(MAX_AUDIO_BYTES)} fits here.`);
+      setError(
+        `That song is ${formatBytes(file.size)} — up to ${formatBytes(MAX_AUDIO_BYTES)} fits here.`,
+      );
       return;
     }
     try {
       const old = prefs.customSoundtrackId;
       const id = await putMedia(file, file.name);
-      updatePrefs({ customSoundtrackId: id, customSoundtrackName: file.name.replace(/\.[^.]+$/, ''), soundtrack: 'custom' });
+      updatePrefs({
+        customSoundtrackId: id,
+        customSoundtrackName: file.name.replace(/\.[^.]+$/, ''),
+        soundtrack: 'custom',
+      });
       if (old) await deleteMedia(old);
       toast('Our soundtrack is set');
     } catch {
@@ -263,7 +356,11 @@ function SoundSection() {
 
   const removeSong = async () => {
     const id = prefs.customSoundtrackId;
-    updatePrefs({ customSoundtrackId: undefined, customSoundtrackName: undefined, soundtrack: 'musicbox' });
+    updatePrefs({
+      customSoundtrackId: undefined,
+      customSoundtrackName: undefined,
+      soundtrack: 'musicbox',
+    });
     if (id) await deleteMedia(id).catch(() => undefined);
   };
 
@@ -282,7 +379,12 @@ function SoundSection() {
           }}
           options={[
             { value: 'musicbox', label: 'Little music box' },
-            { value: 'custom', label: prefs.customSoundtrackName ? `“${prefs.customSoundtrackName}”` : 'Our own song' },
+            {
+              value: 'custom',
+              label: prefs.customSoundtrackName
+                ? `“${prefs.customSoundtrackName}”`
+                : 'Our own song',
+            },
           ]}
           hint="The music box is an original lullaby made for this site. Your own song is an audio file stored on this device."
         />
@@ -291,8 +393,13 @@ function SoundSection() {
             {music.playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
             {music.playing ? 'Pause' : 'Play it'}
           </button>
-          <button type="button" className="btn btn--ghost" onClick={() => inputRef.current?.click()}>
-            <Music aria-hidden="true" /> {prefs.customSoundtrackId ? 'Choose a different song' : 'Upload our song'}
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={() => inputRef.current?.click()}
+          >
+            <Music aria-hidden="true" />{' '}
+            {prefs.customSoundtrackId ? 'Choose a different song' : 'Upload our song'}
           </button>
           {prefs.customSoundtrackId && (
             <button type="button" className="btn btn--quiet" onClick={removeSong}>
@@ -300,7 +407,13 @@ function SoundSection() {
             </button>
           )}
         </div>
-        <input ref={inputRef} type="file" accept="audio/*" hidden onChange={(e) => upload(e.target.files?.[0])} />
+        <input
+          ref={inputRef}
+          type="file"
+          accept="audio/*"
+          hidden
+          onChange={(e) => upload(e.target.files?.[0])}
+        />
         {error && (
           <p className="field__error" role="alert">
             {error}
@@ -308,7 +421,16 @@ function SoundSection() {
         )}
         <div className="field">
           <label className="field__label" htmlFor="volume">
-            <Volume2 aria-hidden="true" style={{ display: 'inline-block', width: 16, height: 16, verticalAlign: '-3px', marginRight: 6 }} />
+            <Volume2
+              aria-hidden="true"
+              style={{
+                display: 'inline-block',
+                width: 16,
+                height: 16,
+                verticalAlign: '-3px',
+                marginRight: 6,
+              }}
+            />
             Volume
           </label>
           <input
@@ -341,7 +463,8 @@ function DataSection() {
     navigator.storage
       ?.estimate?.()
       .then(({ usage: used, quota }) => {
-        if (used !== undefined && quota) setUsage(`${formatBytes(used)} used of about ${formatBytes(quota)} available`);
+        if (used !== undefined && quota)
+          setUsage(`${formatBytes(used)} used of about ${formatBytes(quota)} available`);
       })
       .catch(() => undefined);
   }, [content]);
@@ -351,7 +474,11 @@ function DataSection() {
     try {
       const { blob, filename, mediaCount } = await createBackup(withMedia);
       downloadBlob(blob, filename);
-      toast(withMedia ? `Backup saved with ${mediaCount} photos/clips (${formatBytes(blob.size)})` : 'Backup saved');
+      toast(
+        withMedia
+          ? `Backup saved with ${mediaCount} photos/clips (${formatBytes(blob.size)})`
+          : 'Backup saved',
+      );
     } catch {
       toast('The backup couldn’t be created.', { tone: 'error' });
     } finally {
@@ -376,7 +503,9 @@ function DataSection() {
         toast('Backup restored ♡');
       }
     } catch (error) {
-      toast(error instanceof Error ? error.message : 'That backup couldn’t be read.', { tone: 'error' });
+      toast(error instanceof Error ? error.message : 'That backup couldn’t be read.', {
+        tone: 'error',
+      });
     } finally {
       setBusy(null);
     }
@@ -414,25 +543,48 @@ function DataSection() {
       {!storageAvailable && (
         <p className="notice" role="alert">
           <HardDrive aria-hidden="true" />
-          This browser is blocking storage (private browsing?), so changes won’t be kept after closing the page.
+          This browser is blocking storage (private browsing?), so changes won’t be kept after
+          closing the page.
         </p>
       )}
       <p className="settings-text">
-        Everything lives in this browser on this device. Export a backup now and then — it’s also how content moves to
-        another phone for now.
+        Everything lives in this browser on this device. Export a backup now and then — it’s also
+        how content moves to another phone for now.
       </p>
       {usage && <p className="field__hint">{usage}</p>}
       <div className="settings-actions">
-        <button type="button" className="btn btn--primary" onClick={() => exportBackup(true)} disabled={busy !== null}>
-          <Download aria-hidden="true" /> {busy === 'export-media' ? 'Packing photos…' : 'Export with photos'}
+        <button
+          type="button"
+          className="btn btn--primary"
+          onClick={() => exportBackup(true)}
+          disabled={busy !== null}
+        >
+          <Download aria-hidden="true" />{' '}
+          {busy === 'export-media' ? 'Packing photos…' : 'Export with photos'}
         </button>
-        <button type="button" className="btn btn--ghost" onClick={() => exportBackup(false)} disabled={busy !== null}>
+        <button
+          type="button"
+          className="btn btn--ghost"
+          onClick={() => exportBackup(false)}
+          disabled={busy !== null}
+        >
           <Download aria-hidden="true" /> Text only
         </button>
-        <button type="button" className="btn btn--ghost" onClick={() => importRef.current?.click()} disabled={busy !== null}>
+        <button
+          type="button"
+          className="btn btn--ghost"
+          onClick={() => importRef.current?.click()}
+          disabled={busy !== null}
+        >
           <Upload aria-hidden="true" /> {busy === 'import' ? 'Reading…' : 'Restore a backup'}
         </button>
-        <input ref={importRef} type="file" accept="application/json,.json" hidden onChange={(e) => importBackup(e.target.files?.[0])} />
+        <input
+          ref={importRef}
+          type="file"
+          accept="application/json,.json"
+          hidden
+          onChange={(e) => importBackup(e.target.files?.[0])}
+        />
       </div>
 
       <div className="settings-danger">
@@ -444,7 +596,12 @@ function DataSection() {
               : 'No sample content left — everything here is ours.'}
           </p>
         </div>
-        <button type="button" className="btn btn--ghost" onClick={removeSamples} disabled={samples === 0}>
+        <button
+          type="button"
+          className="btn btn--ghost"
+          onClick={removeSamples}
+          disabled={samples === 0}
+        >
           <Eraser aria-hidden="true" /> Remove samples
         </button>
       </div>
@@ -458,7 +615,8 @@ function DataSection() {
         </button>
       </div>
       <p className="field__hint">
-        Currently {content.memories.length} memories, {content.letters.length} letters and {content.milestones.length} chapters.
+        Currently {content.memories.length} memories, {content.letters.length} letters and{' '}
+        {content.milestones.length} chapters.
       </p>
     </Section>
   );
@@ -471,25 +629,27 @@ function PrivacySection() {
     <Section id="privacy" title="Privacy & sharing" kicker="being honest">
       <ul className="settings-list">
         <li>
-          <strong>Private to this device.</strong> Nothing is uploaded anywhere. Photos, letters and everything else stay in
-          this browser — that also means Shenaya won’t see what’s added on another phone yet.
+          <strong>Private to this device.</strong> Nothing is uploaded anywhere. Photos, letters and
+          everything else stay in this browser — that also means Shenaya won’t see what’s added on
+          another phone yet.
         </li>
         <li>
-          <strong>No password, on purpose.</strong> A password screen without a real server would only look secure, so
-          there isn’t one. Anyone holding this unlocked phone can open the site.
+          <strong>No password, on purpose.</strong> A password screen without a real server would
+          only look secure, so there isn’t one. Anyone holding this unlocked phone can open the
+          site.
         </li>
         <li>
           <strong>Sharing for now:</strong> export a backup with photos and restore it on her phone.
         </li>
         <li>
-          <strong>Coming later:</strong> real sign-in for just the two of us and shared, private photo storage, so both
-          of us see the same universe everywhere.
+          <strong>Coming later:</strong> real sign-in for just the two of us and shared, private
+          photo storage, so both of us see the same universe everywhere.
         </li>
       </ul>
       <p className="notice notice--plain" style={{ marginTop: 16 }}>
         <ShieldCheck aria-hidden="true" />
-        Browsers can clear website data when a phone runs low on space. Adding the site to the Home Screen and keeping a
-        recent backup makes that much less likely to hurt.
+        Browsers can clear website data when a phone runs low on space. Adding the site to the Home
+        Screen and keeping a recent backup makes that much less likely to hurt.
       </p>
     </Section>
   );

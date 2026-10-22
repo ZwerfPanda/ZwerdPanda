@@ -56,7 +56,9 @@ export function WorldPage() {
   useLayoutEffect(() => {
     const node = stageRef.current;
     if (!node) return;
-    const observer = new ResizeObserver(([entry]) => setSize({ w: entry.contentRect.width, h: entry.contentRect.height }));
+    const observer = new ResizeObserver(([entry]) =>
+      setSize({ w: entry.contentRect.width, h: entry.contentRect.height }),
+    );
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
@@ -82,6 +84,8 @@ export function WorldPage() {
   })();
 
   const LightIcon = LIGHT_ICONS[light];
+  const lightText =
+    prefs.worldLight === 'auto' ? `${LIGHT_LABEL[light]} · live` : LIGHT_LABEL[light];
 
   return (
     <div className="world-page">
@@ -93,7 +97,13 @@ export function WorldPage() {
             animate={camera}
             transition={{ type: 'spring', damping: 30, stiffness: 120, mass: 1 }}
           >
-            <WorldScene layout={layout} light={light} selected={selected} onSelect={select} animate={!reduce} />
+            <WorldScene
+              layout={layout}
+              light={light}
+              selected={selected}
+              onSelect={select}
+              animate={!reduce}
+            />
           </motion.div>
         </div>
 
@@ -104,7 +114,13 @@ export function WorldPage() {
           </h1>
           <AnimatePresence>
             {!touched && (
-              <motion.p className="world-overlay__hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ delay: 0.6 }}>
+              <motion.p
+                className="world-overlay__hint"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 0.6 }}
+              >
                 Tap any place to visit it
               </motion.p>
             )}
@@ -115,14 +131,24 @@ export function WorldPage() {
           type="button"
           className={`world-light ${selected ? 'is-hidden' : ''}`}
           onClick={() => updatePrefs({ worldLight: NEXT_MODE[prefs.worldLight] })}
-          aria-label={`Lighting: ${prefs.worldLight === 'auto' ? `following the clock (${LIGHT_LABEL[light].toLowerCase()})` : LIGHT_LABEL[light]}. Change lighting`}
+          aria-label={`${lightText} — change the lighting${prefs.worldLight === 'auto' ? ' (now following the clock)' : ''}`}
         >
           <LightIcon aria-hidden="true" />
-          <span>{prefs.worldLight === 'auto' ? `${LIGHT_LABEL[light]} · live` : LIGHT_LABEL[light]}</span>
+          <span>{lightText}</span>
         </button>
 
         {createPortal(
-          <AnimatePresence>{selected && <PlacePanel key={selected} id={selected} wide={wide} onClose={() => select(null)} onGo={select} />}</AnimatePresence>,
+          <AnimatePresence>
+            {selected && (
+              <PlacePanel
+                key={selected}
+                id={selected}
+                wide={wide}
+                onClose={() => select(null)}
+                onGo={select}
+              />
+            )}
+          </AnimatePresence>,
           document.body,
         )}
       </section>
@@ -155,7 +181,17 @@ export function WorldPage() {
   );
 }
 
-function PlacePanel({ id, wide, onClose, onGo }: { id: PlaceId; wide: boolean; onClose: () => void; onGo: (id: PlaceId) => void }) {
+function PlacePanel({
+  id,
+  wide,
+  onClose,
+  onGo,
+}: {
+  id: PlaceId;
+  wide: boolean;
+  onClose: () => void;
+  onGo: (id: PlaceId) => void;
+}) {
   const info = PLACES[id];
   const Body = info.Body;
   const panelRef = useRef<HTMLDivElement>(null);
@@ -178,7 +214,8 @@ function PlacePanel({ id, wide, onClose, onGo }: { id: PlaceId; wide: boolean; o
     return () => {
       unlock();
       document.removeEventListener('keydown', onKey);
-      if (previous && document.contains(previous) && !previous.closest('.place-panel')) previous.focus({ preventScroll: true });
+      if (previous && document.contains(previous) && !previous.closest('.place-panel'))
+        previous.focus({ preventScroll: true });
     };
   }, []);
 
@@ -202,10 +239,20 @@ function PlacePanel({ id, wide, onClose, onGo }: { id: PlaceId; wide: boolean; o
           <ArrowLeft aria-hidden="true" /> Back to our world
         </button>
         <div className="place-panel__step">
-          <button type="button" className="icon-btn" onClick={() => onGo(prev)} aria-label={`Previous place: ${PLACES[prev].name}`}>
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => onGo(prev)}
+            aria-label={`Previous place: ${PLACES[prev].name}`}
+          >
             <ArrowLeft />
           </button>
-          <button type="button" className="icon-btn" onClick={() => onGo(next)} aria-label={`Next place: ${PLACES[next].name}`}>
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => onGo(next)}
+            aria-label={`Next place: ${PLACES[next].name}`}
+          >
             <ArrowRight />
           </button>
         </div>

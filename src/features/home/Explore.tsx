@@ -31,14 +31,40 @@ export function Explore() {
       <div className="explore__grid">
         <a className="ex-world" href={href('/world')}>
           <Starfield count={34} seed="ex-world" />
-          <svg className="ex-world__scene" viewBox="0 0 400 170" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+          <svg
+            className="ex-world__scene"
+            viewBox="0 0 400 170"
+            preserveAspectRatio="xMidYMax slice"
+            aria-hidden="true"
+          >
             <path d="M326 34a18 18 0 1 0 14 30 22 22 0 0 1-14-30z" fill="#f8e6bb" />
             <path d="M0 120c60-30 130-36 200-20s130 10 200-14v84H0z" fill="#6a3a63" />
             <path d="M0 140c80-22 150-24 230-10s120 6 170-6v56H0z" fill="#52294f" />
-            <path d="M120 170c20-20 40-30 70-34s50-12 66-30" fill="none" stroke="#f6c5a6" strokeWidth="5" strokeDasharray="1 10" strokeLinecap="round" />
+            <path
+              d="M120 170c20-20 40-30 70-34s50-12 66-30"
+              fill="none"
+              stroke="#f6c5a6"
+              strokeWidth="5"
+              strokeDasharray="1 10"
+              strokeLinecap="round"
+            />
             <g transform="translate(262 92)">
-              <rect x="-14" y="-16" width="28" height="18" fill="#fbf4ea" stroke={INK} strokeWidth="2" />
-              <path d="M-19-14L0-30l19 16z" fill="#b9646f" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
+              <rect
+                x="-14"
+                y="-16"
+                width="28"
+                height="18"
+                fill="#fbf4ea"
+                stroke={INK}
+                strokeWidth="2"
+              />
+              <path
+                d="M-19-14L0-30l19 16z"
+                fill="#b9646f"
+                stroke={INK}
+                strokeWidth="2"
+                strokeLinejoin="round"
+              />
               <rect x="-4" y="-9" width="8" height="11" rx="4" fill="#f8e6bb" />
             </g>
             <g transform="translate(84 128)">
@@ -46,14 +72,26 @@ export function Explore() {
               <circle cx="0" cy="-20" r="10" fill="#a7c191" stroke={INK} strokeWidth="2" />
             </g>
             <g transform="translate(176 140)">
-              <rect x="-12" y="-14" width="24" height="16" rx="3" fill="#e4ddf5" stroke={INK} strokeWidth="2" />
+              <rect
+                x="-12"
+                y="-14"
+                width="24"
+                height="16"
+                rx="3"
+                fill="#e4ddf5"
+                stroke={INK}
+                strokeWidth="2"
+              />
               <rect x="-6" y="-9" width="12" height="6" fill="#f8e6bb" />
             </g>
           </svg>
           <div className="ex-world__text">
             <p className="hand ex-world__eyebrow">step inside</p>
             <h3 className="ex-world__title">Our Little World</h3>
-            <p className="ex-world__blurb">A tiny map of us — the matcha corner, the arcade, the moon post, Coco’s house and the home we’re dreaming of.</p>
+            <p className="ex-world__blurb">
+              A tiny map of us — the matcha corner, the arcade, the moon post, Coco’s house and the
+              home we’re dreaming of.
+            </p>
             <span className="ex-world__cta">
               Explore the map <ArrowRight aria-hidden="true" />
             </span>
@@ -77,7 +115,9 @@ export function Explore() {
           </div>
           <div className="ex-ticket__stub">
             <span className="ex-ticket__count">{milestones.length}</span>
-            <span className="ex-ticket__unit">{milestones.length === 1 ? 'chapter' : 'chapters'}</span>
+            <span className="ex-ticket__unit">
+              {milestones.length === 1 ? 'chapter' : 'chapters'}
+            </span>
           </div>
         </a>
 
@@ -99,26 +139,61 @@ export function Explore() {
           </div>
           <div className="ex-memories__text">
             <h3 className="ex-label">Memories</h3>
-            <p className="ex-sub">{memories.length ? plural(memories.length, 'moment') : 'add the first one'}</p>
+            <p className="ex-sub">
+              {memories.length ? plural(memories.length, 'moment') : 'add the first one'}
+            </p>
           </div>
         </a>
 
         <a className="ex-letters" href={href('/letters')}>
           <svg className="ex-letters__env" viewBox="0 0 160 110" aria-hidden="true">
-            <rect x="4" y="8" width="152" height="98" rx="6" fill="#f5dad6" stroke={INK} strokeWidth="2.5" />
-            <path d="M4 14l76 52 76-52" fill="none" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
-            <path d="M4 104l58-44M156 104L98 60" fill="none" stroke={INK} strokeWidth="2" opacity="0.4" />
+            <rect
+              x="4"
+              y="8"
+              width="152"
+              height="98"
+              rx="6"
+              fill="#f5dad6"
+              stroke={INK}
+              strokeWidth="2.5"
+            />
+            <path
+              d="M4 14l76 52 76-52"
+              fill="none"
+              stroke={INK}
+              strokeWidth="2.5"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M4 104l58-44M156 104L98 60"
+              fill="none"
+              stroke={INK}
+              strokeWidth="2"
+              opacity="0.4"
+            />
             <circle cx="80" cy="64" r="15" fill="#b9646f" stroke={INK} strokeWidth="2.5" />
             <HeartShape x={80} y={64} size={13} fill="#f5dad6" />
           </svg>
           <h3 className="ex-label">Open when…</h3>
-          <p className="ex-sub">{unread ? `${plural(unread, 'letter')} waiting` : 'love letters'}</p>
+          <p className="ex-sub">
+            {unread ? `${plural(unread, 'letter')} waiting` : 'love letters'}
+          </p>
         </a>
 
         <a className="ex-future" href={href('/future')}>
           <div className="ex-future__stamp" aria-hidden="true">
             <svg viewBox="0 0 40 46">
-              <rect x="1" y="1" width="38" height="44" rx="2" fill="#fffcf6" stroke="#b9646f" strokeWidth="2" strokeDasharray="3 2" />
+              <rect
+                x="1"
+                y="1"
+                width="38"
+                height="44"
+                rx="2"
+                fill="#fffcf6"
+                stroke="#b9646f"
+                strokeWidth="2"
+                strokeDasharray="3 2"
+              />
               <rect x="6" y="6" width="28" height="34" fill="#e4ddf5" />
               <path d="M10 34l8-12 6 8 4-5 6 9z" fill="#8e7cc3" />
               <circle cx="27" cy="14" r="3.5" fill="#f8e6bb" />
@@ -133,10 +208,34 @@ export function Explore() {
 
         <a className="ex-gift" href={href('/surprises')}>
           <svg className="ex-gift__art" viewBox="0 0 90 90" aria-hidden="true">
-            <rect x="14" y="38" width="62" height="44" rx="4" fill="#cbbfe9" stroke={INK} strokeWidth="2.5" />
-            <rect x="10" y="26" width="70" height="16" rx="4" fill="#e4ddf5" stroke={INK} strokeWidth="2.5" />
+            <rect
+              x="14"
+              y="38"
+              width="62"
+              height="44"
+              rx="4"
+              fill="#cbbfe9"
+              stroke={INK}
+              strokeWidth="2.5"
+            />
+            <rect
+              x="10"
+              y="26"
+              width="70"
+              height="16"
+              rx="4"
+              fill="#e4ddf5"
+              stroke={INK}
+              strokeWidth="2.5"
+            />
             <path d="M45 26v56" stroke="#b9646f" strokeWidth="8" />
-            <path d="M45 26c-6-14-26-16-22-4 3 7 22 4 22 4zM45 26c6-14 26-16 22-4-3 7-22 4-22 4z" fill="#d48d96" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+            <path
+              d="M45 26c-6-14-26-16-22-4 3 7 22 4 22 4zM45 26c6-14 26-16 22-4-3 7-22 4-22 4z"
+              fill="#d48d96"
+              stroke={INK}
+              strokeWidth="2.5"
+              strokeLinejoin="round"
+            />
             <SparkleShape x={80} y={14} size={12} fill="#e8bd6a" />
           </svg>
           <h3 className="ex-label">Little surprises</h3>

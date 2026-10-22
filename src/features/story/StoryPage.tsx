@@ -22,7 +22,10 @@ export function StoryPage() {
   const milestones = useContent((c) => c.milestones);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [editing, setEditing] = useState<{ open: boolean; id: string | null }>({ open: false, id: null });
+  const [editing, setEditing] = useState<{ open: boolean; id: string | null }>({
+    open: false,
+    id: null,
+  });
   const closeChapter = useCallback(() => setOpenId(null), []);
   const { params } = useRoute();
   const linkedChapter = params.get('chapter');
@@ -43,7 +46,9 @@ export function StoryPage() {
     () => milestones.map((m, i) => ({ m, i })).filter(({ m }) => !onlyFavorites || m.favorite),
     [milestones, onlyFavorites],
   );
-  const editingMilestone = editing.id ? (milestones.find((m) => m.id === editing.id) ?? null) : null;
+  const editingMilestone = editing.id
+    ? (milestones.find((m) => m.id === editing.id) ?? null)
+    : null;
   const favoriteCount = milestones.filter((m) => m.favorite).length;
 
   return (
@@ -58,11 +63,21 @@ export function StoryPage() {
         lede="From a livestream to wherever we’re going next. Tap a chapter to open it — every one can be rewritten, dated and filled with our own photos."
         actions={
           <>
-            <button type="button" className="btn btn--primary" onClick={() => setEditing({ open: true, id: null })}>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => setEditing({ open: true, id: null })}
+            >
               <Plus aria-hidden="true" /> Add a chapter
             </button>
-            <button type="button" className="chip" aria-pressed={onlyFavorites} onClick={() => setOnlyFavorites((v) => !v)}>
-              <Heart aria-hidden="true" /> Favourites <span className="chip__count">{favoriteCount}</span>
+            <button
+              type="button"
+              className="chip"
+              aria-pressed={onlyFavorites}
+              onClick={() => setOnlyFavorites((v) => !v)}
+            >
+              <Heart aria-hidden="true" /> Favourites{' '}
+              <span className="chip__count">{favoriteCount}</span>
             </button>
           </>
         }
@@ -74,7 +89,11 @@ export function StoryPage() {
           title="Our story starts here"
           text="Add the first chapter — the livestream, the first message, whatever feels like page one."
           action={
-            <button type="button" className="btn btn--primary" onClick={() => setEditing({ open: true, id: null })}>
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={() => setEditing({ open: true, id: null })}
+            >
               <Plus aria-hidden="true" /> Write chapter one
             </button>
           }
@@ -145,7 +164,11 @@ function TimelineEntry({
   const Icon = motif.icon;
   const cover = m.media[0];
   const when = m.date ? formatDate(m.date) : m.dateLabel || (m.future ? 'someday' : 'date to add');
-  const layout = m.future ? 'future' : cover ? (['polaroid', 'paper', 'quote'] as const)[variant] : 'quote';
+  const layout = m.future
+    ? 'future'
+    : cover
+      ? (['polaroid', 'paper', 'quote'] as const)[variant]
+      : 'quote';
 
   return (
     <motion.li
@@ -156,23 +179,37 @@ function TimelineEntry({
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
     >
       <div className="tl__line" aria-hidden="true" />
-      <span className={`tl__station tl__station--${track}`} style={{ background: motif.tint }} aria-hidden="true">
+      <span
+        className={`tl__station tl__station--${track}`}
+        style={{ background: motif.tint }}
+        aria-hidden="true"
+      >
         <Icon />
       </span>
 
       <article className={`tl__card tl__card--${layout}`} onClick={onOpen}>
         <p className="tl__chapter">
-          {m.future ? 'to be continued' : `chapter ${roman(number)}`} · <span className="tl__when">{when}</span>
+          {m.future ? 'to be continued' : `chapter ${roman(number)}`} ·{' '}
+          <span className="tl__when">{when}</span>
         </p>
         <h2 className="tl__title">
-          <button type="button" className="tl__open" onClick={(e) => { e.stopPropagation(); onOpen(); }}>
+          <button
+            type="button"
+            className="tl__open"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpen();
+            }}
+          >
             {m.title}
           </button>
         </h2>
 
         {cover && layout !== 'future' && (
           <div className={`tl__media tl__media--${layout}`}>
-            {layout === 'paper' && <span className="tape tape--lavender tl__tape" aria-hidden="true" />}
+            {layout === 'paper' && (
+              <span className="tape tape--lavender tl__tape" aria-hidden="true" />
+            )}
             <div className="tl__photo">
               <MediaView source={cover} alt={m.title} />
             </div>
@@ -189,7 +226,11 @@ function TimelineEntry({
             type="button"
             className="icon-btn fav-btn tl__fav"
             aria-pressed={m.favorite}
-            aria-label={m.favorite ? `Remove “${m.title}” from favourites` : `Mark “${m.title}” as a favourite`}
+            aria-label={
+              m.favorite
+                ? `Remove “${m.title}” from favourites`
+                : `Mark “${m.title}” as a favourite`
+            }
             onClick={(e) => {
               e.stopPropagation();
               toggleFavorite('milestones', m.id);

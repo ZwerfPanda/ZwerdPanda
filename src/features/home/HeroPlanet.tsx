@@ -26,7 +26,10 @@ export function HeroPlanet() {
     spins.current += 1;
     setNote({ text: reasons[index], key: spins.current });
     if (!reduce) {
-      void controls.start({ rotate: spins.current * 360, transition: { type: 'spring', damping: 14, stiffness: 50 } });
+      void controls.start({
+        rotate: spins.current * 360,
+        transition: { type: 'spring', damping: 14, stiffness: 50 },
+      });
       celebrateFrom(buttonRef.current);
     }
   };
@@ -61,10 +64,25 @@ export function HeroPlanet() {
 
           {/* Orbiting keepsakes */}
           <g className="hero-planet__orbit">
-            <circle cx="150" cy="158" r="126" fill="none" stroke="#fff4ea" strokeOpacity="0.35" strokeDasharray="2 8" strokeLinecap="round" />
+            <circle
+              cx="150"
+              cy="158"
+              r="126"
+              fill="none"
+              stroke="#fff4ea"
+              strokeOpacity="0.35"
+              strokeDasharray="2 8"
+              strokeLinecap="round"
+            />
             <g transform="translate(150 32)">
               <circle r="15" fill="#fffcf6" stroke={INK} strokeWidth="2" />
-              <path d="M-6-6h12l-2 13h-8z" fill="#a7c191" stroke={INK} strokeWidth="1.6" strokeLinejoin="round" />
+              <path
+                d="M-6-6h12l-2 13h-8z"
+                fill="#a7c191"
+                stroke={INK}
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              />
               <path d="M2-12l-2 6" stroke="#b9646f" strokeWidth="2.4" strokeLinecap="round" />
             </g>
             <g transform="translate(259 221)">
@@ -78,13 +96,29 @@ export function HeroPlanet() {
           </g>
 
           {/* Back half of the ring */}
-          <ellipse cx="150" cy="168" rx="118" ry="24" fill="none" stroke="#e8bd6a" strokeWidth="4" transform="rotate(-12 150 168)" opacity="0.8" />
+          <ellipse
+            cx="150"
+            cy="168"
+            rx="118"
+            ry="24"
+            fill="none"
+            stroke="#e8bd6a"
+            strokeWidth="4"
+            transform="rotate(-12 150 168)"
+            opacity="0.8"
+          />
 
           <motion.g animate={controls} style={{ originX: '150px', originY: '158px' }}>
             <circle cx="150" cy="158" r="78" fill="url(#hp-body)" />
             <g clipPath="url(#hp-clip)" opacity="0.45">
-              <path d="M96 160c10-12 26-12 36-4s22 8 30 0 30-10 40 0c8 8 4 18-6 20-14 3-22-6-34-2s-26 12-44 6c-14-4-30-8-22-20z" fill="#fde7d6" />
-              <path d="M128 208c12-8 30-8 42-2s22 2 30-4c6 10-2 22-14 24-18 4-30-6-44-4-8 1-20-6-14-14z" fill="#e4ddf5" />
+              <path
+                d="M96 160c10-12 26-12 36-4s22 8 30 0 30-10 40 0c8 8 4 18-6 20-14 3-22-6-34-2s-26 12-44 6c-14-4-30-8-22-20z"
+                fill="#fde7d6"
+              />
+              <path
+                d="M128 208c12-8 30-8 42-2s22 2 30-4c6 10-2 22-14 24-18 4-30-6-44-4-8 1-20-6-14-14z"
+                fill="#e4ddf5"
+              />
               <circle cx="186" cy="124" r="10" fill="#fde7d6" />
               <circle cx="112" cy="122" r="6" fill="#fde7d6" />
             </g>
@@ -92,10 +126,33 @@ export function HeroPlanet() {
 
             {/* A little house on top */}
             <g transform="translate(150 80)">
-              <rect x="-15" y="-22" width="30" height="22" fill="#fbf4ea" stroke={INK} strokeWidth="2.4" strokeLinejoin="round" />
-              <path d="M-20-20L0-38 20-20z" fill="#b9646f" stroke={INK} strokeWidth="2.4" strokeLinejoin="round" />
+              <rect
+                x="-15"
+                y="-22"
+                width="30"
+                height="22"
+                fill="#fbf4ea"
+                stroke={INK}
+                strokeWidth="2.4"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M-20-20L0-38 20-20z"
+                fill="#b9646f"
+                stroke={INK}
+                strokeWidth="2.4"
+                strokeLinejoin="round"
+              />
               <rect x="-4" y="-13" width="8" height="13" rx="4" fill="#3f2140" />
-              <rect x="7" y="-17" width="6" height="6" fill="#f8e6bb" stroke={INK} strokeWidth="1.5" />
+              <rect
+                x="7"
+                y="-17"
+                width="6"
+                height="6"
+                fill="#f8e6bb"
+                stroke={INK}
+                strokeWidth="1.5"
+              />
             </g>
             {/* A tree */}
             <g transform="translate(97 102) rotate(-42)">
@@ -105,8 +162,24 @@ export function HeroPlanet() {
             </g>
             {/* Coco peeking over the horizon */}
             <g transform="translate(205 104) rotate(44)">
-              <ellipse cx="-5" cy="-18" rx="3.5" ry="9" fill="#d9b48f" stroke={INK} strokeWidth="2" />
-              <ellipse cx="5" cy="-18" rx="3.5" ry="9" fill="#d9b48f" stroke={INK} strokeWidth="2" />
+              <ellipse
+                cx="-5"
+                cy="-18"
+                rx="3.5"
+                ry="9"
+                fill="#d9b48f"
+                stroke={INK}
+                strokeWidth="2"
+              />
+              <ellipse
+                cx="5"
+                cy="-18"
+                rx="3.5"
+                ry="9"
+                fill="#d9b48f"
+                stroke={INK}
+                strokeWidth="2"
+              />
               <ellipse cx="0" cy="-6" rx="11" ry="9" fill="#d9b48f" stroke={INK} strokeWidth="2" />
               <circle cx="-4" cy="-7" r="1.5" fill={INK} />
               <circle cx="4" cy="-7" r="1.5" fill={INK} />
@@ -122,7 +195,13 @@ export function HeroPlanet() {
             strokeLinecap="round"
           />
           <SparkleShape x={262} y={72} size={18} fill="#fff4ea" className="hero-planet__twinkle" />
-          <SparkleShape x={36} y={96} size={12} fill="#fff4ea" className="hero-planet__twinkle hero-planet__twinkle--late" />
+          <SparkleShape
+            x={36}
+            y={96}
+            size={12}
+            fill="#fff4ea"
+            className="hero-planet__twinkle hero-planet__twinkle--late"
+          />
         </svg>
       </button>
 

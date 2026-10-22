@@ -19,14 +19,55 @@ const CHORDS: { root: number; minor?: boolean }[] = [
 ];
 
 const MELODY: Note[][] = [
-  [[0, 69, 2], [2, 72, 2], [4, 77, 3], [7, 76, 1]],
-  [[0, 76, 2], [2, 72, 2], [4, 69, 4]],
-  [[0, 74, 2], [2, 77, 2], [4, 81, 2], [6, 79, 1], [7, 77, 1]],
-  [[0, 77, 3], [3, 74, 1], [4, 70, 4]],
-  [[0, 69, 2], [2, 72, 1], [3, 77, 1], [4, 81, 3], [7, 79, 1]],
-  [[0, 79, 2], [2, 76, 2], [4, 72, 2], [6, 74, 1], [7, 76, 1]],
-  [[0, 77, 2], [2, 74, 2], [4, 70, 2], [6, 72, 1], [7, 74, 1]],
-  [[0, 76, 2], [2, 74, 2], [4, 72, 4]],
+  [
+    [0, 69, 2],
+    [2, 72, 2],
+    [4, 77, 3],
+    [7, 76, 1],
+  ],
+  [
+    [0, 76, 2],
+    [2, 72, 2],
+    [4, 69, 4],
+  ],
+  [
+    [0, 74, 2],
+    [2, 77, 2],
+    [4, 81, 2],
+    [6, 79, 1],
+    [7, 77, 1],
+  ],
+  [
+    [0, 77, 3],
+    [3, 74, 1],
+    [4, 70, 4],
+  ],
+  [
+    [0, 69, 2],
+    [2, 72, 1],
+    [3, 77, 1],
+    [4, 81, 3],
+    [7, 79, 1],
+  ],
+  [
+    [0, 79, 2],
+    [2, 76, 2],
+    [4, 72, 2],
+    [6, 74, 1],
+    [7, 76, 1],
+  ],
+  [
+    [0, 77, 2],
+    [2, 74, 2],
+    [4, 70, 2],
+    [6, 72, 1],
+    [7, 74, 1],
+  ],
+  [
+    [0, 76, 2],
+    [2, 74, 2],
+    [4, 72, 4],
+  ],
 ];
 
 const TEMPO = 76; // quarter notes per minute
@@ -61,7 +102,10 @@ export class MusicBox {
     if (ctx.state === 'suspended') await ctx.resume();
     this.master!.gain.cancelScheduledValues(ctx.currentTime);
     this.master!.gain.setValueAtTime(0.0001, ctx.currentTime);
-    this.master!.gain.exponentialRampToValueAtTime(Math.max(0.001, this.volume * 0.5), ctx.currentTime + 0.6);
+    this.master!.gain.exponentialRampToValueAtTime(
+      Math.max(0.001, this.volume * 0.5),
+      ctx.currentTime + 0.6,
+    );
     this.nextTime = ctx.currentTime + 0.08;
     this.timer = setInterval(() => this.schedule(), 60);
     this.schedule();
@@ -78,7 +122,9 @@ export class MusicBox {
   }
 
   private setup() {
-    const AudioCtx = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const AudioCtx =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     const ctx = new AudioCtx();
     const master = ctx.createGain();
     master.gain.value = 0.0001;
@@ -113,7 +159,16 @@ export class MusicBox {
       const eighth = this.step % 8;
       const chord = CHORDS[bar];
       const third = chord.root + (chord.minor ? 3 : 4);
-      const arp = [chord.root, chord.root + 7, chord.root + 12, third + 12, chord.root + 19, third + 12, chord.root + 12, chord.root + 7];
+      const arp = [
+        chord.root,
+        chord.root + 7,
+        chord.root + 12,
+        third + 12,
+        chord.root + 19,
+        third + 12,
+        chord.root + 12,
+        chord.root + 7,
+      ];
       this.pluck(midiToHz(arp[eighth]), this.nextTime, eighth === 0 ? 0.2 : 0.12, 1.4);
       for (const [at, midi, length] of MELODY[bar]) {
         if (at === eighth) this.pluck(midiToHz(midi), this.nextTime, 0.34, 0.8 + length * EIGHTH);

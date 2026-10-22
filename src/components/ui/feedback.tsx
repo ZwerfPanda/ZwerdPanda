@@ -19,8 +19,16 @@ let toasts: Toast[] = [];
 const toastListeners = new Set<() => void>();
 const emitToasts = () => toastListeners.forEach((l) => l());
 
-export function toast(message: string, options: { tone?: Toast['tone']; action?: Toast['action'] } = {}) {
-  const item: Toast = { id: createId('toast'), message, tone: options.tone ?? 'info', action: options.action };
+export function toast(
+  message: string,
+  options: { tone?: Toast['tone']; action?: Toast['action'] } = {},
+) {
+  const item: Toast = {
+    id: createId('toast'),
+    message,
+    tone: options.tone ?? 'info',
+    action: options.action,
+  };
   toasts = [...toasts.slice(-2), item];
   emitToasts();
   window.setTimeout(() => dismissToast(item.id), options.action ? 6500 : 3600);
@@ -197,7 +205,10 @@ export function CelebrationHost() {
   );
   const reduce = useReducedMotion();
   return createPortal(
-    <div aria-hidden="true" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 980 }}>
+    <div
+      aria-hidden="true"
+      style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 980 }}
+    >
       {items.map((burst) =>
         reduce ? (
           <motion.span
@@ -232,7 +243,12 @@ export function CelebrationHost() {
                   rotate: (i % 2 ? 1 : -1) * 90,
                 }}
                 transition={{ duration: 1.3, ease: [0.22, 1, 0.36, 1] }}
-                style={{ position: 'absolute', left: -8, top: -8, color: PARTICLE_COLORS[i % PARTICLE_COLORS.length] }}
+                style={{
+                  position: 'absolute',
+                  left: -8,
+                  top: -8,
+                  color: PARTICLE_COLORS[i % PARTICLE_COLORS.length],
+                }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   {heart ? (

@@ -95,10 +95,7 @@ export interface Memory {
 
 export type LetterColor = 'blush' | 'lavender' | 'peach' | 'cream' | 'sage' | 'plum';
 export type SealIcon = 'heart' | 'star' | 'moon' | 'flower' | 'rabbit' | 'matcha';
-export type LetterLock =
-  | { type: 'none' }
-  | { type: 'hold' }
-  | { type: 'date'; until: string };
+export type LetterLock = { type: 'none' } | { type: 'hold' } | { type: 'date'; until: string };
 
 export interface Letter {
   id: ID;

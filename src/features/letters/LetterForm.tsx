@@ -31,12 +31,21 @@ function validate(d: Draft): Errors {
   if (d.date && !isValidIsoDate(d.date)) e.date = 'That date doesn’t look right.';
   if (d.lock === 'date') {
     if (!isValidIsoDate(d.until)) e.until = 'Choose the day it may be opened.';
-    else if (d.until <= todayIso()) e.until = 'Pick a day after today — otherwise it’s not much of a wait.';
+    else if (d.until <= todayIso())
+      e.until = 'Pick a day after today — otherwise it’s not much of a wait.';
   }
   return e;
 }
 
-export function LetterForm({ open, onClose, letter }: { open: boolean; onClose: () => void; letter: Letter | null }) {
+export function LetterForm({
+  open,
+  onClose,
+  letter,
+}: {
+  open: boolean;
+  onClose: () => void;
+  letter: Letter | null;
+}) {
   const profile = useContent((c) => c.profile);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [errors, setErrors] = useState<Errors>({});
@@ -106,9 +115,17 @@ export function LetterForm({ open, onClose, letter }: { open: boolean; onClose: 
     };
     updateContent((c) => ({
       ...c,
-      letters: c.letters.some((l) => l.id === item.id) ? c.letters.map((l) => (l.id === item.id ? item : l)) : [item, ...c.letters],
+      letters: c.letters.some((l) => l.id === item.id)
+        ? c.letters.map((l) => (l.id === item.id ? item : l))
+        : [item, ...c.letters],
     }));
-    toast(item.status === 'draft' ? 'Saved as a draft' : letter ? 'Letter saved' : 'Sealed and placed on the shelf ♡');
+    toast(
+      item.status === 'draft'
+        ? 'Saved as a draft'
+        : letter
+          ? 'Letter saved'
+          : 'Sealed and placed on the shelf ♡',
+    );
     onClose();
   };
 
@@ -141,8 +158,21 @@ export function LetterForm({ open, onClose, letter }: { open: boolean; onClose: 
           hint="Finish the sentence — it becomes the front of the envelope."
         />
         <div className="form-row form-row--2">
-          <TextField label="For" optional value={draft.recipient} onChange={(v) => set('recipient', v)} maxLength={60} />
-          <TextField label="Written on" type="date" optional value={draft.date} onChange={(v) => set('date', v)} error={errors.date} />
+          <TextField
+            label="For"
+            optional
+            value={draft.recipient}
+            onChange={(v) => set('recipient', v)}
+            maxLength={60}
+          />
+          <TextField
+            label="Written on"
+            type="date"
+            optional
+            value={draft.date}
+            onChange={(v) => set('date', v)}
+            error={errors.date}
+          />
         </div>
         <TextArea
           label="The letter"
@@ -153,7 +183,13 @@ export function LetterForm({ open, onClose, letter }: { open: boolean; onClose: 
           rows={10}
           placeholder="Write it like you’d say it."
         />
-        <TextField label="Signed" optional value={draft.signature} onChange={(v) => set('signature', v)} maxLength={80} />
+        <TextField
+          label="Signed"
+          optional
+          value={draft.signature}
+          onChange={(v) => set('signature', v)}
+          maxLength={80}
+        />
 
         <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
           <legend className="field__label" style={{ marginBottom: 8 }}>
@@ -162,7 +198,12 @@ export function LetterForm({ open, onClose, letter }: { open: boolean; onClose: 
           <div className="swatches">
             {(Object.keys(LETTER_COLORS) as LetterColor[]).map((c) => (
               <label key={c} className="swatch" title={LETTER_COLORS[c].label}>
-                <input type="radio" name="letter-color" checked={draft.color === c} onChange={() => set('color', c)} />
+                <input
+                  type="radio"
+                  name="letter-color"
+                  checked={draft.color === c}
+                  onChange={() => set('color', c)}
+                />
                 <span style={{ background: LETTER_COLORS[c].paper }}>
                   <span className="visually-hidden">{LETTER_COLORS[c].label}</span>
                 </span>

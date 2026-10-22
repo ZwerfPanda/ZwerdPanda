@@ -35,7 +35,14 @@
 
 .tl--rail .tl__line {
   background:
-    linear-gradient(90deg, transparent 2px, var(--rail) 2px 4px, transparent 4px 12px, var(--rail) 12px 14px, transparent 14px),
+    linear-gradient(
+      90deg,
+      transparent 2px,
+      var(--rail) 2px 4px,
+      transparent 4px 12px,
+      var(--rail) 12px 14px,
+      transparent 14px
+    ),
     repeating-linear-gradient(180deg, var(--sleeper) 0 3px, transparent 3px 11px);
 }
 
@@ -44,12 +51,14 @@
   width: 18px;
   border-radius: 9px;
   background:
-    repeating-linear-gradient(180deg, var(--gold-400) 0 8px, transparent 8px 17px) center / 2px 100% no-repeat,
+    repeating-linear-gradient(180deg, var(--gold-400) 0 8px, transparent 8px 17px) center / 2px 100%
+      no-repeat,
     var(--plum-700);
 }
 
 .tl--stars .tl__line {
-  background: radial-gradient(circle, var(--gold-400) 1.8px, transparent 2.4px) center top / 16px 14px repeat-y;
+  background: radial-gradient(circle, var(--gold-400) 1.8px, transparent 2.4px) center top / 16px
+    14px repeat-y;
   -webkit-mask-image: linear-gradient(180deg, #000 30%, transparent 95%);
   mask-image: linear-gradient(180deg, #000 30%, transparent 95%);
 }
@@ -209,7 +218,9 @@
 /* C: quote — large type, a small framed photo tucked to the side */
 .tl__card--quote .tl__title {
   font-style: italic;
-  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-variation-settings:
+    'SOFT' 100,
+    'WONK' 1;
   font-size: clamp(1.7rem, 7.4vw, 2.4rem);
   font-weight: 380;
 }
@@ -243,7 +254,9 @@
 
 .tl__card--future .tl__title {
   font-style: italic;
-  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-variation-settings:
+    'SOFT' 100,
+    'WONK' 1;
 }
 
 @media (min-width: 900px) {
@@ -384,7 +397,9 @@
   font-family: var(--font-display);
   font-size: 1.12rem;
   line-height: 1.75;
-  font-variation-settings: 'SOFT' 100, 'WONK' 0;
+  font-variation-settings:
+    'SOFT' 100,
+    'WONK' 0;
 }
 
 .chapter__prompt {

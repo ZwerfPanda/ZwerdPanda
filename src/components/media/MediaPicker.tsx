@@ -18,7 +18,14 @@ interface MediaPickerProps {
  * Picks photos (and optionally short clips) from the device, shrinks photos,
  * stores them locally in IndexedDB and shows previews.
  */
-export function MediaPicker({ label, value, onChange, multiple = true, allowVideo = false, hint }: MediaPickerProps) {
+export function MediaPicker({
+  label,
+  value,
+  onChange,
+  multiple = true,
+  allowVideo = false,
+  hint,
+}: MediaPickerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const id = useId();
   const [busy, setBusy] = useState(false);
@@ -34,14 +41,22 @@ export function MediaPicker({ label, value, onChange, multiple = true, allowVide
         if (file.type.startsWith('video/')) {
           if (!allowVideo) throw new Error(`“${file.name}” is a video — only photos can go here.`);
           if (file.size > MAX_VIDEO_BYTES) {
-            throw new Error(`“${file.name}” is ${formatBytes(file.size)}. Clips up to ${formatBytes(MAX_VIDEO_BYTES)} fit here.`);
+            throw new Error(
+              `“${file.name}” is ${formatBytes(file.size)}. Clips up to ${formatBytes(MAX_VIDEO_BYTES)} fit here.`,
+            );
           }
           const mediaId = await putMedia(file, file.name);
           added.push({ type: 'local', mediaId, kind: 'video' });
         } else if (file.type.startsWith('image/') || /\.(heic|heif)$/i.test(file.name)) {
           const prepared = await prepareImage(file);
           const mediaId = await putMedia(prepared.blob, file.name);
-          added.push({ type: 'local', mediaId, kind: 'image', width: prepared.width, height: prepared.height });
+          added.push({
+            type: 'local',
+            mediaId,
+            kind: 'image',
+            width: prepared.width,
+            height: prepared.height,
+          });
         } else {
           throw new Error(`“${file.name}” isn't a photo${allowVideo ? ' or video' : ''}.`);
         }
@@ -64,9 +79,14 @@ export function MediaPicker({ label, value, onChange, multiple = true, allowVide
       </span>
       <div className="picker" role="group" aria-labelledby={`${id}-label`}>
         {value.map((source, index) => (
-          <div className="picker__item" key={source.type === 'local' ? source.mediaId : `${source.art}-${index}`}>
+          <div
+            className="picker__item"
+            key={source.type === 'local' ? source.mediaId : `${source.art}-${index}`}
+          >
             <MediaView source={source} alt={`Selected ${index + 1}`} />
-            {source.type === 'sample' && <span className="tag tag--sample picker__tag">Sample</span>}
+            {source.type === 'sample' && (
+              <span className="tag tag--sample picker__tag">Sample</span>
+            )}
             <button
               type="button"
               className="picker__remove"
@@ -85,12 +105,29 @@ export function MediaPicker({ label, value, onChange, multiple = true, allowVide
             disabled={busy}
             aria-describedby={hint ? `${id}-hint` : undefined}
           >
-            {busy ? <Loader2 className="spin" aria-hidden="true" /> : <ImagePlus aria-hidden="true" />}
-            <span>{busy ? 'Adding…' : value.length ? 'Add more' : allowVideo ? 'Add photos or a clip' : 'Add a photo'}</span>
+            {busy ? (
+              <Loader2 className="spin" aria-hidden="true" />
+            ) : (
+              <ImagePlus aria-hidden="true" />
+            )}
+            <span>
+              {busy
+                ? 'Adding…'
+                : value.length
+                  ? 'Add more'
+                  : allowVideo
+                    ? 'Add photos or a clip'
+                    : 'Add a photo'}
+            </span>
           </button>
         )}
         {!multiple && value.length > 0 && (
-          <button type="button" className="picker__add" onClick={() => inputRef.current?.click()} disabled={busy}>
+          <button
+            type="button"
+            className="picker__add"
+            onClick={() => inputRef.current?.click()}
+            disabled={busy}
+          >
             <ImagePlus aria-hidden="true" />
             <span>Replace</span>
           </button>

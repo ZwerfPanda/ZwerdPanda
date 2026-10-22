@@ -361,7 +361,9 @@
 .swatch input:checked + span {
   transform: scale(1.08);
   border-color: var(--ink);
-  box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--ink);
+  box-shadow:
+    0 0 0 3px var(--bg),
+    0 0 0 5px var(--ink);
 }
 
 .swatch input:focus-visible + span {
@@ -734,7 +736,9 @@
 
 .page-header__title em {
   font-style: italic;
-  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-variation-settings:
+    'SOFT' 100,
+    'WONK' 1;
   color: var(--accent-strong);
 }
 
@@ -820,8 +824,20 @@
     rgba(245, 218, 214, 0.78);
   /* Torn, zig-zag ends like real washi tape. */
   clip-path: polygon(
-    0 0, 100% 0, 97% 16%, 100% 33%, 97% 50%, 100% 66%, 97% 83%, 100% 100%,
-    0 100%, 3% 83%, 0 66%, 3% 50%, 0 33%, 3% 16%
+    0 0,
+    100% 0,
+    97% 16%,
+    100% 33%,
+    97% 50%,
+    100% 66%,
+    97% 83%,
+    100% 100%,
+    0 100%,
+    3% 83%,
+    0 66%,
+    3% 50%,
+    0 33%,
+    3% 16%
   );
 }
 
@@ -919,4 +935,12 @@
 
 .dialog:focus-visible {
   outline: none;
+}
+
+/* Paper objects stay light in the Midnight theme, so their tags do too. */
+[data-theme='midnight']
+  :is(.polaroid, .dream, .paper, .ex-future, .bunny-id, .tl__card--paper)
+  .tag--sample {
+  background: rgba(63, 33, 64, 0.08);
+  color: var(--paper-ink-soft);
 }

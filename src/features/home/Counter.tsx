@@ -3,7 +3,13 @@ import { animate } from 'framer-motion';
 import { CalendarHeart, Repeat } from 'lucide-react';
 import { useContent } from '../../data/store';
 import { updateProfile } from '../../data/actions';
-import { daysUntilAnniversary, durationBetween, formatDate, parseIsoDate, plural } from '../../lib/dates';
+import {
+  daysUntilAnniversary,
+  durationBetween,
+  formatDate,
+  parseIsoDate,
+  plural,
+} from '../../lib/dates';
 import { useToday } from '../../hooks/useToday';
 import { useReducedMotion } from '../../hooks/useMotion';
 import { StartDateDialog } from './StartDateDialog';
@@ -48,8 +54,8 @@ export function Counter() {
           Waiting for the day it all began
         </h2>
         <p className="counter__text">
-          Add the date {yourName} &amp; {partnerName} started, and this little clock will keep count of every day
-          together.
+          Add the date {yourName} &amp; {partnerName} started, and this little clock will keep count
+          of every day together.
         </p>
         <button type="button" className="btn btn--primary" onClick={() => setDialogOpen(true)}>
           <CalendarHeart aria-hidden="true" />
@@ -79,7 +85,11 @@ export function Counter() {
 
   const units = [
     { value: duration.years, label: duration.years === 1 ? 'year' : 'years', hideWhenZero: true },
-    { value: duration.months, label: duration.months === 1 ? 'month' : 'months', hideWhenZero: false },
+    {
+      value: duration.months,
+      label: duration.months === 1 ? 'month' : 'months',
+      hideWhenZero: false,
+    },
     { value: duration.days, label: duration.days === 1 ? 'day' : 'days', hideWhenZero: false },
   ].filter((u) => !(u.hideWhenZero && u.value === 0));
 
@@ -93,7 +103,12 @@ export function Counter() {
         <h2 id="counter-title" className="counter__eyebrow hand">
           together for
         </h2>
-        <button type="button" className="counter__toggle" onClick={toggle} aria-label={showDays ? 'Show years, months and days' : 'Show total days'}>
+        <button
+          type="button"
+          className="counter__toggle"
+          onClick={toggle}
+          aria-label={showDays ? 'Show years, months and days' : 'Show total days'}
+        >
           <Repeat aria-hidden="true" />
           {showDays ? 'y · m · d' : 'days'}
         </button>
@@ -128,7 +143,8 @@ export function Counter() {
           <strong>Happy anniversary ♡</strong>
         ) : (
           <>
-            {anniversary.years === 1 ? 'first' : `${ordinal(anniversary.years)}`} anniversary in {plural(anniversary.days, 'day')}
+            {anniversary.years === 1 ? 'first' : `${ordinal(anniversary.years)}`} anniversary in{' '}
+            {plural(anniversary.days, 'day')}
           </>
         )}
       </p>
@@ -137,6 +153,9 @@ export function Counter() {
 }
 
 function ordinal(n: number): string {
-  const suffix = n % 100 >= 11 && n % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[n % 10] ?? 'th';
+  const suffix =
+    n % 100 >= 11 && n % 100 <= 13
+      ? 'th'
+      : (({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[n % 10] ?? 'th');
   return `${n}${suffix}`;
 }

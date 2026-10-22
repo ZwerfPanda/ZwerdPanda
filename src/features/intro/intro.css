@@ -78,7 +78,9 @@
   font-size: clamp(2.6rem, 11vw, 4.8rem);
   font-weight: 380;
   letter-spacing: -0.03em;
-  font-variation-settings: 'SOFT' 100, 'WONK' 1;
+  font-variation-settings:
+    'SOFT' 100,
+    'WONK' 1;
   font-style: italic;
   line-height: 1;
   color: #fff6ec;

@@ -65,7 +65,8 @@ export function durationBetween(start: Date, end: Date): Duration | null {
   const totalDays = Math.round((end.getTime() - start.getTime()) / DAY_MS);
 
   let months =
-    (end.getUTCFullYear() - start.getUTCFullYear()) * 12 + (end.getUTCMonth() - start.getUTCMonth());
+    (end.getUTCFullYear() - start.getUTCFullYear()) * 12 +
+    (end.getUTCMonth() - start.getUTCMonth());
   if (addMonths(start, months).getTime() > end.getTime()) months -= 1;
   const anchor = addMonths(start, months);
   const days = Math.round((end.getTime() - anchor.getTime()) / DAY_MS);
@@ -111,9 +112,11 @@ export function formatTimestamp(iso: string | undefined): string {
   if (!iso) return '';
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', year: 'numeric' }).format(
-    date,
-  );
+  return new Intl.DateTimeFormat(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(date);
 }
 
 export function plural(count: number, one: string, many = `${one}s`): string {

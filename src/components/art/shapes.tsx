@@ -23,7 +23,17 @@ interface ShapeProps {
 }
 
 /** Heart centred on (x, y); `size` is roughly its width. */
-export function HeartShape({ x, y, size = 20, fill = '#d48d96', stroke, strokeWidth = 2, rotate = 0, opacity, className }: ShapeProps) {
+export function HeartShape({
+  x,
+  y,
+  size = 20,
+  fill = '#d48d96',
+  stroke,
+  strokeWidth = 2,
+  rotate = 0,
+  opacity,
+  className,
+}: ShapeProps) {
   const s = size / 22;
   return (
     <path
@@ -39,7 +49,15 @@ export function HeartShape({ x, y, size = 20, fill = '#d48d96', stroke, strokeWi
   );
 }
 
-export function SparkleShape({ x, y, size = 16, fill = '#f8e6bb', rotate = 0, opacity, className }: ShapeProps) {
+export function SparkleShape({
+  x,
+  y,
+  size = 16,
+  fill = '#f8e6bb',
+  rotate = 0,
+  opacity,
+  className,
+}: ShapeProps) {
   return (
     <path
       className={className}
@@ -51,7 +69,17 @@ export function SparkleShape({ x, y, size = 16, fill = '#f8e6bb', rotate = 0, op
   );
 }
 
-export function StarShape({ x, y, size = 16, fill = '#e8bd6a', stroke, strokeWidth = 2, rotate = 0, opacity, className }: ShapeProps) {
+export function StarShape({
+  x,
+  y,
+  size = 16,
+  fill = '#e8bd6a',
+  stroke,
+  strokeWidth = 2,
+  rotate = 0,
+  opacity,
+  className,
+}: ShapeProps) {
   const s = size / 20;
   return (
     <path
@@ -68,15 +96,37 @@ export function StarShape({ x, y, size = 16, fill = '#e8bd6a', stroke, strokeWid
 }
 
 /** Standalone decorative icons for use in HTML. */
-export function SparkleIcon({ size = 18, color = 'currentColor', className = '' }: { size?: number; color?: string; className?: string }) {
+export function SparkleIcon({
+  size = 18,
+  color = 'currentColor',
+  className = '',
+}: {
+  size?: number;
+  color?: string;
+  className?: string;
+}) {
   return (
-    <svg className={className} width={size} height={size} viewBox="-11 -11 22 22" aria-hidden="true">
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="-11 -11 22 22"
+      aria-hidden="true"
+    >
       <SparkleShape x={0} y={0} size={20} fill={color} />
     </svg>
   );
 }
 
-export function HeartIcon({ size = 18, color = 'currentColor', className = '' }: { size?: number; color?: string; className?: string }) {
+export function HeartIcon({
+  size = 18,
+  color = 'currentColor',
+  className = '',
+}: {
+  size?: number;
+  color?: string;
+  className?: string;
+}) {
   return (
     <svg className={className} width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
       <path d={HEART_D} fill={color} />
