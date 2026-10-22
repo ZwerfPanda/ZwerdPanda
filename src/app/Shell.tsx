@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  ChevronDown,
+  ChevronUp,
   Cloud,
   CloudOff,
   LayoutGrid,
@@ -18,6 +20,7 @@ import { DESKTOP_PATHS, SECTIONS, TAB_PATHS, sectionFor } from './sections';
 import { LogoMark } from '../components/art/LogoMark';
 import { Dialog } from '../components/ui/Dialog';
 import { useMusic } from '../components/music/MusicProvider';
+import { useSpotify } from '../components/music/SpotifyProvider';
 import { useContent } from '../data/store';
 import { useIsDesktop } from '../hooks/useMediaQuery';
 import './shell.css';
@@ -278,11 +281,73 @@ export function MenuSheet({ open, onClose }: { open: boolean; onClose: () => voi
 
 export function MiniPlayer() {
   const music = useMusic();
+  const spotify = useSpotify();
   // Appears when music starts and stays (so it can be resumed) until closed.
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     if (music.playing) setVisible(true);
   }, [music.playing]);
+
+  // Spotify gets the same bar while one of our playlists is on.
+  if (spotify.current) {
+    const playing = spotify.paused === false;
+    return (
+      <AnimatePresence>
+        <motion.div
+          key="spotify"
+          className="miniplayer miniplayer--spotify"
+          role="region"
+          aria-label="Now playing on Spotify"
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.95 }}
+          transition={{ type: 'spring', damping: 24, stiffness: 300 }}
+        >
+          <span className={`miniplayer__bars ${playing ? '' : 'is-still'}`} aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+          <button
+            type="button"
+            className="miniplayer__label miniplayer__label--btn"
+            onClick={() => spotify.setExpanded(!spotify.expanded)}
+            aria-expanded={spotify.expanded}
+            aria-label={`${spotify.current.title} on Spotify — ${spotify.expanded ? 'hide' : 'show'} the player`}
+          >
+            {spotify.current.title}
+          </button>
+          {spotify.controllable ? (
+            <button
+              type="button"
+              className="miniplayer__btn"
+              onClick={spotify.togglePlay}
+              aria-label={playing ? 'Pause Spotify' : 'Play Spotify'}
+            >
+              {playing ? <Pause /> : <Play />}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="miniplayer__btn"
+              onClick={() => spotify.setExpanded(!spotify.expanded)}
+              aria-label={spotify.expanded ? 'Hide the Spotify player' : 'Show the Spotify player'}
+            >
+              {spotify.expanded ? <ChevronDown /> : <ChevronUp />}
+            </button>
+          )}
+          <button
+            type="button"
+            className="miniplayer__btn"
+            onClick={spotify.close}
+            aria-label="Stop Spotify and close the player"
+          >
+            <X />
+          </button>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
 
   return (
     <AnimatePresence>
@@ -296,7 +361,10 @@ export function MiniPlayer() {
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
           transition={{ type: 'spring', damping: 24, stiffness: 300 }}
         >
-          <span className="miniplayer__bars" aria-hidden="true">
+          <span
+            className={`miniplayer__bars ${music.playing ? '' : 'is-still'}`}
+            aria-hidden="true"
+          >
             <i />
             <i />
             <i />

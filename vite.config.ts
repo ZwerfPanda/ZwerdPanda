@@ -41,13 +41,14 @@ function precacheManifest(): Plugin {
 
 /**
  * A strict Content-Security-Policy for the built site: only our own scripts
- * run. Network access is open to https/wss so the configured Supabase project
+ * run (plus Spotify's official player API, loaded on demand). Network access is open to https/wss so the configured Supabase project
  * (whatever its address) works; frames only for official Spotify/YouTube players.
  */
 function contentSecurityPolicy(): Plugin {
   const policy = [
     "default-src 'self'",
-    "script-src 'self'",
+    // Spotify's own iFrame API, loaded only when we play a playlist.
+    "script-src 'self' https://open.spotify.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "media-src 'self' data: blob:",

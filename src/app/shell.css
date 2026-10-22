@@ -576,3 +576,14 @@
 .topbar.is-dark .sync-badge::after {
   box-shadow: 0 0 0 2px #2d172f;
 }
+
+.miniplayer__label--btn {
+  padding: 6px 4px;
+  border-radius: 8px;
+  color: inherit;
+  text-align: left;
+}
+
+.miniplayer__label--btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}

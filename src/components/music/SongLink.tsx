@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ExternalLink, Music2, PlayCircle } from 'lucide-react';
 import { describeLink } from '../../lib/embeds';
 import { useMusic } from './MusicProvider';
+import { useSpotify } from './SpotifyProvider';
 import './song.css';
 
 /**
@@ -22,6 +23,12 @@ export function SongLink({
   const info = describeLink(url);
   const [embedOpen, setEmbedOpen] = useState(false);
   const music = useMusic();
+  const player = useSpotify();
+  // Spotify songs play in the dock, so they keep going while we browse.
+  const spotifyUri =
+    info?.platform === 'spotify' && info.embedUrl
+      ? `spotify:${info.embedUrl.split('/embed/')[1].replace('/', ':')}`
+      : null;
   return (
     <div className={`song-link ${compact ? 'song-link--compact' : ''}`}>
       <div className="song-link__row">
@@ -40,6 +47,14 @@ export function SongLink({
               type="button"
               className="btn btn--soft btn--small"
               onClick={() => {
+                if (spotifyUri && url) {
+                  player.open({
+                    title: artist ? `${title} · ${artist}` : title,
+                    uri: spotifyUri,
+                    url,
+                  });
+                  return;
+                }
                 // never two songs at once: the music box hushes for the player
                 music.pause();
                 setEmbedOpen(true);

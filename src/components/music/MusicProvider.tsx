@@ -31,6 +31,9 @@ export function useMusic(): MusicApi {
   return api;
 }
 
+/** Fired when our own soundtrack starts, so other players (Spotify) can pause. */
+export const SOUNDTRACK_PLAY_EVENT = 'olu:soundtrack-play';
+
 /**
  * The site's soundtrack. Nothing ever autoplays: sound only starts from a tap
  * on a play button, and it can always be paused from the mini player.
@@ -57,6 +60,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
 
   const play = useCallback(async () => {
     stopAll();
+    window.dispatchEvent(new Event(SOUNDTRACK_PLAY_EVENT));
     try {
       if (source === 'custom' && prefs.customSoundtrackId) {
         const url = await getMediaUrl(prefs.customSoundtrackId);

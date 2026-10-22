@@ -9,12 +9,12 @@ import { Dialog } from '../../components/ui/Dialog';
 import { TextArea, TextField } from '../../components/ui/Fields';
 import { confirm, toast } from '../../components/ui/feedback';
 import { ByTag } from '../../components/common/ByTag';
-import { useMusic } from '../../components/music/MusicProvider';
+import { useSpotify } from '../../components/music/SpotifyProvider';
 
 /**
- * Our Spotify playlists, played with Spotify's own embedded player. Nothing
- * loads from Spotify until we press play; there's no Spotify login or API key
- * involved, so the player always shows the playlist as it is right now.
+ * Our Spotify playlists, played with Spotify's own player in a dock that keeps
+ * playing while we move around (see SpotifyProvider). Nothing loads from
+ * Spotify until we press play, and there's no Spotify login or API key.
  */
 export function Playlists() {
   const playlists = useContent((c) => c.playlists);
@@ -95,10 +95,11 @@ function PlaylistCard({
   onRemove: () => void;
 }) {
   const spotify = spotifyCollection(playlist.url);
-  const music = useMusic();
-  const [open, setOpen] = useState(false);
+  const player = useSpotify();
   if (!spotify) return null;
   const name = playlist.title || (spotify.kind === 'album' ? 'Our album' : 'Our playlist');
+  const uri = `spotify:${spotify.kind}:${spotify.id}`;
+  const isOn = player.current?.uri === uri;
   return (
     <li className="playlist">
       <div className="playlist__row">
@@ -123,19 +124,15 @@ function PlaylistCard({
         </button>
       </div>
       <div className="song-link__actions">
-        {!open && (
-          <button
-            type="button"
-            className="btn btn--primary btn--small"
-            onClick={() => {
-              // never two songs at once: the music box hushes for Spotify
-              music.pause();
-              setOpen(true);
-            }}
-          >
-            <PlayCircle aria-hidden="true" /> Play here
-          </button>
-        )}
+        <button
+          type="button"
+          className="btn btn--primary btn--small"
+          onClick={() =>
+            isOn ? player.setExpanded(true) : player.open({ title: name, uri, url: spotify.url })
+          }
+        >
+          <PlayCircle aria-hidden="true" /> {isOn ? 'Show the player' : 'Play here'}
+        </button>
         <a
           className="btn btn--ghost btn--small"
           href={spotify.url}
@@ -145,17 +142,6 @@ function PlaylistCard({
           <ExternalLink aria-hidden="true" /> Open in Spotify
         </a>
       </div>
-      {open && (
-        <iframe
-          className="song-link__embed playlist__embed"
-          title={`${name} — Spotify player`}
-          src={spotify.embedUrl}
-          height={380}
-          loading="lazy"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          referrerPolicy="strict-origin-when-cross-origin"
-        />
-      )}
     </li>
   );
 }

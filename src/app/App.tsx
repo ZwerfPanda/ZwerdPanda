@@ -7,6 +7,7 @@ import { useReducedMotion } from '../hooks/useMotion';
 import { MenuSheet, MiniPlayer, TabBar, TopBar } from './Shell';
 import { sectionFor } from './sections';
 import { MusicProvider } from '../components/music/MusicProvider';
+import { SpotifyProvider } from '../components/music/SpotifyProvider';
 import { CelebrationHost, ConfirmHost, Toaster, toast } from '../components/ui/feedback';
 import { Intro } from '../features/intro/Intro';
 import { InstallSheetHost } from '../pwa/InstallSheet';
@@ -142,35 +143,43 @@ export function App() {
   return (
     <MotionConfig reducedMotion={reduce ? 'always' : 'never'}>
       <MusicProvider>
-        <button type="button" className="skip-link" onClick={skipToContent}>
-          Skip to content
-        </button>
-        <TopBar onOpenMenu={() => setMenuOpen(true)} />
-        <AnimatePresence mode="wait" initial={false} onExitComplete={() => window.scrollTo(0, 0)}>
-          <motion.main
-            key={route.path}
-            id="main"
-            ref={mainRef}
-            tabIndex={-1}
-            style={{ outline: 'none' }}
-            initial={{ opacity: 0, y: reduce ? 0 : 14 }}
-            animate={{ opacity: 1, y: 0, transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] } }}
-            exit={{ opacity: 0, y: reduce ? 0 : -8, transition: { duration: 0.16 } }}
-          >
-            <Suspense fallback={<PageLoading />}>{PAGES[route.path]()}</Suspense>
-          </motion.main>
-        </AnimatePresence>
-        <TabBar />
-        <MenuSheet open={menuOpen} onClose={() => setMenuOpen(false)} />
-        <MiniPlayer />
-        {!introOpen && <CocoCompanion />}
-        {!introOpen && <HiddenHutch />}
-        <Toaster />
-        <ConfirmHost />
-        <CelebrationHost />
-        <InstallSheetHost />
-        {!introOpen && <WelcomeHost />}
-        <AnimatePresence>{introOpen && <Intro key="intro" onEnter={closeIntro} />}</AnimatePresence>
+        <SpotifyProvider>
+          <button type="button" className="skip-link" onClick={skipToContent}>
+            Skip to content
+          </button>
+          <TopBar onOpenMenu={() => setMenuOpen(true)} />
+          <AnimatePresence mode="wait" initial={false} onExitComplete={() => window.scrollTo(0, 0)}>
+            <motion.main
+              key={route.path}
+              id="main"
+              ref={mainRef}
+              tabIndex={-1}
+              style={{ outline: 'none' }}
+              initial={{ opacity: 0, y: reduce ? 0 : 14 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] },
+              }}
+              exit={{ opacity: 0, y: reduce ? 0 : -8, transition: { duration: 0.16 } }}
+            >
+              <Suspense fallback={<PageLoading />}>{PAGES[route.path]()}</Suspense>
+            </motion.main>
+          </AnimatePresence>
+          <TabBar />
+          <MenuSheet open={menuOpen} onClose={() => setMenuOpen(false)} />
+          <MiniPlayer />
+          {!introOpen && <CocoCompanion />}
+          {!introOpen && <HiddenHutch />}
+          <Toaster />
+          <ConfirmHost />
+          <CelebrationHost />
+          <InstallSheetHost />
+          {!introOpen && <WelcomeHost />}
+          <AnimatePresence>
+            {introOpen && <Intro key="intro" onEnter={closeIntro} />}
+          </AnimatePresence>
+        </SpotifyProvider>
       </MusicProvider>
     </MotionConfig>
   );
