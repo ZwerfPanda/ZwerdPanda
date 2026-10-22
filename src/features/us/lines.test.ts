@@ -52,9 +52,9 @@ describe('mini us lines', () => {
   });
 
   it('works out ages from birthdays', () => {
-    expect(ageOn('2008-04-10', '2026-10-22')).toBe(18);
-    expect(ageOn('2004-08-01', '2026-10-22')).toBe(22);
-    expect(ageOn('2004-08-01', '2026-07-31')).toBe(21);
+    expect(ageOn('2007-05-12', '2026-10-22')).toBe(19);
+    expect(ageOn('2003-09-03', '2026-10-22')).toBe(23);
+    expect(ageOn('2003-09-03', '2026-09-02')).toBe(22);
     expect(ageOn('', '2026-10-22')).toBeNull();
   });
 });

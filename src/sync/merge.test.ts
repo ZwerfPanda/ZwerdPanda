@@ -230,14 +230,14 @@ describe('lists and mini us', () => {
     const local = structuredClone(base);
     const remote = structuredClone(base);
     local.us.partner.look = { ...local.us.partner.look, outfit: 'blue-dress' };
-    remote.us.you.birthday = '2004-08-01';
+    remote.us.you.birthday = '2003-09-03';
     local.us.chat = [{ id: 'c1', who: 'you', text: 'Hi baby', at: '2026-10-22T10:00:00.000Z' }];
     remote.us.chat = [
       { id: 'c2', who: 'partner', text: 'Hi handsome', at: '2026-10-22T11:00:00.000Z' },
     ];
     const merged = mergeContent(base, local, remote);
     expect(merged.us.partner.look.outfit).toBe('blue-dress');
-    expect(merged.us.you.birthday).toBe('2004-08-01');
+    expect(merged.us.you.birthday).toBe('2003-09-03');
     expect(merged.us.chat.map((c) => c.id)).toEqual(['c2', 'c1']);
   });
 });

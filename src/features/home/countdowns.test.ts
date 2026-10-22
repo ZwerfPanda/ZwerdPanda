@@ -64,11 +64,11 @@ describe('countdowns', () => {
 describe('birthdays', () => {
   it('counts down to the birthdays we filled in', () => {
     const c = createDefaultContent();
-    c.us.partner.birthday = '2008-04-10';
+    c.us.partner.birthday = '2007-05-12';
     const list = upcoming(c, new Date(Date.UTC(2026, 9, 22)));
     const hers = list.find((u) => u.id === 'auto-birthday-partner');
-    expect(hers?.date).toBe('2027-04-10');
-    expect(hers?.title).toContain('turns 19');
+    expect(hers?.date).toBe('2027-05-12');
+    expect(hers?.title).toContain('turns 20');
     expect(list.some((u) => u.id === 'auto-birthday-you')).toBe(false);
   });
 });
