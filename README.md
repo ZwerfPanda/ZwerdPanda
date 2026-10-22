@@ -7,7 +7,12 @@ full of one-days.
 ![Home, Our Little World, an Open-when letter, Our Story and the scrapbook on an iPhone-sized screen](docs/preview-phone.jpg)
 
 Built with React 19, TypeScript and Vite. Mobile-first (made for iPhone),
-works offline once visited, and can be added to the Home Screen like an app.
+works offline once visited, installs like an app on iPhone, Android and
+computers, and — once connected to our own free Supabase project — keeps one
+shared universe in sync between both of our phones and any laptop.
+
+**Setting it up for the two of us:** follow the Dutch step-by-step guide in
+[`docs/HANDLEIDING.md`](docs/HANDLEIDING.md).
 
 ---
 
@@ -34,21 +39,37 @@ npm run preview   # serves dist/ at http://localhost:4173
 ```
 
 `dist/` is a plain static site (all paths are relative), so it can be hosted
-anywhere: Netlify (drag & drop the folder), Cloudflare Pages, Vercel or GitHub
-Pages. Note that a hosted link is reachable by anyone who has it — see
-[Privacy](#privacy--where-things-are-stored). Search engines are asked not to
-index it (`noindex`).
+anywhere. `netlify.toml` and `vercel.json` are included (build command, caching
+and security headers, `noindex`). Note that a hosted link is reachable by
+anyone who has it — see [Privacy](#privacy--where-things-are-stored).
 
-### Add it to the Home Screen (iPhone)
+To share one universe, give the build our Supabase project — either as build
+environment variables (copy `.env.example` to `.env`, or set them in Netlify):
 
-Open the hosted site in Safari → **Share** → **Add to Home Screen**. It then
-opens full-screen with its own icon, and keeps working offline (the app shell
-and every page are cached by a service worker after the first visit).
+```bash
+VITE_SUPABASE_URL=https://abcdefgh.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_…   # the publishable / anon public key
+```
+
+…or, without rebuilding, by filling in `universe-config.json` next to
+`index.html`. Only the publishable key belongs in a website: the build stops,
+and the app refuses to connect, if a secret / `service_role` key is used.
+
+### Install it as an app (any device)
+
+The home page and **Menu → Get the app** show the right steps for the device
+in hand: an **Install** button where the browser offers one (Android, Chrome,
+Edge), and **Share → Add to Home Screen** on iPhone and iPad, **File → Add to
+Dock** in Safari on a Mac. Installed, it opens full-screen with its own icon
+and keeps working offline (the app shell and every page are cached by a
+service worker after the first visit). No app store involved.
 
 ### Checks
 
 ```bash
-npm test          # unit tests (relationship-duration maths)
+npm test          # unit tests: date maths, merging, the sync engine with two
+                  # simulated phones, config safety, and the database security
+                  # rules in a real Postgres (PGlite)
 npm run typecheck # TypeScript
 ```
 
@@ -82,17 +103,28 @@ you've edited is kept.
 
 ## Privacy & where things are stored
 
-- **Everything stays on the device.** Words live in `localStorage`; photos,
-  clips and the uploaded song live in IndexedDB. Nothing is uploaded.
-- **Per device, per browser.** What's added on one phone doesn't appear on
-  another yet. To move content: Settings → **Export with photos**, then
-  **Restore a backup** on the other device.
-- **No fake security.** There's deliberately no password screen: without a
-  server it would only *look* secure. Anyone with the link and the phone can
-  open the site.
+- **On each device.** Words live in `localStorage`; photos, clips and the
+  uploaded song live in IndexedDB. Without a Supabase project configured,
+  nothing ever leaves the device (move content with Settings → **Export with
+  photos** / **Restore a backup**).
+- **When shared.** With a project configured and both of us signed in, the
+  universe is also stored in *our own* Supabase project: one document in
+  Postgres plus a **private** storage bucket for photos. Row-level security and
+  server-side functions allow exactly the two members to read and write;
+  invites only work for a confirmed account with that exact email, and a
+  universe holds at most two people. Each device still keeps its own copy, so
+  it works offline and keeps its copy after signing out.
+- **Real sign-in, no fake security.** Accounts are Supabase email + password
+  accounts. The password is never stored by the app; the sign-in session is
+  kept in the app's IndexedDB, not in `localStorage`. Without a project there
+  is deliberately no password screen, because without a server it would only
+  *look* secure.
+- **What a visitor with only the link sees:** the starter version that ships
+  with the site (names and sample texts) on their own device — never our own
+  memories, letters or photos.
 - **Keep backups.** Safari can clear storage for websites that haven't been
-  opened in a while. Sites added to the Home Screen are treated as apps and
-  are much safer — but an occasional export is still the best insurance.
+  opened in a while. Installed apps are much safer, and the shared copy lives
+  online — but an occasional export is still the best insurance.
 
 ---
 
@@ -106,8 +138,12 @@ src/
   components/    UI primitives (dialog, fields, toasts, confirm), media, art, music
   features/      One folder per section: home, intro, story, memories, world,
                  letters, future, surprises, music, coco, settings
+  pwa/           Install detection and the per-device "Get the app" sheet
+  sync/          Sharing: config, three-way merge, sync engine, Supabase backend
   styles/        Design tokens, base styles, shared UI styles
-public/          Manifest, icons, service worker
+public/          Manifest, icons, service worker, universe-config.json
+supabase/        schema.sql (tables, security rules, storage) and its tests
+docs/            HANDLEIDING.md — the Dutch setup guide
 ```
 
 The visual language lives in `src/styles/tokens.css` (palette, type, depth)
@@ -115,20 +151,33 @@ and the illustrations in `src/components/art` and `src/features/world/PlaceArt.t
 
 ---
 
-## Next: real shared access (planned, not built yet)
+## How sharing works
 
-So both of us see the same universe on our own phones:
+- **One document per universe.** `space_content` holds the whole universe as
+  JSON with a version number. Saving sends the version it was based on; if the
+  other phone saved in between, the server refuses and returns the newer copy.
+  The app then merges both sides item by item (`src/sync/merge.ts`): additions
+  and edits from both phones are kept, deletions are respected, and if both
+  changed the same item, this device's edit wins.
+- **When it syncs.** A moment after every change, on opening or returning to
+  the app, when coming back online, through Supabase Realtime when the other
+  phone saves, and every 90 seconds as a fallback.
+- **Photos and clips** upload in the background to `universe-media/<universe
+  id>/…` and download on demand on the other devices, where they're cached in
+  IndexedDB.
+- **Joining.** The first person creates the universe and invites the other's
+  email. When the invited person signs in, they join automatically; anything
+  of their own they'd already added is kept and added to the shared copy.
+- **Limits.** The free Supabase plan has about 1 GB of file storage and pauses
+  projects after roughly a week without any use (restoring is one click).
+  Supabase's built-in email only reaches members of your own Supabase
+  organisation, which is why the guide creates both accounts in the dashboard.
 
-1. **Backend** — e.g. Supabase: email magic-link sign-in limited to our two
-   addresses, Postgres tables mirroring `src/data/types.ts`, and a *private*
-   Storage bucket for photos, all protected by row-level security.
-2. **Swap the storage layer** — the app only talks to `ContentAdapter` in
-   `src/data/store.ts` and the media functions in `src/lib/media.ts`; those
-   are the two places a shared backend plugs in.
-3. **Move existing content** — export a backup with photos and import it into
-   the shared space once.
-
-No API keys or secrets belong in this frontend code.
+What was tested: the schema's security rules in a real Postgres (PGlite), the
+merge and sync engine with simulated phones, and the full flow in two browsers
+against a local stand-in for Supabase that runs the real schema. It has not
+been run against a live Supabase project, or in Safari on a real iPhone, from
+here — the first real check is following the guide.
 
 ---
 

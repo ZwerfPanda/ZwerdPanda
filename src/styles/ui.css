@@ -787,6 +787,7 @@
   text-align: center;
   border-radius: var(--radius-l);
   border: 1.5px dashed var(--line-strong);
+  background: var(--surface);
   background: color-mix(in srgb, var(--surface) 70%, transparent);
 }
 

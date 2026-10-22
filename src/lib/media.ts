@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { createId } from './id';
 
 /**
@@ -89,15 +89,60 @@ export async function clearMedia(): Promise<void> {
 
 const urlCache = new Map<string, Promise<string | null>>();
 
+/**
+ * When the universe is shared, photos added on the other phone are fetched
+ * from private cloud storage the first time they're shown, then kept here.
+ */
+type RemoteMediaFetcher = (id: string) => Promise<Blob | null>;
+let remoteFetcher: RemoteMediaFetcher | null = null;
+let missingRetry = 0;
+const retryListeners = new Set<() => void>();
+
+export function setRemoteMediaSource(fetcher: RemoteMediaFetcher | null) {
+  remoteFetcher = fetcher;
+  retryMissingMedia();
+}
+
+/** Forget photos that couldn't be found, so they're looked for again. */
+export function retryMissingMedia() {
+  const checks = [...urlCache.entries()].map(([id, pending]) =>
+    pending.then((url) => {
+      if (!url) urlCache.delete(id);
+    }),
+  );
+  void Promise.all(checks).then(() => {
+    missingRetry++;
+    retryListeners.forEach((listener) => listener());
+  });
+}
+
+async function loadMediaUrl(id: string): Promise<string | null> {
+  const record = await getMedia(id);
+  if (record) return URL.createObjectURL(record.blob);
+  if (!remoteFetcher) return null;
+  const blob = await remoteFetcher(id);
+  if (!blob) return null;
+  await putMedia(blob, 'shared', id).catch(() => undefined);
+  return URL.createObjectURL(blob);
+}
+
 export function getMediaUrl(id: string): Promise<string | null> {
   let cached = urlCache.get(id);
   if (!cached) {
-    cached = getMedia(id)
-      .then((record) => (record ? URL.createObjectURL(record.blob) : null))
-      .catch(() => null);
+    cached = loadMediaUrl(id).catch(() => null);
     urlCache.set(id, cached);
   }
   return cached;
+}
+
+function useMissingRetry(): number {
+  return useSyncExternalStore(
+    (listener) => {
+      retryListeners.add(listener);
+      return () => retryListeners.delete(listener);
+    },
+    () => missingRetry,
+  );
 }
 
 export type MediaUrlState =
@@ -108,6 +153,9 @@ export type MediaUrlState =
 /** Resolves a stored media id to a displayable URL. */
 export function useMediaUrl(id: string | undefined): MediaUrlState {
   const [state, setState] = useState<MediaUrlState>({ status: 'loading' });
+  const retry = useMissingRetry();
+  // Only photos that were missing are looked up again after a sync.
+  const retryKey = state.status === 'missing' ? retry : 0;
   useEffect(() => {
     if (!id) {
       setState({ status: 'missing' });
@@ -121,7 +169,7 @@ export function useMediaUrl(id: string | undefined): MediaUrlState {
     return () => {
       alive = false;
     };
-  }, [id]);
+  }, [id, retryKey]);
   return state;
 }
 
@@ -137,34 +185,73 @@ export interface PreparedImage {
   height: number;
 }
 
+type Drawable = { source: CanvasImageSource; width: number; height: number; release: () => void };
+
+/**
+ * Decodes a photo in the most capable way the browser offers: ImageBitmap
+ * with EXIF orientation, then plain ImageBitmap, then an <img> element
+ * (older Safari) — modern browsers rotate phone photos correctly in all three.
+ */
+async function decodeImage(file: File): Promise<Drawable> {
+  if (typeof createImageBitmap === 'function') {
+    for (const options of [{ imageOrientation: 'from-image' } as ImageBitmapOptions, undefined]) {
+      try {
+        const bitmap = await createImageBitmap(file, options);
+        return {
+          source: bitmap,
+          width: bitmap.width,
+          height: bitmap.height,
+          release: () => bitmap.close(),
+        };
+      } catch {
+        // Try the next, simpler way.
+      }
+    }
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = url;
+    await img.decode();
+    return {
+      source: img,
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+      release: () => URL.revokeObjectURL(url),
+    };
+  } catch {
+    URL.revokeObjectURL(url);
+    throw new Error(
+      `“${file.name}” couldn't be opened. Try a JPG or PNG (on iPhone, choose the photo from your library).`,
+    );
+  }
+}
+
 /**
  * Downscales a photo to at most 2000px on its longest edge and re-encodes it as
  * JPEG, so phone photos take a fraction of the space and load quickly.
  */
 export async function prepareImage(file: File): Promise<PreparedImage> {
-  let bitmap: ImageBitmap;
+  const image = await decodeImage(file);
   try {
-    bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
-  } catch {
-    throw new Error(
-      `“${file.name}” couldn't be opened. Try a JPG or PNG (on iPhone, choose the photo from your library).`,
+    const scale = Math.min(1, MAX_IMAGE_EDGE / Math.max(image.width, image.height));
+    const width = Math.max(1, Math.round(image.width * scale));
+    const height = Math.max(1, Math.round(image.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Your browser could not process this image.');
+    ctx.drawImage(image.source, 0, 0, width, height);
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, 'image/jpeg', 0.86),
     );
+    if (!blob) throw new Error('Your browser could not process this image.');
+    return { blob, width, height };
+  } finally {
+    image.release();
   }
-  const scale = Math.min(1, MAX_IMAGE_EDGE / Math.max(bitmap.width, bitmap.height));
-  const width = Math.max(1, Math.round(bitmap.width * scale));
-  const height = Math.max(1, Math.round(bitmap.height * scale));
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Your browser could not process this image.');
-  ctx.drawImage(bitmap, 0, 0, width, height);
-  bitmap.close();
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, 'image/jpeg', 0.86),
-  );
-  if (!blob) throw new Error('Your browser could not process this image.');
-  return { blob, width, height };
 }
 
 export function formatBytes(bytes: number): string {

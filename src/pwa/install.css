@@ -1,0 +1,207 @@
+.install {
+  display: grid;
+  gap: 18px;
+  padding-bottom: 6px;
+}
+
+.install__hero {
+  display: grid;
+  place-items: center;
+  padding: 18px 0 8px;
+  overflow: hidden;
+  border-radius: 24px;
+  background:
+    radial-gradient(60% 80% at 50% 40%, rgba(232, 189, 106, 0.35), transparent 70%),
+    linear-gradient(180deg, #2d172f, #52294f);
+}
+
+.install__icon {
+  border-radius: 22px;
+  box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.6);
+  animation: loading-float 3.4s ease-in-out infinite;
+}
+
+.install-lede {
+  color: var(--ink-soft);
+}
+
+.install-steps {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.install-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--accent-wash);
+  box-shadow: inset 0 0 0 1px var(--accent-soft);
+}
+
+.install-step__n {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--btn-bg);
+  color: var(--btn-ink);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.install-step__text {
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.install-step__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--surface-raised);
+  color: #2f6fe4;
+  box-shadow: var(--shadow-1);
+}
+
+.install-step__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.install-note {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--surface-raised);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.install-done {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: var(--sage-600);
+}
+
+[data-theme='midnight'] .install-done {
+  color: var(--sage-400);
+}
+
+.install-done svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+
+.install-share {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.install-share p {
+  flex: 1 1 200px;
+}
+
+/* Home-page invitation */
+.install-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 28px;
+  padding: 16px 8px 16px 16px;
+  border-radius: 22px;
+  background: linear-gradient(110deg, #2d172f, #52294f);
+  color: #fff4ea;
+  box-shadow: var(--shadow-2);
+}
+
+.install-banner img {
+  flex: none;
+  border-radius: 14px;
+}
+
+.install-banner__text {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+  min-width: 0;
+}
+
+.install-banner__title {
+  flex: 1 1 100%;
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  line-height: 1.2;
+}
+
+.install-banner__sub {
+  flex: 1 1 220px;
+  font-size: 0.84rem;
+  color: rgba(255, 244, 234, 0.75);
+}
+
+.install-banner__go {
+  flex: none;
+  min-height: 40px;
+  margin-top: 6px;
+  padding: 0 18px;
+  border-radius: var(--radius-pill);
+  background: var(--gold-200);
+  color: var(--plum-800);
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.install-banner__close {
+  flex: none;
+  margin-top: -8px;
+  color: rgba(255, 244, 234, 0.7);
+}
+
+.install-banner__close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (min-width: 720px) {
+  .install-banner {
+    align-items: center;
+    padding: 14px 10px 14px 16px;
+  }
+
+  .install-banner__text {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 20px;
+  }
+
+  .install-banner__go {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .install-banner__go,
+  .install-banner__close {
+    margin-top: 0;
+  }
+}

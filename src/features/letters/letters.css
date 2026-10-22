@@ -106,6 +106,7 @@
   height: var(--flap);
   transform-origin: 50% 0;
   backface-visibility: visible;
+  background: var(--env-paper);
   background: linear-gradient(
     180deg,
     var(--env-paper),
@@ -127,12 +128,14 @@
   aspect-ratio: 1;
   transform: translate(-50%, -66%);
   border-radius: 46% 54% 50% 50% / 52% 48% 52% 48%;
+  background: var(--env-seal);
   background: radial-gradient(
     circle at 35% 30%,
     color-mix(in srgb, var(--env-seal) 70%, #fff),
     var(--env-seal) 60%
   );
   color: rgba(255, 244, 234, 0.92);
+  box-shadow: 0 4px 10px rgba(45, 23, 47, 0.35);
   box-shadow:
     0 0 0 3px color-mix(in srgb, var(--env-seal) 82%, #000),
     0 4px 10px rgba(45, 23, 47, 0.35);

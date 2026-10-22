@@ -8,6 +8,7 @@ import {
   Play,
   RotateCcw,
   ShieldCheck,
+  Smartphone,
   Upload,
   Volume2,
 } from 'lucide-react';
@@ -28,6 +29,10 @@ import { confirm, toast } from '../../components/ui/feedback';
 import { useMusic } from '../../components/music/MusicProvider';
 import { SiteFooter } from '../../components/common/SiteFooter';
 import { validateStartDate } from '../home/StartDateDialog';
+import { TogetherSection } from './TogetherSection';
+import { disconnectBeforeReset, isSharing } from '../../sync/sync';
+import { useInstall } from '../../pwa/install';
+import { openInstallSheet } from '../../pwa/InstallSheet';
 import './settings.css';
 
 const THEMES: { value: ThemeName; label: string; colors: [string, string, string] }[] = [
@@ -51,6 +56,8 @@ export function SettingsPage() {
       />
       <div className="settings-grid">
         <ProfileSection />
+        <TogetherSection />
+        <AppSection />
         <LookSection />
         <SoundSection />
         <DataSection />
@@ -240,6 +247,27 @@ function ProfileSection() {
           )}
         </div>
       </form>
+    </Section>
+  );
+}
+
+/* -------------------------------------------------------------------- App */
+
+function AppSection() {
+  const install = useInstall();
+  return (
+    <Section id="app" title="The app" kicker="on any phone or computer">
+      <p className="settings-text">
+        {install.installed
+          ? 'You’re using the installed app on this device. ♡'
+          : 'Install our universe like an app: it gets its own icon, opens full-screen and works offline — on iPhone, Android, Windows and Mac. No app store needed.'}
+      </p>
+      <div className="settings-actions">
+        <button type="button" className="btn btn--primary" onClick={openInstallSheet}>
+          <Smartphone aria-hidden="true" />{' '}
+          {install.installed ? 'Install on another device' : 'Install the app'}
+        </button>
+      </div>
     </Section>
   );
 }
@@ -494,7 +522,11 @@ function DataSection() {
       const preview = await readBackup(file);
       const ok = await confirm({
         title: 'Restore this backup?',
-        message: `It contains ${preview.summary} Everything currently on this device will be replaced by it.`,
+        message: `It contains ${preview.summary} Everything currently on this device will be replaced by it.${
+          isSharing()
+            ? ' Because our universe is shared, the other phone gets this version too.'
+            : ''
+        }`,
         confirmLabel: 'Replace & restore',
         tone: 'danger',
       });
@@ -527,12 +559,14 @@ function DataSection() {
   const resetEverything = async () => {
     const ok = await confirm({
       title: 'Erase everything on this device?',
-      message:
-        'All chapters, photos, letters, dreams and settings stored in this browser will be deleted and the starter content comes back. This cannot be undone — export a backup first if you want to keep anything.',
+      message: isSharing()
+        ? 'This device signs out of our shared universe and forgets everything stored on it. The shared universe online — and the other phone — stay exactly as they are.'
+        : 'All chapters, photos, letters, dreams and settings stored in this browser will be deleted and the starter content comes back. This cannot be undone — export a backup first if you want to keep anything.',
       confirmLabel: 'Erase everything',
       tone: 'danger',
     });
     if (!ok) return;
+    await disconnectBeforeReset();
     await clearMedia().catch(() => undefined);
     resetAllLocalData();
     toast('Everything was reset');
@@ -629,21 +663,21 @@ function PrivacySection() {
     <Section id="privacy" title="Privacy & sharing" kicker="being honest">
       <ul className="settings-list">
         <li>
-          <strong>Private to this device.</strong> Nothing is uploaded anywhere. Photos, letters and
-          everything else stay in this browser — that also means Shenaya won’t see what’s added on
-          another phone yet.
+          <strong>Without sharing:</strong> nothing leaves this device. Photos, letters and
+          everything else stay in this browser.
         </li>
         <li>
-          <strong>No password, on purpose.</strong> A password screen without a real server would
-          only look secure, so there isn’t one. Anyone holding this unlocked phone can open the
-          site.
+          <strong>With sharing:</strong> our universe lives in our own Supabase project. Only the
+          two signed-in accounts can read it — the database itself enforces that, and photos sit in
+          a private folder only we can open.
         </li>
         <li>
-          <strong>Sharing for now:</strong> export a backup with photos and restore it on her phone.
+          <strong>Passwords</strong> are never stored in the app. A device stays signed in with a
+          session that can be ended any time with “Sign out”.
         </li>
         <li>
-          <strong>Coming later:</strong> real sign-in for just the two of us and shared, private
-          photo storage, so both of us see the same universe everywhere.
+          <strong>Without an account</strong>, there’s no password screen: a lock without a real
+          server would only look secure. Anyone holding this unlocked phone can open the site.
         </li>
       </ul>
       <p className="notice notice--plain" style={{ marginTop: 16 }}>

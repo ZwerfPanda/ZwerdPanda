@@ -9,6 +9,8 @@ import { sectionFor } from './sections';
 import { MusicProvider } from '../components/music/MusicProvider';
 import { CelebrationHost, ConfirmHost, Toaster, toast } from '../components/ui/feedback';
 import { Intro } from '../features/intro/Intro';
+import { InstallSheetHost } from '../pwa/InstallSheet';
+import { startSync } from '../sync/sync';
 import { HomePage } from '../features/home/HomePage';
 import { PageLoading } from './PageLoading';
 
@@ -99,6 +101,11 @@ export function App() {
 
   useEffect(() => onPersistError((message) => toast(message, { tone: 'error' })), []);
 
+  // Connect to our shared universe, if one is configured.
+  useEffect(() => {
+    void startSync();
+  }, []);
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
       cleanupOrphanMedia().catch(() => {
@@ -150,6 +157,7 @@ export function App() {
         <Toaster />
         <ConfirmHost />
         <CelebrationHost />
+        <InstallSheetHost />
         <AnimatePresence>{introOpen && <Intro key="intro" onEnter={closeIntro} />}</AnimatePresence>
       </MusicProvider>
     </MotionConfig>

@@ -9,6 +9,7 @@ import { SiteFooter } from '../../components/common/SiteFooter';
 import { HeroPlanet } from './HeroPlanet';
 import { Counter } from './Counter';
 import { Explore } from './Explore';
+import { InstallBanner } from '../../pwa/InstallBanner';
 import './home.css';
 
 export function HomePage() {
@@ -38,6 +39,7 @@ export function HomePage() {
           <Counter />
           <HomeNote />
         </div>
+        <InstallBanner />
         <Explore />
         <TodayNote />
         <SiteFooter />

@@ -98,18 +98,35 @@ export function getContent(): AppContent {
   return content;
 }
 
+/**
+ * Where a change came from: something done on this device ('local'), or a
+ * copy that arrived from the shared universe ('remote', which must not be
+ * sent straight back).
+ */
+export type ChangeSource = 'local' | 'remote';
+const changeListeners = new Set<(source: ChangeSource) => void>();
+
+export function onContentChanged(listener: (source: ChangeSource) => void): () => void {
+  changeListeners.add(listener);
+  return () => {
+    changeListeners.delete(listener);
+  };
+}
+
 /** Applies an immutable update and schedules a save. */
 export function updateContent(recipe: (current: AppContent) => AppContent) {
   const next = recipe(content);
   if (next === content) return;
   content = next;
   contentListeners.forEach((listener) => listener());
+  changeListeners.forEach((listener) => listener('local'));
   persistSoon();
 }
 
-export function replaceContent(next: AppContent) {
+export function replaceContent(next: AppContent, source: ChangeSource = 'local') {
   content = next;
   contentListeners.forEach((listener) => listener());
+  changeListeners.forEach((listener) => listener(source));
   flushContent();
 }
 

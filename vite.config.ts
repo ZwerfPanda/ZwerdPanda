@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
 /**
@@ -39,15 +39,75 @@ function precacheManifest(): Plugin {
   };
 }
 
+/**
+ * A strict Content-Security-Policy for the built site: only our own scripts
+ * run. Network access is open to https/wss so the configured Supabase project
+ * (whatever its address) works; frames only for official Spotify/YouTube players.
+ */
+function contentSecurityPolicy(): Plugin {
+  const policy = [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "media-src 'self' data: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self' https: wss: data: blob:",
+    'frame-src https://open.spotify.com https://www.youtube-nocookie.com',
+    "worker-src 'self'",
+    "manifest-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ');
+  return {
+    name: 'olu-content-security-policy',
+    apply: 'build',
+    transformIndexHtml: (html) =>
+      html.replace(
+        '<head>',
+        `<head>\n    <meta http-equiv="Content-Security-Policy" content="${policy}" />`,
+      ),
+  };
+}
+
+/**
+ * Stops a build that would ship a Supabase secret key (sb_secret_… or a
+ * service_role JWT) to every visitor. Only the publishable/anon key belongs here.
+ */
+function refuseSecretKeys(): Plugin {
+  return {
+    name: 'olu-refuse-secret-keys',
+    config(_, { mode }) {
+      const key = loadEnv(mode, process.cwd(), 'VITE_').VITE_SUPABASE_ANON_KEY ?? '';
+      const payload = key.split('.')[1];
+      let role = '';
+      try {
+        role = payload
+          ? ((JSON.parse(Buffer.from(payload, 'base64url').toString()) as { role?: string }).role ??
+            '')
+          : '';
+      } catch {
+        role = '';
+      }
+      if (key.trim().startsWith('sb_secret_') || role === 'service_role') {
+        throw new Error(
+          'VITE_SUPABASE_ANON_KEY holds a SECRET key. Use the publishable (or anon public) key instead.',
+        );
+      }
+    },
+  };
+}
+
 // `base: './'` keeps every asset path relative, so the built site works from
 // any folder (GitHub Pages, a sub-path, or opened from a static host).
 export default defineConfig({
   base: './',
-  plugins: [react(), precacheManifest()],
+  plugins: [refuseSecretKeys(), react(), precacheManifest(), contentSecurityPolicy()],
   server: { host: true },
   preview: { host: true },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'supabase/**/*.test.ts'],
   },
 });

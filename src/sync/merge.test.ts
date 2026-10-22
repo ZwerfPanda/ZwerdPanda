@@ -1,0 +1,128 @@
+import { describe, expect, it } from 'vitest';
+import { createDefaultContent } from '../data/defaults';
+import type { AppContent, Memory } from '../data/types';
+import { contentMediaIds, mergeContent, mergeFirstJoin, mergeList, stableEqual } from './merge';
+
+const item = (id: string, text = id) => ({ id, text });
+const ids = (list: { id: string }[]) => list.map((i) => i.id);
+
+const memory = (id: string, caption: string): Memory => ({
+  id,
+  caption,
+  albumIds: [],
+  media: { type: 'local', mediaId: `media-${id}`, kind: 'image' },
+  favorite: false,
+  createdAt: '2026-10-22T10:00:00.000Z',
+});
+
+describe('stableEqual', () => {
+  it('ignores key order and undefined fields', () => {
+    expect(stableEqual({ a: 1, b: { c: 2, d: 3 } }, { b: { d: 3, c: 2 }, a: 1 })).toBe(true);
+    expect(stableEqual({ a: 1, x: undefined }, { a: 1 })).toBe(true);
+    expect(stableEqual({ a: 1 }, { a: 2 })).toBe(false);
+  });
+});
+
+describe('mergeList', () => {
+  const base = [item('a'), item('b'), item('c')];
+
+  it('keeps additions from both sides', () => {
+    const local = [item('new-local'), ...base];
+    const remote = [...base, item('new-remote')];
+    expect(ids(mergeList(base, local, remote))).toEqual(['new-local', 'a', 'b', 'c', 'new-remote']);
+  });
+
+  it('applies edits from either side', () => {
+    const local = [item('a', 'mine'), item('b'), item('c')];
+    const remote = [item('a'), item('b', 'theirs'), item('c')];
+    const merged = mergeList(base, local, remote);
+    expect(merged.map((i) => i.text)).toEqual(['mine', 'theirs', 'c']);
+  });
+
+  it('applies deletions from either side', () => {
+    const local = [item('a'), item('c')];
+    const remote = [item('a'), item('b')];
+    expect(ids(mergeList(base, local, remote))).toEqual(['a']);
+  });
+
+  it('keeps an item one side edited while the other deleted it', () => {
+    const local = [item('a'), item('b', 'edited here'), item('c')];
+    const remote = [item('a'), item('c')];
+    expect(mergeList(base, local, remote).find((i) => i.id === 'b')?.text).toBe('edited here');
+  });
+
+  it('prefers this device when both edited the same item', () => {
+    const local = [item('a', 'mine'), item('b'), item('c')];
+    const remote = [item('a', 'theirs'), item('b'), item('c')];
+    expect(mergeList(base, local, remote)[0].text).toBe('mine');
+  });
+
+  it('keeps a reorder made on either side', () => {
+    expect(ids(mergeList(base, [item('c'), item('a'), item('b')], base))).toEqual(['c', 'a', 'b']);
+    expect(ids(mergeList(base, base, [item('b'), item('a'), item('c')]))).toEqual(['b', 'a', 'c']);
+  });
+});
+
+describe('mergeContent', () => {
+  it('merges two phones editing different things at once', () => {
+    const base = createDefaultContent();
+    const local: AppContent = {
+      ...base,
+      memories: [memory('m-valencio', 'Our first selfie'), ...base.memories],
+      profile: { ...base.profile, startDate: '2026-03-10' },
+    };
+    const remote: AppContent = {
+      ...base,
+      letters: base.letters.slice(1),
+      profile: { ...base.profile, homeGreeting: 'Hi love,' },
+    };
+    const merged = mergeContent(base, local, remote);
+    expect(merged.memories[0].caption).toBe('Our first selfie');
+    expect(merged.letters).toHaveLength(base.letters.length - 1);
+    expect(merged.profile.startDate).toBe('2026-03-10');
+    expect(merged.profile.homeGreeting).toBe('Hi love,');
+  });
+
+  it('merges lists nested in Coco and the surprises', () => {
+    const base = createDefaultContent();
+    const local = {
+      ...base,
+      coco: { ...base.coco, notes: [{ id: 'n1', text: 'Zoomies', createdAt: 'x' }] },
+    };
+    const remote = {
+      ...base,
+      surprises: {
+        ...base.surprises,
+        stars: [...base.surprises.stars, { id: 's-new', text: 'A new star' }],
+      },
+    };
+    const merged = mergeContent(base, local, remote);
+    expect(merged.coco.notes.map((n) => n.text)).toEqual(['Zoomies']);
+    expect(merged.surprises.stars.at(-1)?.text).toBe('A new star');
+  });
+});
+
+describe('mergeFirstJoin', () => {
+  it('takes the shared copy, keeps own creations and drops local samples', () => {
+    const shared = createDefaultContent();
+    shared.memories = [memory('m-shared', 'Shared photo')];
+    shared.profile.startDate = '2026-03-10';
+    const mine = createDefaultContent();
+    mine.memories = [memory('m-mine', 'Taken before connecting'), ...mine.memories];
+    const merged = mergeFirstJoin(mine, shared);
+    expect(merged.memories.map((m) => m.caption)).toEqual([
+      'Taken before connecting',
+      'Shared photo',
+    ]);
+    expect(merged.profile.startDate).toBe('2026-03-10');
+  });
+});
+
+describe('contentMediaIds', () => {
+  it('finds every stored photo reference', () => {
+    const c = createDefaultContent();
+    c.memories = [memory('a', 'x')];
+    c.coco.portrait = { type: 'local', mediaId: 'coco-photo', kind: 'image' };
+    expect(contentMediaIds(c).sort()).toEqual(['coco-photo', 'media-a']);
+  });
+});

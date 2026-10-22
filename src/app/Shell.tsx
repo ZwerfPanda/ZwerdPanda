@@ -1,6 +1,18 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { LayoutGrid, Pause, Play, Settings2, X } from 'lucide-react';
+import {
+  Cloud,
+  CloudOff,
+  LayoutGrid,
+  LoaderCircle,
+  Pause,
+  Play,
+  Settings2,
+  Smartphone,
+  X,
+} from 'lucide-react';
+import { openInstallSheet } from '../pwa/InstallSheet';
+import { useSyncState } from '../sync/sync';
 import { href, useRoute, type RoutePath } from '../lib/router';
 import { DESKTOP_PATHS, SECTIONS, TAB_PATHS, sectionFor } from './sections';
 import { LogoMark } from '../components/art/LogoMark';
@@ -59,6 +71,7 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
         )}
 
         <div className="topbar__actions">
+          <SyncBadge />
           {desktop && (
             <a
               className="icon-btn"
@@ -81,6 +94,37 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
         </div>
       </div>
     </header>
+  );
+}
+
+/** A small cloud in the top bar while our universe is shared: synced, syncing or offline. */
+function SyncBadge() {
+  const sync = useSyncState();
+  if (!sync.spaceId && sync.phase !== 'error') return null;
+  if (sync.phase === 'off' || sync.phase === 'signed-out') return null;
+  const label =
+    sync.phase === 'syncing'
+      ? 'Syncing'
+      : sync.phase === 'offline'
+        ? 'Offline — will sync later'
+        : sync.phase === 'error'
+          ? 'Sync problem'
+          : 'Synced';
+  const Icon =
+    sync.phase === 'syncing'
+      ? LoaderCircle
+      : sync.phase === 'offline' || sync.phase === 'error'
+        ? CloudOff
+        : Cloud;
+  return (
+    <a
+      className={`sync-badge sync-badge--${sync.phase}`}
+      href={href('/settings', { section: 'together' })}
+      aria-label={`${label}. Open sharing settings`}
+      title={label}
+    >
+      <Icon aria-hidden="true" className={sync.phase === 'syncing' ? 'spin' : undefined} />
+    </a>
   );
 }
 
@@ -205,6 +249,29 @@ export function MenuSheet({ open, onClose }: { open: boolean; onClose: () => voi
           })}
         </ul>
       </nav>
+      <div className="menu-app">
+        <button
+          type="button"
+          className="menu-app__btn"
+          onClick={() => {
+            onClose();
+            openInstallSheet();
+          }}
+        >
+          <Smartphone aria-hidden="true" />
+          <span>
+            <strong>Get the app</strong>
+            <span>Install on iPhone, Android or a computer</span>
+          </span>
+        </button>
+        <a className="menu-app__btn" href={href('/settings', { section: 'together' })}>
+          <Cloud aria-hidden="true" />
+          <span>
+            <strong>Together on every device</strong>
+            <span>Share one universe between your phones</span>
+          </span>
+        </a>
+      </div>
     </Dialog>
   );
 }
