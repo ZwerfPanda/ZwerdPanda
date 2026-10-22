@@ -72,7 +72,7 @@ export function bodyFrame(who: Person, heightCm: number) {
     headR: B.headR,
     shoulder: B.shoulder,
     /** Mouth height, relative to the head centre. */
-    mouth: B.headR * (who === 'partner' ? 0.5 : 0.52),
+    mouth: B.headR * (who === 'partner' ? 0.5 : 0.62),
   };
 }
 
@@ -648,15 +648,30 @@ export function Figure({
 
 /** Face outline: his longer with a defined jaw, hers rounder and softer. */
 function headPath(r: number, cy: number, her: boolean) {
-  const w = her ? r * 0.9 : r * 0.84;
   const top = cy - r;
-  const chin = cy + (her ? r * 0.98 : r * 1.08);
-  const jaw = her ? r * 0.5 : r * 0.42;
+  if (her) {
+    // Hers: rounder and softer.
+    const w = r * 0.9;
+    const chin = cy + r * 0.98;
+    const jaw = r * 0.5;
+    return (
+      `M0 ${top}C${w * 0.62} ${top} ${w} ${cy - r * 0.6} ${w} ${cy - r * 0.05}` +
+      `C${w} ${cy + r * 0.45} ${jaw + 6} ${chin - 4} 0 ${chin}` +
+      `C${-jaw - 6} ${chin - 4} ${-w} ${cy + r * 0.45} ${-w} ${cy - r * 0.05}` +
+      `C${-w} ${cy - r * 0.6} ${-w * 0.62} ${top} 0 ${top}Z`
+    );
+  }
+  // His: high cheekbones, a sharp jaw angle and a defined chin.
+  const side = (d: 1 | -1) =>
+    `Q${d * r * 0.88} ${cy + r * 0.3} ${d * r * 0.74} ${cy + r * 0.7}` +
+    `Q${d * r * 0.6} ${cy + r * 0.98} ${d * r * 0.3} ${cy + r * 1.05}`;
   return (
-    `M0 ${top}C${w * 0.62} ${top} ${w} ${cy - r * 0.6} ${w} ${cy - r * 0.05}` +
-    `C${w} ${cy + r * 0.45} ${jaw + 6} ${chin - 4} 0 ${chin}` +
-    `C${-jaw - 6} ${chin - 4} ${-w} ${cy + r * 0.45} ${-w} ${cy - r * 0.05}` +
-    `C${-w} ${cy - r * 0.6} ${-w * 0.62} ${top} 0 ${top}Z`
+    `M0 ${top}C${r * 0.52} ${top} ${r * 0.86} ${cy - r * 0.6} ${r * 0.86} ${cy - r * 0.15}` +
+    side(1) +
+    `Q0 ${cy + r * 1.12} ${-r * 0.3} ${cy + r * 1.05}` +
+    `Q${-r * 0.6} ${cy + r * 0.98} ${-r * 0.74} ${cy + r * 0.7}` +
+    `Q${-r * 0.88} ${cy + r * 0.3} ${-r * 0.86} ${cy - r * 0.15}` +
+    `C${-r * 0.86} ${cy - r * 0.6} ${-r * 0.52} ${top} 0 ${top}Z`
   );
 }
 
@@ -743,7 +758,7 @@ function FaceFeatures({
     );
   };
 
-  const my = cy + r * (her ? 0.5 : 0.52);
+  const my = cy + r * (her ? 0.5 : 0.62);
   const happy = face === 'grin' || face === 'happy';
   const mouth =
     face === 'kiss' ? (
@@ -825,16 +840,18 @@ function FaceFeatures({
       {eye(ex, face === 'wink')}
       {/* nose */}
       {her ? (
+        // a small, cute version of his
         <path
-          d={`M-4 ${cy + r * 0.32}q-2 3 1 3.6M4 ${cy + r * 0.32}q2 3 -1 3.6`}
+          d={`M-0.5 ${cy + r * 0.1}q0 ${r * 0.18} -2.5 ${r * 0.25}q3 2.4 6.5 -0.3`}
           fill="none"
-          stroke={shade}
-          strokeWidth="2"
+          stroke="#5e3622"
+          strokeWidth="2.2"
           strokeLinecap="round"
+          strokeLinejoin="round"
         />
       ) : (
         <path
-          d={`M-1.5 ${cy + r * 0.04}q0 ${r * 0.24} -3 ${r * 0.32}q4 3 9 -0.5`}
+          d={`M-1.5 ${cy + r * 0.02}q0 ${r * 0.2} -3 ${r * 0.27}q4 3 9 -0.5`}
           fill="none"
           stroke={shade}
           strokeWidth="2.2"
@@ -858,13 +875,27 @@ function FaceFeatures({
         fill="#e07f86"
         opacity={her ? 0.38 : 0.12}
       />
+      {!her && (
+        // cheekbones and jawline
+        <path
+          d={`M${-r * 0.7} ${cy + r * 0.2}q${r * 0.08} ${r * 0.2} ${r * 0.24} ${r * 0.3}M${r * 0.7} ${cy + r * 0.2}q${-r * 0.08} ${r * 0.2} ${-r * 0.24} ${r * 0.3}M${-r * 0.7} ${cy + r * 0.7}Q${-r * 0.56} ${cy + r * 0.94} ${-r * 0.3} ${cy + r * 0.98}M${r * 0.7} ${cy + r * 0.7}Q${r * 0.56} ${cy + r * 0.94} ${r * 0.3} ${cy + r * 0.98}`}
+          fill="none"
+          stroke={shade}
+          strokeWidth="2"
+          strokeLinecap="round"
+          opacity="0.55"
+        />
+      )}
       {mouth}
       {!her && (
         <g fill="#1b1413">
           {/* thin moustache, and a small beard only on the chin, like in the photos */}
-          <path d={`M-9 ${my - 5}q9 -5 18 0q-2 1.6 -4 0.6q-5 -2 -10 0q-2 1 -4 -0.6z`} />
+          {/* moustache: under the nose, above the lip */}
           <path
-            d={`M-4 ${cy + r * 0.84}h8q2.6 ${r * 0.12} 1.2 ${r * 0.22}q-5.2 2.4 -10.4 0q-1.4 ${-r * 0.1} 1.2 ${-r * 0.22}z`}
+            d={`M-9.5 ${cy + r * 0.5}q9.5 -3.4 19 0q-2 1.4 -4 0.7q-5.5 -1.6 -11 0q-2 0.7 -4 -0.7z`}
+          />
+          <path
+            d={`M-4 ${cy + r * 0.88}h8q2.6 ${r * 0.12} 1.2 ${r * 0.22}q-5.2 2.4 -10.4 0q-1.4 ${-r * 0.1} 1.2 ${-r * 0.22}z`}
           />
         </g>
       )}
