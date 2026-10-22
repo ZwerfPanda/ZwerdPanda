@@ -79,12 +79,12 @@ function torsoOutline(
     ? [
         // a rounded bust, in to a small waist, softly out to slim hips
         [
-          { x: start.x + 5, y: start.y + 6 },
-          { x: B.shoulder + 5, y: shY + 26 },
-          { x: B.shoulder + 2, y: shY + 38 },
+          { x: start.x + 5, y: start.y + 4 },
+          { x: B.shoulder + 5, y: shY + 20 },
+          { x: B.shoulder + 2, y: shY + 30 },
         ],
         [
-          { x: B.shoulder + 1, y: shY + 46 },
+          { x: B.shoulder - 1, y: shY + 38 },
           { x: B.waist + 1, y: waistY - 8 },
           { x: B.waist, y: waistY },
         ],
@@ -1259,9 +1259,10 @@ function Top({
               d={[-1, 1]
                 .map((d) => {
                   const c = d * B.shoulder * 0.46;
-                  const rr = B.shoulder * 0.44;
-                  const y0 = shY + 24;
-                  return `M${c - rr} ${y0}Q${c - rr} ${y0 + rr * 1.05} ${c} ${y0 + rr * 1.05}Q${c + rr} ${y0 + rr * 1.05} ${c + rr} ${y0}`;
+                  const rr = B.shoulder * 0.42;
+                  // lifted and round, sitting high like in a bra
+                  const y0 = shY + 17;
+                  return `M${c - rr} ${y0}A${rr} ${rr * 0.85} 0 0 0 ${c + rr} ${y0}`;
                 })
                 .join('')}
               fill="none"
@@ -1272,13 +1273,15 @@ function Top({
             />
           )}
           {/* hem stitching and a soft fold at the waist */}
-          <path
-            d={`M${-B.hip + 3} ${hipY - 2}H${B.hip - 3}`}
-            stroke="#fff"
-            strokeWidth="1.2"
-            strokeDasharray="3 3"
-            opacity="0.3"
-          />
+          {!isDress && (
+            <path
+              d={`M${-B.hip + 3} ${hipY - 2}H${B.hip - 3}`}
+              stroke="#fff"
+              strokeWidth="1.2"
+              strokeDasharray="3 3"
+              opacity="0.3"
+            />
+          )}
           {!her && (
             <path
               d={`M${-B.waist * 0.7} ${waistY - 6}q${B.waist * 0.4} 5 ${B.waist * 0.8} 1M${B.waist * 0.15} ${waistY + 8}q${B.waist * 0.3} 4 ${B.waist * 0.6} -1`}
@@ -1765,6 +1768,34 @@ function Legs({
               stroke={shoes.color}
               strokeWidth="2.5"
               strokeLinecap="round"
+            />
+          </>
+        );
+      case 'heels':
+        // a pointed pump on a slim stiletto, the foot arched
+        return (
+          <>
+            <path d="M-7 -15Q0 -14 8 -7L1 -9Q-4 -11 -5 -15z" fill={skin} {...S} strokeWidth={1.6} />
+            <path
+              d="M-10 -15V-7Q-9 -4 -5 -4L10 0Q18 2 18 -1Q17 -4 10 -6Q5 -7 2 -9Q-3 -11 -4 -15z"
+              fill={shoes.color}
+              {...S}
+              strokeWidth={2}
+            />
+            <path d="M-8.5 -5L-7.5 2" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />
+            <path
+              d="M-8.5 -5L-7.5 2"
+              stroke={shoes.color}
+              strokeWidth="2.2"
+              strokeLinecap="round"
+            />
+            <path
+              d="M3 -5q6 0 11 3"
+              fill="none"
+              stroke="#fff"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              opacity="0.5"
             />
           </>
         );

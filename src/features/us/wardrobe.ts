@@ -26,7 +26,8 @@ export type Shoes =
   | { kind: 'sneakers'; color: string; laces: string }
   | { kind: 'boots'; color: string }
   | { kind: 'fluffy'; color: string }
-  | { kind: 'slides'; color: string; socks: string };
+  | { kind: 'slides'; color: string; socks: string }
+  | { kind: 'heels'; color: string };
 
 export interface Outfit {
   id: string;
@@ -89,10 +90,10 @@ export const HIS_OUTFITS: Outfit[] = [
 export const HER_OUTFITS: Outfit[] = [
   {
     id: 'pink-top',
-    label: 'Pink top',
+    label: 'Pink dress',
     top: { kind: 'longsleeve', color: '#f2c3d3' },
-    bottom: { kind: 'leggings', color: '#25222a' },
-    shoes: { kind: 'sneakers', color: '#26232a', laces: '#f4f1ec' },
+    bottom: { kind: 'dress', color: '#f2c3d3', length: 'knee' },
+    shoes: { kind: 'heels', color: '#f0b7c8' },
   },
   {
     id: 'blue-dress',
@@ -119,10 +120,10 @@ export const HER_OUTFITS: Outfit[] = [
   },
   {
     id: 'burgundy',
-    label: 'Burgundy',
-    top: { kind: 'longsleeve', color: '#6d2533' },
-    bottom: { kind: 'leggings', color: '#25222a' },
-    shoes: { kind: 'sneakers', color: '#26232a', laces: '#f4f1ec' },
+    label: 'Red dress',
+    top: { kind: 'longsleeve', color: '#8e2433' },
+    bottom: { kind: 'dress', color: '#8e2433', length: 'knee' },
+    shoes: { kind: 'heels', color: '#1d1b1f' },
   },
   {
     id: 'brown-dress',
