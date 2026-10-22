@@ -19,7 +19,15 @@ export type Bottom =
   | { kind: 'baggy'; color: string; print?: 'stripe' | 'logo' }
   | { kind: 'leggings'; color: string }
   | { kind: 'shorts'; color: string; cargo?: boolean }
-  | { kind: 'skirt'; color: string; tights: string }
+  | {
+      kind: 'skirt';
+      color: string;
+      /** Tights under it; bare legs when left out. */
+      tights?: string;
+      length?: 'knee' | 'ankle';
+      /** A lace trim along the hem. */
+      trim?: string;
+    }
   | {
       kind: 'dress';
       color: string;
@@ -133,14 +141,14 @@ export const HER_OUTFITS: Outfit[] = [
     id: 'burgundy',
     label: 'Red dress',
     top: { kind: 'longsleeve', color: '#8e2433' },
-    bottom: { kind: 'dress', color: '#8e2433', length: 'maxi', slit: true },
+    bottom: { kind: 'dress', color: '#8e2433', length: 'maxi' },
     shoes: { kind: 'heels', color: '#141215' },
   },
   {
     id: 'brown-dress',
-    label: 'Brown dress',
+    label: 'Brown set',
     top: { kind: 'cami', color: '#5a3527' },
-    bottom: { kind: 'dress', color: '#5a3527', length: 'maxi', lace: true, straps: true },
+    bottom: { kind: 'skirt', color: '#5a3527', length: 'ankle', trim: '#141215' },
     shoes: { kind: 'runner', color: '#1d1b1f' },
   },
   {

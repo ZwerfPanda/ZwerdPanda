@@ -77,7 +77,10 @@ function torsoOutline(
   hem?: number,
   flare = 7,
 ) {
-  const start: P = neckline ? { x: B.shoulder - 4, y: neckline } : { x: B.shoulder, y: shY + 10 };
+  // A neckline starts on the body's curve, so her bust never pokes out beside it.
+  const start: P = neckline
+    ? { x: her ? B.shoulder + 5 : B.shoulder - 4, y: neckline }
+    : { x: B.shoulder, y: shY + 10 };
   const segs: Seg[] = her
     ? [
         // a rounded bust, in to a small waist, softly out to slim hips
@@ -1216,20 +1219,23 @@ function HerFrontHair({ cy, r, wavy, uid }: { cy: number; r: number; wavy: boole
   );
 }
 
-/** Her bust: full, round and lifted, like in a push-up bra. */
+/** Her bust, shown by the clothes: just two small curved strokes underneath. */
 function Bust({ B, shY }: { B: Build; shY: number }) {
-  const rr = B.shoulder * 0.36;
-  const y0 = shY + 15;
-  // Each side: a soft round curve from the middle, under and up the outside.
-  const lobe = (d: 1 | -1) => {
-    const c = d * (rr + 1);
-    return `M${d * 1.5} ${y0 + rr * 0.35}Q${c - d * rr * 0.2} ${y0 + rr * 1.15} ${c + d * rr * 0.55} ${y0 + rr * 0.55}Q${c + d * rr * 0.95} ${y0 + rr * 0.1} ${c + d * rr * 0.85} ${y0 - rr * 0.45}`;
+  const y = shY + 30;
+  const w = B.shoulder * 0.3;
+  const side = (d: 1 | -1) => {
+    const c = d * B.shoulder * 0.42;
+    return `M${c - d * w} ${y - 1}Q${c} ${y + 5} ${c + d * w} ${y - 3}`;
   };
   return (
-    <g fill="none" stroke="#000" strokeLinecap="round">
-      <path d={lobe(-1) + lobe(1)} strokeWidth="1.5" opacity="0.26" />
-      <path d={`M0 ${y0 - 4}Q-0.8 ${y0} 0 ${y0 + 4}`} strokeWidth="1.3" opacity="0.28" />
-    </g>
+    <path
+      d={side(-1) + side(1)}
+      fill="none"
+      stroke="#000"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      opacity="0.25"
+    />
   );
 }
 
@@ -1362,6 +1368,7 @@ function Top({
           {/* neckline and straps: the top starts at the chest */}
           <path d={cami} fill={top.color} {...S} />
           <path d={cami} fill={light} />
+          {her && <Bust B={B} shY={shY} />}
           {/* a little drape across the waist */}
           <path
             d={`M${-B.waist + 4} ${waistY + 4}q${B.waist} 6 ${B.waist * 2 - 8} 0`}
@@ -1749,23 +1756,33 @@ function Legs({
         ),
       );
   } else if (bottom.kind === 'skirt') {
-    skinLeg(hipY + 10, bottom.tights, 10, 7);
+    const skirtHem = bottom.length === 'ankle' ? -26 : kneeY + 6;
+    const flare = bottom.length === 'ankle' ? 7 : 8;
+    const skirt = `M${-hip - 1} ${hipY - 2}H${hip + 1}L${hip + flare} ${skirtHem}H${-hip - flare}z`;
+    if (bottom.tights) skinLeg(hipY + 10, bottom.tights, 10, 7);
+    else skinLeg(hipY + 10);
     legs.push(
-      <path
-        key="skirt"
-        d={`M${-hip - 1} ${hipY - 2}H${hip + 1}L${hip + 8} ${kneeY + 6}H${-hip - 8}z`}
-        fill={bottom.color}
-        {...S}
-      />,
-      <path
-        key="skirt-l"
-        d={`M${-hip - 1} ${hipY - 2}H${hip + 1}L${hip + 8} ${kneeY + 6}H${-hip - 8}z`}
-        fill={light}
-      />,
+      <path key="skirt" d={skirt} fill={bottom.color} {...S} />,
+      <path key="skirt-l" d={skirt} fill={light} />,
       ...[-0.5, 0, 0.5].map((f) =>
-        crease(`pl${f}`, `M${f * hip} ${hipY + 4}L${f * (hip + 8)} ${kneeY + 4}`, 0.3),
+        crease(`pl${f}`, `M${f * hip} ${hipY + 4}L${f * (hip + flare)} ${skirtHem - 2}`, 0.25),
       ),
     );
+    if (bottom.trim) {
+      // a lace trim: a band with little scallops along the hem
+      const w = hip + flare;
+      const n = Math.round((w * 2) / 4);
+      const step = (w * 2) / n;
+      legs.push(
+        <path
+          key="trim"
+          d={`M${-w} ${skirtHem - 4}H${w}V${skirtHem}${Array.from({ length: n }, () => `a${step / 2} ${step / 2} 0 0 1 ${-step} 0`).join('')}z`}
+          fill={bottom.trim}
+          stroke={INK}
+          strokeWidth="1"
+        />,
+      );
+    }
   } else {
     // the dress itself is drawn with the top, in one piece; here just her legs
     skinLeg(hipY + 10);
