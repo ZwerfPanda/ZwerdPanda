@@ -54,7 +54,7 @@ const BUILD: Record<Person, Build> = {
   // Him: tall and lean, athletic — broad-ish shoulders tapering to a slim waist.
   you: { headR: 32, shoulder: 43, waist: 28, hip: 29, upper: 52, fore: 50, arm: 16 },
   // Her: petite and cute — narrow shoulders, a small waist, slim hips, a fuller bust.
-  partner: { headR: 28, shoulder: 27, waist: 21, hip: 25, upper: 41, fore: 40, arm: 11 },
+  partner: { headR: 28, shoulder: 27, waist: 19, hip: 25, upper: 41, fore: 40, arm: 9.5 },
 };
 
 export const heightUnits = (cm: number) => cm * 1.5625;
@@ -82,12 +82,12 @@ function torsoOutline(
     ? [
         // a rounded bust, in to a small waist, softly out to slim hips
         [
-          { x: start.x + 5, y: start.y + 4 },
-          { x: B.shoulder + 5, y: shY + 20 },
-          { x: B.shoulder + 2, y: shY + 30 },
+          { x: start.x + 5, y: start.y + 2 },
+          { x: B.shoulder + 7, y: shY + 12 },
+          { x: B.shoulder + 4, y: shY + 24 },
         ],
         [
-          { x: B.shoulder - 1, y: shY + 38 },
+          { x: B.shoulder + 1, y: shY + 32 },
           { x: B.waist + 1, y: waistY - 8 },
           { x: B.waist, y: waistY },
         ],
@@ -246,7 +246,7 @@ export function Figure({
   // Arms hang almost straight, just clear of the body.
   // Her arms hang just clear of her hips, so her figure shows.
   const rest = (side: -1 | 1): P => ({
-    x: side * (her ? B.hip + 10 : B.shoulder + 3),
+    x: side * (her ? B.hip + 15 : B.shoulder + 3),
     y: shY + 7 + reach,
   });
   const t = toward;
@@ -1216,6 +1216,39 @@ function HerFrontHair({ cy, r, wavy, uid }: { cy: number; r: number; wavy: boole
   );
 }
 
+/** Her bust: full and lifted, like in a push-up bra. */
+function Bust({ B, shY }: { B: Build; shY: number }) {
+  const rr = B.shoulder * 0.46;
+  const y0 = shY + 13;
+  const side = (d: 1 | -1) => {
+    const c = d * B.shoulder * 0.44;
+    return { c, under: `M${c - rr} ${y0}A${rr} ${rr * 0.9} 0 0 0 ${c + rr} ${y0}` };
+  };
+  return (
+    <g fill="none" strokeLinecap="round">
+      <path d={side(-1).under + side(1).under} stroke="#000" strokeWidth="1.5" opacity="0.24" />
+      <path
+        d={`M0 ${y0 - 3}Q-1 ${y0 + 3} 0 ${y0 + 7}`}
+        stroke="#000"
+        strokeWidth="1.4"
+        opacity="0.3"
+      />
+      {([-1, 1] as const).map((d) => {
+        const { c } = side(d);
+        return (
+          <path
+            key={d}
+            d={`M${c - rr * 0.6} ${y0 - 1}Q${c} ${y0 - rr * 0.7} ${c + rr * 0.6} ${y0 - 1}`}
+            stroke="#fff"
+            strokeWidth="1.6"
+            opacity="0.2"
+          />
+        );
+      })}
+    </g>
+  );
+}
+
 function Top({
   outfit,
   torso,
@@ -1300,24 +1333,7 @@ function Top({
           strokeLinecap="round"
           opacity="0.18"
         />
-        {/* the curve of her bust */}
-        {her && (
-          <path
-            d={[-1, 1]
-              .map((d) => {
-                const c = d * B.shoulder * 0.46;
-                const rr = B.shoulder * 0.42;
-                const y0 = shY + 17;
-                return `M${c - rr} ${y0}A${rr} ${rr * 0.85} 0 0 0 ${c + rr} ${y0}`;
-              })
-              .join('')}
-            fill="none"
-            stroke="#000"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            opacity="0.2"
-          />
-        )}
+        {her && <Bust B={B} shY={shY} />}
         {bottom.lace && (
           <>
             <path
@@ -1364,25 +1380,7 @@ function Top({
         <g>
           <path d={torso} fill={top.color} {...S} />
           <path d={torso} fill={light} />
-          {her && (
-            // the soft round curves of her bust
-            <path
-              d={[-1, 1]
-                .map((d) => {
-                  const c = d * B.shoulder * 0.46;
-                  const rr = B.shoulder * 0.42;
-                  // lifted and round, sitting high like in a bra
-                  const y0 = shY + 17;
-                  return `M${c - rr} ${y0}A${rr} ${rr * 0.85} 0 0 0 ${c + rr} ${y0}`;
-                })
-                .join('')}
-              fill="none"
-              stroke="#000"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              opacity="0.22"
-            />
-          )}
+          {her && <Bust B={B} shY={shY} />}
           {/* hem stitching and a soft fold at the waist */}
           {!isDress && (
             <path
@@ -1873,42 +1871,30 @@ function Legs({
           </>
         );
       case 'heels':
-        // a sleek pointed stiletto with an ankle strap and a red sole, foot arched
+        // short ankle boots on a chunky block heel, slightly pointed toe
         return (
           <>
             <path
-              d="M-6 -17Q-9 -12 -8 -9Q-6 -7 -2 -7L10 -2Q15 0 18 -1Q14 -5 7 -6Q1 -9 -1 -17z"
-              fill={skin}
+              d="M-8.5 -26H8V-12Q10 -8 14 -5Q19 -2 19 1H-1L-4 -3H-8.5z"
+              fill={shoes.color}
               {...S}
-              strokeWidth={1.6}
-            />
-            <path d="M-7 -15.5H-0.5" stroke={shoes.color} strokeWidth="2" strokeLinecap="round" />
-            <path
-              d="M-9 -11Q-9.5 -7.5 -6 -7L-3 -6.6L-4 -10.5z"
-              fill={shoes.color}
-              stroke={INK}
-              strokeWidth="1.2"
+              strokeWidth={2}
             />
             <path
-              d="M4 -6.2Q12 -5 18 -1.2Q19 1 15 1L8 -0.6Q5 -1.6 3 -3.5z"
+              d="M-9 -4H-1.5L-1 2H-8.5z"
               fill={shoes.color}
               stroke={INK}
-              strokeWidth="1.4"
+              strokeWidth="1.8"
               strokeLinejoin="round"
             />
-            <path d="M-6 -7Q4 -4.5 15 1" fill="none" stroke="#c2182b" strokeWidth="1.4" />
+            <path d="M-8.5 -24H8" stroke="#3a373e" strokeWidth="2" />
+            <path d="M4 -24V-10" stroke="#3a373e" strokeWidth="1.2" />
             <path
-              d="M-7.6 -7.5L-7 2"
-              stroke={shoes.color}
-              strokeWidth="2.6"
-              strokeLinecap="round"
-            />
-            <path
-              d="M9 -4q4 1 7 3"
+              d="M6 -8q6 2 10 6"
               stroke="#fff"
-              strokeWidth="1"
+              strokeWidth="1.3"
               strokeLinecap="round"
-              opacity="0.45"
+              opacity="0.35"
               fill="none"
             />
           </>

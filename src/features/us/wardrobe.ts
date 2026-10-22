@@ -35,6 +35,7 @@ export type Shoes =
   | { kind: 'boots'; color: string }
   | { kind: 'fluffy'; color: string }
   | { kind: 'slides'; color: string; socks: string }
+  /** Short ankle boots on a chunky block heel. */
   | { kind: 'heels'; color: string }
   /** Chunky retro runners, New Balance style. */
   | { kind: 'runner'; color: string };
