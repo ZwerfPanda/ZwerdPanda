@@ -200,6 +200,7 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
     dreams: mergeList(base.dreams, local.dreams, remote.dreams),
     capsules: mergeList(base.capsules, local.capsules, remote.capsules),
     songs: mergeList(base.songs, local.songs, remote.songs),
+    playlists: mergeList(base.playlists, local.playlists, remote.playlists),
     surprises: {
       ...mergeFields(base.surprises, local.surprises, remote.surprises),
       stars: mergeList(base.surprises.stars, local.surprises.stars, remote.surprises.stars),
@@ -248,6 +249,7 @@ export function mergeFirstJoin(local: AppContent, remote: AppContent): AppConten
     dreams: add(local.dreams, remote.dreams),
     capsules: addPlain(local.capsules, remote.capsules),
     songs: addPlain(local.songs, remote.songs),
+    playlists: addPlain(local.playlists, remote.playlists),
     coco: { ...remote.coco, notes: addPlain(local.coco.notes, remote.coco.notes) },
     countdowns: addPlain(local.countdowns, remote.countdowns),
     lists: addPlain(

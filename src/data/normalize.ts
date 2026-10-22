@@ -40,6 +40,7 @@ import type {
   Preferences,
   Profile,
   SealIcon,
+  Playlist,
   Song,
   SongRef,
   SurpriseContent,
@@ -47,6 +48,7 @@ import type {
   TimeCapsule,
 } from './types';
 import { isValidIsoDate } from '../lib/dates';
+import { spotifyCollection } from '../lib/embeds';
 
 /**
  * Defensive parsing for anything read from storage or an imported backup.
@@ -283,6 +285,20 @@ function normalizeSongItem(v: unknown, i: number): Song | null {
     why: optStr(v.why, 2000),
     memory: optStr(v.memory, 2000),
     favorite: bool(v.favorite),
+    by: person(v.by),
+    createdAt: stamp(v.createdAt),
+  };
+}
+
+function normalizePlaylist(v: unknown, i: number): Playlist | null {
+  if (!isObj(v)) return null;
+  const spotify = spotifyCollection(typeof v.url === 'string' ? v.url : '');
+  if (!spotify) return null;
+  return {
+    id: id(v.id, 'playlist', i),
+    title: str(v.title, '', 120),
+    url: spotify.url,
+    note: optStr(v.note, 600),
     by: person(v.by),
     createdAt: stamp(v.createdAt),
   };
@@ -553,6 +569,7 @@ export function normalizeContent(raw: unknown): AppContent {
     dreams: Array.isArray(raw.dreams) ? list(raw.dreams, normalizeDream) : defaults.dreams,
     capsules: list(raw.capsules, normalizeCapsule),
     songs: list(raw.songs, normalizeSongItem),
+    playlists: list(raw.playlists, normalizePlaylist).slice(0, 30),
     surprises: normalizeSurprises(raw.surprises, defaults.surprises),
     coco: normalizeCoco(raw.coco, defaults.coco),
     pet: normalizePet(raw.pet),

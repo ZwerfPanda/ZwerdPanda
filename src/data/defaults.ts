@@ -498,6 +498,7 @@ export function createDefaultContent(): AppContent {
     dreams: dreams.map((d) => ({ ...d })),
     capsules: [],
     songs: [],
+    playlists: [],
     surprises: {
       ...defaultSurprises,
       reasons: [...defaultSurprises.reasons],

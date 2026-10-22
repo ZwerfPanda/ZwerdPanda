@@ -241,3 +241,22 @@ describe('lists and mini us', () => {
     expect(merged.us.chat.map((c) => c.id)).toEqual(['c2', 'c1']);
   });
 });
+
+describe('playlists', () => {
+  it('keeps playlists connected on either phone', () => {
+    const base = createDefaultContent();
+    const pl = (id: string) => ({
+      id,
+      title: id,
+      url: `https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5${id}`,
+      createdAt: '2026-10-22T00:00:00.000Z',
+    });
+    const local = { ...base, playlists: [pl('A')] };
+    const remote = { ...base, playlists: [pl('B')] };
+    expect(
+      mergeContent(base, local, remote)
+        .playlists.map((p) => p.id)
+        .sort(),
+    ).toEqual(['A', 'B']);
+  });
+});

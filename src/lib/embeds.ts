@@ -21,6 +21,37 @@ export function isHttpUrl(value: string): boolean {
   }
 }
 
+/**
+ * A Spotify playlist or album from whatever was pasted: a share link
+ * (open.spotify.com/…, with or without /intl-xx and ?si=…) or a spotify: URI.
+ */
+export function spotifyCollection(
+  value: string,
+): { kind: 'playlist' | 'album'; id: string; url: string; embedUrl: string } | null {
+  const text = value.trim();
+  const uri = /^spotify:(playlist|album):([A-Za-z0-9]{10,40})$/.exec(text);
+  let kind: string | undefined;
+  let idPart: string | undefined;
+  if (uri) {
+    [, kind, idPart] = uri;
+  } else if (isHttpUrl(text)) {
+    const url = new URL(text);
+    if (url.hostname !== 'open.spotify.com') return null;
+    const match = /^\/(?:intl-[a-z-]+\/)?(playlist|album)\/([A-Za-z0-9]{10,40})\/?$/.exec(
+      url.pathname,
+    );
+    if (!match) return null;
+    [, kind, idPart] = match;
+  }
+  if ((kind !== 'playlist' && kind !== 'album') || !idPart) return null;
+  return {
+    kind,
+    id: idPart,
+    url: `https://open.spotify.com/${kind}/${idPart}`,
+    embedUrl: `https://open.spotify.com/embed/${kind}/${idPart}`,
+  };
+}
+
 export function describeLink(value: string | undefined): LinkInfo | null {
   if (!value || !isHttpUrl(value)) return null;
   const url = new URL(value);

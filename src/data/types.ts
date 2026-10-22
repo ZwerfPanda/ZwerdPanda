@@ -177,6 +177,18 @@ export interface Song {
   createdAt: string;
 }
 
+/** A Spotify playlist (or album) of ours, shown with Spotify's own player. */
+export interface Playlist {
+  id: ID;
+  /** Our name for it (Spotify's own title shows in the player). */
+  title: string;
+  /** Canonical link, e.g. https://open.spotify.com/playlist/… */
+  url: string;
+  note?: string;
+  by?: Person;
+  createdAt: string;
+}
+
 export interface StarNote {
   id: ID;
   text: string;
@@ -411,6 +423,7 @@ export interface AppContent {
   dreams: Dream[];
   capsules: TimeCapsule[];
   songs: Song[];
+  playlists: Playlist[];
   surprises: SurpriseContent;
   coco: CocoContent;
   pet: CocoPet;

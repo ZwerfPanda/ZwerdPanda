@@ -12,6 +12,7 @@ import { useMusic } from '../../components/music/MusicProvider';
 import { SiteFooter } from '../../components/common/SiteFooter';
 import { INK, HeartShape } from '../../components/art/shapes';
 import { SongForm } from './SongForm';
+import { Playlists } from './Playlists';
 import './music.css';
 import { ByTag } from '../../components/common/ByTag';
 
@@ -63,6 +64,8 @@ export function MusicPage() {
       />
 
       <RecordPlayer />
+
+      <Playlists />
 
       <h2 className="section-title">
         Our songs <span className="hand">{songs.length ? `${songs.length} so far` : ''}</span>
