@@ -360,98 +360,109 @@ export function Figure({
     >
       {/* neck */}
       <rect x={-8} y={cy + B.headR - 8} width="16" height="22" fill={shade} />
-      {!her && (
-        <>
-          <ellipse
-            cx={-B.headR * 0.84}
-            cy={cy + 2}
-            rx="6"
-            ry="8"
-            fill={skin}
-            {...S}
-            strokeWidth={2.2}
-          />
-          <ellipse
-            cx={B.headR * 0.84}
-            cy={cy + 2}
-            rx="6"
-            ry="8"
-            fill={skin}
-            {...S}
-            strokeWidth={2.2}
-          />
-        </>
-      )}
-      <path d={headPath(B.headR, cy, her)} fill={skin} {...S} />
-      <FaceFeatures who={who} cy={cy} r={B.headR} face={face} blink={blink} shade={shade} />
-      {her ? (
-        <HerFrontHair cy={cy} r={B.headR} wavy={look.hair === 'wavy'} uid={uid} />
-      ) : // His slick back unless the curly top was picked (older saves say 'straight').
-      look.hair !== 'curls' ? (
-        <SlickBack cy={cy} r={B.headR} />
-      ) : (
-        <HisHair cy={cy} r={B.headR} />
-      )}
-      {acc.has('sunglasses') && !her && (
-        <g>
-          <rect
-            x={-B.headR * 0.62}
-            y={cy - 6}
-            width={B.headR * 0.5}
-            height="11"
-            rx="3"
-            fill="#141215"
-          />
-          <rect
-            x={B.headR * 0.12}
-            y={cy - 6}
-            width={B.headR * 0.5}
-            height="11"
-            rx="3"
-            fill="#141215"
-          />
-          <path
-            d={`M${-B.headR * 0.12} ${cy - 2}h${B.headR * 0.24}`}
-            stroke="#141215"
-            strokeWidth="2.5"
-          />
-          <path
-            d={`M${-B.headR * 0.55} ${cy - 3}l5 0`}
-            stroke="#fff"
-            strokeWidth="1.5"
-            opacity="0.5"
-          />
-        </g>
-      )}
-      {acc.has('cap') && !her && (
-        <g>
-          <path
-            d={`M${-B.headR * 0.95} ${cy - B.headR * 0.42}C${-B.headR * 0.9} ${cy - B.headR * 1.25} ${B.headR * 0.9} ${cy - B.headR * 1.3} ${B.headR * 0.98} ${cy - B.headR * 0.5}z`}
-            fill="#5f6f86"
-            {...S}
-          />
-          <path
-            d={`M${-B.headR * 0.55} ${cy - B.headR * 0.48}q${B.headR * 0.9} ${-B.headR * 0.12} ${B.headR * 1.55} ${B.headR * 0.12}q${-B.headR * 0.6} ${B.headR * 0.22} ${-B.headR * 1.55} ${-B.headR * 0.12}z`}
-            fill="#4c5a6e"
-            {...S}
-            strokeWidth={2}
-          />
-        </g>
-      )}
-      {acc.has('bucket-hat') && her && (
-        <g>
-          <path
-            d={`M${-B.headR * 0.88} ${cy - B.headR * 0.45}C${-B.headR * 0.85} ${cy - B.headR * 1.3} ${B.headR * 0.85} ${cy - B.headR * 1.3} ${B.headR * 0.88} ${cy - B.headR * 0.45}z`}
-            fill="#5b4031"
-            {...S}
-          />
-          <path
-            d={`M${-B.headR * 1.25} ${cy - B.headR * 0.32}q${B.headR * 1.25} ${-B.headR * 0.42} ${B.headR * 2.5} 0q${-B.headR * 1.25} ${B.headR * 0.22} ${-B.headR * 2.5} 0z`}
-            fill="#6b4c3b"
-            {...S}
-          />
-        </g>
-      )}
+      {/* his face is long and narrow: everything above the neck a touch slimmer */}
+      <g transform={her ? undefined : 'scale(0.88 1)'}>
+        {!her && (
+          <>
+            <ellipse
+              cx={-B.headR * 0.84}
+              cy={cy + 2}
+              rx="6"
+              ry="8"
+              fill={skin}
+              {...S}
+              strokeWidth={2.2}
+            />
+            <ellipse
+              cx={B.headR * 0.84}
+              cy={cy + 2}
+              rx="6"
+              ry="8"
+              fill={skin}
+              {...S}
+              strokeWidth={2.2}
+            />
+          </>
+        )}
+        <path d={headPath(B.headR, cy, her)} fill={skin} {...S} />
+        <FaceFeatures
+          who={who}
+          cy={cy}
+          r={B.headR}
+          face={face}
+          blink={blink}
+          shade={shade}
+          skin={skin}
+        />
+        {her ? (
+          <HerFrontHair cy={cy} r={B.headR} wavy={look.hair === 'wavy'} uid={uid} />
+        ) : // His slick back unless the curly top was picked (older saves say 'straight').
+        look.hair !== 'curls' ? (
+          <SlickBack cy={cy} r={B.headR} />
+        ) : (
+          <HisHair cy={cy} r={B.headR} />
+        )}
+        {acc.has('sunglasses') && !her && (
+          <g>
+            <rect
+              x={-B.headR * 0.62}
+              y={cy - 6}
+              width={B.headR * 0.5}
+              height="11"
+              rx="3"
+              fill="#141215"
+            />
+            <rect
+              x={B.headR * 0.12}
+              y={cy - 6}
+              width={B.headR * 0.5}
+              height="11"
+              rx="3"
+              fill="#141215"
+            />
+            <path
+              d={`M${-B.headR * 0.12} ${cy - 2}h${B.headR * 0.24}`}
+              stroke="#141215"
+              strokeWidth="2.5"
+            />
+            <path
+              d={`M${-B.headR * 0.55} ${cy - 3}l5 0`}
+              stroke="#fff"
+              strokeWidth="1.5"
+              opacity="0.5"
+            />
+          </g>
+        )}
+        {acc.has('cap') && !her && (
+          <g>
+            <path
+              d={`M${-B.headR * 0.95} ${cy - B.headR * 0.42}C${-B.headR * 0.9} ${cy - B.headR * 1.25} ${B.headR * 0.9} ${cy - B.headR * 1.3} ${B.headR * 0.98} ${cy - B.headR * 0.5}z`}
+              fill="#5f6f86"
+              {...S}
+            />
+            <path
+              d={`M${-B.headR * 0.55} ${cy - B.headR * 0.48}q${B.headR * 0.9} ${-B.headR * 0.12} ${B.headR * 1.55} ${B.headR * 0.12}q${-B.headR * 0.6} ${B.headR * 0.22} ${-B.headR * 1.55} ${-B.headR * 0.12}z`}
+              fill="#4c5a6e"
+              {...S}
+              strokeWidth={2}
+            />
+          </g>
+        )}
+        {acc.has('bucket-hat') && her && (
+          <g>
+            <path
+              d={`M${-B.headR * 0.88} ${cy - B.headR * 0.45}C${-B.headR * 0.85} ${cy - B.headR * 1.3} ${B.headR * 0.85} ${cy - B.headR * 1.3} ${B.headR * 0.88} ${cy - B.headR * 0.45}z`}
+              fill="#5b4031"
+              {...S}
+            />
+            <path
+              d={`M${-B.headR * 1.25} ${cy - B.headR * 0.32}q${B.headR * 1.25} ${-B.headR * 0.42} ${B.headR * 2.5} 0q${-B.headR * 1.25} ${B.headR * 0.22} ${-B.headR * 2.5} 0z`}
+              fill="#6b4c3b"
+              {...S}
+            />
+          </g>
+        )}
+      </g>
     </g>
   );
 
@@ -663,14 +674,14 @@ function headPath(r: number, cy: number, her: boolean) {
   }
   // His: high cheekbones, a sharp jaw angle and a defined chin.
   const side = (d: 1 | -1) =>
-    `Q${d * r * 0.88} ${cy + r * 0.3} ${d * r * 0.74} ${cy + r * 0.7}` +
-    `Q${d * r * 0.6} ${cy + r * 0.98} ${d * r * 0.3} ${cy + r * 1.05}`;
+    `Q${d * r * 0.88} ${cy + r * 0.32} ${d * r * 0.74} ${cy + r * 0.74}` +
+    `Q${d * r * 0.6} ${cy + r * 1.03} ${d * r * 0.3} ${cy + r * 1.1}`;
   return (
     `M0 ${top}C${r * 0.52} ${top} ${r * 0.86} ${cy - r * 0.6} ${r * 0.86} ${cy - r * 0.15}` +
     side(1) +
-    `Q0 ${cy + r * 1.12} ${-r * 0.3} ${cy + r * 1.05}` +
-    `Q${-r * 0.6} ${cy + r * 0.98} ${-r * 0.74} ${cy + r * 0.7}` +
-    `Q${-r * 0.88} ${cy + r * 0.3} ${-r * 0.86} ${cy - r * 0.15}` +
+    `Q0 ${cy + r * 1.17} ${-r * 0.3} ${cy + r * 1.1}` +
+    `Q${-r * 0.6} ${cy + r * 1.03} ${-r * 0.74} ${cy + r * 0.74}` +
+    `Q${-r * 0.88} ${cy + r * 0.32} ${-r * 0.86} ${cy - r * 0.15}` +
     `C${-r * 0.86} ${cy - r * 0.6} ${-r * 0.52} ${top} 0 ${top}Z`
   );
 }
@@ -682,6 +693,7 @@ function FaceFeatures({
   face,
   blink,
   shade,
+  skin,
 }: {
   who: Person;
   cy: number;
@@ -689,6 +701,7 @@ function FaceFeatures({
   face: Face;
   blink: boolean;
   shade: string;
+  skin: string;
 }) {
   const her = who === 'partner';
   const ex = r * (her ? 0.36 : 0.33);
@@ -746,9 +759,11 @@ function FaceFeatures({
         <path d={`M${x - 6} ${ey}q6 -6.5 12 0q-6 5 -12 0z`} fill="#fff" />
         <circle cx={x} cy={ey - 0.3} r="3.8" fill="#2a1914" />
         <circle cx={x} cy={ey - 0.3} r="2" fill="#0f0a0a" />
-        <circle cx={x + 1.3} cy={ey - 1.8} r="1.1" fill="#fff" />
+        <circle cx={x + 1.3} cy={ey - 1.6} r="1.1" fill="#fff" />
+        {/* relaxed, slightly heavy lids */}
+        <path d={`M${x - 7} ${ey + 0.6}q7 -6 14 0L${x + 7} ${ey - 5.5}H${x - 7}z`} fill={skin} />
         <path
-          d={`M${x - 6.5} ${ey + 0.3}q6.5 -8 13 0`}
+          d={`M${x - 6.5} ${ey + 0.6}q6.5 -6 13 0`}
           fill="none"
           stroke={INK}
           strokeWidth="2.2"
@@ -840,18 +855,18 @@ function FaceFeatures({
       {eye(ex, face === 'wink')}
       {/* nose */}
       {her ? (
-        // a small, cute version of his
+        // just a tiny, subtle curve
         <path
-          d={`M-0.5 ${cy + r * 0.1}q0 ${r * 0.18} -2.5 ${r * 0.25}q3 2.4 6.5 -0.3`}
+          d={`M-2 ${cy + r * 0.3}q2 1.8 4 0`}
           fill="none"
-          stroke="#5e3622"
-          strokeWidth="2.2"
+          stroke={shade}
+          strokeWidth="1.8"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
       ) : (
         <path
-          d={`M-1.5 ${cy + r * 0.02}q0 ${r * 0.2} -3 ${r * 0.27}q4 3 9 -0.5`}
+          d={`M-1 ${cy - r * 0.12}q0.5 ${r * 0.3} -3 ${r * 0.4}q4 3.2 9.5 -0.4`}
           fill="none"
           stroke={shade}
           strokeWidth="2.2"
@@ -895,7 +910,7 @@ function FaceFeatures({
             d={`M-9.5 ${cy + r * 0.5}q9.5 -3.4 19 0q-2 1.4 -4 0.7q-5.5 -1.6 -11 0q-2 0.7 -4 -0.7z`}
           />
           <path
-            d={`M-4 ${cy + r * 0.88}h8q2.6 ${r * 0.12} 1.2 ${r * 0.22}q-5.2 2.4 -10.4 0q-1.4 ${-r * 0.1} 1.2 ${-r * 0.22}z`}
+            d={`M-4 ${cy + r * 0.9}h8q2.6 ${r * 0.12} 1.2 ${r * 0.22}q-5.2 2.4 -10.4 0q-1.4 ${-r * 0.1} 1.2 ${-r * 0.22}z`}
           />
         </g>
       )}
