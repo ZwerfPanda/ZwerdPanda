@@ -158,7 +158,7 @@ export function ageOn(birthday: string, today: string): number | null {
   return age >= 0 ? age : null;
 }
 
-export type MomentKind = 'hug' | 'kiss' | 'heart' | 'selfie' | 'highfive' | 'wave';
+export type MomentKind = 'hug' | 'kiss' | 'heart' | 'selfie' | 'highfive' | 'wave' | 'twirl';
 
 const MOMENT_LINES: Record<MomentKind, [string[], string[]]> = {
   hug: [
@@ -180,6 +180,10 @@ const MOMENT_LINES: Record<MomentKind, [string[], string[]]> = {
   highfive: [
     ['Team us, {pet}!', 'We did that, {pet}.'],
     ['Obviously.', 'Best team.'],
+  ],
+  twirl: [
+    ['Spin for me, {pet}.', 'One twirl, {pet}. Go!'],
+    ['Wheee!', 'Again, again!', 'I’m dizzy. Catch me.'],
   ],
   wave: [
     ['Hiii {pet}!', 'There you are, {pet}.'],

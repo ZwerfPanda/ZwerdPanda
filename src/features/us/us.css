@@ -341,3 +341,108 @@
 .us-pet__tools {
   display: flex;
 }
+
+/* stage animations (CSS, so they run the same everywhere) */
+.us-hop {
+  animation: us-hop 0.4s ease-out;
+}
+
+@keyframes us-hop {
+  40% {
+    transform: translateY(-12px);
+  }
+}
+
+.us-spin {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: us-spin 1.3s ease-in-out;
+}
+
+@keyframes us-spin {
+  25% {
+    transform: scaleX(-1);
+  }
+  50% {
+    transform: scaleX(1);
+  }
+  75% {
+    transform: scaleX(-1);
+  }
+}
+
+.us-heart {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: us-heart 1.6s ease-out both;
+}
+
+.us-heart--loop {
+  animation-iteration-count: infinite;
+  animation-duration: 2s;
+}
+
+@keyframes us-heart {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.3);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-34px) scale(1);
+  }
+}
+
+.us-lips {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: us-lips 2s ease-out both;
+}
+
+@keyframes us-lips {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+  75% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+}
+
+.us-mwah {
+  font-family: var(--font-hand);
+  animation: us-mwah 1.8s ease-out 0.15s both;
+}
+
+@keyframes us-mwah {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-22px);
+  }
+}
+
+[data-motion='reduce'] .us-hop,
+[data-motion='reduce'] .us-spin {
+  animation: none;
+}

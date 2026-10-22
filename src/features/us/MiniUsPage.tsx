@@ -7,6 +7,7 @@ import {
   Heart,
   HeartHandshake,
   MessagesSquare,
+  RotateCw,
   Sparkles,
   Smile,
   type LucideIcon,
@@ -21,7 +22,8 @@ import { PageHeader } from '../../components/ui/Fields';
 import { SiteFooter } from '../../components/common/SiteFooter';
 import { useReducedMotion } from '../../hooks/useMotion';
 import { Bunny } from '../pet/Bunny';
-import { Figure, heightUnits, type Face, type Pose } from './Figure';
+import { Figure, heightUnits } from './Figure';
+import { choreograph, HOME_X, REST, TOWARD, type Step } from './choreo';
 import { SCENES, Scenery, type Scene } from './Scenery';
 import {
   dateIdea,
@@ -59,60 +61,6 @@ export function MiniUsPage() {
 
 /* ------------------------------------------------------------- the stage */
 
-interface Moment {
-  pose: Record<Person, Pose>;
-  face: Record<Person, Face>;
-  x: Record<Person, number>;
-  lean: Record<Person, number>;
-  flash?: boolean;
-}
-
-// She stands on the left, he stands on the right.
-const HOME_X: Record<Person, number> = { partner: -66, you: 70 };
-const TOWARD: Record<Person, 1 | -1> = { partner: 1, you: -1 };
-
-const REST: Moment = {
-  pose: { you: 'idle', partner: 'idle' },
-  face: { you: 'smile', partner: 'smile' },
-  x: HOME_X,
-  lean: { you: 0, partner: 0 },
-};
-
-const MOMENTS: Record<MomentKind, Omit<Moment, 'lean'> & { lean?: Moment['lean'] }> = {
-  hug: {
-    pose: { you: 'hug', partner: 'hug' },
-    face: { you: 'happy', partner: 'happy' },
-    x: { partner: -24, you: 26 },
-  },
-  kiss: {
-    pose: { you: 'idle', partner: 'idle' },
-    face: { you: 'kiss', partner: 'happy' },
-    x: { partner: -24, you: 50 },
-    lean: { you: -8, partner: 4 },
-  },
-  heart: {
-    pose: { you: 'heart', partner: 'heart' },
-    face: { you: 'grin', partner: 'grin' },
-    x: HOME_X,
-  },
-  selfie: {
-    pose: { you: 'selfie', partner: 'peace' },
-    face: { you: 'grin', partner: 'kiss' },
-    x: { partner: -40, you: 46 },
-    flash: true,
-  },
-  highfive: {
-    pose: { you: 'highfive', partner: 'highfive' },
-    face: { you: 'grin', partner: 'grin' },
-    x: { partner: -48, you: 94 },
-  },
-  wave: {
-    pose: { you: 'wave', partner: 'wave' },
-    face: { you: 'grin', partner: 'grin' },
-    x: HOME_X,
-  },
-};
-
 const ACTIONS: {
   id: MomentKind | 'date' | 'remember' | 'sweet';
   label: string;
@@ -120,6 +68,7 @@ const ACTIONS: {
 }[] = [
   { id: 'hug', label: 'Hug', icon: HeartHandshake },
   { id: 'kiss', label: 'Forehead kiss', icon: Heart },
+  { id: 'twirl', label: 'Twirl', icon: RotateCw },
   { id: 'heart', label: 'Heart hands', icon: Sparkles },
   { id: 'selfie', label: 'Mirror selfie', icon: Camera },
   { id: 'highfive', label: 'High five', icon: Hand },
@@ -143,18 +92,31 @@ function saveToChat(lines: Exchange[]) {
   updateUs((us) => ({ ...us, chat: [...entries.reverse(), ...us.chat].slice(0, CHAT_LIMIT) }));
 }
 
+const talking: Step = {
+  ...REST,
+  fig: {
+    partner: { ...REST.fig.partner, pose: 'talk', face: 'talk' },
+    you: { ...REST.fig.you, pose: 'talk', face: 'talk' },
+  },
+};
+
 function Stage() {
   const us = useContent((c) => c.us);
   const profile = useContent((c) => c.profile);
   const outfit = useContent((c) => c.pet.outfit);
   const reduce = useReducedMotion();
   const [scene, setScene] = useState<Scene>('home');
-  const [moment, setMoment] = useState<Moment>(REST);
+  const [step, setStep] = useState<Step>(REST);
   const [bubble, setBubble] = useState<{ key: number; who: Person; text: string } | null>(null);
   const [hops, setHops] = useState<Record<Person, number>>({ you: 0, partner: 0 });
   const [flash, setFlash] = useState(0);
+  const [spins, setSpins] = useState(0);
+  const [burst, setBurst] = useState<{ key: number; x: number; y: number } | null>(null);
   const timers = useRef<number[]>([]);
-  const bubbleKey = useRef(0);
+  const counter = useRef(0);
+  const busy = useRef(false);
+  // Where each of us actually is right now, so a re-layered figure starts there.
+  const pos = useRef<Record<Person, number>>({ ...HOME_X });
 
   const clearTimers = () => {
     timers.current.forEach((t) => window.clearTimeout(t));
@@ -162,41 +124,73 @@ function Stage() {
   };
   useEffect(() => clearTimers, []);
 
-  /** Plays lines one after another, then lets them relax. */
-  const play = (lines: Exchange[], next: Moment = REST) => {
-    clearTimers();
-    setMoment(next);
-    if (next.flash) {
-      timers.current.push(window.setTimeout(() => setFlash((f) => f + 1), 650));
+  const later = (ms: number, run: () => void) => timers.current.push(window.setTimeout(run, ms));
+
+  const show = (next: Step) => {
+    setStep(next);
+    if (next.flash) setFlash((f) => f + 1);
+    if (next.spin) setSpins((s) => s + 1);
+    if (next.hearts) {
+      counter.current += 1;
+      setBurst({ key: counter.current, ...next.hearts });
     }
-    let wait = next === REST ? 0 : 450;
+  };
+
+  /** Plays the steps and the lines that go with them, then lets us relax. */
+  const play = (lines: Exchange[], steps: { at: number; step: Step }[]) => {
+    clearTimers();
+    busy.current = true;
+    setBurst(null);
+    steps.forEach(({ at, step: s }) => (at ? later(at, () => show(s)) : show(s)));
+    let wait = steps.length > 1 ? steps[steps.length - 1].at : steps[0].at ? 450 : 0;
     for (const line of lines) {
-      timers.current.push(
-        window.setTimeout(() => {
-          bubbleKey.current += 1;
-          setBubble({ key: bubbleKey.current, ...line });
-          setHops((h) => ({ ...h, [line.who]: h[line.who] + 1 }));
-        }, wait),
-      );
+      later(wait, () => {
+        counter.current += 1;
+        setBubble({ key: counter.current, ...line });
+        setHops((h) => ({ ...h, [line.who]: h[line.who] + 1 }));
+      });
       wait += readTime(line.text);
     }
-    timers.current.push(
-      window.setTimeout(
-        () => {
-          setBubble(null);
-          setMoment(REST);
-        },
-        Math.max(wait, 2600),
-      ),
-    );
+    later(Math.max(wait, 2600), () => {
+      setBubble(null);
+      setBurst(null);
+      setStep(REST);
+      busy.current = false;
+    });
     if (lines.length) saveToChat(lines);
   };
 
+  // Little signs of life while nothing is happening: a glance and a smile at each other.
+  useEffect(() => {
+    if (reduce) return;
+    const id = window.setInterval(() => {
+      if (busy.current || document.hidden) return;
+      const who: Person = Math.random() < 0.5 ? 'you' : 'partner';
+      setStep({
+        ...REST,
+        fig: {
+          ...REST.fig,
+          [who]: { ...REST.fig[who], tilt: TOWARD[who] * 7, face: 'grin' },
+        },
+      });
+      timers.current.push(window.setTimeout(() => !busy.current && setStep(REST), 1600));
+    }, 6500);
+    return () => window.clearInterval(id);
+  }, [reduce]);
+
   const tap = (who: Person) =>
-    play([sayHi(getContent(), who, Math.random)], {
-      ...REST,
-      face: { ...REST.face, [who]: 'talk' },
-    });
+    play(
+      [sayHi(getContent(), who, Math.random)],
+      [
+        {
+          at: 0,
+          step: {
+            ...REST,
+            fig: { ...REST.fig, [who]: { ...REST.fig[who], face: 'talk', tilt: TOWARD[who] * 5 } },
+          },
+        },
+      ],
+    );
 
   const act = (id: (typeof ACTIONS)[number]['id']) => {
     const content = getContent();
@@ -208,17 +202,13 @@ function Stage() {
           : id === 'remember'
             ? rememberWhen(content, starter, Math.random)
             : sweetTalk(content, starter, Math.random);
-      play(lines, {
-        ...REST,
-        pose: { you: 'talk', partner: 'talk' },
-        face: { you: 'talk', partner: 'talk' },
-      });
+      play(lines, [{ at: 0, step: talking }]);
       return;
     }
-    const m = MOMENTS[id];
-    // The forehead kiss and the selfie are his (he's the tall one with the long arms).
-    const lead = id === 'kiss' || id === 'selfie' ? 'you' : starter;
-    play(momentLines(content, id, lead, Math.random), { ...m, lean: m.lean ?? REST.lean });
+    // The forehead kiss, the selfie and the twirl are his (he's the tall one).
+    const lead = id === 'kiss' || id === 'selfie' || id === 'twirl' ? 'you' : starter;
+    const heights = { you: us.you.heightCm, partner: us.partner.heightCm };
+    play(momentLines(content, id, lead, Math.random), choreograph(id, heights));
   };
 
   const names: Record<Person, string> = {
@@ -229,12 +219,20 @@ function Stage() {
     you: -heightUnits(us.you.heightCm),
     partner: -heightUnits(us.partner.heightCm),
   };
-  // Where the bubble points, as a share of the stage.
-  const pct = (who: Person) => ({
-    left: `${Math.min(68, Math.max(32, ((moment.x[who] + 240) / 480) * 100))}%`,
-    // Never so high that a long line runs off the top.
-    top: `${Math.max(21, ((top[who] - 14 + 380) / 400) * 100)}%`,
-  });
+  // Where the bubble points, as a share of the stage. Standing close together,
+  // her lines go to the left and his to the right, so no face gets covered.
+  const pct = (who: Person) => {
+    const side = step.close ? (who === 'you' ? 84 : -84) : 0;
+    const y = step.close ? Math.min(top.you, top.partner) : top[who];
+    return {
+      left: `${Math.min(70, Math.max(30, ((step.fig[who].x + side + 240) / 480) * 100))}%`,
+      // Never so high that a long line runs off the top.
+      top: `${Math.max(21, ((y - 14 + 380) / 400) * 100)}%`,
+    };
+  };
+  const spring = reduce
+    ? { duration: 0 }
+    : { type: 'spring' as const, stiffness: 120, damping: 17 };
 
   return (
     <section className="us-stage" aria-labelledby="us-stage-title">
@@ -247,40 +245,60 @@ function Stage() {
           <g transform="translate(-168 -30) scale(0.32)">
             <Bunny pose="sit" face="open" outfit={outfit} look={1} />
           </g>
-          {(['partner', 'you'] as Person[]).map((who) => (
-            <motion.g
-              key={who}
-              initial={false}
-              animate={{ x: moment.x[who] }}
-              transition={
-                reduce ? { duration: 0 } : { type: 'spring', stiffness: 140, damping: 18 }
-              }
-            >
-              <motion.g
-                key={hops[who]}
-                initial={false}
-                animate={hops[who] && !reduce ? { y: [0, -16, 0] } : { y: 0 }}
-                transition={{ duration: 0.42, ease: 'easeOut' }}
-              >
-                <Figure
-                  who={who}
-                  look={us[who].look}
-                  heightCm={us[who].heightCm}
-                  pose={moment.pose[who]}
-                  face={moment.face[who]}
-                  toward={TOWARD[who]}
-                  lean={moment.lean[who]}
-                />
-              </motion.g>
-            </motion.g>
-          ))}
-          {moment.pose.you === 'hug' && !reduce && (
-            <motion.path
-              d="M0 -330l-10 -10a6 6 0 0 1 10 -7a6 6 0 0 1 10 7z"
-              fill="#e6889b"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: [0, 1, 0], y: -30 }}
-              transition={{ duration: 1.8, repeat: Infinity }}
+          <motion.g
+            animate={step.sway && !reduce ? { rotate: [0, 1.6, 0, -1.6, 0] } : { rotate: 0 }}
+            transition={
+              step.sway && !reduce
+                ? { duration: 3.2, repeat: Infinity, ease: 'easeInOut' }
+                : { duration: 0.4 }
+            }
+            style={{ originX: 0.5, originY: 1 }}
+          >
+            {step.order.map(([who, pieces]) => {
+              const f = step.fig[who];
+              return (
+                <motion.g
+                  key={`${who}-${pieces?.join('') ?? 'all'}`}
+                  initial={{ x: pos.current[who] }}
+                  animate={{ x: f.x }}
+                  transition={spring}
+                  onUpdate={(v) => {
+                    if (typeof v.x === 'number') pos.current[who] = v.x;
+                  }}
+                >
+                  <g key={hops[who]} className={hops[who] && !reduce ? 'us-hop' : undefined}>
+                    <g
+                      key={who === 'partner' && step.spin ? `spin${spins}` : 'still'}
+                      className={who === 'partner' && step.spin && !reduce ? 'us-spin' : undefined}
+                    >
+                      <Figure
+                        who={who}
+                        pieces={pieces}
+                        look={us[who].look}
+                        heightCm={us[who].heightCm}
+                        pose={f.pose}
+                        face={f.face}
+                        toward={TOWARD[who]}
+                        lean={f.lean}
+                        tilt={f.tilt}
+                        dip={f.dip}
+                        tiptoe={f.tiptoe}
+                        hands={f.hands}
+                      />
+                    </g>
+                  </g>
+                </motion.g>
+              );
+            })}
+          </motion.g>
+          {burst && (
+            <HeartBurst
+              key={burst.key}
+              x={burst.x}
+              y={burst.y}
+              loop={!!step.sway}
+              kiss={step.fig.you.face === 'kiss'}
+              reduce={reduce}
             />
           )}
         </svg>
@@ -316,7 +334,7 @@ function Stage() {
         </AnimatePresence>
 
         <AnimatePresence>
-          {flash > 0 && (
+          {flash > 0 && step.flash && (
             <motion.span
               key={flash}
               className="us-stage__flash"
@@ -355,5 +373,68 @@ function Stage() {
         ))}
       </div>
     </section>
+  );
+}
+
+const HEART = 'M0 0l-7 -7a4.2 4.2 0 0 1 7 -5a4.2 4.2 0 0 1 7 5z';
+const LIPS = 'M-8 0q3 -5 5.5 -4q2.5 1 2.5 1q0 0 2.5 -1q2.5 -1 5.5 4q-8 7 -16 0z';
+
+/** A little pop of hearts — once for a kiss, floating up for as long as a hug lasts. */
+function HeartBurst({
+  x,
+  y,
+  loop,
+  kiss,
+  reduce,
+}: {
+  x: number;
+  y: number;
+  loop: boolean;
+  /** A forehead kiss: a little lipstick mark and a "mwah". */
+  kiss: boolean;
+  reduce: boolean;
+}) {
+  if (reduce)
+    return <path d={HEART} transform={`translate(${x} ${y - 6}) scale(1.4)`} fill="#e6889b" />;
+  // Hearts drift out to the sides, clear of faces and speech bubbles.
+  const hearts = [
+    { dx: -26, dy: -18, s: 1.4, d: 0 },
+    { dx: 28, dy: -10, s: 1.1, d: 0.3 },
+    { dx: -40, dy: 6, s: 0.9, d: 0.55 },
+    { dx: 40, dy: 12, s: 1, d: 0.8 },
+  ];
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      {kiss && (
+        <>
+          <path className="us-lips" d={LIPS} fill="#d9576f" stroke="#fff" strokeWidth="1.2" />
+          <text
+            className="us-mwah"
+            x="-36"
+            y="-4"
+            fontSize="14"
+            fontWeight="700"
+            fill="#d9576f"
+            stroke="#fff"
+            strokeWidth="3"
+            paintOrder="stroke"
+          >
+            mwah
+          </text>
+        </>
+      )}
+      {hearts.map((h, i) => (
+        <g key={i} transform={`translate(${h.dx} ${h.dy}) scale(${h.s})`}>
+          <path
+            className={`us-heart${loop ? ' us-heart--loop' : ''}`}
+            style={{ animationDelay: `${h.d}s` }}
+            d={HEART}
+            fill={i % 2 ? '#f2a7b6' : '#e6889b'}
+            stroke="#fff"
+            strokeWidth="1"
+          />
+        </g>
+      ))}
+    </g>
   );
 }

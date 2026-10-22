@@ -22,6 +22,9 @@ export type Pose =
   | 'point'
   | 'talk'
   | 'shrug';
+/** The separately drawable pieces of a figure. */
+export type Piece = 'body' | 'head' | 'armL' | 'armR';
+
 export type Face = 'smile' | 'grin' | 'kiss' | 'talk' | 'wink' | 'happy' | 'calm';
 
 type P = { x: number; y: number };
@@ -54,6 +57,25 @@ const BUILD: Record<Person, Build> = {
 
 export const heightUnits = (cm: number) => cm * 1.5625;
 
+/** Where the head, shoulders and hips are, so a scene can line the two of us up. */
+export function bodyFrame(who: Person, heightCm: number) {
+  const B = BUILD[who];
+  const H = heightUnits(heightCm);
+  const cy = -H + B.headR + 4;
+  const shY = cy + B.headR + 11;
+  const hipY = -H * 0.47;
+  return {
+    cy,
+    shY,
+    hipY,
+    waistY: shY + (hipY - shY) * 0.55,
+    headR: B.headR,
+    shoulder: B.shoulder,
+    /** Mouth height, relative to the head centre. */
+    mouth: B.headR * (who === 'partner' ? 0.5 : 0.52),
+  };
+}
+
 /** Where the elbow goes so the hand reaches `target`: outward and down, like a real arm. */
 function solveArm(s: P, target: P, a: number, b: number, side: 1 | -1): { elbow: P; hand: P } {
   const dx = target.x - s.x;
@@ -66,7 +88,9 @@ function solveArm(s: P, target: P, a: number, b: number, side: 1 | -1): { elbow:
     x: s.x + a * Math.cos(t),
     y: s.y + a * Math.sin(t),
   }));
-  const score = (e: P) => e.y + (e.x - s.x) * side * 0.8;
+  // Elbows go out to the side and down, like real arms: never in towards the
+  // body or across the face, whatever the hand is doing.
+  const score = (e: P) => -(e.x - s.x) * side + e.y * 0.6;
   const elbow = score(options[0]) >= score(options[1]) ? options[0] : options[1];
   const hand = dist > d ? { x: s.x + (dx / dist) * d, y: s.y + (dy / dist) * d } : target;
   return { elbow, hand };
@@ -81,6 +105,10 @@ export function Figure({
   toward = 1,
   lean = 0,
   tilt = 0,
+  dip = 0,
+  tiptoe = 0,
+  hands,
+  pieces,
 }: {
   who: Person;
   look: Look;
@@ -93,9 +121,23 @@ export function Figure({
   lean?: number;
   /** Tilt the head (degrees). */
   tilt?: number;
+  /** Bend the knees: lowers the upper body by this many units. */
+  dip?: number;
+  /** Rise onto tiptoes by this many units. */
+  tiptoe?: number;
+  /** Put a hand exactly here (figure coordinates), whatever the pose says. */
+  hands?: { left?: P; right?: P };
+  /**
+   * Draw only some pieces, so the two of us can overlap properly: in a hug one
+   * of his arms goes behind her and the other round her, in front; in a
+   * forehead kiss his head comes in front of hers while his body stays behind.
+   */
+  pieces?: Piece[];
 }) {
   const uid = useId().replace(/:/g, '');
   const blink = useBlink(face !== 'happy' && face !== 'wink');
+  const has = (p: Piece) => !pieces || pieces.includes(p);
+  const body = has('body');
   const B = BUILD[who];
   const H = heightUnits(heightCm);
   const outfit = outfitFor(who, look.outfit);
@@ -112,8 +154,10 @@ export function Figure({
   const kneeY = hipY * 0.48;
 
   // Hands for this pose.
-  const holdsTeddy = acc.has('teddy') && (pose === 'idle' || pose === 'talk');
-  const holdsCup = acc.has('stanley') && (pose === 'idle' || pose === 'talk' || pose === 'point');
+  const free = !hands?.left && !hands?.right;
+  const holdsTeddy = free && acc.has('teddy') && (pose === 'idle' || pose === 'talk');
+  const holdsCup =
+    free && acc.has('stanley') && (pose === 'idle' || pose === 'talk' || pose === 'point');
   const sL: P = { x: -B.shoulder + 6, y: shY + 7 };
   const sR: P = { x: B.shoulder - 6, y: shY + 7 };
   const reach = (B.upper + B.fore) * 0.985;
@@ -166,7 +210,8 @@ export function Figure({
       targetR = { x: B.shoulder * 0.55, y: shY + 30 };
       break;
     case 'talk':
-      targetR = { x: B.shoulder + 16, y: shY + 52 };
+      // a relaxed hand gesturing in front, elbow by the side
+      targetR = { x: B.shoulder * 0.7, y: shY + 62 };
       break;
     case 'shrug':
       targetL = { x: -(B.shoulder + 30), y: shY + 20 };
@@ -174,7 +219,10 @@ export function Figure({
       break;
   }
   if (holdsTeddy) targetL = { x: -B.shoulder * 0.3, y: shY + 52 };
-  if (holdsCup && pose === 'idle') targetR = { x: B.shoulder + 8, y: shY + 7 + reach * 0.86 };
+  // The cup hangs from an almost straight arm, held a little out from her side.
+  if (holdsCup && pose === 'idle') targetR = { x: B.shoulder + 6, y: shY + 7 + reach * 0.95 };
+  if (hands?.left) targetL = hands.left;
+  if (hands?.right) targetR = hands.right;
   const armL = solveArm(sL, targetL, B.upper, B.fore, 1);
   const armR = solveArm(sR, targetR, B.upper, B.fore, -1);
 
@@ -191,13 +239,21 @@ export function Figure({
   const torso = `M${-B.shoulder} ${shY + 10}Q${-B.shoulder} ${shY} ${-B.shoulder + 12} ${shY}H${B.shoulder - 12}Q${B.shoulder} ${shY} ${B.shoulder} ${shY + 10}C${B.shoulder - 2} ${waistY - 10} ${B.waist} ${waistY - 6} ${B.waist} ${waistY}C${B.waist} ${waistY + 10} ${B.hip} ${hipY - 14} ${B.hip} ${hipY + 4}H${-B.hip}C${-B.hip} ${hipY - 14} ${-B.waist} ${waistY + 10} ${-B.waist} ${waistY}C${-B.waist} ${waistY - 6} ${-B.shoulder + 2} ${waistY - 10} ${-B.shoulder} ${shY + 10}Z`;
 
   const arm = (a: { elbow: P; hand: P }, s: P, side: -1 | 1, front: boolean) => {
-    // One smooth curve through the elbow, so arms bend instead of hinging.
-    const c = { x: 2 * a.elbow.x - (s.x + a.hand.x) / 2, y: 2 * a.elbow.y - (s.y + a.hand.y) / 2 };
-    const path = `M${s.x} ${s.y}Q${c.x} ${c.y} ${a.hand.x} ${a.hand.y}`;
-    const at = (t: number) => ({
-      x: (1 - t) * (1 - t) * s.x + 2 * t * (1 - t) * c.x + t * t * a.hand.x,
-      y: (1 - t) * (1 - t) * s.y + 2 * t * (1 - t) * c.y + t * t * a.hand.y,
+    // Upper arm and forearm with a softly rounded elbow.
+    const toward = (from: P, to: P, len: number) => {
+      const d = Math.hypot(to.x - from.x, to.y - from.y) || 1;
+      const k = Math.min(len, d / 2) / d;
+      return { x: from.x + (to.x - from.x) * k, y: from.y + (to.y - from.y) * k };
+    };
+    const e1 = toward(a.elbow, s, 9);
+    const e2 = toward(a.elbow, a.hand, 9);
+    const path = `M${s.x} ${s.y}L${e1.x} ${e1.y}Q${a.elbow.x} ${a.elbow.y} ${e2.x} ${e2.y}L${a.hand.x} ${a.hand.y}`;
+    const lerp = (p: P, q: P, t: number) => ({
+      x: p.x + (q.x - p.x) * t,
+      y: p.y + (q.y - p.y) * t,
     });
+    const at = (t: number) =>
+      t <= 0.5 ? lerp(s, a.elbow, t * 2) : lerp(a.elbow, a.hand, (t - 0.5) * 2);
     const w = B.arm;
     const ringHand = her && side === -1 && acc.has('ring');
     const wrist = at(0.9);
@@ -398,145 +454,187 @@ export function Figure({
 
   return (
     <g className="mini">
-      <defs>
-        {/* soft light from the left on every garment */}
-        <linearGradient id={`cloth-${uid}`} x1="0" x2="1">
-          <stop offset="0%" stopColor="#fff" stopOpacity="0.16" />
-          <stop offset="32%" stopColor="#fff" stopOpacity="0" />
-          <stop offset="66%" stopColor="#000" stopOpacity="0" />
-          <stop offset="100%" stopColor="#000" stopOpacity="0.24" />
-        </linearGradient>
-        <linearGradient id={`hairshine-${uid}`} x1="0" x2="1">
-          <stop offset="0%" stopColor={HAIR} />
-          <stop offset="45%" stopColor={HAIR_LIGHT} />
-          <stop offset="100%" stopColor={HAIR} />
-        </linearGradient>
-      </defs>
-      <ellipse cx="0" cy="2" rx={B.hip + 22} ry="7" fill="#000" opacity="0.13" />
-      {acc.has('backpack') && !her && (
-        <rect
-          x={-B.shoulder - 2}
-          y={shY + 8}
-          width={B.shoulder * 2 + 4}
-          height={hipY - shY}
-          rx="14"
-          fill="#1b1a1d"
-          {...S}
-        />
-      )}
-      {her && <HerBackHair cy={cy} r={B.headR} shY={shY} wavy={look.hair === 'wavy'} uid={uid} />}
-      {legs}
-      <g
-        className="mini__upper"
-        style={{
-          transformBox: 'view-box',
-          transformOrigin: `0px ${hipY}px`,
-          transform: `rotate(${lean}deg)`,
-          transition: 'transform 0.45s ease',
-        }}
-      >
-        <g
-          className="mini__breath"
-          style={{ transformBox: 'view-box', transformOrigin: `0px ${hipY}px` }}
-        >
-          {/* torso: skin base, then clothes */}
-          <path d={torso} fill={skin} {...S} />
-          <Top
-            outfit={outfit}
-            torso={torso}
-            B={B}
-            shY={shY}
-            hipY={hipY}
-            waistY={waistY}
-            skin={skin}
-            uid={uid}
-          />
-          {!her && !outfit.layer && (
-            // a hint of chest under his tee
-            <path
-              d={`M${-B.shoulder * 0.62} ${shY + 30}q${B.shoulder * 0.3} 8 ${B.shoulder * 0.56} 2M${B.shoulder * 0.62} ${shY + 30}q${-B.shoulder * 0.3} 8 ${-B.shoulder * 0.56} 2`}
-              fill="none"
-              stroke="#000"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              opacity="0.28"
-            />
-          )}
-          {acc.has('chain') && !her && (
-            <g>
-              <path d={`M-12 ${shY + 1}q12 26 24 0`} fill="none" stroke="#d6dbe1" strokeWidth="2" />
-              <path
-                d={`M0 ${shY + 13}v9M-3 ${shY + 16}h6`}
-                stroke="#d6dbe1"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
+      <>
+        <defs>
+          {/* soft light from the left on every garment */}
+          <linearGradient id={`cloth-${uid}`} x1="0" x2="1">
+            <stop offset="0%" stopColor="#fff" stopOpacity="0.16" />
+            <stop offset="32%" stopColor="#fff" stopOpacity="0" />
+            <stop offset="66%" stopColor="#000" stopOpacity="0" />
+            <stop offset="100%" stopColor="#000" stopOpacity="0.24" />
+          </linearGradient>
+          <linearGradient id={`hairshine-${uid}`} x1="0" x2="1">
+            <stop offset="0%" stopColor={HAIR} />
+            <stop offset="45%" stopColor={HAIR_LIGHT} />
+            <stop offset="100%" stopColor={HAIR} />
+          </linearGradient>
+        </defs>
+        {body && <ellipse cx="0" cy="2" rx={B.hip + 22} ry="7" fill="#000" opacity="0.13" />}
+      </>
+      <g style={{ transform: `translateY(${-tiptoe}px)`, transition: 'transform 0.45s ease' }}>
+        {body && (
+          <>
+            <g style={{ transform: `translateY(${dip}px)`, transition: 'transform 0.45s ease' }}>
+              {acc.has('backpack') && !her && (
+                <rect
+                  x={-B.shoulder - 2}
+                  y={shY + 8}
+                  width={B.shoulder * 2 + 4}
+                  height={hipY - shY}
+                  rx="14"
+                  fill="#1b1a1d"
+                  {...S}
+                />
+              )}
+              {her && (
+                <HerBackHair cy={cy} r={B.headR} shY={shY} wavy={look.hair === 'wavy'} uid={uid} />
+              )}
             </g>
-          )}
-          {acc.has('necklace') && her && (
-            <path d={`M-10 ${shY - 1}q10 18 20 0`} fill="none" stroke="#e2b65a" strokeWidth="1.8" />
-          )}
-          {acc.has('backpack') && !her && (
-            <path
-              d={`M${-B.shoulder + 10} ${shY + 2}v${(hipY - shY) * 0.7}M${B.shoulder - 10} ${shY + 2}v${(hipY - shY) * 0.7}`}
-              stroke="#1b1a1d"
-              strokeWidth="6"
-            />
-          )}
-          {acc.has('black-bag') && her && (
-            <g>
-              <path
-                d={`M${B.shoulder - 8} ${shY + 2}L${-B.hip + 4} ${hipY - 6}`}
-                stroke="#1b1a1d"
-                strokeWidth="3"
-              />
-              <rect
-                x={-B.hip - 12}
-                y={hipY - 14}
-                width="26"
-                height="20"
-                rx="5"
-                fill="#1b1a1d"
-                {...S}
-                strokeWidth={2}
-              />
+            <g
+              style={{
+                transformBox: 'view-box',
+                transformOrigin: '0px 0px',
+                transform: `scaleY(${(-hipY - dip) / -hipY})`,
+                transition: 'transform 0.45s ease',
+              }}
+            >
+              {legs}
             </g>
-          )}
-          {head}
-          {holdsTeddy && <Teddy x={-B.shoulder - 6} y={shY + 30} />}
-          {arm(armL, sL, -1, true)}
-          {arm(armR, sR, 1, true)}
-          {pose === 'peace' && peaceFingers(armR.hand)}
-          {pose === 'heart' && (
-            <path
-              d={`M0 ${shY + 34}l-11 -11a6.5 6.5 0 0 1 11 -8a6.5 6.5 0 0 1 11 8z`}
-              fill="none"
-              stroke={skin}
-              strokeWidth="5"
-              strokeLinejoin="round"
-            />
-          )}
-          {pose === 'selfie' && (
-            <g transform={`translate(${armR.hand.x} ${armR.hand.y - 22}) rotate(-6)`}>
-              <rect
-                x="-11"
-                y="-20"
-                width="22"
-                height="38"
-                rx="5"
-                fill={her ? '#cdd6c2' : '#d9d4cc'}
-                {...S}
-                strokeWidth={2}
-              />
-              <circle cx="-4" cy="-13" r="3" fill="#2a2a2a" />
-              <circle cx="3" cy="-13" r="3" fill="#2a2a2a" />
-              <circle cx="-0.5" cy="-7" r="3" fill="#2a2a2a" />
+          </>
+        )}
+        <g style={{ transform: `translateY(${dip}px)`, transition: 'transform 0.45s ease' }}>
+          <g
+            className="mini__upper"
+            style={{
+              transformBox: 'view-box',
+              transformOrigin: `0px ${hipY}px`,
+              transform: `rotate(${lean}deg)`,
+              transition: 'transform 0.45s ease',
+            }}
+          >
+            <g
+              className={pieces ? undefined : 'mini__breath'}
+              style={{ transformBox: 'view-box', transformOrigin: `0px ${hipY}px` }}
+            >
+              {body && (
+                <>
+                  {/* torso: skin base, then clothes */}
+                  <path d={torso} fill={skin} {...S} />
+                  <Top
+                    outfit={outfit}
+                    torso={torso}
+                    B={B}
+                    shY={shY}
+                    hipY={hipY}
+                    waistY={waistY}
+                    skin={skin}
+                    uid={uid}
+                  />
+                  {!her && !outfit.layer && (
+                    // a hint of chest under his tee
+                    <path
+                      d={`M${-B.shoulder * 0.62} ${shY + 30}q${B.shoulder * 0.3} 8 ${B.shoulder * 0.56} 2M${B.shoulder * 0.62} ${shY + 30}q${-B.shoulder * 0.3} 8 ${-B.shoulder * 0.56} 2`}
+                      fill="none"
+                      stroke="#000"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      opacity="0.28"
+                    />
+                  )}
+                  {acc.has('chain') && !her && (
+                    <g>
+                      <path
+                        d={`M-12 ${shY + 1}q12 26 24 0`}
+                        fill="none"
+                        stroke="#d6dbe1"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d={`M0 ${shY + 13}v9M-3 ${shY + 16}h6`}
+                        stroke="#d6dbe1"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </g>
+                  )}
+                  {acc.has('necklace') && her && (
+                    <path
+                      d={`M-10 ${shY - 1}q10 18 20 0`}
+                      fill="none"
+                      stroke="#e2b65a"
+                      strokeWidth="1.8"
+                    />
+                  )}
+                  {acc.has('backpack') && !her && (
+                    <path
+                      d={`M${-B.shoulder + 10} ${shY + 2}v${(hipY - shY) * 0.7}M${B.shoulder - 10} ${shY + 2}v${(hipY - shY) * 0.7}`}
+                      stroke="#1b1a1d"
+                      strokeWidth="6"
+                    />
+                  )}
+                  {acc.has('black-bag') && her && (
+                    <g>
+                      <path
+                        d={`M${B.shoulder - 8} ${shY + 2}L${-B.hip + 4} ${hipY - 6}`}
+                        stroke="#1b1a1d"
+                        strokeWidth="3"
+                      />
+                      <rect
+                        x={-B.hip - 12}
+                        y={hipY - 14}
+                        width="26"
+                        height="20"
+                        rx="5"
+                        fill="#1b1a1d"
+                        {...S}
+                        strokeWidth={2}
+                      />
+                    </g>
+                  )}
+                </>
+              )}
+              {has('head') && head}
+              <>
+                {has('armL') && holdsTeddy && <Teddy x={-B.shoulder - 6} y={shY + 30} />}
+                {has('armL') && arm(armL, sL, -1, true)}
+                {has('armR') && arm(armR, sR, 1, true)}
+                {has('armR') && pose === 'peace' && peaceFingers(armR.hand)}
+                {has('armL') && has('armR') && pose === 'heart' && (
+                  <path
+                    d={`M0 ${shY + 34}l-11 -11a6.5 6.5 0 0 1 11 -8a6.5 6.5 0 0 1 11 8z`}
+                    fill="none"
+                    stroke={skin}
+                    strokeWidth="5"
+                    strokeLinejoin="round"
+                  />
+                )}
+                {has('armR') && pose === 'selfie' && (
+                  <g transform={`translate(${armR.hand.x} ${armR.hand.y - 22}) rotate(-6)`}>
+                    <rect
+                      x="-11"
+                      y="-20"
+                      width="22"
+                      height="38"
+                      rx="5"
+                      fill={her ? '#cdd6c2' : '#d9d4cc'}
+                      {...S}
+                      strokeWidth={2}
+                    />
+                    <circle cx="-4" cy="-13" r="3" fill="#2a2a2a" />
+                    <circle cx="3" cy="-13" r="3" fill="#2a2a2a" />
+                    <circle cx="-0.5" cy="-7" r="3" fill="#2a2a2a" />
+                  </g>
+                )}
+                {has('armR') && holdsCup && <Stanley x={armR.hand.x + 2} y={armR.hand.y} />}
+                {has('armL') &&
+                  free &&
+                  acc.has('pink-bag') &&
+                  her &&
+                  pose !== 'heart' &&
+                  pose !== 'hug' && <PinkBag x={armL.hand.x} y={armL.hand.y} />}
+              </>
             </g>
-          )}
-          {holdsCup && <Stanley x={armR.hand.x + 2} y={armR.hand.y} />}
-          {acc.has('pink-bag') && her && pose !== 'heart' && pose !== 'hug' && (
-            <PinkBag x={armL.hand.x} y={armL.hand.y} />
-          )}
+          </g>
         </g>
       </g>
     </g>
@@ -1377,32 +1475,26 @@ function Legs({
       );
   }
 
-  const foot = (dir: 1 | -1) => {
-    const x = dir * (legX + 2);
+  // Each shoe is drawn pointing right, then mirrored for the left foot.
+  const shoe = () => {
     switch (shoes.kind) {
       case 'sneakers':
         return (
-          <g key={`f${dir}`}>
+          <>
             <path
-              d={`M${x - 13} -2Q${x - 14} -14 ${x - 2} -14Q${x + 10} -14 ${x + dir * 18} -4Q${x + dir * 20} 2 ${x + dir * 6} 2H${x - 12}Q${x - 15} 2 ${x - 13} -2z`}
+              d="M-13 -2Q-14 -14 -2 -14Q10 -14 18 -4Q20 2 6 2H-12Q-15 2 -13 -2z"
               fill={shoes.color}
               {...S}
             />
             <path
-              d={`M${x - 13} -3H${x + dir * 18}Q${x + dir * 20} 2 ${x + dir * 6} 2H${x - 12}Q${x - 15} 2 ${x - 13} -3z`}
+              d="M-13 -3H18Q20 2 6 2H-12Q-15 2 -13 -3z"
               fill="#f2efea"
               stroke={INK}
               strokeWidth="1.6"
             />
+            <path d="M8 -12q6 2 8 7" fill="none" stroke="#000" strokeWidth="1.2" opacity="0.3" />
             <path
-              d={`M${x + dir * 8} -12q${dir * 6} 2 ${dir * 8} 7`}
-              fill="none"
-              stroke="#000"
-              strokeWidth="1.2"
-              opacity="0.3"
-            />
-            <path
-              d={`M${x - dir * 6} -6q${dir * 8} -5 ${dir * 16} -2`}
+              d="M-6 -6q8 -5 16 -2"
               fill="none"
               stroke={shoes.laces}
               strokeWidth="1.8"
@@ -1410,56 +1502,54 @@ function Legs({
               opacity="0.8"
             />
             <path
-              d={`M${x - 3} -12l5 4M${x + 1} -13l5 4`}
+              d="M-3 -12l5 4M1 -13l5 4"
               stroke={shoes.laces}
               strokeWidth="2"
               strokeLinecap="round"
             />
-          </g>
+          </>
         );
       case 'boots':
         return (
-          <g key={`f${dir}`}>
-            <path
-              d={`M${x - 11} 2V-26H${x + 9}V-10Q${x + dir * 20} -8 ${x + dir * 20} 2z`}
-              fill={shoes.color}
-              {...S}
-            />
-            <path d={`M${x - 11} -24h20`} stroke="#8e6435" strokeWidth="4" />
-            <path d={`M${x - 11} 0h${dir * 30}`} stroke="#6d4c2a" strokeWidth="3" />
-          </g>
+          <>
+            <path d="M-11 2V-26H9V-10Q20 -8 20 2z" fill={shoes.color} {...S} />
+            <path d="M-11 2V-26H-2V2z" fill="#000" opacity="0.08" />
+            <path d="M-11 -24h20" stroke="#8e6435" strokeWidth="4" />
+            <path d="M-11 0H20" stroke="#6d4c2a" strokeWidth="3" />
+          </>
         );
       case 'fluffy':
         return (
-          <g key={`f${dir}`}>
-            <ellipse cx={x + dir * 4} cy="-3" rx="15" ry="7" fill={skin} />
+          <>
+            <ellipse cx="4" cy="-3" rx="15" ry="7" fill={skin} />
             <path
-              d={`M${x - 12} -2q-2 -12 8 -12q4 -4 8 0q8 -2 9 6q4 6 -2 9H${x - 10}z`}
+              d="M-12 -2q-2 -12 8 -12q4 -4 8 0q8 -2 9 6q4 6 -2 9H-10z"
               fill={shoes.color}
               {...S}
               strokeWidth={2}
             />
             <path
-              d={`M${x - 8} -10l-3 -3M${x} -14v-3M${x + 8} -11l3 -3`}
+              d="M-8 -10l-3 -3M0 -14v-3M8 -11l3 -3"
               stroke={shoes.color}
               strokeWidth="2.5"
               strokeLinecap="round"
             />
-          </g>
+          </>
         );
       case 'slides':
         return (
-          <g key={`f${dir}`}>
-            <path d={`M${x - 9} -2V-30H${x + 9}V-2z`} fill={shoes.socks} {...S} strokeWidth={2} />
-            <path
-              d={`M${x - 13} 2Q${x - 14} -10 ${x} -10Q${x + dir * 18} -10 ${x + dir * 18} 2z`}
-              fill={shoes.color}
-              {...S}
-            />
-          </g>
+          <>
+            <path d="M-9 -2V-30H9V-2z" fill={shoes.socks} {...S} strokeWidth={2} />
+            <path d="M-13 2Q-14 -10 0 -10Q18 -10 18 2z" fill={shoes.color} {...S} />
+          </>
         );
     }
   };
+  const foot = (dir: 1 | -1) => (
+    <g key={`f${dir}`} transform={`translate(${dir * (legX + 2)} 0) scale(${dir} 1)`}>
+      {shoe()}
+    </g>
+  );
 
   return (
     <g>
