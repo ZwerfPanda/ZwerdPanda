@@ -133,14 +133,24 @@ export function Wardrobe() {
           </li>
         ))}
       </ul>
-      {who === 'partner' && (
+      {who === 'partner' ? (
         <Segmented
           legend="Hair"
-          value={mini.look.hair}
+          value={mini.look.hair === 'wavy' ? 'wavy' : 'straight'}
           onChange={(hair) => updateMini(who, { look: { ...mini.look, hair } })}
           options={[
             { value: 'straight', label: 'Straight' },
             { value: 'wavy', label: 'Wavy' },
+          ]}
+        />
+      ) : (
+        <Segmented
+          legend="Hair"
+          value={mini.look.hair === 'curls' ? 'curls' : 'slick-back'}
+          onChange={(hair) => updateMini(who, { look: { ...mini.look, hair } })}
+          options={[
+            { value: 'slick-back', label: 'Slick back' },
+            { value: 'curls', label: 'Curly top' },
           ]}
         />
       )}

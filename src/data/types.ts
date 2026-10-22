@@ -347,7 +347,8 @@ export interface OurList {
 
 export interface Look {
   outfit: string;
-  hair: 'straight' | 'wavy';
+  /** Hers: straight or wavy. His: a curly top or a curly slick back. */
+  hair: 'straight' | 'wavy' | 'curls' | 'slick-back';
   accessories: string[];
 }
 

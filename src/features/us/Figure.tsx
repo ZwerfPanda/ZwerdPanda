@@ -386,6 +386,9 @@ export function Figure({
       <FaceFeatures who={who} cy={cy} r={B.headR} face={face} blink={blink} shade={shade} />
       {her ? (
         <HerFrontHair cy={cy} r={B.headR} wavy={look.hair === 'wavy'} uid={uid} />
+      ) : // His slick back unless the curly top was picked (older saves say 'straight').
+      look.hair !== 'curls' ? (
+        <SlickBack cy={cy} r={B.headR} />
       ) : (
         <HisHair cy={cy} r={B.headR} />
       )}
@@ -871,6 +874,86 @@ function FaceFeatures({
 
 /** Deterministic little wobble so the curls don't look stamped. */
 const wob = (i: number) => Math.sin(i * 12.9898) * 0.5 + 0.5;
+
+/**
+ * His curly slick back: a sharp line-up across the forehead with crisp temple
+ * corners, a front taper fading down to the ears, and the curls pushed back
+ * with volume on top, a few spilling out at the back.
+ */
+function SlickBack({ cy, r }: { cy: number; r: number }) {
+  const line = cy - r * 0.58; // hairline
+  const temple = cy - r * 0.2; // where the taper starts
+  const top = cy - r * 1.3;
+  // Loose curly outline over the top, right to left.
+  const bumps = 12;
+  let crown = '';
+  for (let i = 1; i <= bumps; i++) {
+    const at = (t: number, k: number) => {
+      const a = Math.PI * (2 - t / bumps);
+      return {
+        x: Math.cos(a) * r * 0.97 * k,
+        y: cy - r * 0.5 + Math.sin(a) * (cy - r * 0.5 - top) * k,
+      };
+    };
+    const p = at(i, 1 + wob(i) * 0.05);
+    const c = at(i - 0.5, 1.1 + wob(i + 5) * 0.06);
+    crown += `Q${c.x} ${c.y} ${p.x} ${p.y}`;
+  }
+  const edge =
+    `M${-r * 0.8} ${temple}V${line + r * 0.08}L${-r * 0.62} ${line}` +
+    `Q0 ${line - r * 0.08} ${r * 0.62} ${line}L${r * 0.8} ${line + r * 0.08}V${temple}`;
+  const d = `${edge}L${r * 0.9} ${cy - r * 0.5}${crown}L${-r * 0.8} ${temple}Z`;
+  // Loose curls, all swept back from the hairline.
+  const curls = [
+    { x: -0.5, y: 0.2 },
+    { x: -0.16, y: 0.16 },
+    { x: 0.18, y: 0.18 },
+    { x: 0.5, y: 0.22 },
+    { x: -0.34, y: 0.48 },
+    { x: 0.02, y: 0.44 },
+    { x: 0.36, y: 0.5 },
+    { x: -0.62, y: 0.52 },
+    { x: 0.66, y: 0.56 },
+  ].map((c, i) => ({ x: c.x * r, y: line - r * c.y - 2, flip: i % 2 }));
+  return (
+    <g>
+      {/* front taper: short at the temples, fading out above the ears */}
+      <path
+        d={`M${-r * 0.8} ${temple}L${-r * 0.84} ${cy + r * 0.12}L${-r * 0.74} ${cy + r * 0.1}L${-r * 0.7} ${temple}zM${r * 0.8} ${temple}L${r * 0.84} ${cy + r * 0.12}L${r * 0.74} ${cy + r * 0.1}L${r * 0.7} ${temple}z`}
+        fill={HAIR}
+        opacity="0.4"
+      />
+      {/* little curls peeking out behind the temples */}
+      {([-1, 1] as const).map((dir) => (
+        <path
+          key={dir}
+          d={`M${dir * r * 0.86} ${cy - r * 0.5}q${dir * 6} -1 ${dir * 5} 5q${dir * -1} 3 ${dir * -4} 1`}
+          fill="none"
+          stroke={HAIR}
+          strokeWidth="2.6"
+          strokeLinecap="round"
+        />
+      ))}
+      <path d={d} fill={HAIR} stroke={INK} strokeWidth="2.2" strokeLinejoin="round" />
+      {curls.map((c, i) => (
+        <path
+          key={i}
+          d={
+            c.flip
+              ? `M${c.x - 4} ${c.y + 3}q-1 -6 4 -6q4 1 2 5q-2 2 -4 0`
+              : `M${c.x + 4} ${c.y + 3}q1 -6 -4 -6q-4 1 -2 5q2 2 4 0`
+          }
+          fill="none"
+          stroke={HAIR_LIGHT}
+          strokeWidth="1.7"
+          strokeLinecap="round"
+        />
+      ))}
+      {/* the line-up: a crisp edge along the hairline and temples */}
+      <path d={edge} fill="none" stroke="#0e0a0a" strokeWidth="1.6" strokeLinejoin="miter" />
+    </g>
+  );
+}
 
 function HisHair({ cy, r }: { cy: number; r: number }) {
   // Loose curls on top with volume, falling forward a little; short taper on the sides.

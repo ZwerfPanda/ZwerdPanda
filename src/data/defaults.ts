@@ -449,7 +449,7 @@ export const defaultUs: UsContent = {
     fullName: '',
     birthday: '',
     heightCm: 192,
-    look: { outfit: 'black-fit', hair: 'straight', accessories: ['chain', 'bracelet'] },
+    look: { outfit: 'black-fit', hair: 'slick-back', accessories: ['chain', 'bracelet'] },
     lines: [],
   },
   partner: {

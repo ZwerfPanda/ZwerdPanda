@@ -482,7 +482,11 @@ function normalizeMiniMe(v: unknown, fallback: MiniMe): MiniMe {
         typeof look.outfit === 'string' && look.outfit
           ? look.outfit.slice(0, 30)
           : fallback.look.outfit,
-      hair: oneOf(look.hair, ['straight', 'wavy'] as const, fallback.look.hair),
+      hair: oneOf(
+        look.hair,
+        ['straight', 'wavy', 'curls', 'slick-back'] as const,
+        fallback.look.hair,
+      ),
       accessories: Array.isArray(look.accessories)
         ? [...new Set(accessories)]
         : [...fallback.look.accessories],
