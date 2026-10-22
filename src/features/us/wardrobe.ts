@@ -24,7 +24,7 @@ export type Bottom =
       color: string;
       /** Tights under it; bare legs when left out. */
       tights?: string;
-      length?: 'knee' | 'ankle';
+      length?: 'knee' | 'midi' | 'ankle';
       /** A lace trim along the hem. */
       trim?: string;
     }
@@ -148,7 +148,7 @@ export const HER_OUTFITS: Outfit[] = [
     id: 'brown-dress',
     label: 'Brown set',
     top: { kind: 'cami', color: '#5a3527' },
-    bottom: { kind: 'skirt', color: '#5a3527', length: 'ankle', trim: '#141215' },
+    bottom: { kind: 'skirt', color: '#5a3527', length: 'midi', trim: '#141215' },
     shoes: { kind: 'runner', color: '#1d1b1f' },
   },
   {

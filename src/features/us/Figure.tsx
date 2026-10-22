@@ -139,7 +139,8 @@ export function bodyFrame(who: Person, heightCm: number) {
   const H = heightUnits(heightCm);
   const cy = -H + B.headR + 4;
   const shY = cy + B.headR + 11;
-  const hipY = -H * 0.47;
+  // Her legs are a little shorter for her height than his, her body a little longer.
+  const hipY = -H * (who === 'partner' ? 0.43 : 0.47);
   return {
     cy,
     shY,
@@ -224,7 +225,7 @@ export function Figure({
 
   const cy = -H + B.headR + 4;
   const shY = cy + B.headR + 11;
-  const hipY = -H * 0.47;
+  const hipY = -H * (her ? 0.43 : 0.47);
   const waistY = shY + (hipY - shY) * 0.55;
   const legX = B.hip * 0.47;
   const kneeY = hipY * 0.48;
@@ -883,7 +884,7 @@ function FaceFeatures({
           strokeWidth="2.2"
           strokeLinejoin="round"
         />
-        {her && <path d={`M-10 ${my - 2}q10 -3 20 0`} fill="none" stroke={lip} strokeWidth="3" />}
+        {her && <path d={`M-10 ${my - 2}q10 -2 20 0`} fill="none" stroke={lip} strokeWidth="2" />}
       </g>
     ) : face === 'talk' ? (
       <ellipse
@@ -899,7 +900,7 @@ function FaceFeatures({
       // full lips with a cupid's bow and a little shine
       <g>
         <path
-          d={`M-8 ${my}q3 -4.5 5.5 -3.5q2.5 1.2 2.5 1.2q0 0 2.5 -1.2q2.5 -1 5.5 3.5q-8 ${face === 'calm' ? 1.5 : 2.5} -16 0z`}
+          d={`M-7.5 ${my}q3 -3 5 -2.4q2.5 0.8 2.5 0.8q0 0 2.5 -0.8q2 -0.6 5 2.4q-7.5 ${face === 'calm' ? 1.2 : 2} -15 0z`}
           fill={lip}
           stroke={INK}
           strokeWidth="1.4"
@@ -1756,7 +1757,8 @@ function Legs({
         ),
       );
   } else if (bottom.kind === 'skirt') {
-    const skirtHem = bottom.length === 'ankle' ? -26 : kneeY + 6;
+    const skirtHem =
+      bottom.length === 'ankle' ? -26 : bottom.length === 'midi' ? kneeY + 16 : kneeY + 6;
     const flare = bottom.length === 'ankle' ? 7 : 8;
     const skirt = `M${-hip - 1} ${hipY - 2}H${hip + 1}L${hip + flare} ${skirtHem}H${-hip - flare}z`;
     if (bottom.tights) skinLeg(hipY + 10, bottom.tights, 10, 7);
