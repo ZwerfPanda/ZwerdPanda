@@ -54,7 +54,7 @@ const BUILD: Record<Person, Build> = {
   // Him: tall and lean, athletic — broad-ish shoulders tapering to a slim waist.
   you: { headR: 32, shoulder: 43, waist: 28, hip: 29, upper: 52, fore: 50, arm: 16 },
   // Her: petite and cute — narrow shoulders, a small waist, slim hips, a fuller bust.
-  partner: { headR: 28, shoulder: 27, waist: 20, hip: 28, upper: 41, fore: 40, arm: 11 },
+  partner: { headR: 28, shoulder: 27, waist: 21, hip: 25, upper: 41, fore: 40, arm: 11 },
 };
 
 export const heightUnits = (cm: number) => cm * 1.5625;
@@ -73,6 +73,9 @@ function torsoOutline(
   waistY: number,
   hipY: number,
   neckline?: number,
+  /** Carry on down as a dress to this hem, flaring out by `flare`. */
+  hem?: number,
+  flare = 7,
 ) {
   const start: P = neckline ? { x: B.shoulder - 4, y: neckline } : { x: B.shoulder, y: shY + 10 };
   const segs: Seg[] = her
@@ -106,6 +109,14 @@ function torsoOutline(
           { x: B.hip, y: hipY + 4 },
         ],
       ];
+  if (hem) {
+    const fall = hem - hipY;
+    segs.push([
+      { x: B.hip + 1, y: hipY + 4 + fall * 0.35 },
+      { x: B.hip + flare - 1, y: hem - fall * 0.3 },
+      { x: B.hip + flare, y: hem },
+    ]);
+  }
   const f = (p: P, d: 1 | -1) => `${d * p.x} ${p.y}`;
   const right = segs.map(([a, b, c]) => `C${f(a, 1)} ${f(b, 1)} ${f(c, 1)}`).join('');
   const points = [start, ...segs.map((sg) => sg[2])];
@@ -116,7 +127,7 @@ function torsoOutline(
   const top = neckline
     ? `M${f(start, -1)}Q0 ${start.y + 8} ${f(start, 1)}`
     : `M${-B.shoulder} ${shY + 10}Q${-B.shoulder} ${shY} ${-B.shoulder + 12} ${shY}H${B.shoulder - 12}Q${B.shoulder} ${shY} ${B.shoulder} ${shY + 10}`;
-  return `${top}${right}H${-B.hip}${left}Z`;
+  return `${top}${right}H${-segs[segs.length - 1][2].x}${left}Z`;
 }
 
 /** Where the head, shoulders and hips are, so a scene can line the two of us up. */
@@ -214,6 +225,15 @@ export function Figure({
   const waistY = shY + (hipY - shY) * 0.55;
   const legX = B.hip * 0.47;
   const kneeY = hipY * 0.48;
+  // Where a dress ends (dresses are drawn in one piece, from the shoulders down).
+  const dress = outfit.bottom.kind === 'dress' ? outfit.bottom : null;
+  const hem = !dress
+    ? 0
+    : dress.length === 'maxi'
+      ? -18
+      : dress.length === 'midi'
+        ? -H * 0.13
+        : kneeY + 4;
 
   // Hands for this pose.
   const free = !hands?.left && !hands?.right;
@@ -404,7 +424,6 @@ export function Figure({
   const legs = (
     <Legs
       outfit={outfit}
-      H={H}
       hipY={hipY}
       kneeY={kneeY}
       legX={legX}
@@ -610,6 +629,9 @@ export function Figure({
                     skin={skin}
                     uid={uid}
                     her={her}
+                    hem={hem}
+                    legX={legX}
+                    kneeY={kneeY}
                   />
                   {!her && !outfit.layer && (
                     // a hint of chest under his tee
@@ -1204,8 +1226,14 @@ function Top({
   skin,
   uid,
   her,
+  hem,
+  legX,
+  kneeY,
 }: {
   her: boolean;
+  hem: number;
+  legX: number;
+  kneeY: number;
   outfit: Outfit;
   torso: string;
   B: Build;
@@ -1219,6 +1247,98 @@ function Top({
   const isDress = bottom.kind === 'dress';
   const light = `url(#cloth-${uid})`;
   const cami = torsoOutline(B, her, shY, waistY, hipY, shY + 22);
+  if (bottom.kind === 'dress') {
+    // One piece from the neckline (or shoulders) to the hem: no seam at the hips.
+    // Fitted when there's a slit, a soft A-line otherwise.
+    const shape = torsoOutline(
+      B,
+      her,
+      shY,
+      waistY,
+      hipY,
+      top.kind === 'cami' ? shY + 22 : undefined,
+      hem,
+      bottom.slit ? 5 : 10,
+    );
+    const slitX = legX + 2;
+    return (
+      <g>
+        <path d={shape} fill={bottom.color} {...S} />
+        <path d={shape} fill={light} />
+        {bottom.slit && (
+          // a slit up one leg
+          <g>
+            <path
+              d={`M${slitX - 5} ${hem}L${slitX + 2} ${kneeY - 6}L${slitX + 10} ${hem}z`}
+              fill={skin}
+            />
+            <path
+              d={`M${slitX - 5} ${hem}L${slitX + 2} ${kneeY - 6}L${slitX + 10} ${hem}`}
+              fill="none"
+              stroke={INK}
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+          </g>
+        )}
+        {top.kind === 'cami' && (
+          <path
+            d={`M${-B.shoulder + 10} ${shY + 22}l2 -21M${B.shoulder - 10} ${shY + 22}l-2 -21`}
+            stroke={bottom.color}
+            strokeWidth="3"
+          />
+        )}
+        {top.kind !== 'cami' && (
+          <path d={`M-10 ${shY}q10 9 20 0`} fill={skin} stroke={INK} strokeWidth="2" />
+        )}
+        {/* fabric falling in soft folds from the hips */}
+        <path
+          d={`M${-B.hip * 0.4} ${hipY + 14}q-3 ${(hem - hipY) * 0.45} -2 ${hem - hipY - 20}M${B.hip * 0.2} ${hipY + 22}q3 ${(hem - hipY) * 0.4} 1 ${hem - hipY - 30}`}
+          fill="none"
+          stroke="#000"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          opacity="0.18"
+        />
+        {/* the curve of her bust */}
+        {her && (
+          <path
+            d={[-1, 1]
+              .map((d) => {
+                const c = d * B.shoulder * 0.46;
+                const rr = B.shoulder * 0.42;
+                const y0 = shY + 17;
+                return `M${c - rr} ${y0}A${rr} ${rr * 0.85} 0 0 0 ${c + rr} ${y0}`;
+              })
+              .join('')}
+            fill="none"
+            stroke="#000"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            opacity="0.2"
+          />
+        )}
+        {bottom.lace && (
+          <>
+            <path
+              d={`M${-B.shoulder + 6} ${shY + 23}Q0 ${shY + 32} ${B.shoulder - 6} ${shY + 23}`}
+              fill="none"
+              stroke="#1b1413"
+              strokeWidth="2"
+              strokeDasharray="2 3"
+            />
+            <path
+              d={`M${-B.hip - 5} ${hem - 2}H${B.hip + 5}`}
+              stroke="#1b1413"
+              strokeWidth="4"
+              strokeDasharray="3 2"
+            />
+          </>
+        )}
+        {layer && <LayerArt layer={layer} B={B} shY={shY} hipY={hipY} uid={uid} />}
+      </g>
+    );
+  }
   return (
     <g>
       {top.kind === 'cami' ? (
@@ -1239,15 +1359,6 @@ function Top({
             stroke={top.color}
             strokeWidth="3"
           />
-          {isDress && bottom.lace && (
-            <path
-              d={`M${-B.shoulder + 6} ${shY + 23}Q0 ${shY + 32} ${B.shoulder - 6} ${shY + 23}`}
-              fill="none"
-              stroke="#1b1413"
-              strokeWidth="2"
-              strokeDasharray="2 3"
-            />
-          )}
         </g>
       ) : (
         <g>
@@ -1500,7 +1611,6 @@ function LayerArt({
 
 function Legs({
   outfit,
-  H,
   hipY,
   kneeY,
   legX,
@@ -1510,7 +1620,6 @@ function Legs({
   uid,
 }: {
   outfit: Outfit;
-  H: number;
   hipY: number;
   kneeY: number;
   legX: number;
@@ -1530,18 +1639,7 @@ function Legs({
     to: number,
     color: string,
   ) => {
-    // Her legs follow her shape: fuller thighs, in at the knee, a curved calf.
-    const shapely = her && from < kneeY - 10;
-    const x = (v: number) => dir * v;
-    const k = legX + 2;
-    const d = shapely
-      ? `M${x(legX - topW)} ${from}L${x(legX + topW)} ${from}` +
-        `Q${x(legX + topW + 1)} ${from + (kneeY - from) * 0.45} ${x(k + 7)} ${kneeY}` +
-        `Q${x(k + 9)} ${(kneeY + to) / 2 - 6} ${x(k + botW)} ${to}` +
-        `Q${x(k)} ${to + 4} ${x(k - botW)} ${to}` +
-        `Q${x(k - 8)} ${(kneeY + to) / 2} ${x(k - 6)} ${kneeY}` +
-        `Q${x(legX - topW + 1)} ${from + (kneeY - from) * 0.5} ${x(legX - topW)} ${from}z`
-      : `M${dir * legX - topW} ${from}L${dir * legX + topW} ${from}L${dir * (legX + 2) + botW} ${to}Q${dir * (legX + 2)} ${to + 4} ${dir * (legX + 2) - botW} ${to}z`;
+    const d = `M${dir * legX - topW} ${from}L${dir * legX + topW} ${from}L${dir * (legX + 2) + botW} ${to}Q${dir * (legX + 2)} ${to + 4} ${dir * (legX + 2) - botW} ${to}z`;
     return (
       <g key={`${dir}${color}${from}`}>
         <path d={d} fill={color} {...S} />
@@ -1671,43 +1769,8 @@ function Legs({
       ),
     );
   } else {
-    // dress
-    const hem = bottom.length === 'midi' ? -H * 0.13 : kneeY + 4;
-    skinLeg(hem - 6);
-    legs.push(
-      <path
-        key="dress"
-        d={`M${-hip - 1} ${hipY - 6}H${hip + 1}C${hip + 3} ${hem - 30} ${hip - 2} ${hem - 10} ${hip - 4} ${hem}H${-hip + 4}C${-hip + 2} ${hem - 10} ${-hip - 3} ${hem - 30} ${-hip - 1} ${hipY - 6}z`}
-        fill={bottom.color}
-        {...S}
-      />,
-      <path
-        key="dress-l"
-        d={`M${-hip - 1} ${hipY - 6}H${hip + 1}C${hip + 3} ${hem - 30} ${hip - 2} ${hem - 10} ${hip - 4} ${hem}H${-hip + 4}C${-hip + 2} ${hem - 10} ${-hip - 3} ${hem - 30} ${-hip - 1} ${hipY - 6}z`}
-        fill={light}
-      />,
-      // fabric falling in soft folds
-      crease(
-        'f1',
-        `M${-hip * 0.35} ${hipY + 12}q-3 ${(hem - hipY) * 0.4} -1 ${hem - hipY - 16}`,
-        0.22,
-      ),
-      crease(
-        'f2',
-        `M${hip * 0.4} ${hipY + 20}q3 ${(hem - hipY) * 0.35} 1 ${hem - hipY - 24}`,
-        0.22,
-      ),
-    );
-    if (bottom.lace)
-      legs.push(
-        <path
-          key="lace"
-          d={`M${-hip + 4} ${hem}H${hip - 4}`}
-          stroke="#1b1413"
-          strokeWidth="5"
-          strokeDasharray="3 2"
-        />,
-      );
+    // the dress itself is drawn with the top, in one piece; here just her legs
+    skinLeg(hipY + 10);
   }
 
   // Each shoe is drawn pointing right, then mirrored for the left foot.
@@ -1754,48 +1817,99 @@ function Legs({
           </>
         );
       case 'fluffy':
+        // black slides with a fluffy fur strap over the foot
         return (
           <>
-            <ellipse cx="4" cy="-3" rx="15" ry="7" fill={skin} />
+            <ellipse cx="5" cy="-3.5" rx="11" ry="3.5" fill={skin} {...S} strokeWidth={1.6} />
+            <path d="M-13 2Q-14 -2 -9 -2H14Q19 -2 18 2z" fill="#141215" {...S} strokeWidth={1.8} />
+            {[-7, -3, 1, 5, 9, 12].map((x, i) => (
+              <circle
+                key={x}
+                cx={x}
+                cy={-6 - (i % 2) * 1.5}
+                r={i === 0 || i === 5 ? 3.2 : 4}
+                fill={shoes.color}
+              />
+            ))}
             <path
-              d="M-12 -2q-2 -12 8 -12q4 -4 8 0q8 -2 9 6q4 6 -2 9H-10z"
+              d="M-8 -8q1 -2 2 0M-3 -10q1 -2 2 0M2 -9q1 -2 2 0M7 -10q1 -2 2 0"
+              stroke="#3d3a41"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+              fill="none"
+            />
+          </>
+        );
+      case 'runner':
+        // chunky retro runners: suede overlays, a side stripe, a thick two-tone sole
+        return (
+          <>
+            <path
+              d="M-13 -2Q-14 -16 -2 -16Q9 -16 18 -6Q21 -1 16 1H-12Q-15 1 -13 -2z"
               fill={shoes.color}
               {...S}
-              strokeWidth={2}
+            />
+            <path d="M-13 -5Q-13 -14 -6 -15L-5 -5zM12 -9Q18 -6 19 -3H11z" fill="#4a474e" />
+            <path
+              d="M-7 -5Q0 -13 8 -9Q4 -7 2 -4"
+              fill="none"
+              stroke="#9a96a0"
+              strokeWidth="2.4"
+              strokeLinecap="round"
             />
             <path
-              d="M-8 -10l-3 -3M0 -14v-3M8 -11l3 -3"
-              stroke={shoes.color}
-              strokeWidth="2.5"
+              d="M-14 -2H19Q21 4 15 4H-12Q-16 4 -14 -2z"
+              fill="#4a474e"
+              stroke={INK}
+              strokeWidth="1.8"
+            />
+            <path d="M-13 0.5H18" stroke="#2a282d" strokeWidth="1.4" />
+            <path
+              d="M-2 -14l5 4M2 -15l5 4"
+              stroke="#d8d5dc"
+              strokeWidth="1.6"
               strokeLinecap="round"
             />
           </>
         );
       case 'heels':
-        // a pointed pump on a slim stiletto, the foot arched
+        // a sleek pointed stiletto with an ankle strap and a red sole, foot arched
         return (
           <>
-            <path d="M-7 -15Q0 -14 8 -7L1 -9Q-4 -11 -5 -15z" fill={skin} {...S} strokeWidth={1.6} />
             <path
-              d="M-10 -15V-7Q-9 -4 -5 -4L10 0Q18 2 18 -1Q17 -4 10 -6Q5 -7 2 -9Q-3 -11 -4 -15z"
-              fill={shoes.color}
+              d="M-6 -17Q-9 -12 -8 -9Q-6 -7 -2 -7L10 -2Q15 0 18 -1Q14 -5 7 -6Q1 -9 -1 -17z"
+              fill={skin}
               {...S}
-              strokeWidth={2}
+              strokeWidth={1.6}
             />
-            <path d="M-8.5 -5L-7.5 2" stroke={INK} strokeWidth="4.5" strokeLinecap="round" />
+            <path d="M-7 -15.5H-0.5" stroke={shoes.color} strokeWidth="2" strokeLinecap="round" />
             <path
-              d="M-8.5 -5L-7.5 2"
+              d="M-9 -11Q-9.5 -7.5 -6 -7L-3 -6.6L-4 -10.5z"
+              fill={shoes.color}
+              stroke={INK}
+              strokeWidth="1.2"
+            />
+            <path
+              d="M4 -6.2Q12 -5 18 -1.2Q19 1 15 1L8 -0.6Q5 -1.6 3 -3.5z"
+              fill={shoes.color}
+              stroke={INK}
+              strokeWidth="1.4"
+              strokeLinejoin="round"
+            />
+            <path d="M-6 -7Q4 -4.5 15 1" fill="none" stroke="#c2182b" strokeWidth="1.4" />
+            <path
+              d="M-7.6 -7.5L-7 2"
               stroke={shoes.color}
-              strokeWidth="2.2"
+              strokeWidth="2.6"
               strokeLinecap="round"
             />
             <path
-              d="M3 -5q6 0 11 3"
-              fill="none"
+              d="M9 -4q4 1 7 3"
               stroke="#fff"
-              strokeWidth="1.3"
+              strokeWidth="1"
               strokeLinecap="round"
-              opacity="0.5"
+              opacity="0.45"
+              fill="none"
             />
           </>
         );

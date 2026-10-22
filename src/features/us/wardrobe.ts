@@ -20,14 +20,24 @@ export type Bottom =
   | { kind: 'leggings'; color: string }
   | { kind: 'shorts'; color: string; cargo?: boolean }
   | { kind: 'skirt'; color: string; tights: string }
-  | { kind: 'dress'; color: string; length: 'knee' | 'midi'; lace?: boolean; straps?: boolean };
+  | {
+      kind: 'dress';
+      color: string;
+      length: 'knee' | 'midi' | 'maxi';
+      lace?: boolean;
+      straps?: boolean;
+      /** A slit up one leg. */
+      slit?: boolean;
+    };
 
 export type Shoes =
   | { kind: 'sneakers'; color: string; laces: string }
   | { kind: 'boots'; color: string }
   | { kind: 'fluffy'; color: string }
   | { kind: 'slides'; color: string; socks: string }
-  | { kind: 'heels'; color: string };
+  | { kind: 'heels'; color: string }
+  /** Chunky retro runners, New Balance style. */
+  | { kind: 'runner'; color: string };
 
 export interface Outfit {
   id: string;
@@ -92,14 +102,14 @@ export const HER_OUTFITS: Outfit[] = [
     id: 'pink-top',
     label: 'Pink dress',
     top: { kind: 'longsleeve', color: '#f2c3d3' },
-    bottom: { kind: 'dress', color: '#f2c3d3', length: 'knee' },
-    shoes: { kind: 'heels', color: '#f0b7c8' },
+    bottom: { kind: 'dress', color: '#f2c3d3', length: 'maxi' },
+    shoes: { kind: 'runner', color: '#1d1b1f' },
   },
   {
     id: 'blue-dress',
     label: 'Blue dress',
     top: { kind: 'cami', color: '#2f73c9' },
-    bottom: { kind: 'dress', color: '#2f73c9', length: 'midi', straps: true },
+    bottom: { kind: 'dress', color: '#2f73c9', length: 'maxi', straps: true, slit: true },
     shoes: { kind: 'fluffy', color: '#1d1b1f' },
   },
   {
@@ -122,15 +132,15 @@ export const HER_OUTFITS: Outfit[] = [
     id: 'burgundy',
     label: 'Red dress',
     top: { kind: 'longsleeve', color: '#8e2433' },
-    bottom: { kind: 'dress', color: '#8e2433', length: 'knee' },
-    shoes: { kind: 'heels', color: '#1d1b1f' },
+    bottom: { kind: 'dress', color: '#8e2433', length: 'maxi', slit: true },
+    shoes: { kind: 'heels', color: '#141215' },
   },
   {
     id: 'brown-dress',
     label: 'Brown dress',
     top: { kind: 'cami', color: '#5a3527' },
-    bottom: { kind: 'dress', color: '#5a3527', length: 'knee', lace: true, straps: true },
-    shoes: { kind: 'sneakers', color: '#2a2629', laces: '#e8e4de' },
+    bottom: { kind: 'dress', color: '#5a3527', length: 'maxi', lace: true, straps: true },
+    shoes: { kind: 'runner', color: '#1d1b1f' },
   },
   {
     id: 'cosy-black',
