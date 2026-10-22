@@ -15,6 +15,7 @@ import { HomePage } from '../features/home/HomePage';
 import { PageLoading } from './PageLoading';
 import { CocoCompanion } from '../features/pet/Companion';
 import { WelcomeHost } from '../features/welcome/Welcome';
+import { HiddenHutch } from '../features/pet/HiddenHutch';
 
 // Home ships with the first load; every other page is loaded on demand.
 const pages = {
@@ -157,6 +158,7 @@ export function App() {
         <MenuSheet open={menuOpen} onClose={() => setMenuOpen(false)} />
         <MiniPlayer />
         {!introOpen && <CocoCompanion />}
+        {!introOpen && <HiddenHutch />}
         <Toaster />
         <ConfirmHost />
         <CelebrationHost />

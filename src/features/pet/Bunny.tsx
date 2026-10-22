@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react';
-import type { PetOutfit } from '../../data/types';
+import type { PetFood, PetOutfit } from '../../data/types';
 import { INK } from '../../components/art/shapes';
+import { FoodArt } from './Props';
 
 /**
  * Coco, drawn as she really is: a dwarf rabbit with a black coat, a soft grey
@@ -10,7 +11,6 @@ import { INK } from '../../components/art/shapes';
 
 export type BunnyPose = 'sit' | 'loaf' | 'stand' | 'flop' | 'eat' | 'groom' | 'thump';
 export type BunnyFace = 'open' | 'happy' | 'closed';
-export type BunnyHolding = 'hay' | 'leaf' | 'carrot' | 'berry' | null;
 
 const FUR_DARK = '#25212a';
 const FUR_MID = '#3a3541';
@@ -83,7 +83,7 @@ const LAYOUT: Record<BunnyPose, Layout> = {
 };
 
 /** Blinks every few seconds on her own. */
-function useBlink(enabled: boolean) {
+export function useBlink(enabled: boolean) {
   const [blink, setBlink] = useState(false);
   useEffect(() => {
     if (!enabled) return;
@@ -110,15 +110,24 @@ export function Bunny({
   pose = 'sit',
   face = 'open',
   outfit = 'none',
-  holding = null,
+  food = null,
   chewing = false,
+  look = 0,
+  sniffing = false,
+  shadow = true,
   title,
 }: {
   pose?: BunnyPose;
   face?: BunnyFace;
   outfit?: PetOutfit;
-  holding?: BunnyHolding;
+  /** Food in her mouth, nibbled down by `bites`. */
+  food?: { food: PetFood; bites: number } | null;
   chewing?: boolean;
+  /** Where she looks: -1 left, 0 at you, 1 right. */
+  look?: number;
+  sniffing?: boolean;
+  /** Draw her shadow (off when something else draws it, e.g. while hopping). */
+  shadow?: boolean;
   /** Accessible name; omit when the drawing is decorative. */
   title?: string;
 }) {
@@ -131,7 +140,9 @@ export function Bunny({
   const fur = `url(#fur-${uid})`;
 
   const bunny = (
-    <g className={`bunny bunny--${pose}${chewing ? ' is-chewing' : ''}`}>
+    <g
+      className={`bunny bunny--${pose}${chewing ? ' is-chewing' : ''}${sniffing ? ' is-sniffing' : ''}`}
+    >
       {/* hind feet */}
       {L.hind && (
         <g className="bunny__hind">
@@ -148,15 +159,17 @@ export function Bunny({
         </g>
       )}
       {/* body with its grey undertone */}
-      <ellipse cx="0" cy={L.body.cy} rx={L.body.rx} ry={L.body.ry} fill={fur} {...S} />
-      <ellipse
-        cx="0"
-        cy={L.body.cy + 6}
-        rx={L.body.rx * 0.55}
-        ry={L.body.ry * 0.62}
-        fill={FUR_GREY}
-        opacity="0.55"
-      />
+      <g className="bunny__breath">
+        <ellipse cx="0" cy={L.body.cy} rx={L.body.rx} ry={L.body.ry} fill={fur} {...S} />
+        <ellipse
+          cx="0"
+          cy={L.body.cy + 6}
+          rx={L.body.rx * 0.55}
+          ry={L.body.ry * 0.62}
+          fill={FUR_GREY}
+          opacity="0.55"
+        />
+      </g>
       {/* scarf sits between body and head */}
       {outfit === 'scarf' && (
         <g>
@@ -199,10 +212,12 @@ export function Bunny({
           <g>
             <circle cx="-14" cy={hy - 4} r="7.5" fill={FUR_GREY} />
             <circle cx="14" cy={hy - 4} r="7.5" fill={FUR_GREY} />
-            <circle cx="-14" cy={hy - 4} r="5.8" fill="#120e15" />
-            <circle cx="14" cy={hy - 4} r="5.8" fill="#120e15" />
-            <circle cx="-12" cy={hy - 6.5} r="2" fill="#fff" />
-            <circle cx="16" cy={hy - 6.5} r="2" fill="#fff" />
+            <g style={{ transform: `translateX(${look * 2.2}px)`, transition: 'transform 0.25s' }}>
+              <circle cx="-14" cy={hy - 4} r="5.8" fill="#120e15" />
+              <circle cx="14" cy={hy - 4} r="5.8" fill="#120e15" />
+              <circle cx="-12" cy={hy - 6.5} r="2" fill="#fff" />
+              <circle cx="16" cy={hy - 6.5} r="2" fill="#fff" />
+            </g>
           </g>
         ) : eyes === 'happy' ? (
           <path
@@ -247,25 +262,12 @@ export function Bunny({
           strokeLinecap="round"
           opacity="0.55"
         />
-        {holding && (
-          <g className="bunny__holding" transform={`translate(0 ${hy + 20})`}>
-            {holding === 'hay' && (
-              <path
-                d="M-16 0l30 -4M-12 3l26 2M-14 -3l24 7"
-                stroke="#d8b65c"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-              />
-            )}
-            {holding === 'leaf' && (
-              <path d="M-2 -2q16 -10 24 4q-14 10 -24 -4z" fill="#86b06a" {...S} strokeWidth={2} />
-            )}
-            {holding === 'carrot' && (
-              <circle cx="4" cy="2" r="7" fill="#f09a4a" {...S} strokeWidth={2} />
-            )}
-            {holding === 'berry' && (
-              <path d="M-2 -4h14l-7 13z" fill="#e0525f" {...S} strokeWidth={2} />
-            )}
+        {food && (
+          <g
+            className="bunny__holding"
+            transform={`translate(0 ${hy + 28}) scale(0.72) rotate(${food.food === 'carrot' ? 80 : 0})`}
+          >
+            <FoodArt food={food.food} bites={food.bites} />
           </g>
         )}
         {/* head-top outfits */}
@@ -330,7 +332,7 @@ export function Bunny({
           <stop offset="100%" stopColor="#1c1920" />
         </radialGradient>
       </defs>
-      <ellipse cx="0" cy="84" rx={asleep ? 70 : 54} ry="8" fill="#000" opacity="0.14" />
+      {shadow && <ellipse cx="0" cy="84" rx={asleep ? 70 : 54} ry="8" fill="#000" opacity="0.14" />}
       {asleep ? <Flop fur={fur} outfit={outfit} /> : bunny}
     </g>
   );

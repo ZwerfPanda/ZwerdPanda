@@ -23,10 +23,37 @@
   pointer-events: auto;
 }
 
-.companion__coco {
+/* Her little patch of floor: 100px wide, she rests in the middle of it. */
+.companion__patch {
   position: relative;
   width: 62px;
   height: 70px;
+}
+
+.companion__mover {
+  position: absolute;
+  left: -50px;
+  bottom: 0;
+}
+
+.companion--right .companion__mover {
+  left: auto;
+  right: 50px;
+}
+
+@media (min-width: 900px) {
+  .companion__patch {
+    width: 76px;
+    height: 86px;
+  }
+}
+
+.companion__coco {
+  position: relative;
+  display: block;
+  width: 62px;
+  height: 70px;
+  transform-origin: 50% 92%;
   padding: 0;
   border: 0;
   background: none;
@@ -184,4 +211,77 @@
     opacity: 0;
     transform: translateY(-30px);
   }
+}
+
+/* ---------- Coco's hidden hutch ---------- */
+
+.hidden-hutch {
+  position: fixed;
+  z-index: 770;
+  width: 58px;
+  height: 52px;
+  padding: 0;
+  border: 0;
+  background: none;
+  filter: drop-shadow(0 4px 6px rgba(45, 23, 47, 0.2));
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hidden-hutch svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.hidden-hutch:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+/* Peeking in from the left edge, about a third down. */
+.hidden-hutch--0 {
+  top: 38%;
+  left: calc(var(--safe-left) - 22px);
+  rotate: 8deg;
+}
+
+/* From the right edge, lower down. */
+.hidden-hutch--1 {
+  top: 58%;
+  right: calc(var(--safe-right) - 20px);
+  rotate: -6deg;
+}
+
+/* Tucked under the top bar on the right. */
+.hidden-hutch--2 {
+  top: calc(var(--topbar-h) + var(--safe-top) + 8px);
+  right: calc(var(--safe-right) - 16px);
+  rotate: -10deg;
+}
+
+/* Low on the left, just above the tab bar. */
+.hidden-hutch--3 {
+  bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 18px);
+  left: calc(var(--safe-left) - 18px);
+  rotate: 4deg;
+}
+
+@media (min-width: 900px) {
+  .hidden-hutch--3 {
+    bottom: 28px;
+  }
+}
+
+.hutch-found {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.hutch-found__art {
+  width: 180px;
+  height: 162px;
+  overflow: visible;
 }

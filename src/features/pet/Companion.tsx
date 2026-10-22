@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion, useAnimationControls } from 'framer-motion';
-import { Carrot, HandHeart, Heart, House, X } from 'lucide-react';
-import { getContent, updateContent, updatePrefs, usePrefs, useContent } from '../../data/store';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Carrot, HandHeart, Heart, House } from 'lucide-react';
+import { getContent, updateContent, usePrefs, useContent } from '../../data/store';
 import { getMe, nameOf } from '../../data/people';
 import { navigate, useRoute, type RoutePath } from '../../lib/router';
-import { toast } from '../../components/ui/feedback';
 import { useReducedMotion } from '../../hooks/useMotion';
+import { useIsDesktop } from '../../hooks/useMediaQuery';
 import { Bunny } from './Bunny';
+import { BunnySide } from './BunnySide';
+import { useHopper } from './useHopper';
+import { sendCocoHome } from './home';
 import { care, isNapTime, moodOf, needsOf } from './care';
 import './companion.css';
 
@@ -23,41 +26,94 @@ const LINES: Partial<Record<RoutePath, string[]>> = {
   '/settings': ['Don’t forget to back up my photos!'],
 };
 
+/* Her little patch of screen is 100 px wide; 50 is her resting spot. */
+const REST = 50;
+
 /** Coco hops along in a corner of every page (except her own den). */
 export function CocoCompanion() {
   const { companion } = usePrefs();
   const { path } = useRoute();
+  if (!companion || path === '/coco') return null;
+  return <Companion path={path} />;
+}
+
+function Companion({ path }: { path: RoutePath }) {
   const pet = useContent((c) => c.pet);
   const profile = useContent((c) => c.profile);
   const reduce = useReducedMotion();
-  const controls = useAnimationControls();
+  const desktop = useIsDesktop();
+  const hop = useHopper(reduce, 300);
   const [open, setOpen] = useState(false);
   const [line, setLine] = useState<string | null>(null);
   const [hearts, setHearts] = useState(0);
   const [now, setNow] = useState(() => Date.now());
-  const firstRoute = useRef(true);
+  const [leaving, setLeaving] = useState(false);
+  const lastPath = useRef(path);
   const rootRef = useRef<HTMLElement>(null);
 
+  const needs = needsOf(pet, now);
+  const mood = moodOf(needs);
+  const napping = isNapTime(new Date(now).getHours()) && !open && !leaving;
+  const wants = mood === 'hungry' ? 'food' : mood === 'lonely' ? 'love' : null;
+
+  const speak = (text: string, ms = 3200) => {
+    setLine(text);
+    window.setTimeout(() => setLine((l) => (l === text ? null : l)), ms);
+  };
+
+  // She hops in when she arrives.
   useEffect(() => {
+    hop.setWidth(100);
+    const t = hop.begin();
+    hop.place(desktop ? 96 : 4);
+    hop.opacity.set(0);
+    void (async () => {
+      if (!(await hop.fade(t, 1, 0.2))) return;
+      if (!(await hop.hopTo(t, REST))) return;
+      hop.show('front');
+    })();
     const timer = window.setInterval(() => setNow(Date.now()), 60_000);
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+      hop.begin();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // A hop (and sometimes a word) whenever you go somewhere.
   useEffect(() => {
     setOpen(false);
-    if (firstRoute.current) {
-      firstRoute.current = false;
-      return;
-    }
-    if (!reduce) void controls.start({ y: [0, -22, 0, -6, 0], transition: { duration: 0.7 } });
+    if (lastPath.current === path) return;
+    lastPath.current = path;
+    const t = hop.begin();
+    hop.opacity.set(1);
+    hop.show('front');
+    void hop.hopInPlace(t, 0.08);
     const options = LINES[path];
-    if (options && Math.random() < 0.45) {
-      setLine(options[Math.floor(Math.random() * options.length)]);
-      const timer = window.setTimeout(() => setLine(null), 3200);
-      return () => window.clearTimeout(timer);
-    }
-  }, [path, controls, reduce]);
+    if (options && Math.random() < 0.45) speak(options[Math.floor(Math.random() * options.length)]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [path]);
+
+  // Now and then she wanders a few hops and looks around.
+  useEffect(() => {
+    if (reduce || open || leaving || napping) return;
+    const timer = window.setTimeout(
+      async () => {
+        const t = hop.begin();
+        const range = desktop ? [24, REST] : [REST, 76];
+        const to = range[0] + Math.random() * (range[1] - range[0]);
+        if (!(await hop.hopTo(t, to))) return;
+        hop.show('side', 'sniff');
+        if (!(await hop.wait(t, 1200))) return;
+        if (!(await hop.hopTo(t, REST))) return;
+        hop.show('front');
+        setNow(Date.now());
+      },
+      14_000 + Math.random() * 12_000,
+    );
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reduce, open, leaving, napping, desktop, now]);
 
   // Close the little menu when tapping elsewhere.
   useEffect(() => {
@@ -74,35 +130,35 @@ export function CocoCompanion() {
     };
   }, [open]);
 
-  if (!companion || path === '/coco') return null;
-
-  const needs = needsOf(pet, now);
-  const mood = moodOf(needs);
-  const napping = isNapTime(new Date(now).getHours()) && !open;
-  const wants = mood === 'hungry' ? 'food' : mood === 'lonely' ? 'love' : null;
-
-  const cuddle = () => {
+  const cuddle = async () => {
+    setOpen(false);
     const result = care(getContent().pet, { type: 'pet' }, getMe());
     if (result.ok) updateContent((c) => ({ ...c, pet: result.pet }));
     setHearts((h) => h + 1);
-    setLine('*happy tooth purr*');
-    window.setTimeout(() => setLine(null), 2400);
-    if (!reduce)
-      void controls.start({
-        y: [0, -30, 0],
-        rotate: [0, -12, 8, 0],
-        transition: { duration: 0.7 },
-      });
-    setOpen(false);
+    speak('*happy tooth purr*', 2400);
+    const t = hop.begin();
+    hop.show('front');
+    await hop.hopInPlace(t, 0.1);
   };
 
-  const hide = () => {
-    updatePrefs({ companion: false });
-    toast('Coco went back to her den. Bring her along again from Coco’s Corner.');
+  const goHome = async () => {
+    setOpen(false);
+    setLeaving(true);
+    speak('Bye! I’ll be in my hutch…', 1800);
+    const t = hop.begin();
+    if (!reduce) {
+      await hop.hopTo(t, desktop ? 96 : 4, 'run');
+      await hop.fade(t, 0, 0.3);
+    }
+    sendCocoHome(path);
   };
 
   return (
-    <aside className="companion" ref={rootRef} aria-label="Coco">
+    <aside
+      className={`companion${desktop ? ' companion--right' : ''}`}
+      ref={rootRef}
+      aria-label="Coco"
+    >
       <AnimatePresence>
         {open ? (
           <motion.div
@@ -122,7 +178,7 @@ export function CocoCompanion() {
                   ? 'Coco misses you.'
                   : `Hi ${nameOf(getMe(), profile)}!`}
             </p>
-            <button type="button" role="menuitem" onClick={cuddle}>
+            <button type="button" role="menuitem" onClick={() => void cuddle()}>
               <HandHeart aria-hidden="true" /> Give her a cuddle
             </button>
             <button
@@ -136,8 +192,8 @@ export function CocoCompanion() {
               {wants === 'food' ? <Carrot aria-hidden="true" /> : <House aria-hidden="true" />}
               {wants === 'food' ? 'Feed her in her den' : 'Visit her den'}
             </button>
-            <button type="button" role="menuitem" onClick={hide}>
-              <X aria-hidden="true" /> Let her stay home
+            <button type="button" role="menuitem" onClick={() => void goHome()}>
+              <House aria-hidden="true" /> Let her stay home
             </button>
           </motion.div>
         ) : (
@@ -156,40 +212,57 @@ export function CocoCompanion() {
         )}
       </AnimatePresence>
 
-      <motion.button
-        type="button"
-        className="companion__coco"
-        animate={controls}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label={
-          wants === 'food'
-            ? 'Coco is hungry. Open Coco’s menu'
-            : wants === 'love'
-              ? 'Coco wants a cuddle. Open Coco’s menu'
-              : 'Coco. Open Coco’s menu'
-        }
-        onClick={() => setOpen((o) => !o)}
-      >
-        <svg viewBox="-95 -120 190 215" aria-hidden="true">
-          <Bunny pose={napping ? 'flop' : 'sit'} outfit={pet.outfit} />
-        </svg>
-        {wants && !open && (
-          <span className={`companion__need companion__need--${wants}`} aria-hidden="true">
-            {wants === 'food' ? <Carrot /> : <Heart />}
-          </span>
-        )}
-        {napping && !wants && (
-          <span className="companion__zz" aria-hidden="true">
-            z
-          </span>
-        )}
-        {hearts > 0 && (
-          <span key={hearts} className="companion__hearts" aria-hidden="true">
-            ♥ ♥
-          </span>
-        )}
-      </motion.button>
+      <div className="companion__patch">
+        <motion.div className="companion__mover" style={{ x: hop.x }}>
+          <motion.div style={{ y: hop.y, opacity: hop.opacity }}>
+            <motion.button
+              type="button"
+              className="companion__coco"
+              style={{ scaleX: hop.scaleX, scaleY: hop.scaleY, rotate: hop.rotate }}
+              aria-haspopup="menu"
+              aria-expanded={open}
+              disabled={leaving}
+              aria-label={
+                wants === 'food'
+                  ? 'Coco is hungry. Open Coco’s menu'
+                  : wants === 'love'
+                    ? 'Coco wants a cuddle. Open Coco’s menu'
+                    : 'Coco. Open Coco’s menu'
+              }
+              onClick={() => {
+                const t = hop.begin();
+                hop.opacity.set(1);
+                hop.show('front');
+                void hop.hopTo(t, REST).then(() => hop.show('front'));
+                setOpen((o) => !o);
+              }}
+            >
+              <svg viewBox="-95 -120 190 215" aria-hidden="true">
+                {hop.view === 'front' ? (
+                  <Bunny pose={napping ? 'flop' : 'sit'} outfit={pet.outfit} />
+                ) : (
+                  <BunnySide pose={hop.sidePose} outfit={pet.outfit} />
+                )}
+              </svg>
+            </motion.button>
+          </motion.div>
+          {wants && !open && !leaving && (
+            <span className={`companion__need companion__need--${wants}`} aria-hidden="true">
+              {wants === 'food' ? <Carrot /> : <Heart />}
+            </span>
+          )}
+          {napping && !wants && (
+            <span className="companion__zz" aria-hidden="true">
+              z
+            </span>
+          )}
+          {hearts > 0 && (
+            <span key={hearts} className="companion__hearts" aria-hidden="true">
+              ♥ ♥
+            </span>
+          )}
+        </motion.div>
+      </div>
     </aside>
   );
 }

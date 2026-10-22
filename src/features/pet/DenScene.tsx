@@ -1,4 +1,6 @@
 import { INK } from '../../components/art/shapes';
+import type { PetFood } from '../../data/types';
+import { FoodArt } from './Props';
 
 /** Where Coco can be in her den, as a % from the left. */
 export const SPOTS = {
@@ -60,9 +62,25 @@ const PALETTE: Record<
 
 const S = { stroke: INK, strokeWidth: 3, strokeLinejoin: 'round', strokeLinecap: 'round' } as const;
 
-/** Coco's room: hay rack, water bottle, tunnel, cardboard box, bowl and a window that follows the time of day. */
-export function DenScene({ light }: { light: DenLight }) {
+/**
+ * Coco's room: hay rack (filled as much as she has hay), water bottle, tunnel,
+ * cardboard box, food bowl and a window that follows the time of day.
+ */
+export function DenScene({
+  light,
+  hay = 100,
+  bowl = null,
+  rustle = null,
+}: {
+  light: DenLight;
+  /** 0–100: how full the hay rack and water bottle are. */
+  hay?: number;
+  bowl?: { food: PetFood; bites: number } | null;
+  rustle?: 'tunnel' | 'box' | 'hay' | null;
+}) {
   const p = PALETTE[light];
+  const hayTop = 168 - (Math.max(0, Math.min(100, hay)) / 100) * 50;
+  const waterTop = 158 - (Math.max(10, Math.min(100, hay)) / 100) * 36;
   return (
     <svg
       className="den-scene"
@@ -160,24 +178,44 @@ export function DenScene({ light }: { light: DenLight }) {
       />
 
       {/* hay rack + water bottle */}
-      <g>
+      <g className={rustle === 'hay' ? 'den-rustle' : undefined}>
         <path d="M24 118h66l-8 56h-50z" fill="#c69467" {...S} />
         <path
-          d="M30 122q8 -16 14 0q6 -18 14 0q6 -16 14 0q6 -14 12 0"
+          d={`M31 172v${hayTop - 172}q7 -14 13 0q6 -16 14 0q6 -14 14 0q6 -12 11 0v${172 - hayTop}z`}
           fill="#e9cf7a"
-          {...S}
-          strokeWidth={2.5}
+          stroke={INK}
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+          style={{ transition: 'd 0.6s ease' }}
         />
+        {hay > 30 &&
+          [40, 56, 70].map((x, i) => (
+            <path
+              key={x}
+              d={`M${x} ${hayTop + 4}l${i % 2 ? 7 : -6} ${-12 - i * 2}`}
+              stroke="#d8b65c"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          ))}
         {[36, 50, 64, 78].map((x) => (
           <path key={x} d={`M${x} 122v48`} stroke={INK} strokeWidth="2.5" />
         ))}
-        <rect x="100" y="100" width="18" height="62" rx="8" fill="#cfe9f6" {...S} />
-        <rect x="102" y="122" width="14" height="38" rx="6" fill="#8fc8ec" />
+        <rect x="100" y="100" width="18" height="62" rx="8" fill="#e6f4fb" {...S} />
+        <rect
+          x="102"
+          y={waterTop}
+          width="14"
+          height={160 - waterTop}
+          rx="6"
+          fill="#8fc8ec"
+          style={{ transition: 'y 0.6s ease, height 0.6s ease' }}
+        />
         <path d="M109 162v18" stroke={INK} strokeWidth="4" strokeLinecap="round" />
       </g>
 
       {/* tunnel */}
-      <g>
+      <g className={rustle === 'tunnel' ? 'den-rustle' : undefined}>
         <path d="M70 210q0 -34 34 -34h64v62h-64q-34 0 -34 -28z" fill="#9cc3a4" {...S} />
         {[92, 112, 132, 152].map((x) => (
           <path key={x} d={`M${x} 177q-8 30 0 60`} fill="none" stroke="#7da786" strokeWidth="3" />
@@ -186,7 +224,7 @@ export function DenScene({ light }: { light: DenLight }) {
       </g>
 
       {/* cardboard box with a door */}
-      <g>
+      <g className={rustle === 'box' ? 'den-rustle' : undefined}>
         <path d="M300 168h80v66h-80z" fill="#d7a96f" {...S} />
         <path d="M300 168l12 -16h80l-12 16z" fill="#e6bd85" {...S} />
         <path d="M380 168l12 -16v66l-12 16z" fill="#c4935a" {...S} />
@@ -196,6 +234,11 @@ export function DenScene({ light }: { light: DenLight }) {
       {/* food bowl */}
       <g>
         <ellipse cx="282" cy="272" rx="30" ry="9" fill="#a9c8e6" {...S} />
+        {bowl && (
+          <g transform="translate(282 266) scale(0.62)">
+            <FoodArt food={bowl.food} bites={bowl.bites} />
+          </g>
+        )}
         <path d="M252 272q4 18 30 18q26 0 30 -18" fill="#cfe2f3" {...S} />
       </g>
     </svg>

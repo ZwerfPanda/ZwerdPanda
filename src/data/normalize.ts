@@ -475,5 +475,11 @@ export function normalizePreferences(raw: unknown): Preferences {
       defaultPreferences.worldLight,
     ),
     companion: bool(p.companion, defaultPreferences.companion),
+    cocoHome:
+      isObj(p.cocoHome) &&
+      typeof p.cocoHome.path === 'string' &&
+      typeof p.cocoHome.spot === 'number'
+        ? { path: p.cocoHome.path.slice(0, 40), spot: Math.abs(Math.round(p.cocoHome.spot)) % 4 }
+        : undefined,
   };
 }

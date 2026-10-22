@@ -353,4 +353,6 @@ export interface Preferences {
   worldLight: 'auto' | 'day' | 'dusk' | 'night';
   /** Show the little Coco who hops along on every page. */
   companion: boolean;
+  /** While she stays home: the page (and edge) where her hutch is hidden. */
+  cocoHome?: { path: string; spot: number };
 }
