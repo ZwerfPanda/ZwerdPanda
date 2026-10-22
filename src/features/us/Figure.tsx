@@ -1216,35 +1216,19 @@ function HerFrontHair({ cy, r, wavy, uid }: { cy: number; r: number; wavy: boole
   );
 }
 
-/** Her bust: full and lifted, like in a push-up bra. */
+/** Her bust: full, round and lifted, like in a push-up bra. */
 function Bust({ B, shY }: { B: Build; shY: number }) {
-  const rr = B.shoulder * 0.46;
-  const y0 = shY + 13;
-  const side = (d: 1 | -1) => {
-    const c = d * B.shoulder * 0.44;
-    return { c, under: `M${c - rr} ${y0}A${rr} ${rr * 0.9} 0 0 0 ${c + rr} ${y0}` };
+  const rr = B.shoulder * 0.36;
+  const y0 = shY + 15;
+  // Each side: a soft round curve from the middle, under and up the outside.
+  const lobe = (d: 1 | -1) => {
+    const c = d * (rr + 1);
+    return `M${d * 1.5} ${y0 + rr * 0.35}Q${c - d * rr * 0.2} ${y0 + rr * 1.15} ${c + d * rr * 0.55} ${y0 + rr * 0.55}Q${c + d * rr * 0.95} ${y0 + rr * 0.1} ${c + d * rr * 0.85} ${y0 - rr * 0.45}`;
   };
   return (
-    <g fill="none" strokeLinecap="round">
-      <path d={side(-1).under + side(1).under} stroke="#000" strokeWidth="1.5" opacity="0.24" />
-      <path
-        d={`M0 ${y0 - 3}Q-1 ${y0 + 3} 0 ${y0 + 7}`}
-        stroke="#000"
-        strokeWidth="1.4"
-        opacity="0.3"
-      />
-      {([-1, 1] as const).map((d) => {
-        const { c } = side(d);
-        return (
-          <path
-            key={d}
-            d={`M${c - rr * 0.6} ${y0 - 1}Q${c} ${y0 - rr * 0.7} ${c + rr * 0.6} ${y0 - 1}`}
-            stroke="#fff"
-            strokeWidth="1.6"
-            opacity="0.2"
-          />
-        );
-      })}
+    <g fill="none" stroke="#000" strokeLinecap="round">
+      <path d={lobe(-1) + lobe(1)} strokeWidth="1.5" opacity="0.26" />
+      <path d={`M0 ${y0 - 4}Q-0.8 ${y0} 0 ${y0 + 4}`} strokeWidth="1.3" opacity="0.28" />
     </g>
   );
 }
@@ -1296,15 +1280,31 @@ function Top({
     const slitX = legX + 2;
     return (
       <g>
-        <path d={shape} fill={bottom.color} {...S} />
-        <path d={shape} fill={light} />
         {bottom.slit && (
-          // a slit up one leg
+          // the slit is a real opening: her leg (drawn behind) shows through
+          <defs>
+            <mask
+              id={`slit-${uid}`}
+              maskUnits="userSpaceOnUse"
+              x="-200"
+              y="-400"
+              width="400"
+              height="420"
+            >
+              <rect x="-200" y="-400" width="400" height="420" fill="#fff" />
+              <path
+                d={`M${slitX - 5} ${hem + 2}L${slitX + 2} ${kneeY - 6}L${slitX + 10} ${hem + 2}z`}
+                fill="#000"
+              />
+            </mask>
+          </defs>
+        )}
+        <g mask={bottom.slit ? `url(#slit-${uid})` : undefined}>
+          <path d={shape} fill={bottom.color} {...S} />
+          <path d={shape} fill={light} />
+        </g>
+        {bottom.slit && (
           <g>
-            <path
-              d={`M${slitX - 5} ${hem}L${slitX + 2} ${kneeY - 6}L${slitX + 10} ${hem}z`}
-              fill={skin}
-            />
             <path
               d={`M${slitX - 5} ${hem}L${slitX + 2} ${kneeY - 6}L${slitX + 10} ${hem}`}
               fill="none"
