@@ -80,6 +80,7 @@ export async function readBackup(file: File): Promise<ImportPreview> {
     `${content.letters.length} letters`,
     `${content.dreams.length} dreams`,
     `${content.songs.length} songs`,
+    `${content.playlists.length} playlists`,
   ];
   const mediaCount = media ? Object.keys(media).length : 0;
   return {

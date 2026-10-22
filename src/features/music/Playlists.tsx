@@ -9,6 +9,7 @@ import { Dialog } from '../../components/ui/Dialog';
 import { TextArea, TextField } from '../../components/ui/Fields';
 import { confirm, toast } from '../../components/ui/feedback';
 import { ByTag } from '../../components/common/ByTag';
+import { useMusic } from '../../components/music/MusicProvider';
 
 /**
  * Our Spotify playlists, played with Spotify's own embedded player. Nothing
@@ -94,6 +95,7 @@ function PlaylistCard({
   onRemove: () => void;
 }) {
   const spotify = spotifyCollection(playlist.url);
+  const music = useMusic();
   const [open, setOpen] = useState(false);
   if (!spotify) return null;
   const name = playlist.title || (spotify.kind === 'album' ? 'Our album' : 'Our playlist');
@@ -125,7 +127,11 @@ function PlaylistCard({
           <button
             type="button"
             className="btn btn--primary btn--small"
-            onClick={() => setOpen(true)}
+            onClick={() => {
+              // never two songs at once: the music box hushes for Spotify
+              music.pause();
+              setOpen(true);
+            }}
           >
             <PlayCircle aria-hidden="true" /> Play here
           </button>

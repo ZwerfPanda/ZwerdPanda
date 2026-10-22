@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ExternalLink, Music2, PlayCircle } from 'lucide-react';
 import { describeLink } from '../../lib/embeds';
+import { useMusic } from './MusicProvider';
 import './song.css';
 
 /**
@@ -20,6 +21,7 @@ export function SongLink({
 }) {
   const info = describeLink(url);
   const [embedOpen, setEmbedOpen] = useState(false);
+  const music = useMusic();
   return (
     <div className={`song-link ${compact ? 'song-link--compact' : ''}`}>
       <div className="song-link__row">
@@ -37,7 +39,11 @@ export function SongLink({
             <button
               type="button"
               className="btn btn--soft btn--small"
-              onClick={() => setEmbedOpen(true)}
+              onClick={() => {
+                // never two songs at once: the music box hushes for the player
+                music.pause();
+                setEmbedOpen(true);
+              }}
             >
               <PlayCircle aria-hidden="true" />
               Play here
