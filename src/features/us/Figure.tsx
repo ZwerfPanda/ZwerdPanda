@@ -51,11 +51,72 @@ interface Build {
 }
 
 const BUILD: Record<Person, Build> = {
-  you: { headR: 32, shoulder: 47, waist: 32, hip: 31, upper: 52, fore: 50, arm: 18 },
-  partner: { headR: 30, shoulder: 30, waist: 25, hip: 36, upper: 41, fore: 40, arm: 12.5 },
+  // Him: tall and lean, athletic — broad-ish shoulders tapering to a slim waist.
+  you: { headR: 32, shoulder: 43, waist: 28, hip: 29, upper: 52, fore: 50, arm: 16 },
+  // Her: an hourglass — fuller bust and hips, a small waist.
+  partner: { headR: 28, shoulder: 29, waist: 21, hip: 38, upper: 41, fore: 40, arm: 12 },
 };
 
 export const heightUnits = (cm: number) => cm * 1.5625;
+
+type Seg = [P, P, P];
+
+/**
+ * The outline of the torso, from `from` (shoulders, or a neckline) to the hips.
+ * Hers curves out at the bust, in at the waist and out again at the hips; his
+ * tapers from the shoulders to a slim waist.
+ */
+function torsoOutline(
+  B: Build,
+  her: boolean,
+  shY: number,
+  waistY: number,
+  hipY: number,
+  neckline?: number,
+) {
+  const start: P = neckline ? { x: B.shoulder - 4, y: neckline } : { x: B.shoulder, y: shY + 10 };
+  const segs: Seg[] = her
+    ? [
+        [
+          { x: start.x + 4, y: start.y + 8 },
+          { x: B.shoulder + 6, y: shY + 30 },
+          { x: B.shoulder + 2, y: shY + 40 },
+        ],
+        [
+          { x: B.shoulder - 1, y: shY + 48 },
+          { x: B.waist + 1, y: waistY - 8 },
+          { x: B.waist, y: waistY },
+        ],
+        [
+          { x: B.waist + 1, y: waistY + 10 },
+          { x: B.hip + 2, y: hipY - 18 },
+          { x: B.hip, y: hipY + 4 },
+        ],
+      ]
+    : [
+        [
+          { x: start.x - 1, y: start.y + 22 },
+          { x: B.waist + 4, y: waistY - 12 },
+          { x: B.waist, y: waistY },
+        ],
+        [
+          { x: B.waist, y: waistY + 10 },
+          { x: B.hip, y: hipY - 12 },
+          { x: B.hip, y: hipY + 4 },
+        ],
+      ];
+  const f = (p: P, d: 1 | -1) => `${d * p.x} ${p.y}`;
+  const right = segs.map(([a, b, c]) => `C${f(a, 1)} ${f(b, 1)} ${f(c, 1)}`).join('');
+  const points = [start, ...segs.map((sg) => sg[2])];
+  const left = segs
+    .map(([a, b], i) => `C${f(b, -1)} ${f(a, -1)} ${f(points[i], -1)}`)
+    .reverse()
+    .join('');
+  const top = neckline
+    ? `M${f(start, -1)}Q0 ${start.y + 8} ${f(start, 1)}`
+    : `M${-B.shoulder} ${shY + 10}Q${-B.shoulder} ${shY} ${-B.shoulder + 12} ${shY}H${B.shoulder - 12}Q${B.shoulder} ${shY} ${B.shoulder} ${shY + 10}`;
+  return `${top}${right}H${-B.hip}${left}Z`;
+}
 
 /** Where the head, shoulders and hips are, so a scene can line the two of us up. */
 export function bodyFrame(who: Person, heightCm: number) {
@@ -162,7 +223,11 @@ export function Figure({
   const sR: P = { x: B.shoulder - 6, y: shY + 7 };
   const reach = (B.upper + B.fore) * 0.985;
   // Arms hang almost straight, just clear of the body.
-  const rest = (side: -1 | 1): P => ({ x: side * (B.shoulder + 3), y: shY + 7 + reach });
+  // Her arms hang just clear of her hips, so her figure shows.
+  const rest = (side: -1 | 1): P => ({
+    x: side * (her ? B.hip + 4 : B.shoulder + 3),
+    y: shY + 7 + reach,
+  });
   const t = toward;
   let targetL = rest(-1);
   let targetR = rest(1);
@@ -236,7 +301,7 @@ export function Figure({
       ? outfit.top.color
       : null;
 
-  const torso = `M${-B.shoulder} ${shY + 10}Q${-B.shoulder} ${shY} ${-B.shoulder + 12} ${shY}H${B.shoulder - 12}Q${B.shoulder} ${shY} ${B.shoulder} ${shY + 10}C${B.shoulder - 2} ${waistY - 10} ${B.waist} ${waistY - 6} ${B.waist} ${waistY}C${B.waist} ${waistY + 10} ${B.hip} ${hipY - 14} ${B.hip} ${hipY + 4}H${-B.hip}C${-B.hip} ${hipY - 14} ${-B.waist} ${waistY + 10} ${-B.waist} ${waistY}C${-B.waist} ${waistY - 6} ${-B.shoulder + 2} ${waistY - 10} ${-B.shoulder} ${shY + 10}Z`;
+  const torso = torsoOutline(B, her, shY, waistY, hipY);
 
   const arm = (a: { elbow: P; hand: P }, s: P, side: -1 | 1, front: boolean) => {
     // Upper arm and forearm with a softly rounded elbow.
@@ -361,7 +426,7 @@ export function Figure({
       {/* neck */}
       <rect x={-8} y={cy + B.headR - 8} width="16" height="22" fill={shade} />
       {/* his face is long and narrow: everything above the neck a touch slimmer */}
-      <g transform={her ? undefined : 'scale(0.88 1)'}>
+      <g transform={her ? undefined : 'scale(0.93 1)'}>
         {!her && (
           <>
             <ellipse
@@ -543,6 +608,7 @@ export function Figure({
                     waistY={waistY}
                     skin={skin}
                     uid={uid}
+                    her={her}
                   />
                   {!her && !outfit.layer && (
                     // a hint of chest under his tee
@@ -661,10 +727,10 @@ export function Figure({
 function headPath(r: number, cy: number, her: boolean) {
   const top = cy - r;
   if (her) {
-    // Hers: rounder and softer.
-    const w = r * 0.9;
-    const chin = cy + r * 0.98;
-    const jaw = r * 0.5;
+    // Hers: a soft oval, gently narrowing to the chin.
+    const w = r * 0.86;
+    const chin = cy + r * 1.04;
+    const jaw = r * 0.44;
     return (
       `M0 ${top}C${w * 0.62} ${top} ${w} ${cy - r * 0.6} ${w} ${cy - r * 0.05}` +
       `C${w} ${cy + r * 0.45} ${jaw + 6} ${chin - 4} 0 ${chin}` +
@@ -672,18 +738,19 @@ function headPath(r: number, cy: number, her: boolean) {
       `C${-w} ${cy - r * 0.6} ${-w * 0.62} ${top} 0 ${top}Z`
     );
   }
-  // His: high cheekbones, a sharp jaw angle and a defined chin.
+  // His: a diamond — narrower at the temples, widest at the cheekbones,
+  // a slimmer jaw tapering to a defined chin.
   const side = (d: 1 | -1) =>
-    `Q${d * r * 0.88} ${cy + r * 0.32} ${d * r * 0.74} ${cy + r * 0.74}` +
-    `Q${d * r * 0.6} ${cy + r * 1.03} ${d * r * 0.3} ${cy + r * 1.1}`;
-  return (
-    `M0 ${top}C${r * 0.52} ${top} ${r * 0.86} ${cy - r * 0.6} ${r * 0.86} ${cy - r * 0.15}` +
-    side(1) +
-    `Q0 ${cy + r * 1.17} ${-r * 0.3} ${cy + r * 1.1}` +
-    `Q${-r * 0.6} ${cy + r * 1.03} ${-r * 0.74} ${cy + r * 0.74}` +
-    `Q${-r * 0.88} ${cy + r * 0.32} ${-r * 0.86} ${cy - r * 0.15}` +
-    `C${-r * 0.86} ${cy - r * 0.6} ${-r * 0.52} ${top} 0 ${top}Z`
-  );
+    `C${d * r * 0.48} ${top} ${d * r * 0.78} ${cy - r * 0.62} ${d * r * 0.8} ${cy - r * 0.3}` +
+    `Q${d * r * 0.9} ${cy - r * 0.05} ${d * r * 0.86} ${cy + r * 0.2}` +
+    `Q${d * r * 0.8} ${cy + r * 0.55} ${d * r * 0.6} ${cy + r * 0.78}` +
+    `Q${d * r * 0.42} ${cy + r * 0.98} ${d * r * 0.22} ${cy + r * 1.04}`;
+  const rev = (d: 1 | -1) =>
+    `Q${d * r * 0.42} ${cy + r * 0.98} ${d * r * 0.6} ${cy + r * 0.78}` +
+    `Q${d * r * 0.8} ${cy + r * 0.55} ${d * r * 0.86} ${cy + r * 0.2}` +
+    `Q${d * r * 0.9} ${cy - r * 0.05} ${d * r * 0.8} ${cy - r * 0.3}` +
+    `C${d * r * 0.78} ${cy - r * 0.62} ${d * r * 0.48} ${top} 0 ${top}`;
+  return `M0 ${top}${side(1)}Q0 ${cy + r * 1.09} ${-r * 0.22} ${cy + r * 1.04}${rev(-1)}Z`;
 }
 
 function FaceFeatures({
@@ -893,7 +960,7 @@ function FaceFeatures({
       {!her && (
         // cheekbones and jawline
         <path
-          d={`M${-r * 0.7} ${cy + r * 0.2}q${r * 0.08} ${r * 0.2} ${r * 0.24} ${r * 0.3}M${r * 0.7} ${cy + r * 0.2}q${-r * 0.08} ${r * 0.2} ${-r * 0.24} ${r * 0.3}M${-r * 0.7} ${cy + r * 0.7}Q${-r * 0.56} ${cy + r * 0.94} ${-r * 0.3} ${cy + r * 0.98}M${r * 0.7} ${cy + r * 0.7}Q${r * 0.56} ${cy + r * 0.94} ${r * 0.3} ${cy + r * 0.98}`}
+          d={`M${-r * 0.7} ${cy + r * 0.2}q${r * 0.08} ${r * 0.2} ${r * 0.24} ${r * 0.3}M${r * 0.7} ${cy + r * 0.2}q${-r * 0.08} ${r * 0.2} ${-r * 0.24} ${r * 0.3}M${-r * 0.62} ${cy + r * 0.66}Q${-r * 0.44} ${cy + r * 0.9} ${-r * 0.2} ${cy + r * 0.96}M${r * 0.62} ${cy + r * 0.66}Q${r * 0.44} ${cy + r * 0.9} ${r * 0.2} ${cy + r * 0.96}`}
           fill="none"
           stroke={shade}
           strokeWidth="2"
@@ -910,7 +977,7 @@ function FaceFeatures({
             d={`M-9.5 ${cy + r * 0.5}q9.5 -3.4 19 0q-2 1.4 -4 0.7q-5.5 -1.6 -11 0q-2 0.7 -4 -0.7z`}
           />
           <path
-            d={`M-4 ${cy + r * 0.9}h8q2.6 ${r * 0.12} 1.2 ${r * 0.22}q-5.2 2.4 -10.4 0q-1.4 ${-r * 0.1} 1.2 ${-r * 0.22}z`}
+            d={`M-4 ${cy + r * 0.84}h8q2.6 ${r * 0.12} 1.2 ${r * 0.22}q-5.2 2.4 -10.4 0q-1.4 ${-r * 0.1} 1.2 ${-r * 0.22}z`}
           />
         </g>
       )}
@@ -1135,7 +1202,9 @@ function Top({
   waistY,
   skin,
   uid,
+  her,
 }: {
+  her: boolean;
   outfit: Outfit;
   torso: string;
   B: Build;
@@ -1148,7 +1217,7 @@ function Top({
   const { top, layer, bottom } = outfit;
   const isDress = bottom.kind === 'dress';
   const light = `url(#cloth-${uid})`;
-  const cami = `M${-B.shoulder + 4} ${shY + 22}Q0 ${shY + 30} ${B.shoulder - 4} ${shY + 22}C${B.shoulder - 2} ${waistY - 8} ${B.waist} ${waistY - 4} ${B.waist} ${waistY}C${B.waist} ${waistY + 10} ${B.hip} ${hipY - 14} ${B.hip} ${hipY + 4}H${-B.hip}C${-B.hip} ${hipY - 14} ${-B.waist} ${waistY + 10} ${-B.waist} ${waistY}C${-B.waist} ${waistY - 4} ${-B.shoulder + 2} ${waistY - 8} ${-B.shoulder + 4} ${shY + 22}Z`;
+  const cami = torsoOutline(B, her, shY, waistY, hipY, shY + 22);
   return (
     <g>
       {top.kind === 'cami' ? (
@@ -1183,6 +1252,17 @@ function Top({
         <g>
           <path d={torso} fill={top.color} {...S} />
           <path d={torso} fill={light} />
+          {her && (
+            // a soft curve under the bust
+            <path
+              d={`M${-B.shoulder + 3} ${shY + 34}q${B.shoulder * 0.45} 9 ${B.shoulder - 5} 3M${B.shoulder - 3} ${shY + 34}q${-B.shoulder * 0.45} 9 ${-B.shoulder + 5} 3`}
+              fill="none"
+              stroke="#000"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              opacity="0.18"
+            />
+          )}
           {/* hem stitching and a soft fold at the waist */}
           <path
             d={`M${-B.hip + 3} ${hipY - 2}H${B.hip - 3}`}
@@ -1191,14 +1271,16 @@ function Top({
             strokeDasharray="3 3"
             opacity="0.3"
           />
-          <path
-            d={`M${-B.waist * 0.7} ${waistY - 6}q${B.waist * 0.4} 5 ${B.waist * 0.8} 1M${B.waist * 0.15} ${waistY + 8}q${B.waist * 0.3} 4 ${B.waist * 0.6} -1`}
-            fill="none"
-            stroke="#000"
-            strokeWidth="1.4"
-            strokeLinecap="round"
-            opacity="0.2"
-          />
+          {!her && (
+            <path
+              d={`M${-B.waist * 0.7} ${waistY - 6}q${B.waist * 0.4} 5 ${B.waist * 0.8} 1M${B.waist * 0.15} ${waistY + 8}q${B.waist * 0.3} 4 ${B.waist * 0.6} -1`}
+              fill="none"
+              stroke="#000"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              opacity="0.2"
+            />
+          )}
           {top.kind === 'longsleeve' && top.ribbed && (
             <path
               d={Array.from(
@@ -1437,7 +1519,18 @@ function Legs({
     to: number,
     color: string,
   ) => {
-    const d = `M${dir * legX - topW} ${from}L${dir * legX + topW} ${from}L${dir * (legX + 2) + botW} ${to}Q${dir * (legX + 2)} ${to + 4} ${dir * (legX + 2) - botW} ${to}z`;
+    // Her legs follow her shape: fuller thighs, in at the knee, a curved calf.
+    const shapely = her && from < kneeY - 10;
+    const x = (v: number) => dir * v;
+    const k = legX + 2;
+    const d = shapely
+      ? `M${x(legX - topW)} ${from}L${x(legX + topW)} ${from}` +
+        `Q${x(legX + topW + 4)} ${from + (kneeY - from) * 0.45} ${x(k + 8)} ${kneeY}` +
+        `Q${x(k + 11)} ${(kneeY + to) / 2 - 6} ${x(k + botW)} ${to}` +
+        `Q${x(k)} ${to + 4} ${x(k - botW)} ${to}` +
+        `Q${x(k - 9)} ${(kneeY + to) / 2} ${x(k - 7)} ${kneeY}` +
+        `Q${x(legX - topW + 1)} ${from + (kneeY - from) * 0.5} ${x(legX - topW)} ${from}z`
+      : `M${dir * legX - topW} ${from}L${dir * legX + topW} ${from}L${dir * (legX + 2) + botW} ${to}Q${dir * (legX + 2)} ${to + 4} ${dir * (legX + 2) - botW} ${to}z`;
     return (
       <g key={`${dir}${color}${from}`}>
         <path d={d} fill={color} {...S} />
@@ -1503,7 +1596,9 @@ function Legs({
         </text>,
       );
   } else if (bottom.kind === 'leggings') {
-    ([-1, 1] as const).forEach((d) => legs.push(leg(d, hip * 0.48, 7, hipY, ankle, bottom.color)));
+    ([-1, 1] as const).forEach((d) =>
+      legs.push(leg(d, hip * (her ? 0.52 : 0.48), 7, hipY, ankle, bottom.color)),
+    );
     // a little sheen down the front of each leg
     ([-1, 1] as const).forEach((d) =>
       legs.push(
