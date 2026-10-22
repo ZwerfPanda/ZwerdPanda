@@ -2,6 +2,8 @@ import type {
   Album,
   AppContent,
   CocoContent,
+  CocoPet,
+  Welcome,
   Dream,
   Letter,
   Memory,
@@ -404,6 +406,27 @@ export const defaultCoco: CocoContent = {
   notes: [],
 };
 
+/** Coco's real details: a girl, born 1 June 2026, black with a grey undertone and white paws. */
+export const defaultPet: CocoPet = {
+  birthday: '2026-06-01',
+  sex: 'girl',
+  coat: 'Black with a grey undertone and white paws',
+  treats: { date: '', count: 0 },
+  bond: 0,
+  tricks: {},
+  outfit: 'none',
+  log: [],
+};
+
+/** Starter words for the welcome — meant to be rewritten in Settings. */
+export const defaultWelcome: Welcome = {
+  enabled: true,
+  title: '',
+  message:
+    'I made this little universe for us. Everything in here is ours — our story, our places, our letters and our plans. Look around, add to it, and make yourself at home.',
+  signature: '',
+};
+
 export function createDefaultContent(): AppContent {
   return {
     version: 1,
@@ -421,6 +444,9 @@ export function createDefaultContent(): AppContent {
       stars: defaultSurprises.stars.map((s) => ({ ...s })),
     },
     coco: { facts: defaultCoco.facts.map((f) => ({ ...f })), notes: [] },
+    pet: { ...defaultPet, treats: { ...defaultPet.treats }, tricks: {}, log: [] },
+    countdowns: [],
+    welcome: { ...defaultWelcome },
   };
 }
 
@@ -430,4 +456,5 @@ export const defaultPreferences: Preferences = {
   soundtrack: 'musicbox',
   volume: 0.6,
   worldLight: 'auto',
+  companion: true,
 };

@@ -13,6 +13,8 @@ import { InstallSheetHost } from '../pwa/InstallSheet';
 import { startSync } from '../sync/sync';
 import { HomePage } from '../features/home/HomePage';
 import { PageLoading } from './PageLoading';
+import { CocoCompanion } from '../features/pet/Companion';
+import { WelcomeHost } from '../features/welcome/Welcome';
 
 // Home ships with the first load; every other page is loaded on demand.
 const pages = {
@@ -154,10 +156,12 @@ export function App() {
         <TabBar />
         <MenuSheet open={menuOpen} onClose={() => setMenuOpen(false)} />
         <MiniPlayer />
+        {!introOpen && <CocoCompanion />}
         <Toaster />
         <ConfirmHost />
         <CelebrationHost />
         <InstallSheetHost />
+        {!introOpen && <WelcomeHost />}
         <AnimatePresence>{introOpen && <Intro key="intro" onEnter={closeIntro} />}</AnimatePresence>
       </MusicProvider>
     </MotionConfig>

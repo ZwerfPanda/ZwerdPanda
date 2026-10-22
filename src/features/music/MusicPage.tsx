@@ -13,6 +13,7 @@ import { SiteFooter } from '../../components/common/SiteFooter';
 import { INK, HeartShape } from '../../components/art/shapes';
 import { SongForm } from './SongForm';
 import './music.css';
+import { ByTag } from '../../components/common/ByTag';
 
 const SLEEVES = ['#d48d96', '#8e7cc3', '#e9906c', '#6f9160', '#52294f', '#e8bd6a'];
 
@@ -102,6 +103,7 @@ export function MusicPage() {
               </div>
               <div className="sleeve__body">
                 <SongLink title={song.title} artist={song.artist} url={song.url} />
+                <ByTag by={song.by} />
                 {song.why && (
                   <p className="sleeve__why">
                     <span>why it’s ours</span>

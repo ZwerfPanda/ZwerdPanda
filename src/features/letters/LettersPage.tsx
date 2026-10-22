@@ -15,6 +15,7 @@ import { Envelope } from './Envelope';
 import { LetterOpener, isDateLocked } from './LetterOpener';
 import { LetterForm } from './LetterForm';
 import './letters.css';
+import { ByTag } from '../../components/common/ByTag';
 
 type Filter = 'shelf' | 'unopened' | 'drafts';
 
@@ -211,6 +212,7 @@ function ShelfEnvelope({
         ) : null}
         {status}
         {letter.isSample && <span className="tag tag--sample">Starter</span>}
+        <ByTag by={letter.by} />
       </p>
     </motion.li>
   );

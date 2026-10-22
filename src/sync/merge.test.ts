@@ -126,3 +126,71 @@ describe('contentMediaIds', () => {
     expect(contentMediaIds(c).sort()).toEqual(['coco-photo', 'media-a']);
   });
 });
+
+describe('mergePet', () => {
+  const fed = (c: AppContent, at: string, by: 'you' | 'partner', bond: number): AppContent => ({
+    ...c,
+    pet: {
+      ...c.pet,
+      fedAt: at,
+      bond: c.pet.bond + bond,
+      log: [{ id: `log-${by}-${at}`, action: 'fed', detail: 'romaine', by, at }, ...c.pet.log],
+    },
+  });
+
+  it('counts care from both phones at the same time', () => {
+    const base = createDefaultContent();
+    base.pet.bond = 10;
+    const local = fed(base, '2026-10-22T09:00:00.000Z', 'you', 3);
+    const remote = fed(base, '2026-10-22T09:05:00.000Z', 'partner', 4);
+    const merged = mergeContent(base, local, remote).pet;
+    expect(merged.bond).toBe(17);
+    expect(merged.fedAt).toBe('2026-10-22T09:05:00.000Z');
+    expect(merged.log.map((e) => e.by)).toEqual(['partner', 'you']);
+  });
+
+  it('adds up trick training and treats, within limits', () => {
+    const base = createDefaultContent();
+    base.pet.tricks = { spin: 80 };
+    base.pet.treats = { date: '2026-10-22', count: 0 };
+    const local = {
+      ...base,
+      pet: { ...base.pet, tricks: { spin: 95 }, treats: { date: '2026-10-22', count: 1 } },
+    };
+    const remote = {
+      ...base,
+      pet: {
+        ...base.pet,
+        tricks: { spin: 90, boop: 10 },
+        treats: { date: '2026-10-22', count: 1 },
+      },
+    };
+    const merged = mergeContent(base, local, remote).pet;
+    expect(merged.tricks).toEqual({ spin: 100, boop: 10 });
+    expect(merged.treats).toEqual({ date: '2026-10-22', count: 2 });
+  });
+
+  it('keeps the newest day of treats when the days differ', () => {
+    const base = createDefaultContent();
+    const local = { ...base, pet: { ...base.pet, treats: { date: '2026-10-21', count: 2 } } };
+    const remote = { ...base, pet: { ...base.pet, treats: { date: '2026-10-22', count: 1 } } };
+    expect(mergeContent(base, local, remote).pet.treats).toEqual({ date: '2026-10-22', count: 1 });
+  });
+
+  it('merges countdowns and the welcome like everything else', () => {
+    const base = createDefaultContent();
+    const countdown = {
+      id: 'cd-1',
+      title: 'Next date',
+      date: '2026-11-01',
+      yearly: false,
+      icon: 'heart' as const,
+      createdAt: '2026-10-22T10:00:00.000Z',
+    };
+    const local = { ...base, countdowns: [countdown] };
+    const remote = { ...base, welcome: { ...base.welcome, seenAt: '2026-10-22T11:00:00.000Z' } };
+    const merged = mergeContent(base, local, remote);
+    expect(merged.countdowns.map((c) => c.id)).toEqual(['cd-1']);
+    expect(merged.welcome.seenAt).toBe('2026-10-22T11:00:00.000Z');
+  });
+});

@@ -22,18 +22,10 @@ import {
   useSyncState,
 } from '../../sync/sync';
 import { isValidConfig, looksLikeSecretKey } from '../../sync/config';
+import { timeAgo } from '../../lib/dates';
 import type { SyncState } from '../../sync/types';
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
-
-export function timeAgo(iso: string | null): string {
-  if (!iso) return '';
-  const seconds = Math.max(0, (Date.now() - Date.parse(iso)) / 1000);
-  if (seconds < 45) return 'just now';
-  if (seconds < 3600) return `${Math.round(seconds / 60)} min ago`;
-  if (seconds < 86_400) return `${Math.round(seconds / 3600)} h ago`;
-  return new Date(iso).toLocaleDateString();
-}
 
 /** Runs an async action with a busy flag and turns errors into a message. */
 function useAction() {

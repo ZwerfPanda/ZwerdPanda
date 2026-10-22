@@ -12,11 +12,14 @@ import { EmptyState, PageHeader, TextArea, TextField } from '../../components/ui
 import { celebrateFrom, confirm, toast } from '../../components/ui/feedback';
 import { MediaView } from '../../components/media/MediaView';
 import { MediaPicker } from '../../components/media/MediaPicker';
-import { CocoFigure } from '../../components/art/SampleArt';
 import { SiteFooter } from '../../components/common/SiteFooter';
 import { useReducedMotion } from '../../hooks/useMotion';
 import { MemoryForm } from '../memories/MemoryForm';
+import { CocoDen } from '../pet/CocoDen';
+import { BunnySvg } from '../pet/Bunny';
 import './coco.css';
+import { getAuthor } from '../../data/people';
+import { ByTag } from '../../components/common/ByTag';
 
 const COCO_ALBUM = 'album-coco';
 
@@ -30,8 +33,9 @@ export function CocoPage() {
             Coco’s <em>Corner</em>
           </>
         }
-        lede="Our little dwarf rabbit. Photos, funny moments, and the official facts."
+        lede="Our little dwarf rabbit. Feed her, cuddle her and teach her tricks together — plus her photos, funny moments and the official facts."
       />
+      <CocoDen />
       <div className="coco-top">
         <Portrait />
         <BunnyId />
@@ -45,6 +49,7 @@ export function CocoPage() {
 
 function Portrait() {
   const portrait = useContent((c) => c.coco.portrait);
+  const outfit = useContent((c) => c.pet.outfit);
   const reduce = useReducedMotion();
   const [hops, setHops] = useState(0);
   const [picking, setPicking] = useState(false);
@@ -66,16 +71,15 @@ function Portrait() {
         {portrait ? (
           <MediaView source={portrait} alt="Coco" />
         ) : (
-          <motion.svg
+          <motion.div
             key={hops}
-            viewBox="-80 -95 160 190"
             className="portrait__art"
             initial={false}
             animate={hops && !reduce ? { y: [0, -30, 0, -10, 0], rotate: [0, -10, 8, 0, 0] } : {}}
             transition={{ duration: 0.9 }}
           >
-            <CocoFigure x={0} y={0} blink={hops % 4 === 3} />
-          </motion.svg>
+            <BunnySvg outfit={outfit} face={hops % 4 === 3 ? 'happy' : 'open'} />
+          </motion.div>
         )}
       </button>
       <p className="portrait__name">Coco</p>
@@ -141,6 +145,7 @@ function Portrait() {
 
 function BunnyId() {
   const facts = useContent((c) => c.coco.facts);
+  const pet = useContent((c) => c.pet);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<CocoFact[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -243,6 +248,18 @@ function BunnyId() {
         </form>
       ) : (
         <dl className="bunny-id__facts">
+          <div>
+            <dt>Born</dt>
+            <dd>{formatDate(pet.birthday)}</dd>
+          </div>
+          <div>
+            <dt>She’s a</dt>
+            <dd>{pet.sex === 'girl' ? 'Girl' : 'Boy'}</dd>
+          </div>
+          <div>
+            <dt>Coat</dt>
+            <dd>{pet.coat}</dd>
+          </div>
           {facts.map((f) => (
             <div key={f.id}>
               <dt>{f.label}</dt>
@@ -340,6 +357,7 @@ function CocoNotes() {
       id: form.note?.id ?? createId('coconote'),
       text: text.trim(),
       date: date || undefined,
+      by: form.note?.by ?? getAuthor(),
       createdAt: form.note?.createdAt ?? nowIso(),
     };
     updateCoco({
@@ -383,7 +401,9 @@ function CocoNotes() {
             <li key={n.id} className="coco-note">
               <p className="coco-note__text">{n.text}</p>
               <div className="coco-note__foot">
-                <span>{n.date ? formatDate(n.date) : ''}</span>
+                <span>
+                  {n.date ? formatDate(n.date) : ''} <ByTag by={n.by} />
+                </span>
                 <button
                   type="button"
                   className="icon-btn"

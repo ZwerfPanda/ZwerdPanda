@@ -1,0 +1,84 @@
+.welcome {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: calc(var(--safe-top) + 40px) 24px calc(var(--safe-bottom) + 40px);
+  background: radial-gradient(130% 90% at 50% 0%, #573466 0%, #2d172f 55%, #1a0d1f 100%);
+  color: #fff4ea;
+  text-align: center;
+}
+
+.welcome__stars {
+  position: fixed;
+  inset: 0;
+}
+
+.welcome__inner {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  width: min(100%, 560px);
+}
+
+.welcome__coco {
+  width: 120px;
+  height: 136px;
+}
+
+.welcome__coco svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.welcome__title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8vw, 3rem);
+  font-weight: 500;
+  line-height: 1.05;
+  font-style: italic;
+}
+
+.welcome__letter {
+  display: grid;
+  gap: 12px;
+  padding: 22px 22px 20px;
+  border-radius: 20px;
+  background: #fffaf2;
+  color: #3d1f3a;
+  font-family: var(--font-display);
+  font-size: 1.06rem;
+  line-height: 1.6;
+  text-align: left;
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
+  rotate: -0.6deg;
+}
+
+.welcome__sign {
+  justify-self: end;
+  font-family: var(--font-hand);
+  font-size: 1.6rem;
+  line-height: 1;
+  color: #8f3f5c;
+}
+
+.welcome__enter {
+  min-height: 52px;
+  padding: 0 30px;
+  border-radius: var(--radius-pill);
+  background: var(--gold-200);
+  color: var(--plum-800);
+  font-size: 1.05rem;
+  font-weight: 700;
+  box-shadow: 0 10px 30px -10px rgba(232, 189, 106, 0.8);
+}
+
+.welcome__enter:focus-visible {
+  outline: 3px solid #fff4ea;
+  outline-offset: 3px;
+}

@@ -41,7 +41,8 @@ export interface SyncBackend {
   joinInvitedSpace(): Promise<string | null>;
   createSpace(partnerEmail: string): Promise<string>;
   invite(spaceId: string, email: string): Promise<void>;
-  people(spaceId: string): Promise<{ members: string[]; invites: string[] }>;
+  /** Members, open invites, and the email of whoever created the universe. */
+  people(spaceId: string): Promise<{ members: string[]; invites: string[]; owner: string | null }>;
 
   fetchContent(spaceId: string): Promise<RemoteContent>;
   saveContent(spaceId: string, expectedVersion: number, content: unknown): Promise<SaveResult>;
@@ -70,6 +71,8 @@ export interface SyncState {
   spaceId: string | null;
   members: string[];
   invites: string[];
+  /** Email of the person who created the shared universe. */
+  owner: string | null;
   lastSyncedAt: string | null;
   pendingChanges: boolean;
   uploading: number;

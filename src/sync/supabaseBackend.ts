@@ -151,13 +151,17 @@ export function createSupabaseBackend(config: SyncConfig): SyncBackend {
     },
 
     async people(spaceId) {
-      const [members, invites] = await Promise.all([
-        call(client.from('space_members').select('email').eq('space_id', spaceId)),
+      const [space, members, invites] = await Promise.all([
+        call(client.from('spaces').select('created_by').eq('id', spaceId).maybeSingle()),
+        call(client.from('space_members').select('email, user_id').eq('space_id', spaceId)),
         call(client.from('space_invites').select('email').eq('space_id', spaceId)),
       ]);
+      const list = members as { email: string; user_id: string }[];
+      const ownerId = (space as { created_by: string } | null)?.created_by;
       return {
-        members: (members as { email: string }[]).map((m) => m.email),
+        members: list.map((m) => m.email),
         invites: (invites as { email: string }[]).map((i) => i.email),
+        owner: list.find((m) => m.user_id === ownerId)?.email ?? null,
       };
     },
 

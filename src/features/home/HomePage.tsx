@@ -11,6 +11,8 @@ import { Counter } from './Counter';
 import { Explore } from './Explore';
 import { InstallBanner } from '../../pwa/InstallBanner';
 import './home.css';
+import { Countdowns } from './Countdowns';
+import { WhatsNew } from './WhatsNew';
 
 export function HomePage() {
   const profile = useContent((c) => c.profile);
@@ -35,10 +37,12 @@ export function HomePage() {
       </section>
 
       <div className="home__body">
+        <WhatsNew />
         <div className="home__lead">
           <Counter />
           <HomeNote />
         </div>
+        <Countdowns />
         <InstallBanner />
         <Explore />
         <TodayNote />

@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { getContent, onContentChanged, replaceContent } from '../data/store';
 import { normalizeContent } from '../data/normalize';
+import { setMe } from '../data/people';
 import { getMedia, retryMissingMedia, setRemoteMediaSource } from '../lib/media';
 import { SyncEngine, type EngineDeps } from './engine';
 import { clearDeviceConfig, resolveSyncConfig, saveDeviceConfig, type SyncConfig } from './config';
@@ -17,6 +18,7 @@ const OFF: SyncState = {
   spaceId: null,
   members: [],
   invites: [],
+  owner: null,
   lastSyncedAt: null,
   pendingChanges: false,
   uploading: 0,
@@ -32,6 +34,8 @@ const listeners = new Set<() => void>();
 
 function setState(next: SyncState) {
   state = next;
+  // Whoever created the universe is `you`; the other signed-in person is `partner`.
+  if (next.account && next.owner) setMe(next.account.email === next.owner ? 'you' : 'partner');
   listeners.forEach((listener) => listener());
 }
 

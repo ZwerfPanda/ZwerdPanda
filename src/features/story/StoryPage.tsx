@@ -15,6 +15,7 @@ import { ChapterView } from './ChapterView';
 import { MilestoneForm } from './MilestoneForm';
 import { motifFor, roman } from './motifs';
 import './story.css';
+import { ByTag } from '../../components/common/ByTag';
 
 type Track = 'rail' | 'road' | 'stars';
 
@@ -221,6 +222,7 @@ function TimelineEntry({
 
         <div className="tl__foot">
           {m.isSample && <span className="tag tag--sample">Sample</span>}
+          <ByTag by={m.by} />
           {m.song && <span className="tag">♫ {m.song.title}</span>}
           <button
             type="button"

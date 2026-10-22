@@ -682,41 +682,46 @@ export function CocoFigure({
   scale?: number;
   blink?: boolean;
 }) {
+  // Coco: black coat with a grey undertone, white paws, short dwarf ears.
+  const fur = '#2b2730';
+  const grey = '#58525f';
+  const light = '#d9d1dd';
   return (
     <g transform={`translate(${x} ${y}) scale(${scale})`}>
-      <ellipse cx="38" cy="58" rx="13" ry="12" fill="#fffcf6" {...S} />
-      <ellipse cx="0" cy="44" rx="50" ry="38" fill="#d9b48f" {...S} />
-      <g transform="rotate(-14 -18 -44)">
-        <ellipse cx="-18" cy="-50" rx="11" ry="25" fill="#d9b48f" {...S} />
-        <ellipse cx="-18" cy="-48" rx="5" ry="16" fill="#f5dad6" />
+      <ellipse cx="38" cy="58" rx="12" ry="11" fill={grey} {...S} />
+      <ellipse cx="0" cy="44" rx="50" ry="38" fill={fur} {...S} />
+      <ellipse cx="0" cy="50" rx="27" ry="23" fill={grey} opacity="0.55" />
+      <g transform="rotate(-14 -18 -40)">
+        <ellipse cx="-18" cy="-44" rx="11" ry="20" fill={fur} {...S} />
+        <ellipse cx="-18" cy="-42" rx="4.5" ry="12" fill="#b88a96" />
       </g>
-      <g transform="rotate(16 18 -44)">
-        <ellipse cx="18" cy="-50" rx="11" ry="25" fill="#d9b48f" {...S} />
-        <ellipse cx="18" cy="-48" rx="5" ry="16" fill="#f5dad6" />
+      <g transform="rotate(16 18 -40)">
+        <ellipse cx="18" cy="-44" rx="11" ry="20" fill={fur} {...S} />
+        <ellipse cx="18" cy="-42" rx="4.5" ry="12" fill="#b88a96" />
       </g>
-      <ellipse cx="0" cy="-4" rx="38" ry="34" fill="#d9b48f" {...S} />
-      <ellipse cx="0" cy="12" rx="17" ry="12" fill="#f0dcc4" />
+      <ellipse cx="0" cy="-4" rx="38" ry="34" fill={fur} {...S} />
+      <ellipse cx="0" cy="12" rx="15" ry="10" fill={grey} />
       {blink ? (
-        <>
-          <path
-            d="M-20 -8q6 5 12 0M8 -8q6 5 12 0"
-            fill="none"
-            stroke={INK}
-            strokeWidth="3"
-            strokeLinecap="round"
-          />
-        </>
+        <path
+          d="M-20 -8q6 5 12 0M8 -8q6 5 12 0"
+          fill="none"
+          stroke={light}
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
       ) : (
         <>
-          <circle cx="-14" cy="-8" r="5.5" fill={INK} />
-          <circle cx="14" cy="-8" r="5.5" fill={INK} />
-          <circle cx="-12" cy="-10" r="1.8" fill="#fff" />
-          <circle cx="16" cy="-10" r="1.8" fill="#fff" />
+          <circle cx="-14" cy="-8" r="7.5" fill={grey} />
+          <circle cx="14" cy="-8" r="7.5" fill={grey} />
+          <circle cx="-14" cy="-8" r="5.6" fill="#120e15" />
+          <circle cx="14" cy="-8" r="5.6" fill="#120e15" />
+          <circle cx="-12" cy="-10.5" r="1.9" fill="#fff" />
+          <circle cx="16" cy="-10.5" r="1.9" fill="#fff" />
         </>
       )}
       <path
         d="M-4 5h8l-4 5z"
-        fill="#d48d96"
+        fill="#dc8e9c"
         stroke={INK}
         strokeWidth="1.5"
         strokeLinejoin="round"
@@ -724,14 +729,14 @@ export function CocoFigure({
       <path
         d="M0 10v3M0 13q-4 4-7 1M0 13q4 4 7 1"
         fill="none"
-        stroke={INK}
+        stroke={light}
         strokeWidth="2"
         strokeLinecap="round"
       />
-      <circle cx="-24" cy="8" r="6" fill="#ebbfba" opacity="0.8" />
-      <circle cx="24" cy="8" r="6" fill="#ebbfba" opacity="0.8" />
-      <ellipse cx="-16" cy="76" rx="12" ry="7" fill="#f0dcc4" {...S} />
-      <ellipse cx="16" cy="76" rx="12" ry="7" fill="#f0dcc4" {...S} />
+      <circle cx="-24" cy="8" r="6" fill="#c98591" opacity="0.4" />
+      <circle cx="24" cy="8" r="6" fill="#c98591" opacity="0.4" />
+      <ellipse cx="-16" cy="76" rx="12" ry="7" fill="#f7f3ee" {...S} />
+      <ellipse cx="16" cy="76" rx="12" ry="7" fill="#f7f3ee" {...S} />
     </g>
   );
 }

@@ -6,6 +6,7 @@ import { updateContent } from '../../data/store';
 import type { Song } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
 import { describeLink, isHttpUrl } from '../../lib/embeds';
+import { getAuthor } from '../../data/people';
 
 export function SongForm({
   open,
@@ -54,6 +55,7 @@ export function SongForm({
       why: why.trim() || undefined,
       memory: memory.trim() || undefined,
       favorite,
+      by: song?.by ?? getAuthor(),
       createdAt: song?.createdAt ?? nowIso(),
     };
     updateContent((c) => ({

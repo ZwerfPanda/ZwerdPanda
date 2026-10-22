@@ -115,7 +115,11 @@ class FakeBackend implements SyncBackend {
   }
   async people(spaceId: string) {
     const space = this.member(spaceId);
-    return { members: space.members.map((m) => m.email), invites: space.invites };
+    return {
+      members: space.members.map((m) => m.email),
+      invites: space.invites,
+      owner: space.members[0]?.email ?? null,
+    };
   }
   async fetchContent(spaceId: string) {
     this.server.check();
@@ -257,6 +261,15 @@ describe('SyncEngine with two phones', () => {
     expect(shenaya.content.profile.startDate).toBe('2026-03-10');
     expect(server.rows.size).toBe(1);
     expect(stableEqual(valencio.content, shenaya.content)).toBe(true);
+  });
+
+  it('notices the other person joining and knows who created the universe', async () => {
+    const { valencio, shenaya } = await connectedPair();
+    await valencio.engine.syncNow();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(valencio.engine.getState().members).toHaveLength(2);
+    expect(valencio.engine.getState().owner).toBe(valencio.engine.getState().account?.email);
+    expect(shenaya.engine.getState().owner).toBe(valencio.engine.getState().account?.email);
   });
 
   it('merges edits made on both phones at the same time', async () => {

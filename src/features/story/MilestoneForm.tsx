@@ -9,6 +9,7 @@ import { createId, nowIso } from '../../lib/id';
 import { isHttpUrl } from '../../lib/embeds';
 import { isValidIsoDate } from '../../lib/dates';
 import { MOTIFS } from './motifs';
+import { getAuthor } from '../../data/people';
 
 interface Draft {
   title: string;
@@ -120,6 +121,7 @@ export function MilestoneForm({
       favorite: draft.favorite,
       future: milestone?.future,
       isSample: false,
+      by: milestone?.by ?? getAuthor(),
       createdAt: milestone?.createdAt ?? nowIso(),
     };
 

@@ -9,6 +9,7 @@ import { moveItem, removeItem, restoreItem, toggleFavorite } from '../../data/ac
 import { getContent, useContent } from '../../data/store';
 import { formatDate } from '../../lib/dates';
 import { motifFor, roman } from './motifs';
+import { ByTag } from '../../components/common/ByTag';
 
 export function ChapterView({
   openId,
@@ -176,6 +177,7 @@ export function ChapterView({
                   : milestone.dateLabel || (milestone.future ? 'someday' : 'date to add')}
               </span>
               {milestone.isSample && <span className="tag tag--sample">Sample chapter</span>}
+              <ByTag by={milestone.by} />
               {milestone.favorite && (
                 <span className="tag">
                   <Heart fill="currentColor" aria-hidden="true" /> Favourite

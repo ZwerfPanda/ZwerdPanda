@@ -8,6 +8,7 @@ import type { Dream, DreamCategory, DreamStatus, MediaSource } from '../../data/
 import { createId, nowIso } from '../../lib/id';
 import { isValidIsoDate } from '../../lib/dates';
 import { CATEGORIES, CATEGORY_ORDER, STATUSES } from './dreamMeta';
+import { getAuthor } from '../../data/people';
 
 interface Draft {
   title: string;
@@ -92,6 +93,7 @@ export function DreamForm({
       someday: draft.someday,
       completedAt: becameDone ? nowIso() : draft.status === 'done' ? dream?.completedAt : undefined,
       isSample: false,
+      by: dream?.by ?? getAuthor(),
       createdAt: dream?.createdAt ?? nowIso(),
     };
     updateContent((c) => ({

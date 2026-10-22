@@ -16,6 +16,7 @@ import {
   plural,
 } from '../../lib/dates';
 import { useToday } from '../../hooks/useToday';
+import { getAuthor } from '../../data/people';
 
 /** Letters to our future selves, sealed until the day we choose. */
 export function Capsules() {
@@ -185,6 +186,7 @@ function CapsuleForm({ open, onClose }: { open: boolean; onClose: () => void }) 
       from: from.trim(),
       body: body.trim(),
       openOn,
+      by: getAuthor(),
       createdAt: nowIso(),
     };
     updateContent((c) => ({

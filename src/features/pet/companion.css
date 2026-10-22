@@ -1,0 +1,187 @@
+/* Little Coco who hops along on every page */
+.companion {
+  position: fixed;
+  left: calc(14px + var(--safe-left));
+  bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 16px);
+  z-index: 780;
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  pointer-events: none;
+}
+
+@media (min-width: 900px) {
+  .companion {
+    left: auto;
+    right: 24px;
+    bottom: 22px;
+    justify-items: end;
+  }
+}
+
+.companion > * {
+  pointer-events: auto;
+}
+
+.companion__coco {
+  position: relative;
+  width: 62px;
+  height: 70px;
+  padding: 0;
+  border: 0;
+  background: none;
+  filter: drop-shadow(0 6px 10px rgba(45, 23, 47, 0.25));
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (min-width: 900px) {
+  .companion__coco {
+    width: 76px;
+    height: 86px;
+  }
+}
+
+.companion__coco svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.companion__coco:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 40%;
+}
+
+.companion__need {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fffcf6;
+  color: #e48a3c;
+  box-shadow: var(--shadow-1);
+  animation: companion-need 1.8s ease-in-out infinite;
+}
+
+.companion__need--love {
+  color: #e6728b;
+}
+
+.companion__need svg {
+  width: 16px;
+  height: 16px;
+}
+
+@keyframes companion-need {
+  50% {
+    transform: translateY(-4px) scale(1.06);
+  }
+}
+
+.companion__zz {
+  position: absolute;
+  top: 2px;
+  right: -4px;
+  color: var(--plum-700);
+  font-family: var(--font-hand);
+  font-size: 1.2rem;
+  animation: companion-zz 2.4s ease-in-out infinite;
+}
+
+[data-theme='midnight'] .companion__zz {
+  color: #fff4ea;
+}
+
+.companion__hearts {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  color: #e6728b;
+  font-size: 1rem;
+  white-space: nowrap;
+  translate: -50% 0;
+  animation: companion-float 1.2s var(--ease-out) forwards;
+}
+
+.companion__line,
+.companion__menu {
+  max-width: 230px;
+  border-radius: 16px;
+  background: #fffcf6;
+  color: var(--plum-800);
+  box-shadow: var(--shadow-2);
+}
+
+.companion__line {
+  padding: 8px 12px;
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.companion__menu {
+  display: grid;
+  gap: 2px;
+  min-width: 210px;
+  padding: 8px;
+}
+
+.companion__menu-title {
+  padding: 4px 8px 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--plum-700);
+}
+
+.companion__menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 10px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.companion__menu button:hover,
+.companion__menu button:focus-visible {
+  background: #f8e6e8;
+}
+
+.companion__menu svg {
+  width: 18px;
+  height: 18px;
+  color: #b8566f;
+}
+
+@keyframes companion-zz {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+@keyframes companion-float {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  20% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}

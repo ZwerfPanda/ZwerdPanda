@@ -148,6 +148,10 @@ goed om het meteen te doen.
    - Alles wat nu op jouw telefoon staat, wordt de gedeelde versie, inclusief foto's.
    - Je ziet *Synced just now* en haar adres met *invited · waiting to join*.
 
+**Tip voor de verrassing:** schrijf in **Settings → A welcome for Shenaya** je eigen
+welkomstwoorden. Die ziet ze één keer, schermvullend, de eerste keer dat ze inlogt. Met
+**Preview** zie je het zelf alvast; daarna zie je in Settings wanneer zij het geopend heeft.
+
 **Op haar telefoon (Shenaya):**
 1. Open dezelfde link in Safari.
 2. Ga naar **Settings → Together on every device → Sign in** en log in met haar

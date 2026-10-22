@@ -945,3 +945,24 @@
   background: rgba(63, 33, 64, 0.08);
   color: var(--paper-ink-soft);
 }
+
+/* "from Valencio" / "from Shenaya" */
+.by-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-wash);
+  color: var(--accent-strong);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.by-tag--partner {
+  background: var(--lavender-100);
+  color: var(--lavender-500);
+}

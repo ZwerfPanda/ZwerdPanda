@@ -191,6 +191,9 @@ export function usePrefs(): Preferences {
 export function resetAllLocalData() {
   adapter.clear();
   storage?.removeItem(PREFS_KEY);
+  // Who-am-I and last-visit markers belong to this device too.
+  storage?.removeItem('olu:me:v1');
+  storage?.removeItem('olu:last-visit:v1');
   content = createDefaultContent();
   prefs = { ...defaultPreferences };
   contentListeners.forEach((listener) => listener());

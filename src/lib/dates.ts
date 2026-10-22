@@ -122,3 +122,18 @@ export function formatTimestamp(iso: string | undefined): string {
 export function plural(count: number, one: string, many = `${one}s`): string {
   return `${count} ${count === 1 ? one : many}`;
 }
+
+/** "just now", "5 min ago", "3 h ago", or the date. */
+export function timeAgo(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const seconds = Math.max(0, (Date.now() - Date.parse(iso)) / 1000);
+  if (Number.isNaN(seconds)) return '';
+  if (seconds < 45) return 'just now';
+  if (seconds < 3600) return `${Math.round(seconds / 60)} min ago`;
+  if (seconds < 86_400) return `${Math.round(seconds / 3600)} h ago`;
+  if (seconds < 7 * 86_400) {
+    const days = Math.round(seconds / 86_400);
+    return days === 1 ? 'yesterday' : `${days} days ago`;
+  }
+  return new Date(iso).toLocaleDateString();
+}

@@ -42,7 +42,13 @@
 .portrait__art {
   width: 100%;
   height: 100%;
-  padding: 12%;
+  padding: 10%;
+  overflow: visible;
+}
+
+.portrait__art svg {
+  width: 100%;
+  height: 100%;
   overflow: visible;
 }
 

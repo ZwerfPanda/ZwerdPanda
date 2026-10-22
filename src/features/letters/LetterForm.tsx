@@ -7,6 +7,7 @@ import type { Letter, LetterColor, SealIcon } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
 import { isValidIsoDate, todayIso } from '../../lib/dates';
 import { LETTER_COLORS, SEALS } from './letterStyle';
+import { getAuthor } from '../../data/people';
 
 interface Draft {
   occasion: string;
@@ -111,6 +112,7 @@ export function LetterForm({
       lock: draft.lock === 'date' ? { type: 'date', until: draft.until } : { type: draft.lock },
       readAt: letter?.readAt,
       isSample: false,
+      by: letter?.by ?? getAuthor(),
       createdAt: letter?.createdAt ?? nowIso(),
     };
     updateContent((c) => ({

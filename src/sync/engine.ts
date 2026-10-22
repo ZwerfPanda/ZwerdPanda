@@ -49,6 +49,7 @@ const INITIAL: SyncState = {
   spaceId: null,
   members: [],
   invites: [],
+  owner: null,
   lastSyncedAt: null,
   pendingChanges: false,
   uploading: 0,
@@ -276,6 +277,8 @@ export class SyncEngine {
         pendingChanges: this.meta.pending,
       });
       void this.uploadMedia();
+      // Until both of us are in, keep an eye out for the other person joining.
+      if (this.state.members.length < 2) void this.refreshPeople();
     } catch (error) {
       this.fail(error);
     } finally {
@@ -355,7 +358,7 @@ export class SyncEngine {
     if (!this.state.spaceId) return;
     try {
       const people = await this.backend.people(this.state.spaceId);
-      this.set({ members: people.members, invites: people.invites });
+      this.set({ members: people.members, invites: people.invites, owner: people.owner });
     } catch {
       // Not important enough to interrupt anything.
     }

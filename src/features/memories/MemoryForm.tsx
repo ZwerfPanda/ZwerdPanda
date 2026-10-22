@@ -7,6 +7,7 @@ import { updateContent, useContent } from '../../data/store';
 import type { MediaSource, Memory } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
 import { isValidIsoDate } from '../../lib/dates';
+import { getAuthor } from '../../data/people';
 
 interface Draft {
   media: MediaSource[];
@@ -114,6 +115,7 @@ export function MemoryForm({
       const created: Memory[] = draft.media.map((media) => ({
         id: createId('mem'),
         media,
+        by: getAuthor(),
         createdAt: nowIso(),
         ...details,
       }));

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Download,
   Eraser,
+  Eye,
   HardDrive,
   Music,
   Pause,
@@ -15,6 +16,7 @@ import {
 import {
   resetAllLocalData,
   storageAvailable,
+  updateContent,
   updatePrefs,
   useContent,
   usePrefs,
@@ -23,8 +25,9 @@ import { countSamples, removeSampleContent, updateProfile } from '../../data/act
 import { applyBackup, createBackup, downloadBlob, readBackup } from '../../data/backup';
 import type { Profile, ThemeName } from '../../data/types';
 import { MAX_AUDIO_BYTES, clearMedia, deleteMedia, formatBytes, putMedia } from '../../lib/media';
-import { todayIso } from '../../lib/dates';
-import { PageHeader, Segmented, TextArea, TextField } from '../../components/ui/Fields';
+import { formatTimestamp, todayIso } from '../../lib/dates';
+import { previewWelcome } from '../welcome/Welcome';
+import { Checkbox, PageHeader, Segmented, TextArea, TextField } from '../../components/ui/Fields';
 import { confirm, toast } from '../../components/ui/feedback';
 import { useMusic } from '../../components/music/MusicProvider';
 import { SiteFooter } from '../../components/common/SiteFooter';
@@ -57,6 +60,7 @@ export function SettingsPage() {
       <div className="settings-grid">
         <ProfileSection />
         <TogetherSection />
+        <WelcomeSection />
         <AppSection />
         <LookSection />
         <SoundSection />
@@ -87,6 +91,112 @@ function Section({
       </h2>
       {children}
     </section>
+  );
+}
+
+/* ---------------------------------------------------------------- Welcome */
+
+function WelcomeSection() {
+  const welcome = useContent((c) => c.welcome);
+  const profile = useContent((c) => c.profile);
+  const [title, setTitle] = useState(welcome.title);
+  const [message, setMessage] = useState(welcome.message);
+  const [signature, setSignature] = useState(welcome.signature);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setTitle(welcome.title);
+    setMessage(welcome.message);
+    setSignature(welcome.signature);
+  }, [welcome.title, welcome.message, welcome.signature]);
+
+  const dirty =
+    title !== welcome.title || message !== welcome.message || signature !== welcome.signature;
+  const save = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!message.trim()) {
+      setError('Write a few words — this is the first thing she reads.');
+      return;
+    }
+    setError(null);
+    updateContent((c) => ({
+      ...c,
+      welcome: {
+        ...c.welcome,
+        title: title.trim(),
+        message: message.trim(),
+        signature: signature.trim(),
+      },
+    }));
+    toast('Welcome saved');
+  };
+  const setWelcome = (patch: Partial<typeof welcome>) =>
+    updateContent((c) => ({ ...c, welcome: { ...c.welcome, ...patch } }));
+
+  return (
+    <Section
+      id="welcome"
+      title={`A welcome for ${profile.partnerName}`}
+      kicker="the very first moment"
+    >
+      <p className="settings-text">
+        The first time {profile.partnerName} signs in on her phone, our universe opens with this
+        message — once, full-screen, with Coco hopping in. Only she sees it.
+      </p>
+      <Checkbox
+        label="Show the welcome the first time she signs in"
+        checked={welcome.enabled}
+        onChange={(on) => setWelcome({ enabled: on })}
+      />
+      <form className="form" onSubmit={save} noValidate>
+        <TextField
+          label="Title"
+          optional
+          value={title}
+          onChange={setTitle}
+          placeholder={`Welcome home, ${profile.partnerName}`}
+          maxLength={120}
+        />
+        <TextArea label="Message" value={message} onChange={setMessage} rows={6} error={error} />
+        <TextField
+          label="Signed"
+          optional
+          value={signature}
+          onChange={setSignature}
+          placeholder={`— ${profile.yourName}`}
+          maxLength={80}
+        />
+        <div className="settings-actions">
+          <button type="submit" className="btn btn--primary" disabled={!dirty}>
+            Save welcome
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={previewWelcome}
+            disabled={dirty}
+          >
+            <Eye aria-hidden="true" /> Preview
+          </button>
+        </div>
+      </form>
+      <p className="field__hint">
+        {welcome.seenAt ? (
+          <>
+            {profile.partnerName} opened it on {formatTimestamp(welcome.seenAt)} ♡{' '}
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => setWelcome({ seenAt: undefined })}
+            >
+              Show it again next time
+            </button>
+          </>
+        ) : (
+          'Not seen yet.'
+        )}
+      </p>
+    </Section>
   );
 }
 
@@ -255,6 +365,7 @@ function ProfileSection() {
 
 function AppSection() {
   const install = useInstall();
+  const { companion } = usePrefs();
   return (
     <Section id="app" title="The app" kicker="on any phone or computer">
       <p className="settings-text">
@@ -268,6 +379,11 @@ function AppSection() {
           {install.installed ? 'Install on another device' : 'Install the app'}
         </button>
       </div>
+      <Checkbox
+        label="Take Coco along — she hops along in a corner of every page"
+        checked={companion}
+        onChange={(on) => updatePrefs({ companion: on })}
+      />
     </Section>
   );
 }

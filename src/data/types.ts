@@ -8,6 +8,12 @@
 
 export type ID = string;
 
+/**
+ * Which of the two of us made something: `you` is the person who set the site
+ * up (profile.yourName), `partner` is profile.partnerName.
+ */
+export type Person = 'you' | 'partner';
+
 /** Illustrated placeholder artwork that ships with the site. */
 export type ArtKey =
   | 'phone'
@@ -72,6 +78,7 @@ export interface Milestone {
   /** Marks the "still to be written" chapter at the end of the line. */
   future?: boolean;
   isSample?: boolean;
+  by?: Person;
   createdAt: string;
 }
 
@@ -90,6 +97,7 @@ export interface Memory {
   media: MediaSource;
   favorite: boolean;
   isSample?: boolean;
+  by?: Person;
   createdAt: string;
 }
 
@@ -112,6 +120,7 @@ export interface Letter {
   lock: LetterLock;
   readAt?: string;
   isSample?: boolean;
+  by?: Person;
   createdAt: string;
 }
 
@@ -140,6 +149,7 @@ export interface Dream {
   someday: boolean;
   completedAt?: string;
   isSample?: boolean;
+  by?: Person;
   createdAt: string;
 }
 
@@ -151,6 +161,7 @@ export interface TimeCapsule {
   /** Date (YYYY-MM-DD) on which the capsule unseals itself. */
   openOn: string;
   openedAt?: string;
+  by?: Person;
   createdAt: string;
 }
 
@@ -162,6 +173,7 @@ export interface Song {
   why?: string;
   memory?: string;
   favorite: boolean;
+  by?: Person;
   createdAt: string;
 }
 
@@ -189,6 +201,7 @@ export interface CocoNote {
   id: ID;
   text: string;
   date?: string;
+  by?: Person;
   createdAt: string;
 }
 
@@ -196,6 +209,104 @@ export interface CocoContent {
   portrait?: MediaSource;
   facts: CocoFact[];
   notes: CocoNote[];
+}
+
+/* ------------------------------------------------------------ digital Coco */
+
+export type PetFood =
+  | 'hay'
+  | 'pellets'
+  | 'romaine'
+  | 'parsley'
+  | 'coriander'
+  | 'basil'
+  | 'carrot'
+  | 'apple'
+  | 'banana'
+  | 'strawberry';
+
+export type PetTrick = 'come' | 'boop' | 'spin' | 'stand' | 'jump';
+export type PetOutfit = 'none' | 'bow' | 'flowers' | 'scarf' | 'party';
+
+export type PetAction =
+  | 'fed'
+  | 'treat'
+  | 'hay'
+  | 'petted'
+  | 'played'
+  | 'groomed'
+  | 'trained'
+  | 'learned'
+  | 'outfit';
+
+export interface PetLogEntry {
+  id: ID;
+  action: PetAction;
+  /** Food, toy, trick or outfit involved. */
+  detail?: string;
+  by?: Person;
+  at: string;
+}
+
+/**
+ * Our digital Coco. Her needs aren't stored as numbers that tick down — they
+ * are worked out from when she was last fed, cuddled, played with or brushed,
+ * so both phones always agree and nothing needs to run in the background.
+ */
+export interface CocoPet {
+  /** Real facts about Coco. */
+  birthday: string;
+  sex: 'girl' | 'boy';
+  coat: string;
+  fedAt?: string;
+  hayAt?: string;
+  pettedAt?: string;
+  playedAt?: string;
+  groomedAt?: string;
+  /** Treats are small and few: counted per calendar day. */
+  treats: { date: string; count: number };
+  /** Grows with every bit of care, from both of us. */
+  bond: number;
+  /** Training progress per trick, 0–100. */
+  tricks: Partial<Record<PetTrick, number>>;
+  outfit: PetOutfit;
+  log: PetLogEntry[];
+}
+
+/* -------------------------------------------------------------- countdowns */
+
+export type CountdownIcon =
+  | 'heart'
+  | 'star'
+  | 'plane'
+  | 'gift'
+  | 'cake'
+  | 'home'
+  | 'music'
+  | 'matcha';
+
+export interface Countdown {
+  id: ID;
+  title: string;
+  /** YYYY-MM-DD */
+  date: string;
+  /** Yearly countdowns roll over to next year once the day has passed. */
+  yearly: boolean;
+  icon: CountdownIcon;
+  by?: Person;
+  createdAt: string;
+}
+
+/* ---------------------------------------------------------------- welcome */
+
+/** The one-time welcome the partner sees the first time she signs in. */
+export interface Welcome {
+  enabled: boolean;
+  title: string;
+  message: string;
+  signature: string;
+  /** Set when the partner has opened it (so it shows only once). */
+  seenAt?: string;
 }
 
 export type ThemeName = 'blush' | 'lavender' | 'matcha' | 'midnight';
@@ -226,6 +337,9 @@ export interface AppContent {
   songs: Song[];
   surprises: SurpriseContent;
   coco: CocoContent;
+  pet: CocoPet;
+  countdowns: Countdown[];
+  welcome: Welcome;
 }
 
 /** Per-device preferences. These never travel with exported content. */
@@ -237,4 +351,6 @@ export interface Preferences {
   customSoundtrackName?: string;
   volume: number;
   worldLight: 'auto' | 'day' | 'dusk' | 'night';
+  /** Show the little Coco who hops along on every page. */
+  companion: boolean;
 }

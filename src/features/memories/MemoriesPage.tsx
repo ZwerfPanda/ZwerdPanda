@@ -17,6 +17,7 @@ import { Lightbox } from './Lightbox';
 import { MemoryForm } from './MemoryForm';
 import { AlbumsDialog } from './AlbumsDialog';
 import './memories.css';
+import { ByTag } from '../../components/common/ByTag';
 
 const FAVORITES = 'favorites';
 
@@ -284,13 +285,14 @@ function MemoryCard({
             <Heart />
           </button>
         </div>
-        {(m.isSample || m.date) && (
+        {(m.isSample || m.date || m.by) && (
           <p className="scrapbook__meta">
             {m.isSample ? (
               <span className="tag tag--sample">Sample</span>
             ) : (
               formatDate(m.date, 'short')
             )}
+            <ByTag by={m.by} />
           </p>
         )}
       </div>

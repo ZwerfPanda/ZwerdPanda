@@ -16,6 +16,8 @@ import { CATEGORIES, CATEGORY_ORDER, STATUSES } from './dreamMeta';
 import { DreamForm } from './DreamForm';
 import { Capsules } from './Capsules';
 import './future.css';
+import { getAuthor } from '../../data/people';
+import { ByTag } from '../../components/common/ByTag';
 
 type StatusFilter = 'all' | DreamStatus;
 
@@ -263,6 +265,7 @@ function DreamCard({
           <StatusIcon aria-hidden="true" /> {status.label}
         </button>
         {d.isSample && <span className="tag tag--sample">Sample</span>}
+        <ByTag by={d.by} />
         <span className="dream__tools">
           <button
             type="button"
@@ -311,6 +314,7 @@ function OneDay({
       category: 'bucket',
       status: 'planned',
       someday: true,
+      by: getAuthor(),
       createdAt: nowIso(),
     };
     updateContent((c) => ({ ...c, dreams: [dream, ...c.dreams] }));
@@ -368,6 +372,7 @@ function OneDay({
                 <span className="hand">one day,</span>{' '}
                 {d.title.charAt(0).toLowerCase() + d.title.slice(1)}
               </p>
+              <ByTag by={d.by} />
               <div className="lantern__tools">
                 <button
                   type="button"

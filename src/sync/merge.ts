@@ -1,4 +1,5 @@
-import type { AppContent } from '../data/types';
+import { PET_LOG_LIMIT } from '../data/normalize';
+import type { AppContent, CocoPet } from '../data/types';
 
 /**
  * Merging two people's edits.
@@ -111,6 +112,61 @@ function mergeFields<T extends object>(base: T, local: T, remote: T): T {
   return out as T;
 }
 
+const later = (a: string | undefined, b: string | undefined) => (!a ? b : !b ? a : a > b ? a : b);
+
+/** Both sides' increments count (two people feeding Coco both earn love). */
+const addUp = (base: number, local: number, remote: number) =>
+  Math.max(0, base + (local - base) + (remote - base));
+
+/**
+ * Coco's care: the most recent time wins for "last fed/cuddled/…", counters
+ * add both people's progress, and the care log keeps everyone's entries.
+ */
+export function mergePet(base: CocoPet, local: CocoPet, remote: CocoPet): CocoPet {
+  const fields = mergeFields(base, local, remote);
+  const tricks: CocoPet['tricks'] = {};
+  const names = new Set([
+    ...Object.keys(base.tricks),
+    ...Object.keys(local.tricks),
+    ...Object.keys(remote.tricks),
+  ]) as Set<keyof CocoPet['tricks']>;
+  for (const trick of names) {
+    const value = addUp(
+      base.tricks[trick] ?? 0,
+      local.tricks[trick] ?? 0,
+      remote.tricks[trick] ?? 0,
+    );
+    tricks[trick] = Math.min(100, value);
+  }
+  const treats =
+    local.treats.date === remote.treats.date
+      ? {
+          date: local.treats.date,
+          count: addUp(
+            base.treats.date === local.treats.date ? base.treats.count : 0,
+            local.treats.count,
+            remote.treats.count,
+          ),
+        }
+      : local.treats.date > remote.treats.date
+        ? local.treats
+        : remote.treats;
+  return {
+    ...fields,
+    fedAt: later(local.fedAt, remote.fedAt),
+    hayAt: later(local.hayAt, remote.hayAt),
+    pettedAt: later(local.pettedAt, remote.pettedAt),
+    playedAt: later(local.playedAt, remote.playedAt),
+    groomedAt: later(local.groomedAt, remote.groomedAt),
+    treats,
+    bond: addUp(base.bond, local.bond, remote.bond),
+    tricks,
+    log: mergeList(base.log, local.log, remote.log)
+      .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
+      .slice(0, PET_LOG_LIMIT),
+  };
+}
+
 export function mergeContent(base: AppContent, local: AppContent, remote: AppContent): AppContent {
   return {
     version: 1,
@@ -131,6 +187,9 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
       facts: mergeList(base.coco.facts, local.coco.facts, remote.coco.facts),
       notes: mergeList(base.coco.notes, local.coco.notes, remote.coco.notes),
     },
+    pet: mergePet(base.pet, local.pet, remote.pet),
+    countdowns: mergeList(base.countdowns, local.countdowns, remote.countdowns),
+    welcome: mergeFields(base.welcome, local.welcome, remote.welcome),
   };
 }
 
@@ -166,6 +225,7 @@ export function mergeFirstJoin(local: AppContent, remote: AppContent): AppConten
     capsules: addPlain(local.capsules, remote.capsules),
     songs: addPlain(local.songs, remote.songs),
     coco: { ...remote.coco, notes: addPlain(local.coco.notes, remote.coco.notes) },
+    countdowns: addPlain(local.countdowns, remote.countdowns),
   };
 }
 

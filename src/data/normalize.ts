@@ -1,9 +1,24 @@
-import { createDefaultContent, defaultPreferences, defaultProfile } from './defaults';
+import {
+  createDefaultContent,
+  defaultPet,
+  defaultPreferences,
+  defaultProfile,
+  defaultWelcome,
+} from './defaults';
 import type {
   Album,
   AppContent,
   ArtKey,
   CocoContent,
+  CocoPet,
+  Countdown,
+  CountdownIcon,
+  Person,
+  PetAction,
+  PetLogEntry,
+  PetOutfit,
+  PetTrick,
+  Welcome,
   Dream,
   DreamCategory,
   Letter,
@@ -46,6 +61,11 @@ const id = (v: unknown, prefix: string, index: number) =>
   typeof v === 'string' && v ? v.slice(0, 120) : `${prefix}-imported-${index}`;
 const stamp = (v: unknown) =>
   typeof v === 'string' && !Number.isNaN(Date.parse(v)) ? v : new Date().toISOString();
+const optStamp = (v: unknown) =>
+  typeof v === 'string' && !Number.isNaN(Date.parse(v)) ? v : undefined;
+const person = (v: unknown): Person | undefined => (v === 'you' || v === 'partner' ? v : undefined);
+const clampNumber = (v: unknown, min: number, max: number, fallback = 0) =>
+  typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : fallback;
 
 const ART_KEYS: readonly ArtKey[] = [
   'phone',
@@ -156,6 +176,7 @@ function normalizeMilestone(v: unknown, i: number): Milestone | null {
     favorite: bool(v.favorite),
     future: bool(v.future) || undefined,
     isSample: bool(v.isSample) || undefined,
+    by: person(v.by),
     createdAt: stamp(v.createdAt),
   };
 }
@@ -179,6 +200,7 @@ function normalizeMemory(v: unknown, i: number): Memory | null {
     media,
     favorite: bool(v.favorite),
     isSample: bool(v.isSample) || undefined,
+    by: person(v.by),
     createdAt: stamp(v.createdAt),
   };
 }
@@ -204,6 +226,7 @@ function normalizeLetter(v: unknown, i: number): Letter | null {
           : { type: 'none' },
     readAt: optStr(v.readAt, 40),
     isSample: bool(v.isSample) || undefined,
+    by: person(v.by),
     createdAt: stamp(v.createdAt),
   };
 }
@@ -221,6 +244,7 @@ function normalizeDream(v: unknown, i: number): Dream | null {
     someday: bool(v.someday),
     completedAt: optStr(v.completedAt, 40),
     isSample: bool(v.isSample) || undefined,
+    by: person(v.by),
     createdAt: stamp(v.createdAt),
   };
 }
@@ -234,6 +258,7 @@ function normalizeCapsule(v: unknown, i: number): TimeCapsule | null {
     body: str(v.body),
     openOn: v.openOn as string,
     openedAt: optStr(v.openedAt, 40),
+    by: person(v.by),
     createdAt: stamp(v.createdAt),
   };
 }
@@ -248,6 +273,7 @@ function normalizeSongItem(v: unknown, i: number): Song | null {
     why: optStr(v.why, 2000),
     memory: optStr(v.memory, 2000),
     favorite: bool(v.favorite),
+    by: person(v.by),
     createdAt: stamp(v.createdAt),
   };
 }
@@ -287,11 +313,105 @@ function normalizeCoco(v: unknown, fallback: CocoContent): CocoContent {
               id: id(n.id, 'coconote', i),
               text: str(n.text, '', 2000),
               date: optDate(n.date),
+              by: person(n.by),
               createdAt: stamp(n.createdAt),
             }
           : null,
       )
       .filter((n): n is CocoContent['notes'][number] => n !== null),
+  };
+}
+
+const TRICKS: readonly PetTrick[] = ['come', 'boop', 'spin', 'stand', 'jump'];
+const OUTFITS: readonly PetOutfit[] = ['none', 'bow', 'flowers', 'scarf', 'party'];
+const PET_ACTIONS: readonly PetAction[] = [
+  'fed',
+  'treat',
+  'hay',
+  'petted',
+  'played',
+  'groomed',
+  'trained',
+  'learned',
+  'outfit',
+];
+const COUNTDOWN_ICONS: readonly CountdownIcon[] = [
+  'heart',
+  'star',
+  'plane',
+  'gift',
+  'cake',
+  'home',
+  'music',
+  'matcha',
+];
+
+/** The most care-log entries we keep (newest first). */
+export const PET_LOG_LIMIT = 40;
+
+function normalizePet(v: unknown): CocoPet {
+  if (!isObj(v)) return { ...defaultPet, treats: { ...defaultPet.treats }, tricks: {}, log: [] };
+  const treats = isObj(v.treats) ? v.treats : {};
+  const tricks: CocoPet['tricks'] = {};
+  if (isObj(v.tricks)) {
+    for (const trick of TRICKS) {
+      if (typeof v.tricks[trick] === 'number') tricks[trick] = clampNumber(v.tricks[trick], 0, 100);
+    }
+  }
+  const log = list(v.log, (e, i): PetLogEntry | null =>
+    isObj(e) && PET_ACTIONS.includes(e.action as PetAction) && optStamp(e.at)
+      ? {
+          id: id(e.id, 'care', i),
+          action: e.action as PetAction,
+          detail: optStr(e.detail, 60),
+          by: person(e.by),
+          at: e.at as string,
+        }
+      : null,
+  )
+    .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
+    .slice(0, PET_LOG_LIMIT);
+  return {
+    birthday: optDate(v.birthday) ?? defaultPet.birthday,
+    sex: oneOf(v.sex, ['girl', 'boy'] as const, defaultPet.sex),
+    coat: str(v.coat, defaultPet.coat, 120) || defaultPet.coat,
+    fedAt: optStamp(v.fedAt),
+    hayAt: optStamp(v.hayAt),
+    pettedAt: optStamp(v.pettedAt),
+    playedAt: optStamp(v.playedAt),
+    groomedAt: optStamp(v.groomedAt),
+    treats: {
+      date: optDate(treats.date) ?? '',
+      count: Math.round(clampNumber(treats.count, 0, 99)),
+    },
+    bond: Math.round(clampNumber(v.bond, 0, 1_000_000)),
+    tricks,
+    outfit: oneOf(v.outfit, OUTFITS, 'none'),
+    log,
+  };
+}
+
+function normalizeCountdown(v: unknown, i: number): Countdown | null {
+  if (!isObj(v) || !optStr(v.title) || !optDate(v.date)) return null;
+  return {
+    id: id(v.id, 'countdown', i),
+    title: str(v.title, '', 80),
+    date: v.date as string,
+    yearly: bool(v.yearly),
+    icon: oneOf(v.icon, COUNTDOWN_ICONS, 'heart'),
+    by: person(v.by),
+    createdAt: stamp(v.createdAt),
+  };
+}
+
+function normalizeWelcome(v: unknown): Welcome {
+  if (!isObj(v)) return { ...defaultWelcome };
+  return {
+    enabled: bool(v.enabled, defaultWelcome.enabled),
+    title: str(v.title, '', 120),
+    message: str(v.message, defaultWelcome.message, 4000),
+    signature: str(v.signature, '', 80),
+    seenAt: optStamp(v.seenAt),
   };
 }
 
@@ -326,6 +446,9 @@ export function normalizeContent(raw: unknown): AppContent {
     songs: list(raw.songs, normalizeSongItem),
     surprises: normalizeSurprises(raw.surprises, defaults.surprises),
     coco: normalizeCoco(raw.coco, defaults.coco),
+    pet: normalizePet(raw.pet),
+    countdowns: list(raw.countdowns, normalizeCountdown),
+    welcome: normalizeWelcome(raw.welcome),
   };
 }
 
@@ -351,5 +474,6 @@ export function normalizePreferences(raw: unknown): Preferences {
       ['auto', 'day', 'dusk', 'night'] as const,
       defaultPreferences.worldLight,
     ),
+    companion: bool(p.companion, defaultPreferences.companion),
   };
 }
