@@ -1,0 +1,52 @@
+.hidden-heart {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -14px -8px;
+  vertical-align: middle;
+  color: var(--accent);
+  opacity: 0.55;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s var(--ease-spring);
+}
+
+.hidden-heart:hover,
+.hidden-heart:focus-visible {
+  opacity: 1;
+  transform: scale(1.25);
+}
+
+.hidden-heart--dark {
+  color: #f5dad6;
+}
+
+.hidden-heart svg {
+  animation: heart-beat 2.8s ease-in-out infinite;
+}
+
+@keyframes heart-beat {
+  0%,
+  70%,
+  100% {
+    transform: scale(1);
+  }
+  78% {
+    transform: scale(1.25);
+  }
+  86% {
+    transform: scale(0.95);
+  }
+}
+
+.hidden-heart__note {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 8px 4px 12px;
+  text-align: center;
+  font-family: var(--font-hand);
+  font-size: 1.5rem;
+  line-height: 1.25;
+}

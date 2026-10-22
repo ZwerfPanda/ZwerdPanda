@@ -1,0 +1,151 @@
+.media {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.media--img,
+.media--video {
+  object-fit: cover;
+  background: #efe5da;
+}
+
+.media--loading {
+  background: linear-gradient(110deg, #efe5da 30%, #f8f0e6 50%, #efe5da 70%);
+  background-size: 250% 100%;
+  animation: shimmer 1.4s linear infinite;
+  min-height: 80px;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -150% 0;
+  }
+}
+
+.media--missing {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 6px;
+  min-height: 100px;
+  padding: 12px;
+  background: repeating-linear-gradient(45deg, #f3e7d8 0 10px, #f8efe4 10px 20px);
+  color: var(--paper-ink-soft);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.media--missing svg {
+  width: 22px;
+  height: 22px;
+}
+
+.media--video-thumb {
+  position: relative;
+  background: #2d172f;
+}
+
+.media--video-thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.media__play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 252, 246, 0.9);
+  color: var(--plum-700);
+  box-shadow: 0 4px 14px rgba(29, 15, 34, 0.35);
+}
+
+.media__play svg {
+  width: 18px;
+  height: 18px;
+  margin-left: 3px;
+}
+
+/* Picker */
+
+.picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 10px;
+}
+
+.picker__item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+}
+
+.picker__tag {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+}
+
+.picker__remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(45, 23, 47, 0.75);
+  color: #fff;
+}
+
+.picker__remove svg {
+  width: 16px;
+  height: 16px;
+}
+
+.picker__add {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 6px;
+  aspect-ratio: 1;
+  padding: 8px;
+  border-radius: 14px;
+  border: 1.5px dashed var(--line-strong);
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  transition: background-color 0.2s ease;
+}
+
+.picker__add:hover:not(:disabled) {
+  background: var(--accent-wash);
+  color: var(--accent-strong);
+}
+
+.picker__add svg {
+  width: 24px;
+  height: 24px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,140 @@
+/*
+ * Design tokens — Our Little Universe
+ *
+ * Palette: warm cream paper, dusty blush, muted rose, lavender dusk, deep plum
+ * night, peach light and a little gold. Semantic tokens (--bg, --ink, --accent…)
+ * are what components use, so themes only need to remap those.
+ */
+
+:root {
+  /* Palette */
+  --cream: #fbf4ea;
+  --sand: #f3e7d8;
+  --paper: #fffcf6;
+  --white: #ffffff;
+  --blush-100: #fbeeec;
+  --blush-200: #f5dad6;
+  --blush-300: #ebbfba;
+  --rose-400: #d48d96;
+  --rose-500: #b9646f;
+  --rose-600: #96485a;
+  --burgundy: #6e2643;
+  --lavender-100: #f3effa;
+  --lavender-200: #e4ddf5;
+  --lavender-300: #cbbfe9;
+  --lavender-500: #8e7cc3;
+  --plum-500: #6a3a63;
+  --plum-600: #52294f;
+  --plum-700: #3f2140;
+  --plum-800: #2d172f;
+  --plum-900: #1d0f22;
+  --peach-100: #fdf0e6;
+  --peach-200: #fbe0cd;
+  --peach-300: #f6c5a6;
+  --peach-500: #e9906c;
+  --gold-100: #fcf3dc;
+  --gold-200: #f8e6bb;
+  --gold-400: #e8bd6a;
+  --gold-500: #d29c45;
+  --sage-100: #f0f5ea;
+  --sage-200: #e0ebd4;
+  --sage-400: #a7c191;
+  --sage-600: #5f7d52;
+  --danger: #ad3f3c;
+
+  /* Physical paper always stays light, whatever the theme. */
+  --paper-ink: #34202f;
+  --paper-ink-soft: #66505f;
+  --paper-line: rgba(63, 33, 64, 0.12);
+
+  /* Semantic */
+  --bg: var(--cream);
+  --bg-deep: var(--sand);
+  --surface: var(--paper);
+  --surface-raised: var(--white);
+  --ink: #34202f;
+  --ink-soft: #66505f;
+  --ink-faint: #8f7a89;
+  --line: rgba(63, 33, 64, 0.12);
+  --line-strong: rgba(63, 33, 64, 0.24);
+  --accent: var(--rose-500);
+  --accent-strong: var(--rose-600);
+  --accent-soft: var(--blush-200);
+  --accent-wash: var(--blush-100);
+  --btn-bg: var(--plum-700);
+  --btn-ink: #fff7ee;
+  --focus: #7446c9;
+  --glow: rgba(232, 189, 106, 0.55);
+
+  /* Type */
+  --font-display: 'Fraunces Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-body: 'DM Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-hand: 'Caveat Variable', 'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive;
+
+  /* Shape & depth */
+  --radius-s: 10px;
+  --radius-m: 16px;
+  --radius-l: 24px;
+  --radius-xl: 34px;
+  --radius-pill: 999px;
+  --shadow-1: 0 1px 2px rgba(45, 23, 47, 0.06), 0 4px 14px -6px rgba(45, 23, 47, 0.16);
+  --shadow-2: 0 2px 6px rgba(45, 23, 47, 0.06), 0 16px 34px -14px rgba(45, 23, 47, 0.32);
+  --shadow-3: 0 30px 70px -24px rgba(29, 15, 34, 0.5);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Layout */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --topbar-h: 56px;
+  --tabbar-h: 66px;
+  --page-max: 1160px;
+  --gutter: clamp(16px, 4.6vw, 44px);
+}
+
+/* Theme: Lavender dusk */
+[data-theme='lavender'] {
+  --accent: #7f6bbb;
+  --accent-strong: #5d4a99;
+  --accent-soft: var(--lavender-200);
+  --accent-wash: var(--lavender-100);
+  --btn-bg: #3a2552;
+}
+
+/* Theme: Matcha (her drink, naturally) */
+[data-theme='matcha'] {
+  --accent: #6f9160;
+  --accent-strong: #4c6a40;
+  --accent-soft: var(--sage-200);
+  --accent-wash: var(--sage-100);
+  --btn-bg: #2f3a2a;
+}
+
+/* Theme: Midnight — the whole universe after dark */
+[data-theme='midnight'] {
+  color-scheme: dark;
+  --bg: #1b1222;
+  --bg-deep: #140d1a;
+  --surface: #261b30;
+  --surface-raised: #30233b;
+  --ink: #f6ebdf;
+  --ink-soft: #cdb9c8;
+  --ink-faint: #9e8b9c;
+  --line: rgba(255, 236, 225, 0.11);
+  --line-strong: rgba(255, 236, 225, 0.24);
+  --accent: #e3a0ac;
+  --accent-strong: #f2bcc5;
+  --accent-soft: rgba(227, 160, 172, 0.22);
+  --accent-wash: rgba(227, 160, 172, 0.09);
+  --btn-bg: #f3d9c9;
+  --btn-ink: #2a1530;
+  --focus: #c6a8ff;
+}
+
+@media (min-width: 900px) {
+  :root {
+    --topbar-h: 76px;
+  }
+}
