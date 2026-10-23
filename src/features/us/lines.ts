@@ -1,4 +1,5 @@
 import type { AppContent, Person } from '../../data/types';
+import { gameBrag } from '../games/gameStats';
 
 /**
  * What our minis say. Built only from things that are really ours: the names
@@ -88,6 +89,12 @@ const other = (p: Person): Person => (p === 'you' ? 'partner' : 'you');
 
 /** One line when you tap someone. */
 export function sayHi(content: AppContent, who: Person, rng: Rng): Exchange {
+  // Now and then, a little bragging about the arcade (only by whoever leads).
+  if (rng() < 0.2) {
+    const brag = gameBrag(content, rng);
+    if (brag && brag.leader === who)
+      return { who, text: fill(brag.text, petNameFor(content, who, rng)) };
+  }
   const taught = content.us[who].lines;
   if (taught.length && rng() < 0.4) return { who, text: pick(taught, rng) };
   return { who, text: fill(pick(SWEET[who], rng), petNameFor(content, who, rng)) };
@@ -138,6 +145,33 @@ export function rememberWhen(content: AppContent, starter: Person, rng: Rng): Ex
       text: fill(`Weet je nog, “${memory}”, {pet}?`, petNameFor(content, starter, rng)),
     },
     { who: other(starter), text: pick(replies, rng) },
+  ];
+}
+
+/** Teasing each other about the arcade: who's the UNO queen. */
+export function gameTalk(content: AppContent, starter: Person, rng: Rng): Exchange[] {
+  const brag = gameBrag(content, rng);
+  if (!brag) {
+    return [
+      {
+        who: starter,
+        text: fill(
+          'Potje in de Arcade Hall, {pet}? De verliezer trakteert.',
+          petNameFor(content, starter, rng),
+        ),
+      },
+      {
+        who: other(starter),
+        text: fill('Deal. Maar ik ga winnen, {pet}.', petNameFor(content, other(starter), rng)),
+      },
+    ];
+  }
+  return [
+    { who: brag.leader, text: fill(brag.text, petNameFor(content, brag.leader, rng)) },
+    {
+      who: other(brag.leader),
+      text: fill(brag.reply, petNameFor(content, other(brag.leader), rng)),
+    },
   ];
 }
 

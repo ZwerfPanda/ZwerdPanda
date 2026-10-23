@@ -1,31 +1,48 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useContent } from '../../data/store';
 import { nameOf, otherPerson, useMe } from '../../data/people';
-import type { Person } from '../../data/types';
 import { playSfx } from '../../lib/audio/sfx';
 import { celebrateFrom } from '../../components/ui/feedback';
 import { useReducedMotion } from '../../hooks/useMotion';
-import { COLS, ROWS, drop, emptyBoard, isFull, normalizeBoard, winningLine, type Cell } from './c4';
-import { startMatch, updateMatch, useMatch, useWins } from './gameData';
+import {
+  COLS,
+  ROWS,
+  cocoColumn,
+  drop,
+  emptyBoard,
+  isFull,
+  landingRow,
+  normalizeBoard,
+  winningLine,
+  type Cell,
+} from './c4';
+import { startMatch, updateMatch, useMatch } from './gameData';
+import { headToHead, recordResult } from './gameStats';
 import { GameShell, ScoreBoard, TurnBanner, WhoAreYou, type PlayMode } from './GameShell';
 
-const COLORS: Record<Person, string> = { you: '#3d6fd8', partner: '#e0457b' };
+const DISC = { you: 'disc--blue', partner: 'disc--pink', coco: 'disc--caramel' } as const;
 
 function Board({
   board,
   line,
   canPlay,
+  skin,
+  ghost,
   onDrop,
 }: {
   board: Cell[];
   line: number[] | null;
   canPlay: boolean;
+  skin: Record<'you' | 'partner', string>;
+  ghost: 'you' | 'partner';
   onDrop: (col: number) => void;
 }) {
   const reduce = useReducedMotion();
+  const [hover, setHover] = useState<number | null>(null);
+  const ghostRow = hover !== null && canPlay ? landingRow(board, hover) : -1;
   return (
-    <div className="c4" role="grid" aria-label="Speelbord, 7 kolommen">
+    <div className={`c4 ${line ? 'has-win' : ''}`} role="grid" aria-label="Speelbord, 7 kolommen">
       {Array.from({ length: COLS }, (_, col) => (
         <button
           key={col}
@@ -34,22 +51,30 @@ function Board({
           disabled={!canPlay || board[col] !== null}
           aria-label={`Kolom ${col + 1}`}
           data-sfx="none"
+          onPointerEnter={() => setHover(col)}
+          onPointerLeave={() => setHover(null)}
+          onFocus={() => setHover(col)}
+          onBlur={() => setHover(null)}
           onClick={() => onDrop(col)}
         >
           {Array.from({ length: ROWS }, (_, row) => {
             const i = row * COLS + col;
             const who = board[i];
             return (
-              <span key={row} className={`c4__hole ${line?.includes(i) ? 'is-win' : ''}`}>
-                {who && (
+              <span
+                key={row}
+                className={`c4__hole ${line?.includes(i) ? 'is-win' : line && who ? 'is-dim' : ''}`}
+              >
+                {who ? (
                   <motion.span
-                    className="c4__disc"
-                    style={{ background: COLORS[who] }}
-                    initial={reduce ? false : { y: -(row + 1) * 52 }}
+                    className={`disc ${skin[who]}`}
+                    initial={reduce ? false : { y: `-${(row + 1) * 115}%` }}
                     animate={{ y: 0 }}
-                    transition={{ type: 'spring', stiffness: 380, damping: 22 }}
+                    transition={{ type: 'spring', stiffness: 420, damping: 18, mass: 0.9 }}
                   />
-                )}
+                ) : hover === col && row === ghostRow ? (
+                  <span className={`disc disc--ghost ${skin[ghost]}`} />
+                ) : null}
               </span>
             );
           })}
@@ -59,57 +84,89 @@ function Board({
   );
 }
 
-function useNames() {
-  const profile = useContent((c) => c.profile);
-  return (p: Person) => nameOf(p, profile);
-}
+const dropSound = () => playSfx('pop', true);
 
-/** Two on one phone, taking turns. */
-function LocalGame() {
-  const name = useNames();
+/** Against Coco, or two on one phone. */
+function LocalGame({ vsCoco }: { vsCoco: boolean }) {
+  const me = useMe();
+  const profile = useContent((c) => c.profile);
+  const human: 'you' | 'partner' = vsCoco ? 'you' : 'partner';
   const [board, setBoard] = useState<Cell[]>(emptyBoard);
-  const [turn, setTurn] = useState<Person>('partner');
+  const [turn, setTurn] = useState<'you' | 'partner'>(human);
   const line = winningLine(board);
   const full = !line && isFull(board);
   const winner = line ? board[line[0]] : null;
+  // On this board 'partner' is Coco when playing her.
+  const label = (side: 'you' | 'partner') =>
+    vsCoco ? (side === 'you' ? 'Jij' : 'Coco') : nameOf(side, profile);
+  const skin = vsCoco
+    ? { you: me === 'partner' ? DISC.partner : DISC.you, partner: DISC.coco }
+    : { you: DISC.you, partner: DISC.partner };
+
+  const finish = (next: Cell[]) => {
+    const won = winningLine(next);
+    if (!won && !isFull(next)) return;
+    const w = won ? next[won[0]] : null;
+    if (vsCoco) recordResult('c4', [me, 'coco'], w === null ? 'draw' : w === 'you' ? me : 'coco');
+    else recordResult('c4', ['you', 'partner'], w ?? 'draw');
+    if (w) {
+      playSfx(vsCoco && w === 'partner' ? 'boing' : 'success', true);
+      if (!(vsCoco && w === 'partner')) celebrateFrom(document.querySelector('.c4'));
+    }
+  };
+
+  const place = (col: number, side: 'you' | 'partner') => {
+    const next = drop(board, col, side);
+    if (!next) return;
+    dropSound();
+    setBoard(next);
+    finish(next);
+    setTurn(side === 'you' ? 'partner' : 'you');
+  };
+
+  // Coco thinks for a moment, then drops.
+  useEffect(() => {
+    if (!vsCoco || turn !== 'partner' || line || full) return;
+    const t = window.setTimeout(() => place(cocoColumn(board, 'partner', 'you'), 'partner'), 750);
+    return () => window.clearTimeout(t);
+    // place reads the current board.
+  }, [vsCoco, turn, board]);
 
   return (
     <>
       <TurnBanner
-        mine
-        name=""
+        mine={!vsCoco || turn === 'you'}
+        name="Coco 🐰💭"
+        note={vsCoco ? 'Jouw zet ✨' : `${label(turn)} is aan de beurt`}
         done={
-          winner ? `${name(winner)} wint! 🎉` : full ? 'Gelijkspel — het bord is vol.' : undefined
+          winner
+            ? vsCoco
+              ? winner === 'you'
+                ? 'Jij wint van Coco! 🎉'
+                : 'Coco wint… 🐰👑'
+              : `${label(winner)} wint! 🎉`
+            : full
+              ? 'Gelijkspel — het bord is vol.'
+              : undefined
         }
       />
-      {!winner && !full && (
-        <p className="game-who-turn">
-          <span className="c4__dot" style={{ background: COLORS[turn] }} /> {name(turn)} is aan de
-          beurt
-        </p>
-      )}
       <Board
         board={board}
         line={line}
-        canPlay={!winner && !full}
-        onDrop={(col) => {
-          const next = drop(board, col, turn);
-          if (!next) return;
-          playSfx('pop', true);
-          setBoard(next);
-          if (winningLine(next)) playSfx('success', true);
-          setTurn(otherPerson(turn));
-        }}
+        skin={skin}
+        ghost={turn}
+        canPlay={!winner && !full && (!vsCoco || turn === 'you')}
+        onDrop={(col) => place(col, turn)}
       />
       <button
         type="button"
-        className="btn btn--soft"
+        className="neon-btn"
         onClick={() => {
           setBoard(emptyBoard());
-          setTurn(otherPerson(turn));
+          setTurn(vsCoco ? (Math.random() < 0.5 ? 'you' : 'partner') : turn);
         }}
       >
-        Opnieuw
+        Nieuw potje
       </button>
     </>
   );
@@ -119,19 +176,20 @@ function LocalGame() {
 function RemoteGame() {
   const me = useMe();
   const them = otherPerson(me);
-  const name = useNames();
+  const profile = useContent((c) => c.profile);
   const match = useMatch('c4');
   const board = normalizeBoard(match?.state.board);
   const line = winningLine(board);
   const mine = Boolean(match && !match.winner && match.turn === me);
+  const skin = { you: DISC.you, partner: DISC.partner };
 
   const start = () => startMatch('c4', { board: emptyBoard() }, them, me);
 
   if (!match) {
     return (
-      <div className="game-start">
-        <p>Start een potje — {name(them)} krijgt de eerste zet.</p>
-        <button type="button" className="btn btn--primary" onClick={start}>
+      <div className="game-panel">
+        <p>Start een potje — {nameOf(them, profile)} krijgt de eerste zet.</p>
+        <button type="button" className="neon-btn" onClick={start}>
           Nieuw potje
         </button>
       </div>
@@ -142,29 +200,27 @@ function RemoteGame() {
     <>
       <TurnBanner
         mine={mine}
-        name={name(them)}
+        name={nameOf(them, profile)}
         done={
           match.winner
             ? match.winner === 'draw'
               ? 'Gelijkspel!'
               : match.winner === me
                 ? 'Jij wint! 🎉'
-                : `${name(match.winner)} wint dit potje 💕`
+                : `${nameOf(match.winner, profile)} wint dit potje 💕`
             : undefined
         }
       />
-      <p className="game-who-turn">
-        <span className="c4__dot" style={{ background: COLORS[me] }} /> jij ·{' '}
-        <span className="c4__dot" style={{ background: COLORS[them] }} /> {name(them)}
-      </p>
       <Board
         board={board}
         line={line}
+        skin={skin}
+        ghost={me}
         canPlay={mine}
         onDrop={(col) => {
           const next = drop(board, col, me);
           if (!next) return;
-          playSfx('pop', true);
+          dropSound();
           const won = winningLine(next);
           if (won) {
             playSfx('success', true);
@@ -179,7 +235,7 @@ function RemoteGame() {
         }}
       />
       {match.winner && (
-        <button type="button" className="btn btn--primary" onClick={start}>
+        <button type="button" className="neon-btn" onClick={start}>
           Nog een potje
         </button>
       )}
@@ -189,17 +245,36 @@ function RemoteGame() {
 
 export function ConnectFour() {
   const [mode, setMode] = useState<PlayMode>('remote');
-  const wins = useWins('c4');
+  const results = useContent((c) => c.games.results);
+  const profile = useContent((c) => c.profile);
+  const me = useMe();
+  const h = headToHead(results, 'c4', 'you', 'partner');
+  const coco = headToHead(results, 'c4', me, 'coco');
   return (
     <GameShell
+      id="c4"
       title="4 op een rij"
-      emoji="🔴"
       mode={mode}
       onMode={setMode}
+      modes={['remote', 'coco', 'local']}
       score={
-        mode === 'remote' ? (
-          <ScoreBoard you={wins.you} partner={wins.partner} label="gewonnen" />
-        ) : undefined
+        mode === 'coco' ? (
+          <ScoreBoard
+            label="jij tegen coco"
+            entries={[
+              { name: 'JIJ', value: coco.a, me: true },
+              { name: 'COCO', value: coco.b },
+            ]}
+          />
+        ) : (
+          <ScoreBoard
+            label="gewonnen"
+            entries={[
+              { name: profile.yourName.toUpperCase(), value: h.a, me: me === 'you' },
+              { name: profile.partnerName.toUpperCase(), value: h.b, me: me === 'partner' },
+            ]}
+          />
+        )
       }
     >
       {mode === 'remote' ? (
@@ -207,7 +282,7 @@ export function ConnectFour() {
           <RemoteGame />
         </WhoAreYou>
       ) : (
-        <LocalGame />
+        <LocalGame key={mode} vsCoco={mode === 'coco'} />
       )}
     </GameShell>
   );

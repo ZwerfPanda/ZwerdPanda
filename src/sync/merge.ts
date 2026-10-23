@@ -297,6 +297,7 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
     games: {
       matches: mergeList(base.games.matches, local.games.matches, remote.games.matches),
       scores: mergeList(base.games.scores, local.games.scores, remote.games.scores),
+      results: mergeList(base.games.results, local.games.results, remote.games.results),
     },
     quiz: {
       custom: mergeList(base.quiz.custom, local.quiz.custom, remote.quiz.custom),
@@ -361,6 +362,7 @@ export function mergeFirstJoin(
     games: {
       matches: addPlain(local.games.matches, remote.games.matches),
       scores: addPlain(local.games.scores, remote.games.scores),
+      results: addPlain(local.games.results, remote.games.results),
     },
     quiz: {
       custom: addPlain(local.quiz.custom, remote.quiz.custom),

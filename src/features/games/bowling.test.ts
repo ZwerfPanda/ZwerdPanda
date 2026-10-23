@@ -74,3 +74,15 @@ describe('four in a row', () => {
     expect(winningLine(b)).toHaveLength(4);
   });
 });
+
+describe('Coco at four in a row', () => {
+  it('takes a win and blocks one', async () => {
+    const { cocoColumn } = await import('./c4');
+    let b = emptyBoard();
+    for (const c of [0, 1, 2]) b = drop(b, c, 'partner')!;
+    expect(cocoColumn(b, 'partner', 'you', () => 0.5)).toBe(3);
+    let d = emptyBoard();
+    for (const c of [0, 1, 2]) d = drop(d, c, 'you')!;
+    expect(cocoColumn(d, 'partner', 'you', () => 0.5)).toBe(3);
+  });
+});

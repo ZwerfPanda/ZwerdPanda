@@ -648,14 +648,28 @@ export type ScoreGame = 'bowling' | 'skeeball';
 export interface GameScore {
   id: ID;
   game: ScoreGame;
-  who: Person;
+  who: Player;
   score: number;
+  at: string;
+}
+
+export type GameId = 'uno' | 'c4' | 'hangman' | 'bowling' | 'skeeball';
+/** Who can play: the two of us, and Coco. */
+export type Player = Person | 'coco';
+
+/** How a game ended, so we (and Coco) can brag about it. */
+export interface GameResult {
+  id: ID;
+  game: GameId;
+  players: Player[];
+  winner: Player | 'draw';
   at: string;
 }
 
 export interface Games {
   matches: GameMatch[];
   scores: GameScore[];
+  results: GameResult[];
 }
 
 /* -------------------------------------------------------------- star hunt */

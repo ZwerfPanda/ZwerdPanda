@@ -11,6 +11,7 @@ import {
   Sparkles,
   Smile,
   type LucideIcon,
+  Gamepad2,
 } from 'lucide-react';
 import { getContent, useContent } from '../../data/store';
 import { updateUs } from '../../data/actions';
@@ -30,6 +31,7 @@ import {
   momentLines,
   rememberWhen,
   sayHi,
+  gameTalk,
   sweetTalk,
   type Exchange,
   type MomentKind,
@@ -63,7 +65,7 @@ export function MiniUsPage() {
 /* ------------------------------------------------------------- the stage */
 
 const ACTIONS: {
-  id: MomentKind | 'date' | 'remember' | 'sweet';
+  id: MomentKind | 'date' | 'remember' | 'sweet' | 'games';
   label: string;
   icon: LucideIcon;
 }[] = [
@@ -77,6 +79,7 @@ const ACTIONS: {
   { id: 'date', label: 'Date-idee', icon: CalendarHeart },
   { id: 'remember', label: 'Weet je nog…', icon: MessagesSquare },
   { id: 'sweet', label: 'Sweet talk', icon: Heart },
+  { id: 'games', label: 'Wie wint er?', icon: Gamepad2 },
 ];
 
 /** Each action's own little sound. */
@@ -210,13 +213,15 @@ function Stage() {
   const act = (id: (typeof ACTIONS)[number]['id']) => {
     const content = getContent();
     const starter = getMe();
-    if (id === 'date' || id === 'remember' || id === 'sweet') {
+    if (id === 'date' || id === 'remember' || id === 'sweet' || id === 'games') {
       const lines =
-        id === 'date'
-          ? dateIdea(content, Math.random() < 0.5 ? starter : otherPerson(starter), Math.random)
-          : id === 'remember'
-            ? rememberWhen(content, starter, Math.random)
-            : sweetTalk(content, starter, Math.random);
+        id === 'games'
+          ? gameTalk(content, starter, Math.random)
+          : id === 'date'
+            ? dateIdea(content, Math.random() < 0.5 ? starter : otherPerson(starter), Math.random)
+            : id === 'remember'
+              ? rememberWhen(content, starter, Math.random)
+              : sweetTalk(content, starter, Math.random);
       play(lines, [{ at: 0, step: talking }]);
       return;
     }

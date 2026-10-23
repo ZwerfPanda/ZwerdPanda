@@ -403,8 +403,8 @@ function useCards(): Partial<Record<RoutePath, ReactNode>> {
           <HeartShape x={40} y={20} size={10} fill="#e6889b" />
         </svg>
         <span>
-          <h3 className="ex-label">Spelletjes</h3>
-          <span className="ex-sub">UNO, bowlen, 4 op een rij…</span>
+          <h3 className="ex-label">Arcade Hall</h3>
+          <span className="ex-sub">Samen of tegen Coco</span>
         </span>
       </a>
     ),

@@ -1,42 +1,59 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { useContent } from '../../data/store';
 import { getAuthor, setMe } from '../../data/people';
 import { href } from '../../lib/router';
+import { playSfx } from '../../lib/audio/sfx';
 import { refreshNow } from './gameData';
+import './arcade.css';
 
-export type PlayMode = 'remote' | 'local';
+export type PlayMode = 'remote' | 'coco' | 'local';
 
-/** The frame around every game: back, title, how we play, and the score. */
+const MODE_LABEL: Record<PlayMode, string> = {
+  remote: '📱↔📱 Samen',
+  coco: '🐰 Tegen Coco',
+  local: '📱 Op één telefoon',
+};
+
+/** The frame around every game: back to the hall, a neon title, how we play, the score. */
 export function GameShell({
+  id,
   title,
-  emoji,
   mode,
   onMode,
-  modes = ['remote', 'local'],
-  localLabel = 'Op één telefoon',
+  modes = ['remote', 'coco'],
+  labels,
   score,
   children,
 }: {
+  id: string;
   title: string;
-  emoji: string;
   mode?: PlayMode;
   onMode?: (mode: PlayMode) => void;
   modes?: PlayMode[];
-  localLabel?: string;
+  labels?: Partial<Record<PlayMode, string>>;
   score?: ReactNode;
   children: ReactNode;
 }) {
+  // Playing apart: look for the other's move every few seconds.
+  useEffect(() => {
+    if (mode !== 'remote') return;
+    const t = window.setInterval(() => {
+      if (document.visibilityState === 'visible') refreshNow();
+    }, 6000);
+    return () => window.clearInterval(t);
+  }, [mode]);
+
   return (
-    <div className="page game">
+    <div className={`page arcade-zone game game--${id}`}>
       <div className="game__bar">
-        <a className="btn btn--ghost btn--small" href={href('/games')}>
-          <ArrowLeft aria-hidden="true" /> Spelletjes
+        <a className="game__back" href={href('/games')}>
+          <ArrowLeft aria-hidden="true" /> Arcade Hall
         </a>
         {mode === 'remote' && (
           <button
             type="button"
-            className="icon-btn"
+            className="game__refresh"
             aria-label="Kijk of de ander al gezet heeft"
             onClick={refreshNow}
           >
@@ -45,7 +62,7 @@ export function GameShell({
         )}
       </div>
       <h1 className="game__title">
-        <span aria-hidden="true">{emoji}</span> {title}
+        <span>{title}</span>
       </h1>
       {mode && onMode && modes.length > 1 && (
         <div className="game__modes" role="tablist" aria-label="Hoe spelen we?">
@@ -56,9 +73,13 @@ export function GameShell({
               role="tab"
               aria-selected={mode === m}
               className="game__mode"
-              onClick={() => onMode(m)}
+              data-sfx="none"
+              onClick={() => {
+                playSfx('coin', true);
+                onMode(m);
+              }}
             >
-              {m === 'remote' ? '📱↔📱 Samen, elk op je eigen telefoon' : `📱 ${localLabel}`}
+              {labels?.[m] ?? MODE_LABEL[m]}
             </button>
           ))}
         </div>
@@ -74,13 +95,13 @@ export function WhoAreYou({ children }: { children: ReactNode }) {
   const profile = useContent((c) => c.profile);
   if (getAuthor()) return <>{children}</>;
   return (
-    <div className="game-who">
+    <div className="game-panel">
       <p>Eerst even: wie ben jij op deze telefoon?</p>
-      <div className="settings-actions">
-        <button type="button" className="btn btn--primary" onClick={() => setMe('you')}>
+      <div className="game-actions">
+        <button type="button" className="neon-btn" onClick={() => setMe('you')}>
           Ik ben {profile.yourName}
         </button>
-        <button type="button" className="btn btn--primary" onClick={() => setMe('partner')}>
+        <button type="button" className="neon-btn" onClick={() => setMe('partner')}>
           Ik ben {profile.partnerName}
         </button>
       </div>
@@ -88,46 +109,45 @@ export function WhoAreYou({ children }: { children: ReactNode }) {
   );
 }
 
-/** Wins (or records) side by side. */
+/** An LED score panel: names with their wins (or records). */
 export function ScoreBoard({
-  you,
-  partner,
+  entries,
   label,
 }: {
-  you: ReactNode;
-  partner: ReactNode;
+  entries: { name: string; value: ReactNode; me?: boolean }[];
   label: string;
 }) {
-  const profile = useContent((c) => c.profile);
   return (
-    <div className="game-score" aria-label={label}>
-      <span>
-        <small>{profile.yourName}</small>
-        <strong>{you}</strong>
-      </span>
-      <em>{label}</em>
-      <span>
-        <small>{profile.partnerName}</small>
-        <strong>{partner}</strong>
-      </span>
+    <div className="led-board" aria-label={label}>
+      <span className="led-board__label">{label}</span>
+      <div className="led-board__row">
+        {entries.map((e) => (
+          <span key={e.name} className={`led-board__cell ${e.me ? 'is-me' : ''}`}>
+            <small>{e.name}</small>
+            <strong>{e.value}</strong>
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
 
-/** "Your turn" / "waiting for…" */
+/** "Your turn" / "waiting for…" / how it ended. */
 export function TurnBanner({
   mine,
   name,
   done,
+  note,
 }: {
   mine: boolean;
   name: string;
   done?: ReactNode;
+  note?: ReactNode;
 }) {
   if (done) return <p className="game-turn game-turn--done">{done}</p>;
   return (
     <p className={`game-turn ${mine ? 'is-mine' : ''}`} aria-live="polite">
-      {mine ? 'Jij bent aan de beurt ✨' : `Wachten op ${name}… (je krijgt het vanzelf te zien)`}
+      {mine ? (note ?? 'Jij bent aan de beurt ✨') : `${name} is aan zet…`}
     </p>
   );
 }

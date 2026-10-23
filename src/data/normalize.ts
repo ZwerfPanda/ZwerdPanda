@@ -63,6 +63,8 @@ import type {
   LoveNote,
   NailArt,
   NailFinish,
+  GameId,
+  Player,
   Games,
   MatchKind,
   ScoreGame,
@@ -872,7 +874,7 @@ const MATCH_KINDS: readonly MatchKind[] = ['c4', 'hangman', 'uno'];
 const SCORE_GAMES: readonly ScoreGame[] = ['bowling', 'skeeball'];
 
 function normalizeGames(v: unknown): Games {
-  if (!isObj(v)) return { matches: [], scores: [] };
+  if (!isObj(v)) return { matches: [], scores: [], results: [] };
   return {
     matches: list(v.matches, (m, i) => {
       if (!isObj(m) || !MATCH_KINDS.includes(m.kind as MatchKind) || !isObj(m.state)) return null;
@@ -891,7 +893,7 @@ function normalizeGames(v: unknown): Games {
       };
     }).slice(-100),
     scores: list(v.scores, (s, i) => {
-      const who = isObj(s) ? person(s.who) : undefined;
+      const who = isObj(s) ? (s.who === 'coco' ? ('coco' as const) : person(s.who)) : undefined;
       if (!isObj(s) || !who || !SCORE_GAMES.includes(s.game as ScoreGame)) return null;
       const score = Number(s.score);
       if (!Number.isFinite(score) || score < 0 || score > 100_000) return null;
@@ -903,8 +905,29 @@ function normalizeGames(v: unknown): Games {
         at: stamp(s.at),
       };
     }).slice(-500),
+    results: list(v.results, (r, i) => {
+      if (!isObj(r) || !GAME_IDS.includes(r.game as GameId)) return null;
+      const players = arr(r.players).filter((p): p is Player => PLAYERS.includes(p as Player));
+      const winner: Player | 'draw' | null =
+        r.winner === 'draw'
+          ? 'draw'
+          : PLAYERS.includes(r.winner as Player)
+            ? (r.winner as Player)
+            : null;
+      if (players.length < 2 || !winner) return null;
+      return {
+        id: id(r.id, 'result', i),
+        game: r.game as GameId,
+        players,
+        winner,
+        at: stamp(r.at),
+      };
+    }).slice(-2000),
   };
 }
+
+const GAME_IDS: readonly GameId[] = ['uno', 'c4', 'hangman', 'bowling', 'skeeball'];
+const PLAYERS: readonly Player[] = ['you', 'partner', 'coco'];
 
 const JUDGEMENTS = ['right', 'close', 'wrong'] as const;
 

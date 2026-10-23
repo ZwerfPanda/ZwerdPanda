@@ -183,9 +183,9 @@ export const SECTIONS: Section[] = [
   {
     path: '/games',
     group: 'together',
-    label: 'Spelletjes',
-    short: 'Spelletjes',
-    blurb: 'UNO, bowlen, 4 op een rij…',
+    label: 'Arcade Hall',
+    short: 'Arcade',
+    blurb: 'Neon, muntjes en UNO — samen of tegen Coco',
     icon: Gamepad2,
     tint: '#c9e4f5',
   },

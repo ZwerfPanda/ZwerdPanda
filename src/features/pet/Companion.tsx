@@ -11,6 +11,7 @@ import { BunnySide } from './BunnySide';
 import { useHopper } from './useHopper';
 import { sendCocoHome } from './home';
 import { care, isNapTime, moodOf, needsOf } from './care';
+import { cocoGameTalk } from '../games/gameStats';
 import './companion.css';
 
 /** Little things Coco says when you arrive somewhere with her. */
@@ -94,6 +95,16 @@ function Companion({ path }: { path: RoutePath }) {
     hop.opacity.set(1);
     hop.show('front');
     void hop.hopInPlace(t, 0.08);
+    // In the arcade (and now and then elsewhere) she talks about our games.
+    const me = getMe();
+    const talk =
+      Math.random() < (path === '/games' ? 0.7 : 0.1)
+        ? cocoGameTalk(getContent(), me, nameOf(me, getContent().profile), Math.random)
+        : null;
+    if (talk) {
+      speak(talk, 4200);
+      return;
+    }
     const options = LINES[path];
     if (options && Math.random() < 0.45) speak(options[Math.floor(Math.random() * options.length)]);
     // eslint-disable-next-line react-hooks/exhaustive-deps

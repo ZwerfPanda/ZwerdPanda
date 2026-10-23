@@ -42,6 +42,8 @@ export interface UnoState {
   drew?: boolean;
   /** Something to show both players, e.g. "+2 voor jou!". */
   last?: string;
+  /** The move just made, to tell the other what happened. */
+  move?: { who: Person; kind: 'play' | 'draw' | 'pass'; card?: Card };
 }
 
 export const COLORS: Color[] = ['red', 'yellow', 'green', 'blue'];
@@ -133,6 +135,7 @@ export function play(s: UnoState, who: Person, cardId: string, chosen?: Color): 
     color: card.color === 'wild' ? chosen! : card.color,
     drew: false,
     last: hand.length === 1 ? 'UNO!' : undefined,
+    move: { who, kind: 'play', card },
   };
   if (!hand.length) return { ...next, winner: who, last: undefined };
   const them = other(who);
@@ -161,6 +164,7 @@ export function draw(s: UnoState, who: Person): UnoState | null {
     hands: { ...drawn.s.hands, [who]: [...drawn.s.hands[who], ...drawn.cards] },
     drew: true,
     last: undefined,
+    move: { who, kind: 'draw' },
   };
   if (!card || !canPlay(card, next)) return { ...next, turn: other(who), drew: false };
   return next;
@@ -168,7 +172,7 @@ export function draw(s: UnoState, who: Person): UnoState | null {
 
 export function pass(s: UnoState, who: Person): UnoState | null {
   if (s.winner || s.turn !== who || !s.drew) return null;
-  return { ...s, turn: other(who), drew: false };
+  return { ...s, turn: other(who), drew: false, move: { who, kind: 'pass' } };
 }
 
 /** Coco's move: a fitting colour card first, wilds last; picks her best colour. */
