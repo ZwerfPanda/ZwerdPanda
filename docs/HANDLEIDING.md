@@ -221,6 +221,15 @@ of Play Store is niet nodig.
   e-maildienst in, bijvoorbeeld het gratis plan van Resend of Brevo. In Supabase gaat
   dat via **Authentication → Emails → SMTP Settings**. Dat is optioneel.
 
+**Meldingen en je microfoon**
+- Zet in **Instellingen → Geluid** *Meldingen* aan om een seintje te krijgen als de ander
+  iets nieuws toevoegt of als een verzegelde brief opengaat. Dat werkt als de app op je
+  beginscherm staat (iPhone: vanaf iOS 16.4) en open is of op de achtergrond draait. Een
+  melding terwijl de app helemaal dicht is, zou een extra serverdienst nodig hebben; die zit
+  er niet in.
+- Voor stemberichtjes vraagt de app één keer om je microfoon. Lukt inspreken niet, kies dan
+  een opname uit je spraakmemo's.
+
 **Zo raak je niets kwijt**
 
 In de app staat onder **Instellingen → Onze data & backups** een veiligheidsoverzicht met

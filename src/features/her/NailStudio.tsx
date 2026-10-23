@@ -1,6 +1,23 @@
-import { useId, useRef, useState } from 'react';
-import { Droplet, Eraser, Save, Shuffle, Trash2, Undo2 } from 'lucide-react';
-import type { NailArt, NailFinish, NailLength, NailSet, NailShape } from '../../data/types';
+import { useEffect, useId, useRef, useState } from 'react';
+import {
+  Droplet,
+  Eraser,
+  Image as ImageIcon,
+  Save,
+  Send,
+  Shuffle,
+  Trash2,
+  Undo2,
+} from 'lucide-react';
+import { useContent } from '../../data/store';
+import type {
+  NailArt,
+  NailFinish,
+  NailLength,
+  NailSet,
+  NailShape,
+  SentNails,
+} from '../../data/types';
 import { INK } from '../../components/art/shapes';
 import { celebrateFrom, toast } from '../../components/ui/feedback';
 import { createId, nowIso } from '../../lib/id';
@@ -490,9 +507,76 @@ function randomSet(from: NailSet): NailSet {
 type Tab = 'color' | 'art' | 'shape';
 
 /** Her nail studio: design a set nail by nail, and keep the ones she loves. */
+/** Turns the hand on screen into a picture, to share or keep. */
+async function handAsPicture(svg: SVGSVGElement): Promise<Blob | null> {
+  const clone = svg.cloneNode(true) as SVGSVGElement;
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  clone.setAttribute('width', '750');
+  clone.setAttribute('height', '942');
+  clone.querySelectorAll('.nail-hand__picked').forEach((n) => n.remove());
+  const url = URL.createObjectURL(
+    new Blob([new XMLSerializer().serializeToString(clone)], { type: 'image/svg+xml' }),
+  );
+  try {
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error('image'));
+      img.src = url;
+    });
+    const canvas = document.createElement('canvas');
+    canvas.width = 750;
+    canvas.height = 942;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.fillStyle = '#fde4ea';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  } catch {
+    return null;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+/** On his phone: the sets she sent him. Seeing them marks them as seen. */
+function SentToYou({ sent }: { sent: SentNails[] }) {
+  const partnerName = useContent((c) => c.profile.partnerName);
+  const unseen = sent.filter((s) => !s.seenAt).length;
+  useEffect(() => {
+    if (!unseen) return;
+    const now = nowIso();
+    const current = getHer().nails;
+    updateHer({
+      nails: {
+        ...current,
+        sent: (current.sent ?? []).map((s) => (s.seenAt ? s : { ...s, seenAt: now })),
+      },
+    });
+  }, [unseen]);
+  if (!sent.length) return null;
+  return (
+    <div className="nail-sent">
+      <h3 className="her-card__sub">💌 Van {partnerName}, voor jou</h3>
+      <ul className="nail-saved">
+        {sent.slice(0, 12).map((s) => (
+          <li key={s.id}>
+            <span className="nail-saved__open">
+              <NailHand set={s.set} small />
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function NailStudio({ visitor }: { visitor: boolean }) {
   const nails = useHer((h) => h.nails);
+  const yourName = useContent((c) => c.profile.yourName);
   const set = nails.current;
+  const stage = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<number | 'all'>('all');
   const [tab, setTab] = useState<Tab>('color');
   const [history, setHistory] = useState<NailSet[]>([]);
@@ -558,6 +642,45 @@ export function NailStudio({ visitor }: { visitor: boolean }) {
     );
   };
 
+  const send = (el: HTMLElement) => {
+    const current = getHer().nails;
+    const sent = {
+      id: createId('sent'),
+      set: {
+        ...current.current,
+        colors: [...current.current.colors],
+        art: [...current.current.art],
+      },
+      at: nowIso(),
+    };
+    updateHer({ nails: { ...current, sent: [sent, ...(current.sent ?? [])].slice(0, 50) } });
+    celebrateFrom(el);
+    playSfx('kiss', true);
+    toast(`Gestuurd naar ${yourName} 💅`);
+  };
+
+  const share = async () => {
+    const svg = stage.current?.querySelector('svg');
+    if (!svg) return;
+    const blob = await handAsPicture(svg);
+    if (!blob) {
+      toast('Het plaatje maken lukte niet.', { tone: 'error' });
+      return;
+    }
+    const file = new File([blob], 'mijn-nail-set.png', { type: 'image/png' });
+    if (navigator.canShare?.({ files: [file] })) {
+      await navigator.share({ files: [file], title: 'Mijn nail set 💅' }).catch(() => undefined);
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.name;
+    a.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast('Plaatje opgeslagen 💅');
+  };
+
   const save = (el: HTMLElement) => {
     const current = getHer().nails;
     const kept: NailSet = {
@@ -590,7 +713,7 @@ export function NailStudio({ visitor }: { visitor: boolean }) {
         Jouw nail set 💅
       </h2>
       <div className="nail-studio__grid">
-        <div className="nail-studio__stage">
+        <div className="nail-studio__stage" ref={stage}>
           <NailHand
             set={set}
             coats={coats}
@@ -789,9 +912,23 @@ export function NailStudio({ visitor }: { visitor: boolean }) {
                 <Save aria-hidden="true" /> Bewaar deze set
               </button>
             </div>
+            <div className="nail-actions">
+              <button
+                type="button"
+                className="btn btn--soft btn--small"
+                data-sfx="none"
+                onClick={(e) => send(e.currentTarget)}
+              >
+                <Send aria-hidden="true" /> Stuur naar {yourName}
+              </button>
+              <button type="button" className="btn btn--ghost btn--small" onClick={share}>
+                <ImageIcon aria-hidden="true" /> Als plaatje (voor de nagelstudio)
+              </button>
+            </div>
           </div>
         )}
       </div>
+      {visitor && <SentToYou sent={nails.sent ?? []} />}
       {nails.saved.length > 0 && (
         <>
           <h3 className="her-card__sub">

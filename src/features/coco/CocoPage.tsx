@@ -22,6 +22,7 @@ import { getAuthor } from '../../data/people';
 import { ByTag } from '../../components/common/ByTag';
 import { HuntStar } from '../hunt/HuntStar';
 import { useAmbience } from '../../lib/audio/ambience';
+import { CocoBirthday } from './CocoBirthday';
 
 const COCO_ALBUM = 'album-coco';
 
@@ -39,6 +40,7 @@ export function CocoPage() {
         }
         lede="Ons kleine dwergkonijntje. Geef haar eten, knuffel haar en leer haar samen trucjes — plus haar foto’s, grappige momentjes en de officiële feitjes."
       />
+      <CocoBirthday />
       <CocoDen />
       <div className="coco-top">
         <Portrait />

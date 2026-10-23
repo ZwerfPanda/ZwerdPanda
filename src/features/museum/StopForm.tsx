@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Dialog } from '../../components/ui/Dialog';
 import { Checkbox, SelectField, TextArea, TextField } from '../../components/ui/Fields';
+import { isValidIsoDate } from '../../lib/dates';
 import { MediaPicker } from '../../components/media/MediaPicker';
+import { VoiceRecorder } from '../../components/media/Voice';
 import { toast } from '../../components/ui/feedback';
 import { updateContent } from '../../data/store';
 import { getAuthor } from '../../data/people';
-import type { MediaSource, MuseumStop, StopTheme } from '../../data/types';
+import type { MediaSource, MuseumStop, StopTheme, VoiceNote } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
 import { STOP_THEMES, THEME_ORDER } from './themes';
 
@@ -45,10 +47,12 @@ export function StopForm({
   const [place, setPlace] = useState('');
   const [theme, setTheme] = useState<StopTheme>('date');
   const [when, setWhen] = useState('');
+  const [date, setDate] = useState('');
   const [story, setStory] = useState('');
   const [details, setDetails] = useState('');
   const [favorite, setFavorite] = useState('');
   const [media, setMedia] = useState<MediaSource[]>([]);
+  const [voice, setVoice] = useState<VoiceNote | undefined>(undefined);
   const [ahead, setAhead] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,10 +62,12 @@ export function StopForm({
     setPlace(stop?.place ?? '');
     setTheme(stop?.theme ?? 'date');
     setWhen(stop?.when ?? '');
+    setDate(stop?.date ?? '');
     setStory(stop?.story ?? '');
     setDetails(stop?.details.join('\n') ?? '');
     setFavorite(stop?.favorite ?? '');
     setMedia(stop?.media ?? []);
+    setVoice(stop?.voice);
     setAhead(stop ? stop.upcoming : upcoming);
     setError(null);
     // Only when it opens (or opens on something else): a sync or an update
@@ -81,6 +87,7 @@ export function StopForm({
       place: place.trim() || undefined,
       theme,
       when: when.trim() || undefined,
+      date: isValidIsoDate(date) ? date : undefined,
       story: story.trim(),
       details: details
         .split('\n')
@@ -89,6 +96,7 @@ export function StopForm({
         .slice(0, 30),
       favorite: favorite.trim() || undefined,
       media,
+      voice,
       upcoming: ahead,
       by: stop?.by ?? getAuthor(),
       createdAt: stop?.createdAt ?? nowIso(),
@@ -160,6 +168,14 @@ export function StopForm({
           maxLength={60}
           placeholder="bv. zomer 2026"
         />
+        <TextField
+          label="Precieze datum"
+          optional
+          type="date"
+          value={date}
+          onChange={setDate}
+          hint="Als je die weet: dan komt hij op het kaartje, en telt een volgende halte af."
+        />
         <TextArea label="Het verhaal" optional value={story} onChange={setStory} rows={4} />
         <TextArea
           label="Wat we hier deden"
@@ -177,6 +193,12 @@ export function StopForm({
           rows={3}
         />
         <MediaPicker label="Foto’s" value={media} onChange={setMedia} hint="Zoveel als je wilt." />
+        <VoiceRecorder
+          label="Vertel het verhaal (ingesproken)"
+          value={voice}
+          onChange={setVoice}
+          hint="Wie de halte bezoekt, kan jouw stem erbij horen."
+        />
         <Checkbox
           label="Hier moeten we nog heen (volgende halte)"
           checked={ahead}

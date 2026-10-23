@@ -3,7 +3,8 @@ import { Heart, Pencil, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useContent } from '../../data/store';
 import { useMe } from '../../data/people';
-import type { LoveNote } from '../../data/types';
+import type { LoveNote, VoiceNote } from '../../data/types';
+import { VoicePlayer, VoiceRecorder } from '../../components/media/Voice';
 import { Dialog } from '../../components/ui/Dialog';
 import { TextArea } from '../../components/ui/Fields';
 import { confirm, toast } from '../../components/ui/feedback';
@@ -103,7 +104,9 @@ export function HerNotes() {
           </button>
         ) : latest ? (
           <button type="button" className="her-note-latest" onClick={() => open(latest)}>
-            “{latest.text.length > 120 ? `${latest.text.slice(0, 120)}…` : latest.text}”
+            {latest.text
+              ? `“${latest.text.length > 120 ? `${latest.text.slice(0, 120)}…` : latest.text}”`
+              : '🎙️ Een ingesproken briefje'}
           </button>
         ) : (
           <p className="her-music__hint">
@@ -156,7 +159,8 @@ export function HerNotes() {
       >
         {reading && (
           <div className="her-note-paper">
-            <p>{reading.text}</p>
+            {reading.voice && <VoicePlayer voice={reading.voice} label="Zijn stem" />}
+            {reading.text && <p>{reading.text}</p>}
             <p className="her-note-paper__sign">— {yourName}</p>
           </div>
         )}
@@ -176,7 +180,7 @@ export function HerNotes() {
                 <span className="her-note-list__date">
                   {formatTimestamp(n.createdAt)} {n.hearted && '♥'} {!n.openedAt && '· nieuw'}
                 </span>
-                <span>{n.text}</span>
+                <span>{n.text || '🎙️ Ingesproken briefje'}</span>
               </button>
               {writer && (
                 <span className="her-note-list__tools">
@@ -233,28 +237,32 @@ function NoteForm({
   onClose: () => void;
 }) {
   const [text, setText] = useState('');
+  const [voice, setVoice] = useState<VoiceNote | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [lastOpen, setLastOpen] = useState(false);
   if (open !== lastOpen) {
     setLastOpen(open);
     if (open) {
       setText(note?.text ?? '');
+      setVoice(note?.voice);
       setError(null);
     }
   }
 
   const save = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!text.trim()) {
-      setError('Schrijf iets liefs — al is het maar één zin.');
+    if (!text.trim() && !voice) {
+      setError('Schrijf iets liefs of spreek iets in — al is het maar één zin.');
       return;
     }
     if (note) {
-      setNotes((list) => list.map((n) => (n.id === note.id ? { ...n, text: text.trim() } : n)));
+      setNotes((list) =>
+        list.map((n) => (n.id === note.id ? { ...n, text: text.trim(), voice } : n)),
+      );
     } else {
       setNotes((list) => [
         ...list,
-        { id: createId('note'), text: text.trim(), createdAt: nowIso() },
+        { id: createId('note'), text: text.trim(), voice, createdAt: nowIso() },
       ]);
     }
     toast(note ? 'Briefje bijgewerkt' : `Briefje ligt klaar voor ${partnerName} 💌`);
@@ -292,6 +300,7 @@ function NoteForm({
           placeholder="Hey beautiful…"
           hint="Ze vindt het als een envelopje in haar plekje. Ze ziet wanneer je het schreef."
         />
+        <VoiceRecorder label="Of zeg het (mag ook allebei)" value={voice} onChange={setVoice} />
       </form>
     </Dialog>
   );

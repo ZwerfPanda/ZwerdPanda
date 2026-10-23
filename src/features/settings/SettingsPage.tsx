@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { enableNotifications, notificationPermission } from '../../lib/notify';
 import {
   Download,
   Eraser,
@@ -464,6 +465,41 @@ function LookSection() {
 
 /* ------------------------------------------------------------------ Sound */
 
+function NotifyToggle() {
+  const prefs = usePrefs();
+  const [permission, setPermission] = useState(notificationPermission());
+  if (permission === 'unsupported') {
+    return (
+      <p className="field__hint">
+        Meldingen: deze browser kan ze niet tonen. Zet de app op je beginscherm (op iPhone vanaf iOS
+        16.4) en open hem van daaruit.
+      </p>
+    );
+  }
+  return (
+    <>
+      <Checkbox
+        label="Meldingen: een seintje als de ander iets nieuws toevoegt, of als een brief opengaat"
+        checked={prefs.notify && permission === 'granted'}
+        onChange={async (on) => {
+          if (on) {
+            const ok = await enableNotifications();
+            setPermission(notificationPermission());
+            toast(ok ? 'Meldingen staan aan ♡' : 'Je telefoon staat meldingen nog niet toe.');
+          } else {
+            updatePrefs({ notify: false });
+          }
+        }}
+      />
+      <p className="field__hint">
+        {permission === 'denied'
+          ? 'Meldingen zijn geblokkeerd in de instellingen van je telefoon of browser.'
+          : 'Je krijgt ze terwijl de app open is of op de achtergrond draait. Is de app helemaal dicht, dan zie je het nieuws zodra je hem weer opent.'}
+      </p>
+    </>
+  );
+}
+
 function SoundSection() {
   const prefs = usePrefs();
   const music = useMusic();
@@ -602,6 +638,7 @@ function SoundSection() {
           checked={prefs.ambience}
           onChange={(on) => updatePrefs({ ambience: on })}
         />
+        <NotifyToggle />
       </div>
     </Section>
   );

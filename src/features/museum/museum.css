@@ -845,3 +845,218 @@
   transform-origin: 50% 50%;
   animation: train-wheel 3s linear infinite;
 }
+
+.museum-voice {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  margin: 0 0 18px;
+}
+
+.museum-voice__label {
+  font-family: var(--font-hand);
+  font-size: 1.15rem;
+  color: var(--accent-strong);
+}
+
+/* ---------------------------------------------------------- tickets */
+
+.museum-ticket {
+  margin: 0 0 20px;
+}
+
+.museum-line-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ticket {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  max-width: 420px;
+  padding: 0 0 12px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #fffaf0;
+  color: #1c2a5e;
+  box-shadow:
+    0 6px 18px rgba(28, 42, 94, 0.16),
+    inset 0 0 0 1px rgba(28, 42, 94, 0.12);
+  font-size: 0.85rem;
+  /* the little notches of a real ticket */
+  -webkit-mask:
+    radial-gradient(circle 9px at 0 62%, transparent 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 9px at 100% 62%, transparent 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle 9px at 0 62%, transparent 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 9px at 100% 62%, transparent 98%, #000) right / 51% 100% no-repeat;
+}
+
+.ticket--ahead {
+  opacity: 0.85;
+  background: repeating-linear-gradient(135deg, #fffaf0 0 12px, #fff3d6 12px 24px);
+}
+
+.ticket__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: #ffc917;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ticket__ns {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #003082;
+  color: #fff;
+  font-weight: 800;
+  font-style: italic;
+}
+
+.ticket__class {
+  margin-left: auto;
+  padding: 1px 7px;
+  border: 2px solid #003082;
+  border-radius: 6px;
+}
+
+.ticket__route {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  gap: 8px;
+  padding: 0 14px;
+}
+
+.ticket__route small,
+.ticket__meta dt {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+.ticket__route strong {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  line-height: 1.15;
+}
+
+.ticket__arrow {
+  font-size: 1.3rem;
+  opacity: 0.6;
+}
+
+.ticket__meta {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 14px 0;
+  border-top: 2px dashed rgba(28, 42, 94, 0.2);
+}
+
+.ticket__meta dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.ticket__barcode {
+  width: 120px;
+  height: 22px;
+  margin-left: 14px;
+  fill: #1c2a5e;
+}
+
+.ticket__stamp {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  padding: 4px 10px;
+  border: 3px double #c0182b;
+  border-radius: 8px;
+  color: #c0182b;
+  font-family: var(--font-hand);
+  font-size: 1.15rem;
+  opacity: 0.85;
+  transform: rotate(-14deg);
+}
+
+.ticket-wallet {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ------------------------------------------------- next stop countdown */
+
+.next-stop {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  margin: 0 0 16px;
+  padding: 14px 16px 16px;
+  border: 0;
+  border-radius: 20px;
+  background: #003082;
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.next-stop__eyebrow {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #ffc917;
+}
+
+.next-stop__name {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 500;
+}
+
+.next-stop__left {
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.next-stop__track {
+  position: relative;
+  height: 30px;
+  margin: 8px 18px 0 4px;
+}
+
+.next-stop__rail {
+  position: absolute;
+  inset: 20px 0 auto;
+  height: 4px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(90deg, #ffc917 0 10px, transparent 10px 16px);
+}
+
+.next-stop__train {
+  position: absolute;
+  top: 0;
+  font-size: 1.4rem;
+  transform: translateX(-50%) scaleX(-1);
+  transition: left 1s var(--ease-spring);
+}
+
+.next-stop__flag {
+  position: absolute;
+  top: 2px;
+  right: -14px;
+  font-size: 1.2rem;
+}

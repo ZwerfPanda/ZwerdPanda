@@ -1,11 +1,6 @@
 import { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
 import { useContent } from '../../data/store';
-import { href } from '../../lib/router';
-import { parseIsoDate } from '../../lib/dates';
-import { useToday } from '../../hooks/useToday';
 import { Starfield } from '../../components/art/Starfield';
-import { SparkleIcon } from '../../components/art/shapes';
 import { SiteFooter } from '../../components/common/SiteFooter';
 import { HeroPlanet } from './HeroPlanet';
 import { Counter } from './Counter';
@@ -15,6 +10,8 @@ import './home.css';
 import { Countdowns } from './Countdowns';
 import { WhatsNew } from './WhatsNew';
 import { HuntChip } from '../hunt/HuntBoard';
+import { DailyThing } from './DailyThing';
+import { WrappedButton } from '../wrapped/Wrapped';
 
 export function HomePage() {
   const profile = useContent((c) => c.profile);
@@ -44,13 +41,16 @@ export function HomePage() {
           <Counter />
           <HomeNote />
         </div>
+        <div className="home__wrapped">
+          <WrappedButton />
+        </div>
         <Explore />
         <Countdowns />
         <div className="home__hunt">
           <HuntChip />
         </div>
         <InstallBanner />
-        <TodayNote />
+        <DailyThing />
         <SiteFooter />
       </div>
     </div>
@@ -89,25 +89,5 @@ function HomeNote() {
       )}
       {(open || paragraphs.length === 1) && <p className="home-note__sign">— {yourName}</p>}
     </article>
-  );
-}
-
-function TodayNote() {
-  const reasons = useContent((c) => c.surprises.reasons);
-  const today = useToday();
-  if (reasons.length === 0) return null;
-  const dayNumber = Math.floor((parseIsoDate(today)?.getTime() ?? 0) / 86_400_000);
-  const reason = reasons[dayNumber % reasons.length];
-  return (
-    <aside className="today" aria-labelledby="today-title">
-      <SparkleIcon size={26} className="today__spark" color="var(--gold-400)" />
-      <h2 id="today-title" className="today__title hand">
-        vandaag hou ik van…
-      </h2>
-      <p className="today__text">{reason}</p>
-      <a className="today__link" href={href('/surprises')}>
-        Open de pot met kleine redenen <ArrowRight aria-hidden="true" />
-      </a>
-    </aside>
   );
 }

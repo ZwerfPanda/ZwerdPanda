@@ -63,6 +63,9 @@ import type {
   LoveNote,
   NailArt,
   NailFinish,
+  Quiz,
+  QuizAnswer,
+  VoiceNote,
   NailLength,
   NailSet,
   NailShape,
@@ -173,6 +176,12 @@ export function normalizeMedia(v: unknown): MediaSource | null {
   return null;
 }
 
+export function normalizeVoice(v: unknown): VoiceNote | undefined {
+  if (!isObj(v) || typeof v.mediaId !== 'string' || !v.mediaId) return undefined;
+  const seconds = typeof v.seconds === 'number' && v.seconds > 0 ? v.seconds : 0;
+  return { mediaId: v.mediaId.slice(0, 120), seconds: Math.min(Math.round(seconds), 3600) };
+}
+
 function normalizeSong(v: unknown): SongRef | undefined {
   if (!isObj(v) || !optStr(v.title)) return undefined;
   return { title: str(v.title, '', 200), artist: optStr(v.artist, 200), url: optStr(v.url, 2000) };
@@ -264,6 +273,7 @@ function normalizeLetter(v: unknown, i: number): Letter | null {
         : lock.type === 'date' && isValidIsoDate(lock.until as string)
           ? { type: 'date', until: lock.until as string }
           : { type: 'none' },
+    voice: normalizeVoice(v.voice),
     readAt: optStr(v.readAt, 40),
     isSample: bool(v.isSample) || undefined,
     by: person(v.by),
@@ -716,10 +726,14 @@ function normalizeHerSong(v: unknown, i: number): HerSong | null {
 }
 
 function normalizeNote(v: unknown, i: number): LoveNote | null {
-  if (!isObj(v) || !optStr(v.text)) return null;
+  if (!isObj(v)) return null;
+  const voice = normalizeVoice(v.voice);
+  // A note can be words, a voice message, or both.
+  if (!optStr(v.text) && !voice) return null;
   return {
     id: id(v.id, 'note', i),
     text: str(v.text, '', 20_000),
+    voice,
     createdAt: stamp(v.createdAt),
     openedAt: optStamp(v.openedAt),
     hearted: bool(v.hearted) || undefined,
@@ -766,6 +780,15 @@ export function normalizeHer(v: unknown): HerSpace {
         art: [...defaultHer.nails.current.art],
       },
       saved: isObj(v.nails) ? list(v.nails.saved, normalizeNailSet).slice(0, 24) : [],
+      sent: isObj(v.nails)
+        ? list(v.nails.sent, (x, i) => {
+            if (!isObj(x)) return null;
+            const set = normalizeNailSet(x.set, i);
+            return set
+              ? { id: id(x.id, 'sent', i), set, at: stamp(x.at), seenAt: optStamp(x.seenAt) }
+              : null;
+          }).slice(0, 50)
+        : [],
     },
     // Private things never belong in the shared copy.
     journal: list(v.journal, normalizeJournalEntry)
@@ -828,7 +851,9 @@ function normalizeStop(v: unknown, i: number): MuseumStop | null {
     details: lines(v.details, 30, []),
     favorite: optStr(v.favorite, 20_000),
     media: list(v.media, (m) => normalizeMedia(m)).slice(0, 500),
+    voice: normalizeVoice(v.voice),
     when: optStr(v.when, 60),
+    date: optDate(v.date),
     upcoming: bool(v.upcoming),
     by: person(v.by),
     createdAt: stamp(v.createdAt),
@@ -838,6 +863,40 @@ function normalizeStop(v: unknown, i: number): MuseumStop | null {
 function normalizeMuseum(v: unknown): Museum {
   if (!isObj(v) || !Array.isArray(v.stops)) return defaultMuseum();
   return { stops: list(v.stops, normalizeStop).slice(0, 120), foundAt: optStamp(v.foundAt) };
+}
+
+const JUDGEMENTS = ['right', 'close', 'wrong'] as const;
+
+function normalizeQuiz(v: unknown): Quiz {
+  if (!isObj(v)) return { custom: [], answers: [] };
+  return {
+    custom: list(v.custom, (q, i) =>
+      isObj(q) && optStr(q.text)
+        ? {
+            id: id(q.id, 'question', i),
+            text: str(q.text, '', 300),
+            by: person(q.by),
+            createdAt: stamp(q.createdAt),
+          }
+        : null,
+    ).slice(0, 200),
+    answers: list(v.answers, (a) => {
+      if (!isObj(a) || typeof a.question !== 'string') return null;
+      const who = person(a.who);
+      if (!who) return null;
+      return {
+        id: `${a.question}:${who}`,
+        question: a.question.slice(0, 120),
+        who,
+        self: optStr(a.self, 2000),
+        guess: optStr(a.guess, 2000),
+        judged: JUDGEMENTS.includes(a.judged as never)
+          ? (a.judged as QuizAnswer['judged'])
+          : undefined,
+        at: stamp(a.at),
+      };
+    }).slice(0, 1000),
+  };
 }
 
 export function normalizeContent(raw: unknown): AppContent {
@@ -869,6 +928,7 @@ export function normalizeContent(raw: unknown): AppContent {
     her: normalizeHer(raw.her),
     hunt: normalizeHunt(raw.hunt),
     museum: normalizeMuseum(raw.museum),
+    quiz: normalizeQuiz(raw.quiz),
   });
 }
 
@@ -897,6 +957,7 @@ export function normalizePreferences(raw: unknown): Preferences {
     companion: bool(p.companion, defaultPreferences.companion),
     sfx: bool(p.sfx, defaultPreferences.sfx),
     ambience: bool(p.ambience, defaultPreferences.ambience),
+    notify: bool(p.notify, defaultPreferences.notify),
     cocoHome:
       isObj(p.cocoHome) &&
       typeof p.cocoHome.path === 'string' &&

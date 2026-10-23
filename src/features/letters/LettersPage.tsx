@@ -182,16 +182,22 @@ function ShelfEnvelope({
   const reduce = useReducedMotion();
   const locked = isDateLocked(letter, today);
   const tilt = [-2.2, 1.6, -1, 2.4, -1.8, 1][index % 6];
+  const until = letter.lock.type === 'date' ? letter.lock.until : '';
+  const daysLeft = until
+    ? Math.round((Date.parse(`${until}T12:00:00`) - Date.parse(`${today}T12:00:00`)) / 86_400_000)
+    : 0;
   const status =
     letter.status === 'draft'
       ? 'Concept'
       : locked
-        ? `Verzegeld tot ${formatDate(letter.lock.type === 'date' ? letter.lock.until : '', 'short')}`
-        : letter.readAt
-          ? `Geopend ${formatTimestamp(letter.readAt)}`
-          : letter.lock.type === 'hold'
-            ? 'Houd het zegel vast om te openen'
-            : 'Ongeopend';
+        ? `Verzegeld tot ${formatDate(until, 'short')} · nog ${daysLeft === 1 ? '1 dag' : `${daysLeft} dagen`}`
+        : until && until === today && !letter.readAt
+          ? 'Vandaag opengegaan ✨'
+          : letter.readAt
+            ? `Geopend ${formatTimestamp(letter.readAt)}`
+            : letter.lock.type === 'hold'
+              ? 'Houd het zegel vast om te openen'
+              : 'Ongeopend';
 
   return (
     <motion.li
@@ -203,7 +209,7 @@ function ShelfEnvelope({
     >
       <button
         type="button"
-        className={`shelf__button ${letter.status === 'draft' ? 'is-draft' : ''}`}
+        className={`shelf__button ${letter.status === 'draft' ? 'is-draft' : ''} ${until === today && !letter.readAt && !locked ? 'is-fresh' : ''}`}
         onClick={onOpen}
         style={{ '--tilt': `${tilt}deg` } as React.CSSProperties}
         aria-label={`Open when ${letter.occasion} — ${status}`}

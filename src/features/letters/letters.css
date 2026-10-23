@@ -463,3 +463,30 @@
   font-size: 0.78rem;
   color: var(--paper-ink-soft);
 }
+
+.letter-paper__voice {
+  margin: 14px 0 4px;
+}
+
+/* A sealed letter whose day has come: it glows until it's opened. */
+.shelf__button.is-fresh {
+  animation: letter-fresh 2.2s ease-in-out infinite;
+  border-radius: 14px;
+}
+
+@keyframes letter-fresh {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(232, 189, 106, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(232, 189, 106, 0.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shelf__button.is-fresh {
+    animation: none;
+    box-shadow: 0 0 0 4px rgba(232, 189, 106, 0.6);
+  }
+}

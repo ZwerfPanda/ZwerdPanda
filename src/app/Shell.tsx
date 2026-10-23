@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { SearchButton } from '../features/search/Search';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ChevronDown,
@@ -75,6 +76,7 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
 
         <div className="topbar__actions">
           <SyncBadge />
+          <SearchButton />
           {desktop && (
             <a
               className="icon-btn"

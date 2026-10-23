@@ -33,6 +33,29 @@ export function newSince(content: AppContent, from: Person, since: string): NewT
   add(content.songs.filter(fresh).length, 'liedje', '/music', 'liedjes');
   add(content.coco.notes.filter(fresh).length, 'Coco-momentje', '/coco', 'Coco-momentjes');
   add(content.countdowns.filter(fresh).length, 'countdown', '/', 'countdowns');
+  add(content.museum.stops.filter(fresh).length, 'halte', '/museum', 'haltes');
+  // Love notes are always from him; the nail sets she sends are for him.
+  if (from === 'you') {
+    add(
+      content.her.notes.filter((n) => n.createdAt > since).length,
+      'love note',
+      '/her',
+      'love notes',
+    );
+  } else {
+    add(
+      (content.her.nails.sent ?? []).filter((s) => s.at > since).length,
+      'nail set voor jou',
+      '/her',
+      'nail sets voor jou',
+    );
+  }
+  const answered = new Set(
+    content.quiz.answers
+      .filter((a) => a.who === from && a.at > since && a.self && a.guess)
+      .map((a) => a.question),
+  );
+  add(answered.size, 'antwoord in het spelletje', '/quiz', 'antwoorden in het spelletje');
   const care = content.pet.log.filter((e) => e.by === from && e.at > since).length;
   if (care > 0) things.push({ label: 'heeft voor Coco gezorgd', path: '/coco' });
   return things;

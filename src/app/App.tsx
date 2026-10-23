@@ -4,6 +4,7 @@ import { useRoute, type RoutePath } from '../lib/router';
 import { onPersistError, useContent, usePrefs } from '../data/store';
 import { cleanupOrphanMedia } from '../data/actions';
 import { installRestorePoints } from '../data/restorePoints';
+import { installNotifications } from '../lib/notify';
 import { useReducedMotion } from '../hooks/useMotion';
 import { MenuSheet, MiniPlayer, TabBar, TopBar } from './Shell';
 import { sectionFor } from './sections';
@@ -38,6 +39,7 @@ const pages = {
   lists: () => import('../features/lists/ListsPage').then((m) => ({ default: m.ListsPage })),
   her: () => import('../features/her/HerPage').then((m) => ({ default: m.HerPage })),
   museum: () => import('../features/museum/MuseumPage').then((m) => ({ default: m.MuseumPage })),
+  quiz: () => import('../features/quiz/QuizPage').then((m) => ({ default: m.QuizPage })),
   settings: () =>
     import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 };
@@ -53,6 +55,7 @@ const MiniUsPage = lazy(pages.us);
 const ListsPage = lazy(pages.lists);
 const HerPage = lazy(pages.her);
 const MuseumPage = lazy(pages.museum);
+const QuizPage = lazy(pages.quiz);
 const SettingsPage = lazy(pages.settings);
 
 const PAGES: Record<RoutePath, () => React.ReactNode> = {
@@ -69,6 +72,7 @@ const PAGES: Record<RoutePath, () => React.ReactNode> = {
   '/lists': () => <ListsPage />,
   '/her': () => <HerPage />,
   '/museum': () => <MuseumPage />,
+  '/quiz': () => <QuizPage />,
   '/settings': () => <SettingsPage />,
 };
 
@@ -128,6 +132,7 @@ export function App() {
   useEffect(() => {
     // Restore points first, so even the very first sync has a copy before it.
     installRestorePoints();
+    installNotifications();
     // Ask the browser not to tidy our storage away (granted quietly when the
     // app is on the home screen; otherwise Instellingen shows how).
     void navigator.storage?.persist?.().catch(() => false);

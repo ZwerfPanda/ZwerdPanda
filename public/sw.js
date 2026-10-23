@@ -90,3 +90,21 @@ self.addEventListener('fetch', (event) => {
     }),
   );
 });
+
+// Tapping one of our notifications opens the app (or brings it to the front)
+// at the place it's about.
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = new URL(event.notification.data?.url || './', self.registration.scope).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+      for (const win of windows) {
+        if ('focus' in win) {
+          win.navigate?.(target);
+          return win.focus();
+        }
+      }
+      return self.clients.openWindow(target);
+    }),
+  );
+});

@@ -1593,3 +1593,7 @@ a.her-wish__main:hover .her-wish__title {
   display: flex;
   gap: 6px;
 }
+
+.nail-sent {
+  margin-top: 14px;
+}

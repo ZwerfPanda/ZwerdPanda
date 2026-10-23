@@ -294,6 +294,10 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
     us: mergeUs(base.us, local.us, remote.us),
     her: mergeHer(base.her, local.her, remote.her),
     hunt: mergeHunt(base.hunt, local.hunt, remote.hunt),
+    quiz: {
+      custom: mergeList(base.quiz.custom, local.quiz.custom, remote.quiz.custom),
+      answers: mergeList(base.quiz.answers, local.quiz.answers, remote.quiz.answers),
+    },
     museum: {
       stops: mergeList(base.museum.stops, local.museum.stops, remote.museum.stops),
       foundAt: earliest(local.museum.foundAt, remote.museum.foundAt),
@@ -350,6 +354,10 @@ export function mergeFirstJoin(
     coco: { ...remote.coco, notes: addPlain(local.coco.notes, remote.coco.notes) },
     countdowns: addPlain(local.countdowns, remote.countdowns),
     hunt: mergeHunt(remote.hunt, local.hunt, remote.hunt),
+    quiz: {
+      custom: addPlain(local.quiz.custom, remote.quiz.custom),
+      answers: addPlain(local.quiz.answers, remote.quiz.answers),
+    },
     museum: {
       stops: addPlain(
         local.museum.stops,
@@ -384,5 +392,10 @@ export function contentMediaIds(content: AppContent): string[] {
   add(content.coco.portrait);
   content.her.bucket.forEach((b) => add(b.media));
   content.museum.stops.forEach((s) => s.media.forEach(add));
+  // Voice messages travel the same way photos do.
+  const voice = (v: { mediaId: string } | undefined) => v && ids.add(v.mediaId);
+  content.letters.forEach((l) => voice(l.voice));
+  content.museum.stops.forEach((s) => voice(s.voice));
+  content.her.notes.forEach((n) => voice(n.voice));
   return [...ids];
 }

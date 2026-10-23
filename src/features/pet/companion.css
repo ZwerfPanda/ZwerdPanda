@@ -285,3 +285,12 @@
   height: 162px;
   overflow: visible;
 }
+
+/* While a sheet or dialog is open, Coco steps aside (she'd sit on top of it). */
+body:has(.dialog-root) .companion,
+body:has(.dialog-root) .hidden-hutch,
+body:has(.wrapped) .companion,
+body:has(.wrapped) .hidden-hutch {
+  opacity: 0;
+  visibility: hidden;
+}

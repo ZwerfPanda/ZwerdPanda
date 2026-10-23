@@ -519,6 +519,7 @@ export const defaultHer: HerSpace = {
       art: ['none', 'none', 'heart', 'none', 'none'],
     },
     saved: [],
+    sent: [],
   },
   journal: [],
   bucket: [],
@@ -546,6 +547,7 @@ export function cloneHer(her: HerSpace): HerSpace {
         art: [...her.nails.current.art],
       },
       saved: her.nails.saved.map((n) => ({ ...n, colors: [...n.colors], art: [...n.art] })),
+      sent: (her.nails.sent ?? []).map((s) => ({ ...s })),
     },
     journal: her.journal.map((j) => ({ ...j })),
     bucket: her.bucket.map((b) => ({ ...b })),
@@ -592,6 +594,7 @@ export function createDefaultContent(): AppContent {
     us: cloneUs(defaultUs),
     her: cloneHer(defaultHer),
     hunt: { found: {}, reward: defaultHunt.reward },
+    quiz: { custom: [], answers: [] },
     museum: defaultMuseum(),
   };
 }
@@ -605,4 +608,5 @@ export const defaultPreferences: Preferences = {
   companion: true,
   sfx: true,
   ambience: true,
+  notify: false,
 };

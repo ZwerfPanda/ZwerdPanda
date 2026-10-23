@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { VoicePlayer } from '../../components/media/Voice';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { playSfx } from '../../lib/audio/sfx';
@@ -194,6 +195,11 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
                   <p key={i}>{p}</p>
                 ))}
               </div>
+              {letter.voice && (
+                <div className="letter-paper__voice">
+                  <VoicePlayer voice={letter.voice} label="Ingesproken bericht" />
+                </div>
+              )}
               {letter.signature && <p className="letter-paper__sign">{letter.signature}</p>}
             </div>
             <footer className="letter-paper__foot">

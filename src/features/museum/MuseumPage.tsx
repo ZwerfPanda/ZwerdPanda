@@ -16,6 +16,8 @@ import type { MuseumStop, StopTheme } from '../../data/types';
 import { Dialog } from '../../components/ui/Dialog';
 import { confirm, toast } from '../../components/ui/feedback';
 import { MediaView } from '../../components/media/MediaView';
+import { VoicePlayer } from '../../components/media/Voice';
+import { NextStopCountdown, StopTicket, TicketWallet } from './Tickets';
 import { SiteFooter } from '../../components/common/SiteFooter';
 import { navigate, useRoute } from '../../lib/router';
 import { nowIso } from '../../lib/id';
@@ -165,6 +167,7 @@ function LineMap({
         Je hebt het diepste plekje van ons universe gevonden. Elke halte op deze lijn is een plek
         die van ons is — stap in, rij mee, en kijk uit het raam.
       </p>
+      <NextStopCountdown stops={stops} onGo={(s) => onTravel(s, 'Binnenkort')} />
       {been[0] && (
         <button
           type="button"
@@ -184,9 +187,12 @@ function LineMap({
             <LineStop key={s.id} stop={s} n={i + 1} onGo={() => onTravel(s)} />
           ))}
         </ol>
-        <button type="button" className="btn btn--soft museum-add" onClick={() => onAdd(false)}>
-          <Plus aria-hidden="true" /> Halte toevoegen
-        </button>
+        <div className="museum-line-actions">
+          <button type="button" className="btn btn--soft museum-add" onClick={() => onAdd(false)}>
+            <Plus aria-hidden="true" /> Halte toevoegen
+          </button>
+          <TicketWallet stops={stops} />
+        </div>
       </section>
 
       <section aria-labelledby="ahead-title">
@@ -323,9 +329,24 @@ function StopView({
         {stop.upcoming && <span className="museum-scene__soon">binnenkort ✦</span>}
       </div>
 
+      <div className="museum-ticket">
+        <StopTicket
+          key={stop.id}
+          stop={stop}
+          from={stop.upcoming ? (been.at(-1) ?? null) : (been[(number ?? 1) - 2] ?? null)}
+          stamp
+        />
+      </div>
+
       {stop.story && (
         <section className="museum-placard" aria-label="Het verhaal">
           <p>{stop.story}</p>
+        </section>
+      )}
+      {stop.voice && (
+        <section className="museum-voice" aria-label="Het verhaal, ingesproken">
+          <span className="museum-voice__label">🎙️ luister naar deze halte</span>
+          <VoicePlayer voice={stop.voice} label="Het verhaal van deze halte" />
         </section>
       )}
 

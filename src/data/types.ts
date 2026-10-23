@@ -41,6 +41,12 @@ export type MediaSource =
   | { type: 'sample'; art: ArtKey }
   | { type: 'local'; mediaId: ID; kind: 'image' | 'video'; width?: number; height?: number };
 
+/** A recorded voice message, stored like a photo (on the phone, and in the cloud). */
+export interface VoiceNote {
+  mediaId: ID;
+  seconds: number;
+}
+
 export interface SongRef {
   title: string;
   artist?: string;
@@ -118,6 +124,8 @@ export interface Letter {
   /** Drafts stay off the envelope shelf until shared. Not a security feature. */
   status: 'draft' | 'shared';
   lock: LetterLock;
+  /** His or her voice, to listen to with the letter. */
+  voice?: VoiceNote;
   readAt?: string;
   isSample?: boolean;
   by?: Person;
@@ -455,6 +463,7 @@ export interface Goal {
 export interface LoveNote {
   id: ID;
   text: string;
+  voice?: VoiceNote;
   createdAt: string;
   openedAt?: string;
   hearted?: boolean;
@@ -500,6 +509,14 @@ export interface NailSet {
   savedAt?: string;
 }
 
+/** A set she sent him, to show off. */
+export interface SentNails {
+  id: ID;
+  set: NailSet;
+  at: string;
+  seenAt?: string;
+}
+
 export interface HerSpace {
   /** Empty means "<her name>’s Little World". */
   title: string;
@@ -520,7 +537,7 @@ export interface HerSpace {
   /** Notes he leaves for her. */
   notes: LoveNote[];
   /** Her nail studio: the set she's designing, and the ones she saved. */
-  nails: { current: NailSet; saved: NailSet[] };
+  nails: { current: NailSet; saved: NailSet[]; sent?: SentNails[] };
   journal: JournalEntry[];
   bucket: BucketItem[];
   goals: Goal[];
@@ -564,8 +581,12 @@ export interface MuseumStop {
   /** Our favourite memory of this stop. */
   favorite?: string;
   media: MediaSource[];
+  /** The story of this stop, told out loud. */
+  voice?: VoiceNote;
   /** Loose "when", e.g. "december" or "onze eerste date". */
   when?: string;
+  /** The exact day, when we know it (for the countdown and the ticket). */
+  date?: string;
   /** A stop we haven't been to yet. */
   upcoming: boolean;
   by?: Person;
@@ -576,6 +597,33 @@ export interface Museum {
   stops: MuseumStop[];
   /** When one of us first found the way in. */
   foundAt?: string;
+}
+
+/* ------------------------------------------------------- who knows who */
+
+export interface QuizQuestion {
+  id: ID;
+  text: string;
+  by?: Person;
+  createdAt: string;
+}
+
+/** One person's go at one question: about themselves, and a guess about the other. */
+export interface QuizAnswer {
+  /** `${question}:${who}` — one per person per question. */
+  id: ID;
+  question: ID;
+  who: Person;
+  self?: string;
+  guess?: string;
+  /** How the other person judged this guess. */
+  judged?: 'right' | 'close' | 'wrong';
+  at: string;
+}
+
+export interface Quiz {
+  custom: QuizQuestion[];
+  answers: QuizAnswer[];
 }
 
 /* -------------------------------------------------------------- star hunt */
@@ -626,6 +674,7 @@ export interface AppContent {
   her: HerSpace;
   hunt: StarHunt;
   museum: Museum;
+  quiz: Quiz;
 }
 
 /** Per-device preferences. These never travel with exported content. */
@@ -643,6 +692,8 @@ export interface Preferences {
   sfx: boolean;
   /** Quiet background ambience in some places (bubbles in the spa…). */
   ambience: boolean;
+  /** Little notifications on this device when something new arrives. */
+  notify: boolean;
   /** While she stays home: the page (and edge) where her hutch is hidden. */
   cocoHome?: { path: string; spot: number };
 }

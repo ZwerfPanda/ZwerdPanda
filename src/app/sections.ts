@@ -9,6 +9,7 @@ import {
   Mail,
   Music,
   Orbit,
+  Puzzle,
   Rabbit,
   Settings2,
   Telescope,
@@ -177,6 +178,15 @@ export const SECTIONS: Section[] = [
     blurb: 'Wij tweetjes, maar dan mini',
     icon: UsersRound,
     tint: '#f8d3dc',
+  },
+  {
+    path: '/quiz',
+    group: 'together',
+    label: 'Wie kent wie?',
+    short: 'Spelletje',
+    blurb: 'Hoe goed ken je de ander?',
+    icon: Puzzle,
+    tint: '#ffd8a8',
   },
   {
     path: '/lists',
