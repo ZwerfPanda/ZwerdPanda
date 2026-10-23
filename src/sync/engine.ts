@@ -85,6 +85,8 @@ export class SyncEngine {
   private busy = false;
   private again = false;
   private uploading = false;
+  /** Photos the server refused this session (shown in the Samen-check). */
+  private uploadFailed = new Set<string>();
   private pushTimer: ReturnType<typeof setTimeout> | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private cleanups: (() => void)[] = [];
@@ -282,6 +284,9 @@ export class SyncEngine {
         error: null,
         pendingChanges: this.meta.pending,
       });
+      // Photos the other phone was still uploading last time: look again on every sync,
+      // not only when the content changed (an upload alone doesn't change it).
+      this.deps.retryMissingMedia();
       void this.uploadMedia();
       // Until both of us are in, keep an eye out for the other person joining.
       if (this.state.members.length < 2) void this.refreshPeople();
@@ -409,9 +414,16 @@ export class SyncEngine {
         const blob = await this.deps.getLocalMedia(id);
         if (blob) {
           this.set({ uploading: left });
-          await this.backend.uploadMedia(spaceId, id, blob);
-          done.add(id);
-          this.markUploaded(done);
+          try {
+            await this.backend.uploadMedia(spaceId, id, blob);
+            done.add(id);
+            this.markUploaded(done);
+          } catch (error) {
+            // No connection: stop and try everything again later.
+            if (error instanceof OfflineError) throw error;
+            // One photo the server refuses (too big, say) mustn't hold up all the others.
+            this.uploadFailed.add(id);
+          }
         }
         left--;
       }
@@ -439,10 +451,17 @@ export class SyncEngine {
   }
 
   /** Photos we use: how many are online, and which are missing there (and if this phone has them). */
-  async mediaStatus(): Promise<{ total: number; online: number; missing: number; here: number }> {
+  async mediaStatus(): Promise<{
+    total: number;
+    online: number;
+    missing: number;
+    here: number;
+    refused: number;
+  }> {
     const spaceId = this.state.spaceId;
     const used = contentMediaIds(this.deps.getContent());
-    if (!spaceId) return { total: used.length, online: 0, missing: used.length, here: 0 };
+    if (!spaceId)
+      return { total: used.length, online: 0, missing: used.length, here: 0, refused: 0 };
     const remote = new Set((await this.backend.listMedia(spaceId)).map((m) => m.id));
     const missing = used.filter((id) => !remote.has(id));
     let here = 0;
@@ -452,6 +471,7 @@ export class SyncEngine {
       online: used.length - missing.length,
       missing: missing.length,
       here,
+      refused: missing.filter((id) => this.uploadFailed.has(id)).length,
     };
   }
 

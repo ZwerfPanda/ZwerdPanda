@@ -1,6 +1,7 @@
 import { ImageOff, Play } from 'lucide-react';
 import type { MediaSource } from '../../data/types';
 import { useMediaUrl } from '../../lib/media';
+import { useSyncState } from '../../sync/sync';
 import { SampleArt } from '../art/SampleArt';
 import './media.css';
 
@@ -45,6 +46,7 @@ function LocalMedia({
   fit: 'cover' | 'contain';
 }) {
   const state = useMediaUrl(source.mediaId);
+  const shared = Boolean(useSyncState().spaceId);
 
   if (state.status === 'loading') {
     return (
@@ -52,14 +54,12 @@ function LocalMedia({
     );
   }
   if (state.status === 'missing') {
+    // Shared: the photo is on its way from the other phone and appears by itself.
+    const text = shared ? 'Nog niet binnen — komt vanzelf' : 'Niet op dit apparaat';
     return (
-      <div
-        className={`media media--missing ${className}`}
-        role="img"
-        aria-label="Deze foto staat niet op dit apparaat"
-      >
+      <div className={`media media--missing ${className}`} role="img" aria-label={text}>
         <ImageOff aria-hidden="true" />
-        <span>Niet op dit apparaat</span>
+        <span>{text}</span>
       </div>
     );
   }

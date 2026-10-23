@@ -76,9 +76,11 @@ export function SyncCheck({ sync }: { sync: SyncState }) {
           : {
               ok: false,
               text: `${media.missing} van ${media.total} foto’s staan nog niet online.`,
-              hint: media.here
-                ? `${media.here} daarvan staan op deze telefoon en worden nu geüpload — laat de app even open.`
-                : 'Ze staan op de andere telefoon: open daar de app even, dan uploaden ze.',
+              hint: media.refused
+                ? `${media.refused} daarvan wil de server niet aannemen (waarschijnlijk te groot). Voeg die opnieuw toe als kleinere foto of korter filmpje.`
+                : media.here
+                  ? `${media.here} daarvan staan op deze telefoon en worden nu geüpload — laat de app open tot dit groen is.`
+                  : `Ze staan niet in deze app. Open de app op de telefoon waarop ze zijn toegevoegd en laat hem even open. Op een iPhone: als je de site eerst in Safari gebruikte en daarna op je beginscherm zette, staan ze misschien nog in Safari — open dan de site in Safari, log in en laat hem uploaden.`,
             },
       );
       try {
