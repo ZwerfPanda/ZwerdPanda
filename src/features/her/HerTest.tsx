@@ -46,8 +46,8 @@ export function TestBanner() {
     <div className="her-test" role="status">
       <FlaskConical aria-hidden="true" />
       <p>
-        <strong>Testmodus</strong> — je ziet dit als haar. Alles hier is een kopie op deze
-        telefoon: niets wordt gesynct of gedeeld.
+        <strong>Testmodus</strong> — je ziet dit als haar. Alles hier is een kopie op deze telefoon:
+        niets wordt gesynct of gedeeld.
       </p>
       <div className="her-test__actions">
         <button

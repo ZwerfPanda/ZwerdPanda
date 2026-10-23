@@ -1336,8 +1336,7 @@ a.her-wish__main:hover .her-wish__title {
   border-radius: 10px 10px 14px 14px / 8px 8px 16px 16px;
   margin-top: 12px;
   background:
-    linear-gradient(105deg, rgba(255, 255, 255, 0.55) 0 18%, transparent 30%),
-    var(--polish, #ccc);
+    linear-gradient(105deg, rgba(255, 255, 255, 0.55) 0 18%, transparent 30%), var(--polish, #ccc);
   box-shadow:
     inset 0 0 0 2px rgba(0, 0, 0, 0.16),
     0 2px 0 rgba(0, 0, 0, 0.08);

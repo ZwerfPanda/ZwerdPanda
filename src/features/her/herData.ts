@@ -1,5 +1,12 @@
 import { useMemo } from 'react';
-import { getHer, updateHerPrivateItems, updateHerSpace, useHer, useHerPrivateItems, useHerTest } from './herStore';
+import {
+  getHer,
+  updateHerPrivateItems,
+  updateHerSpace,
+  useHer,
+  useHerPrivateItems,
+  useHerTest,
+} from './herStore';
 import { getAuthor, useMe } from '../../data/people';
 import type { BucketItem, Goal, HerMood, HerSpace, JournalEntry } from '../../data/types';
 

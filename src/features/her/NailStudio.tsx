@@ -265,7 +265,17 @@ function Art({
   }
 }
 
-function Finish({ finish, w, h, sheen }: { finish: NailFinish; w: number; h: number; sheen: string }) {
+function Finish({
+  finish,
+  w,
+  h,
+  sheen,
+}: {
+  finish: NailFinish;
+  w: number;
+  h: number;
+  sheen: string;
+}) {
   const shine = (
     <path
       d={`M${-w * 0.22} ${-h * 0.2}Q${-w * 0.26} ${-h * 0.7} ${-w * 0.05} ${-h * 0.95}`}
@@ -470,7 +480,9 @@ function randomSet(from: NailSet): NailSet {
     length: pick(LENGTHS).id,
     finish: pick(FINISHES).id,
     accent,
-    colors: from.colors.map((_, i) => (accentNail && i === 3 && mainArt === 'none' ? accent : base)),
+    colors: from.colors.map((_, i) =>
+      accentNail && i === 3 && mainArt === 'none' ? accent : base,
+    ),
     art: from.art.map((_, i) => (accentNail && (i === 2 || i === 3) ? feature : mainArt)),
   };
 }
@@ -510,10 +522,7 @@ export function NailStudio({ visitor }: { visitor: boolean }) {
 
   const paint = (color: string, quiet = false) => {
     if (!quiet) playSfx('polish', true);
-    change(
-      (s) => ({ ...s, colors: s.colors.map((c, i) => (isPicked(i) ? color : c)) }),
-      !quiet,
-    );
+    change((s) => ({ ...s, colors: s.colors.map((c, i) => (isPicked(i) ? color : c)) }), !quiet);
   };
 
   const decorate = (art: NailArt) => {

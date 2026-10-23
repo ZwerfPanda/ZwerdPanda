@@ -16,14 +16,7 @@ import {
 import { openInstallSheet } from '../pwa/InstallSheet';
 import { useSyncState } from '../sync/sync';
 import { href, useRoute, type RoutePath } from '../lib/router';
-import {
-  DESKTOP_PATHS,
-  GROUPS,
-  TAB_PATHS,
-  sectionFor,
-  sectionsIn,
-  type Section,
-} from './sections';
+import { DESKTOP_PATHS, GROUPS, TAB_PATHS, sectionFor, sectionsIn, type Section } from './sections';
 import { LogoMark } from '../components/art/LogoMark';
 import { Dialog } from '../components/ui/Dialog';
 import { useMusic } from '../components/music/MusicProvider';

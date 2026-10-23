@@ -205,7 +205,10 @@ function gust(k: Kit, t: number, base: number, peak: number) {
   f.frequency.linearRampToValueAtTime(base * rand(0.6, 0.9), t + dur);
   const g = gainNode(k.ac);
   swell(g.gain, t, dur * 0.4, dur * 0.1, dur * 0.5, peak);
-  src.connect(f).connect(g).connect(place(k, rand(-0.7, 0.7), 0.4));
+  src
+    .connect(f)
+    .connect(g)
+    .connect(place(k, rand(-0.7, 0.7), 0.4));
   src.start(t, rand(0, 3));
   src.stop(t + dur + 0.1);
 }
@@ -235,7 +238,10 @@ function lap(k: Kit, t: number, level: number, freq = 500) {
   const f = filter(k.ac, 'lowpass', freq * rand(0.8, 1.3));
   const g = gainNode(k.ac);
   swell(g.gain, t, dur * 0.35, 0, dur * 0.65, level);
-  src.connect(f).connect(g).connect(place(k, rand(-0.8, 0.8), 0.25));
+  src
+    .connect(f)
+    .connect(g)
+    .connect(place(k, rand(-0.8, 0.8), 0.25));
   src.start(t, rand(0, 3));
   src.stop(t + dur + 0.1);
 }
@@ -299,7 +305,8 @@ function bird(k: Kit, t: number, level: number) {
   } else if (kind === 'trill') {
     const f = rand(3800, 5200);
     const n = Math.floor(rand(6, 14));
-    for (let i = 0; i < n; i++) tone(k, dest, t + i * 0.035, f, 0.025, level * 0.7, { to: f * 0.9 });
+    for (let i = 0; i < n; i++)
+      tone(k, dest, t + i * 0.035, f, 0.025, level * 0.7, { to: f * 0.9 });
   } else if (kind === 'chirps') {
     const f = rand(2800, 4200);
     for (let i = 0; i < 3; i++) tone(k, dest, t + i * 0.16, f, 0.06, level, { to: f * 1.35 });
@@ -318,7 +325,10 @@ function rustle(k: Kit, t: number, level: number) {
   const f = filter(k.ac, 'highpass', rand(2500, 4500));
   const g = gainNode(k.ac);
   swell(g.gain, t, dur * 0.3, 0, dur * 0.7, level);
-  src.connect(f).connect(g).connect(place(k, rand(-1, 1), 0.2));
+  src
+    .connect(f)
+    .connect(g)
+    .connect(place(k, rand(-1, 1), 0.2));
   src.start(t, rand(0, 3));
   src.stop(t + dur + 0.1);
 }
@@ -512,9 +522,14 @@ const SCENES: Record<Ambience, (k: Kit) => void> = {
     k.every(9, 17, (t) => owl(k, t), 3);
     k.every(2.5, 6, (t) => cricket(k, t, 0.02), 2);
     k.every(3, 7, (t) => rustle(k, t, 0.05), 4);
-    k.every(30, 55, (t) => {
-      for (let i = 0; i < 3; i++) bell(k, t + i * 2.4, 196, 0.06, 4, -0.5, 0.95);
-    }, 14);
+    k.every(
+      30,
+      55,
+      (t) => {
+        for (let i = 0; i < 3; i++) bell(k, t + i * 2.4, 196, 0.06, 4, -0.5, 0.95);
+      },
+      14,
+    );
   },
   // On the road at night: the car's low hum and others passing by.
   road: (k) => {
@@ -528,27 +543,42 @@ const SCENES: Record<Ambience, (k: Kit) => void> = {
     k.keep(o);
     bed(k, 'lowpass', 300, 0.07);
     k.every(4, 10, (t) => carPass(k, t, 0.2), 1.5);
-    k.every(25, 45, (t) => {
-      for (let i = 0; i < 6; i++) tone(k, k.out, t + i * 0.42, i % 2 ? 900 : 1100, 0.03, 0.04);
-    }, 12);
+    k.every(
+      25,
+      45,
+      (t) => {
+        for (let i = 0; i < 6; i++) tone(k, k.out, t + i * 0.42, i % 2 ? 900 : 1100, 0.03, 0.04);
+      },
+      12,
+    );
   },
   // The cinema: a soft score, popcorn, the hush.
   cinema: (k) => {
     pad(k, [98, 146.8, 196, 293.7], 0.04, 800);
     bed(k, 'lowpass', 500, 0.025);
-    k.every(3, 8, (t) => {
-      for (let i = 0; i < Math.floor(rand(1, 4)); i++) pop(k, t + i * rand(0.15, 0.4), 0.05);
-    }, 2);
+    k.every(
+      3,
+      8,
+      (t) => {
+        for (let i = 0; i < Math.floor(rand(1, 4)); i++) pop(k, t + i * rand(0.15, 0.4), 0.05);
+      },
+      2,
+    );
   },
   // Amsterdam: water against the quay, gulls, a bike bell, a little breeze.
   canal: (k) => {
     bed(k, 'lowpass', 420, 0.05);
     k.every(1.2, 3.5, (t) => lap(k, t, 0.14, 420), 0.4);
     k.every(12, 24, (t) => gull(k, t, 0.05), 4);
-    k.every(15, 30, (t) => {
-      bell(k, t, 2100, 0.05, 0.6, rand(-0.6, 0.6), 0.3);
-      bell(k, t + 0.18, 2100, 0.05, 0.8, rand(-0.6, 0.6), 0.3);
-    }, 9);
+    k.every(
+      15,
+      30,
+      (t) => {
+        bell(k, t, 2100, 0.05, 0.6, rand(-0.6, 0.6), 0.3);
+        bell(k, t + 0.18, 2100, 0.05, 0.8, rand(-0.6, 0.6), 0.3);
+      },
+      9,
+    );
     k.every(7, 14, (t) => gust(k, t, 900, 0.07), 6);
   },
   // A garden full of birds, leaves moving in a breeze.
@@ -572,16 +602,21 @@ const SCENES: Record<Ambience, (k: Kit) => void> = {
   park: (k) => {
     bed(k, 'bandpass', 700, 0.02, 0.5);
     k.every(12, 20, (t) => musicBox(k, t, pickOne(PHRASES.carousel), 0.28, 0.045), 1);
-    k.every(18, 30, (t) => {
-      train(k, t, 0.35, true);
-      for (let i = 0; i < 3; i++) {
-        const f = rand(700, 1000);
-        tone(k, place(k, rand(-0.6, 0.6), 0.8), t + 3 + i * 0.2, f, 1.1, 0.015, {
-          type: 'triangle',
-          to: f * 1.7,
-        });
-      }
-    }, 8);
+    k.every(
+      18,
+      30,
+      (t) => {
+        train(k, t, 0.35, true);
+        for (let i = 0; i < 3; i++) {
+          const f = rand(700, 1000);
+          tone(k, place(k, rand(-0.6, 0.6), 0.8), t + 3 + i * 0.2, f, 1.1, 0.015, {
+            type: 'triangle',
+            to: f * 1.7,
+          });
+        }
+      },
+      8,
+    );
     k.every(2, 6, (t) => bird(k, t, 0.03), 2);
   },
   // A hotel room at night: rain on the window, a lift far down the hall.
