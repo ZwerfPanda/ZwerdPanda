@@ -23,14 +23,14 @@ export function HiddenHeart({
         type="button"
         className={`hidden-heart hidden-heart--${tone} ${className}`}
         onClick={() => setOpen(true)}
-        aria-label="A tiny hidden heart"
+        aria-label="Een klein verstopt hartje"
       >
         <HeartIcon size={14} />
       </button>
       <Dialog
         open={open}
         onClose={() => setOpen(false)}
-        title="You found a hidden heart"
+        title="Je vond een verstopt hartje ♡"
         eyebrow="psst"
         size="sm"
       >

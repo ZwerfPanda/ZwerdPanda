@@ -48,7 +48,7 @@ describe('mini us lines', () => {
     const c = createDefaultContent();
     const lines = dateIdea(c, 'partner', seq(0.9, 0.2, 0.1, 0.3));
     expect(lines).toHaveLength(2);
-    expect(lines[0].text).toMatch(/^Date idea/);
+    expect(lines[0].text).toMatch(/^Date-idee/);
   });
 
   it('works out ages from birthdays', () => {

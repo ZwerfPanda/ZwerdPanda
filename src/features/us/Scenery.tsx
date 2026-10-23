@@ -4,9 +4,9 @@ import { INK } from '../../components/art/shapes';
 export type Scene = 'home' | 'tram' | 'mirror';
 
 export const SCENES: { id: Scene; label: string }[] = [
-  { id: 'home', label: 'At home' },
-  { id: 'tram', label: 'Tram stop' },
-  { id: 'mirror', label: 'Fitting room' },
+  { id: 'home', label: 'Thuis' },
+  { id: 'tram', label: 'Tramhalte' },
+  { id: 'mirror', label: 'Paskamer' },
 ];
 
 const S = {

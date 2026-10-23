@@ -39,25 +39,17 @@ describe('countdowns', () => {
     const list = upcoming(c, day('2026-10-22'));
     expect(list.map((u) => u.title)).toEqual([
       'Weekend away',
-      'Our first anniversary',
-      'Coco turns 1',
+      'Ons eerste jubileum',
+      'Coco wordt 1',
     ]);
     expect(list.map((u) => u.days)).toEqual([16, 40, 222]);
   });
 
   it('reads nicely', () => {
-    expect(daysLabel(0)).toBe('Today!');
-    expect(daysLabel(1)).toBe('Tomorrow');
-    expect(daysLabel(12)).toBe('12 days');
-    expect([1, 2, 3, 4, 11, 12, 21].map(ordinal)).toEqual([
-      '1st',
-      '2nd',
-      '3rd',
-      '4th',
-      '11th',
-      '12th',
-      '21st',
-    ]);
+    expect(daysLabel(0)).toBe('Vandaag!');
+    expect(daysLabel(1)).toBe('Morgen');
+    expect(daysLabel(12)).toBe('12 dagen');
+    expect([1, 2, 3, 11, 21].map(ordinal)).toEqual(['1e', '2e', '3e', '11e', '21e']);
   });
 });
 
@@ -68,7 +60,7 @@ describe('birthdays', () => {
     const list = upcoming(c, new Date(Date.UTC(2026, 9, 22)));
     const hers = list.find((u) => u.id === 'auto-birthday-partner');
     expect(hers?.date).toBe('2027-05-12');
-    expect(hers?.title).toContain('turns 20');
+    expect(hers?.title).toContain('wordt 20');
     expect(list.some((u) => u.id === 'auto-birthday-you')).toBe(false);
   });
 });

@@ -53,24 +53,24 @@ function Steps({ info }: { info: InstallInfo }) {
     return info.iosSafari ? (
       <ol className="install-steps">
         <Step n={1} icon={<Share />}>
-          Tap the <strong>Share</strong> button at the bottom of Safari (on iPad: top right).
+          Tik op de <strong>Deel</strong>-knop onderaan in Safari (op iPad: rechtsboven).
         </Step>
         <Step n={2} icon={<SquarePlus />}>
-          Scroll down and tap <strong>Add to Home Screen</strong>.
+          Scroll naar beneden en tik op <strong>Zet op beginscherm</strong>.
         </Step>
         <Step n={3}>
-          Tap <strong>Add</strong>. Our universe now has its own icon and opens full-screen, like
-          any app.
+          Tik op <strong>Voeg toe</strong>. Ons universe heeft nu een eigen icoontje en opent
+          schermvullend, net als elke app.
         </Step>
       </ol>
     ) : (
       <ol className="install-steps">
         <Step n={1} icon={<Share />}>
-          Tap the <strong>Share</strong> button next to the address bar.
+          Tik op de <strong>Deel</strong>-knop naast de adresbalk.
         </Step>
         <Step n={2} icon={<SquarePlus />}>
-          Tap <strong>Add to Home Screen</strong>. Don’t see it? Open this page in{' '}
-          <strong>Safari</strong> and do the same there.
+          Tik op <strong>Zet op beginscherm</strong>. Zie je het niet? Open deze pagina in{' '}
+          <strong>Safari</strong> en doe daar hetzelfde.
         </Step>
       </ol>
     );
@@ -79,10 +79,10 @@ function Steps({ info }: { info: InstallInfo }) {
     return (
       <ol className="install-steps">
         <Step n={1} icon={<EllipsisVertical />}>
-          Tap the <strong>⋮ menu</strong> in the top corner of Chrome.
+          Tik op het <strong>⋮-menu</strong> in de bovenhoek van Chrome.
         </Step>
         <Step n={2} icon={<Download />}>
-          Tap <strong>Install app</strong> (or <strong>Add to Home screen</strong>).
+          Tik op <strong>App installeren</strong> (of <strong>Toevoegen aan startscherm</strong>).
         </Step>
       </ol>
     );
@@ -91,7 +91,7 @@ function Steps({ info }: { info: InstallInfo }) {
     return (
       <ol className="install-steps">
         <Step n={1}>
-          In the menu bar choose <strong>File → Add to Dock</strong> (Safari 17 or newer).
+          Kies in de menubalk <strong>Archief → Voeg toe aan Dock</strong> (Safari 17 of nieuwer).
         </Step>
       </ol>
     );
@@ -99,20 +99,21 @@ function Steps({ info }: { info: InstallInfo }) {
   if (info.firefox) {
     return (
       <p className="install-note">
-        Firefox doesn’t install websites as apps. Open this page in <strong>Chrome</strong>,{' '}
-        <strong>Edge</strong> or <strong>Safari</strong> to install it — or simply bookmark it.
+        Firefox installeert geen websites als app. Open deze pagina in <strong>Chrome</strong>,{' '}
+        <strong>Edge</strong> of <strong>Safari</strong> om hem te installeren — of zet gewoon een
+        bladwijzer.
       </p>
     );
   }
   return (
     <ol className="install-steps">
       <Step n={1} icon={<MonitorDown />}>
-        Click the <strong>install icon</strong> at the right end of the address bar (or open the
-        browser menu).
+        Klik op het <strong>installatie-icoontje</strong> rechts in de adresbalk (of open het
+        browsermenu).
       </Step>
       <Step n={2}>
-        Choose <strong>Install Our Little Universe</strong>. It opens in its own window and gets an
-        icon on your computer.
+        Kies <strong>Our Little Universe installeren</strong>. Hij opent in een eigen venster en
+        krijgt een icoontje op je computer.
       </Step>
     </ol>
   );
@@ -131,7 +132,7 @@ export function InstallSheet({ open, onClose }: { open: boolean; onClose: () => 
         return;
       }
       await navigator.clipboard.writeText(link);
-      toast('Link copied — send it to the other phone');
+      toast('Link gekopieerd — stuur hem naar de andere telefoon');
     } catch {
       // Sharing was cancelled; nothing to do.
     }
@@ -140,13 +141,13 @@ export function InstallSheet({ open, onClose }: { open: boolean; onClose: () => 
   const install = async () => {
     const outcome = await promptInstall();
     if (outcome === 'accepted') {
-      toast('Installed ♡ — find it with your other apps');
+      toast('Geïnstalleerd ♡ — je vindt hem tussen je andere apps');
       onClose();
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} title="Get the app" eyebrow="on every device" size="sm">
+    <Dialog open={open} onClose={onClose} title="Get the app" eyebrow="op elk apparaat" size="sm">
       <div className="install">
         <div className="install__hero" aria-hidden="true">
           <img src="./icons/icon-192.png" alt="" width={84} height={84} className="install__icon" />
@@ -154,22 +155,22 @@ export function InstallSheet({ open, onClose }: { open: boolean; onClose: () => 
 
         {info.installed ? (
           <p className="install-done">
-            <CheckCircle2 aria-hidden="true" /> You’re using the installed app on this device.
+            <CheckCircle2 aria-hidden="true" /> Je gebruikt de geïnstalleerde app op dit apparaat.
           </p>
         ) : !info.secure ? (
           <p className="install-note">
-            Installing works once the site is online with a secure (https) address — see the setup
-            guide. Until then it works fine in the browser.
+            Installeren werkt zodra de site online staat met een veilig (https) adres — zie de
+            handleiding. Tot die tijd werkt alles prima in de browser.
           </p>
         ) : (
           <>
             <p className="install-lede">
-              Put {title} on your home screen. It opens full-screen, works offline, and feels just
-              like an app — on iPhone, Android, and computers. No app store needed.
+              Zet {title} op je beginscherm. Hij opent schermvullend, werkt offline en voelt precies
+              als een app — op iPhone, Android en computers. Geen app store nodig.
             </p>
             {info.canPrompt ? (
               <button type="button" className="btn btn--primary btn--block" onClick={install}>
-                <Download aria-hidden="true" /> Install the app
+                <Download aria-hidden="true" /> Installeer de app
               </button>
             ) : (
               <Steps info={info} />
@@ -178,14 +179,14 @@ export function InstallSheet({ open, onClose }: { open: boolean; onClose: () => 
         )}
 
         <div className="install-share">
-          <p>Installing it on the other phone? Send this link and open it there.</p>
+          <p>Op de andere telefoon installeren? Stuur deze link en open hem daar.</p>
           <button type="button" className="btn btn--ghost btn--small" onClick={shareLink}>
             {typeof navigator !== 'undefined' && 'share' in navigator ? (
               <Share aria-hidden="true" />
             ) : (
               <Copy aria-hidden="true" />
             )}
-            Send the link
+            Stuur de link
           </button>
         </div>
       </div>

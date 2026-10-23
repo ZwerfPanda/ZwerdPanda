@@ -41,10 +41,10 @@ export function SongForm({
   const save = (event: React.FormEvent) => {
     event.preventDefault();
     const problems: typeof errors = {};
-    if (!title.trim()) problems.title = 'What’s the song called?';
-    if (!artist.trim()) problems.artist = 'Who sings it?';
+    if (!title.trim()) problems.title = 'Hoe heet het liedje?';
+    if (!artist.trim()) problems.artist = 'Wie zingt het?';
     if (url.trim() && !isHttpUrl(url.trim()))
-      problems.url = 'Paste a full link, starting with https://';
+      problems.url = 'Plak een volledige link, die begint met https://';
     setErrors(problems);
     if (Object.keys(problems).length) return;
     const item: Song = {
@@ -64,7 +64,7 @@ export function SongForm({
         ? c.songs.map((s) => (s.id === item.id ? item : s))
         : [item, ...c.songs],
     }));
-    toast(song ? 'Song saved' : 'Added to our songs ♫');
+    toast(song ? 'Liedje opgeslagen' : 'Bij onze liedjes gezet ♫');
     onClose();
   };
 
@@ -72,16 +72,16 @@ export function SongForm({
     <Dialog
       open={open}
       onClose={onClose}
-      title={song ? 'Edit song' : 'Add a song'}
+      title={song ? 'Liedje bewerken' : 'Liedje toevoegen'}
       eyebrow="music corner"
       size="md"
       footer={
         <>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Cancel
+            Annuleren
           </button>
           <button type="submit" form="song-form" className="btn btn--primary">
-            {song ? 'Save song' : 'Add song'}
+            {song ? 'Opslaan' : 'Toevoegen'}
           </button>
         </>
       }
@@ -89,14 +89,14 @@ export function SongForm({
       <form id="song-form" className="form" onSubmit={save} noValidate>
         <div className="form-row form-row--2">
           <TextField
-            label="Song"
+            label="Liedje"
             value={title}
             onChange={setTitle}
             error={errors.title}
             maxLength={160}
           />
           <TextField
-            label="Artist"
+            label="Artiest"
             value={artist}
             onChange={setArtist}
             error={errors.artist}
@@ -114,28 +114,28 @@ export function SongForm({
           placeholder="https://open.spotify.com/track/…"
           hint={
             link?.embedUrl
-              ? `✓ This ${link.platform === 'spotify' ? 'Spotify' : 'YouTube'} link can play right here.`
+              ? `✓ Deze ${link.platform === 'spotify' ? 'Spotify' : 'YouTube'}-link speelt hier gewoon af.`
               : link
-                ? 'This link will open in its own app or website.'
-                : 'Spotify and YouTube links can play inside the site; other links open externally.'
+                ? 'Deze link opent in zijn eigen app of website.'
+                : 'Spotify- en YouTube-links spelen in de app af; andere links openen apart.'
           }
         />
         <TextArea
-          label="Why it’s ours"
+          label="Waarom hij van ons is"
           optional
           value={why}
           onChange={setWhy}
           rows={3}
-          placeholder="The song that…"
+          placeholder="Het liedje dat…"
         />
         <TextArea
-          label="A memory with this song"
+          label="Een herinnering bij dit liedje"
           optional
           value={memory}
           onChange={setMemory}
           rows={3}
         />
-        <Checkbox label="One of our favourites" checked={favorite} onChange={setFavorite} />
+        <Checkbox label="Een van onze favorieten" checked={favorite} onChange={setFavorite} />
       </form>
     </Dialog>
   );

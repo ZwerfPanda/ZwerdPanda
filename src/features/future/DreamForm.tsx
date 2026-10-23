@@ -76,9 +76,9 @@ export function DreamForm({
   const save = (event: React.FormEvent) => {
     event.preventDefault();
     const problems: typeof errors = {};
-    if (!draft.title.trim()) problems.title = 'What’s the dream?';
+    if (!draft.title.trim()) problems.title = 'Wat is de droom?';
     if (draft.targetDate && !isValidIsoDate(draft.targetDate))
-      problems.targetDate = 'That date doesn’t look right.';
+      problems.targetDate = 'Die datum klopt niet helemaal.';
     setErrors(problems);
     if (Object.keys(problems).length) return;
     const becameDone = draft.status === 'done' && dream?.status !== 'done';
@@ -103,7 +103,11 @@ export function DreamForm({
         : [item, ...c.dreams],
     }));
     toast(
-      dream ? 'Dream saved' : item.someday ? 'Added to “one day…”' : 'Added to our dream board',
+      dream
+        ? 'Droom opgeslagen'
+        : item.someday
+          ? 'Toegevoegd aan “one day…”'
+          : 'Op ons dromenbord gezet ♡',
     );
     onClose();
   };
@@ -112,51 +116,51 @@ export function DreamForm({
     <Dialog
       open={open}
       onClose={onClose}
-      title={dream ? 'Edit dream' : 'A new dream'}
+      title={dream ? 'Droom bewerken' : 'Een nieuwe droom'}
       eyebrow="our future"
       size="md"
       footer={
         <>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Cancel
+            Annuleren
           </button>
           <button type="submit" form="dream-form" className="btn btn--primary">
-            {dream ? 'Save dream' : 'Add dream'}
+            {dream ? 'Opslaan' : 'Toevoegen'}
           </button>
         </>
       }
     >
       <form id="dream-form" className="form" onSubmit={save} noValidate>
         <TextField
-          label="The dream"
+          label="De droom"
           value={draft.title}
           onChange={(v) => set('title', v)}
           error={errors.title}
           maxLength={140}
-          placeholder="e.g. See the northern lights together"
+          placeholder="bv. Samen het noorderlicht zien"
         />
         <TextArea
-          label="A few more words"
+          label="Nog een paar woorden"
           optional
           value={draft.description}
           onChange={(v) => set('description', v)}
           rows={3}
         />
         <SelectField
-          label="Kind of dream"
+          label="Soort droom"
           value={draft.category}
           onChange={(v) => set('category', v)}
           options={CATEGORY_ORDER.map((c) => ({ value: c, label: CATEGORIES[c].label }))}
         />
         <Checkbox
-          label="A “one day…” dream — no status, no deadline, no pressure"
+          label="Een “one day…”-droom — geen status, geen deadline, geen druk"
           checked={draft.someday}
           onChange={(v) => set('someday', v)}
         />
         {!draft.someday && (
           <>
             <Segmented
-              legend="Where are we with it?"
+              legend="Hoe ver zijn we?"
               value={draft.status}
               onChange={(v) => set('status', v)}
               options={(Object.keys(STATUSES) as DreamStatus[]).map((s) => ({
@@ -165,22 +169,22 @@ export function DreamForm({
               }))}
             />
             <TextField
-              label="Hoping for around"
+              label="Hopelijk rond"
               type="date"
               optional
               value={draft.targetDate}
               onChange={(v) => set('targetDate', v)}
               error={errors.targetDate}
-              hint="Only if it helps. Dreams don’t need deadlines."
+              hint="Alleen als het helpt. Dromen hebben geen deadline nodig."
             />
           </>
         )}
         <MediaPicker
-          label="A picture"
+          label="Een plaatje"
           value={draft.media}
           onChange={(v) => set('media', v)}
           multiple={false}
-          hint="Optional — a photo or a screenshot that captures it."
+          hint="Optioneel — een foto of screenshot die het vangt."
         />
       </form>
     </Dialog>

@@ -1,7 +1,8 @@
 {
   "name": "Our Little Universe",
   "short_name": "Our Universe",
-  "description": "A little world that belongs to us.",
+  "lang": "nl",
+  "description": "Een kleine wereld die van ons is.",
   "id": "./",
   "start_url": "./",
   "scope": "./",

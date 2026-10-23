@@ -56,13 +56,13 @@ type Errors = Partial<Record<'title' | 'date' | 'songUrl' | 'songTitle', string>
 
 function validate(d: Draft): Errors {
   const errors: Errors = {};
-  if (!d.title.trim()) errors.title = 'Give this chapter a title.';
-  else if (d.title.length > 120) errors.title = 'Keep the title under 120 characters.';
-  if (d.date && !isValidIsoDate(d.date)) errors.date = 'That date doesn’t look right.';
+  if (!d.title.trim()) errors.title = 'Geef dit hoofdstuk een titel.';
+  else if (d.title.length > 120) errors.title = 'Houd de titel onder de 120 tekens.';
+  if (d.date && !isValidIsoDate(d.date)) errors.date = 'Die datum klopt niet helemaal.';
   if (d.songUrl && !isHttpUrl(d.songUrl))
-    errors.songUrl = 'Paste a full link, starting with https://';
+    errors.songUrl = 'Plak een volledige link, die begint met https://';
   if ((d.songUrl || d.songArtist) && !d.songTitle.trim())
-    errors.songTitle = 'Add the song’s title too.';
+    errors.songTitle = 'Zet de titel van het liedje er ook bij.';
   return errors;
 }
 
@@ -135,7 +135,7 @@ export function MilestoneForm({
       list.splice(futureIndex >= 0 ? futureIndex : list.length, 0, item);
       return { ...c, milestones: list };
     });
-    toast(milestone ? 'Chapter saved' : 'New chapter added to our story');
+    toast(milestone ? 'Hoofdstuk opgeslagen' : 'Nieuw hoofdstuk in ons verhaal ♡');
     onSaved?.(item.id);
     onClose();
   };
@@ -144,32 +144,32 @@ export function MilestoneForm({
     <Dialog
       open={open}
       onClose={onClose}
-      title={milestone ? 'Edit chapter' : 'A new chapter'}
+      title={milestone ? 'Hoofdstuk bewerken' : 'Een nieuw hoofdstuk'}
       eyebrow="our story"
       size="lg"
       footer={
         <>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Cancel
+            Annuleren
           </button>
           <button type="submit" form="milestone-form" className="btn btn--primary">
-            {milestone ? 'Save chapter' : 'Add chapter'}
+            {milestone ? 'Opslaan' : 'Toevoegen'}
           </button>
         </>
       }
     >
       <form id="milestone-form" className="form" onSubmit={save} noValidate>
         <TextField
-          label="Title"
+          label="Titel"
           value={draft.title}
           onChange={(v) => set('title', v)}
           error={errors.title}
           maxLength={140}
-          placeholder="e.g. The first time you laughed at my joke"
+          placeholder="bv. De eerste keer dat je om mijn grap lachte"
         />
         <div className="form-row form-row--2">
           <TextField
-            label="Date"
+            label="Datum"
             type="date"
             optional
             value={draft.date}
@@ -177,17 +177,17 @@ export function MilestoneForm({
             error={errors.date}
           />
           <TextField
-            label="Or roughly when"
+            label="Of ongeveer wanneer"
             optional
             value={draft.dateLabel}
             onChange={(v) => set('dateLabel', v)}
-            placeholder="e.g. Spring 2026"
-            hint="Handy when we don’t remember the exact day."
+            placeholder="bv. Lente 2026"
+            hint="Handig als we de precieze dag niet meer weten."
           />
         </div>
         <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
           <legend className="field__label" style={{ marginBottom: 6 }}>
-            Little icon on the line
+            Icoontje op de lijn
           </legend>
           <div className="motif-picker">
             {MOTIFS.map((m) => {
@@ -211,37 +211,37 @@ export function MilestoneForm({
           </div>
         </fieldset>
         <TextArea
-          label="The story"
+          label="Het verhaal"
           value={draft.story}
           onChange={(v) => set('story', v)}
           optional
           rows={6}
-          placeholder="What happened, how it felt, what we want to remember…"
+          placeholder="Wat er gebeurde, hoe het voelde, wat we willen onthouden…"
         />
         <MediaPicker
-          label="Photos & clips"
+          label="Foto’s & filmpjes"
           value={draft.media}
           onChange={(v) => set('media', v)}
           allowVideo
-          hint="Stored privately on this device."
+          hint="Privé bewaard."
         />
         <div className="form-row form-row--2">
           <TextField
-            label="A song for this chapter"
+            label="Een liedje bij dit hoofdstuk"
             optional
             value={draft.songTitle}
             onChange={(v) => set('songTitle', v)}
             error={errors.songTitle}
           />
           <TextField
-            label="Artist"
+            label="Artiest"
             optional
             value={draft.songArtist}
             onChange={(v) => set('songArtist', v)}
           />
         </div>
         <TextField
-          label="Song link"
+          label="Link naar het liedje"
           optional
           type="url"
           inputMode="url"
@@ -249,10 +249,10 @@ export function MilestoneForm({
           onChange={(v) => set('songUrl', v)}
           error={errors.songUrl}
           placeholder="https://open.spotify.com/track/…"
-          hint="Spotify and YouTube links can play right here."
+          hint="Spotify- en YouTube-links spelen hier gewoon af."
         />
         <Checkbox
-          label="One of our favourite chapters"
+          label="Een van onze favoriete hoofdstukken"
           checked={draft.favorite}
           onChange={(v) => set('favorite', v)}
         />

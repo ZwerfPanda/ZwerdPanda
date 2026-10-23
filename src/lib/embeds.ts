@@ -79,14 +79,14 @@ export function describeLink(value: string | undefined): LinkInfo | null {
     const safeId = videoId && /^[A-Za-z0-9_-]{6,20}$/.test(videoId) ? videoId : null;
     return {
       platform: 'youtube',
-      label: 'Open on YouTube',
+      label: 'Open op YouTube',
       embedUrl: safeId ? `https://www.youtube-nocookie.com/embed/${safeId}` : undefined,
       embedHeight: 200,
     };
   }
 
   if (host === 'music.apple.com') return { platform: 'apple', label: 'Open in Apple Music' };
-  if (host === 'soundcloud.com') return { platform: 'soundcloud', label: 'Open on SoundCloud' };
-  if (host === 'deezer.com') return { platform: 'deezer', label: 'Open on Deezer' };
-  return { platform: 'other', label: `Open on ${host}` };
+  if (host === 'soundcloud.com') return { platform: 'soundcloud', label: 'Open op SoundCloud' };
+  if (host === 'deezer.com') return { platform: 'deezer', label: 'Open op Deezer' };
+  return { platform: 'other', label: `Open op ${host}` };
 }

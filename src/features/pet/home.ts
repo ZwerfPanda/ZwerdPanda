@@ -29,7 +29,7 @@ export function pickHome(exclude?: string): { path: string; spot: number } {
 export function sendCocoHome(from?: string) {
   updatePrefs({ companion: false, cocoHome: pickHome(from) });
   toast(
-    'Coco hopped home. Her hutch is hidden somewhere in our universe — find it to take her along again.',
+    'Coco is naar huis gehupt. Haar hokje staat ergens verstopt in ons universe — vind het om haar weer mee te nemen.',
   );
 }
 

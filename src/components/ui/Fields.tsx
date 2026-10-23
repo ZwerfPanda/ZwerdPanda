@@ -20,7 +20,7 @@ export function Field({ label, hint, error, optional, children }: FieldShellProp
     <div className="field">
       <label className="field__label" htmlFor={inputId}>
         {label}
-        {optional && <span className="optional"> (optional)</span>}
+        {optional && <span className="optional"> (optioneel)</span>}
       </label>
       {children({ inputId, describedBy, invalid: Boolean(error) })}
       {hint && !error && (

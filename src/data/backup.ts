@@ -60,33 +60,33 @@ export interface ImportPreview {
 /** Reads and validates a backup file without changing anything yet. */
 export async function readBackup(file: File): Promise<ImportPreview> {
   if (file.size > 600 * 1024 * 1024)
-    throw new Error('That file is too large to be one of our backups.');
+    throw new Error('Dat bestand is te groot om een van onze backups te zijn.');
   let parsed: unknown;
   try {
     parsed = JSON.parse(await file.text());
   } catch {
-    throw new Error('That file isn’t a valid backup (it isn’t readable JSON).');
+    throw new Error('Dat bestand is geen geldige backup (het is geen leesbare JSON).');
   }
   const wrapper = parsed as Partial<BackupFile>;
   const raw = wrapper && wrapper.app === 'our-little-universe' ? wrapper.content : parsed;
   if (!looksLikeContent(raw)) {
-    throw new Error('That file doesn’t look like an Our Little Universe backup.');
+    throw new Error('Dat bestand lijkt geen Our Little Universe-backup.');
   }
   const content = normalizeContent(raw);
   const media = wrapper.app === 'our-little-universe' ? wrapper.media : undefined;
   const parts = [
-    `${content.milestones.length} chapters`,
-    `${content.memories.length} memories`,
-    `${content.letters.length} letters`,
-    `${content.dreams.length} dreams`,
-    `${content.songs.length} songs`,
+    `${content.milestones.length} hoofdstukken`,
+    `${content.memories.length} herinneringen`,
+    `${content.letters.length} brieven`,
+    `${content.dreams.length} dromen`,
+    `${content.songs.length} liedjes`,
     `${content.playlists.length} playlists`,
   ];
   const mediaCount = media ? Object.keys(media).length : 0;
   return {
     content,
     media,
-    summary: `${parts.join(', ')}${mediaCount ? `, and ${mediaCount} photos/clips` : ' (no photos included)'}.`,
+    summary: `${parts.join(', ')}${mediaCount ? ` en ${mediaCount} foto’s/clips` : ' (zonder foto’s)'}.`,
   };
 }
 

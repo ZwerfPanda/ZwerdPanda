@@ -27,13 +27,14 @@ type Errors = Partial<Record<'occasion' | 'body' | 'until' | 'date', string>>;
 function validate(d: Draft): Errors {
   const e: Errors = {};
   const occasion = d.occasion.trim().replace(/^open when\s*/i, '');
-  if (!occasion) e.occasion = 'Finish the sentence: “Open when…”';
-  if (d.status === 'shared' && !d.body.trim()) e.body = 'A shared letter needs a few words inside.';
-  if (d.date && !isValidIsoDate(d.date)) e.date = 'That date doesn’t look right.';
+  if (!occasion) e.occasion = 'Maak de zin af: “Open when…”';
+  if (d.status === 'shared' && !d.body.trim())
+    e.body = 'Een brief op de plank heeft wel een paar woorden nodig.';
+  if (d.date && !isValidIsoDate(d.date)) e.date = 'Die datum klopt niet helemaal.';
   if (d.lock === 'date') {
-    if (!isValidIsoDate(d.until)) e.until = 'Choose the day it may be opened.';
+    if (!isValidIsoDate(d.until)) e.until = 'Kies de dag waarop hij open mag.';
     else if (d.until <= todayIso())
-      e.until = 'Pick a day after today — otherwise it’s not much of a wait.';
+      e.until = 'Kies een dag na vandaag — anders valt er weinig te wachten.';
   }
   return e;
 }
@@ -75,7 +76,7 @@ export function LetterForm({
             recipient: profile.partnerName,
             date: todayIso(),
             body: '',
-            signature: `Love, ${profile.yourName}`,
+            signature: `Liefs, ${profile.yourName}`,
             color: 'blush',
             seal: 'heart',
             status: 'shared',
@@ -123,10 +124,10 @@ export function LetterForm({
     }));
     toast(
       item.status === 'draft'
-        ? 'Saved as a draft'
+        ? 'Opgeslagen als concept'
         : letter
-          ? 'Letter saved'
-          : 'Sealed and placed on the shelf ♡',
+          ? 'Brief opgeslagen'
+          : 'Verzegeld en op de plank gezet ♡',
     );
     onClose();
   };
@@ -135,16 +136,20 @@ export function LetterForm({
     <Dialog
       open={open}
       onClose={onClose}
-      title={letter ? 'Edit letter' : 'Write a letter'}
+      title={letter ? 'Brief bewerken' : 'Schrijf een brief'}
       eyebrow="open when…"
       size="lg"
       footer={
         <>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Cancel
+            Annuleren
           </button>
           <button type="submit" form="letter-form" className="btn btn--primary">
-            {draft.status === 'draft' ? 'Save draft' : letter ? 'Save letter' : 'Seal the letter'}
+            {draft.status === 'draft'
+              ? 'Concept opslaan'
+              : letter
+                ? 'Brief opslaan'
+                : 'Verzegel de brief'}
           </button>
         </>
       }
@@ -155,20 +160,20 @@ export function LetterForm({
           value={draft.occasion}
           onChange={(v) => set('occasion', v)}
           error={errors.occasion}
-          placeholder="you can’t sleep"
+          placeholder="je niet kunt slapen"
           maxLength={100}
-          hint="Finish the sentence — it becomes the front of the envelope."
+          hint="Maak de zin af — dit komt op de voorkant van de envelop."
         />
         <div className="form-row form-row--2">
           <TextField
-            label="For"
+            label="Voor"
             optional
             value={draft.recipient}
             onChange={(v) => set('recipient', v)}
             maxLength={60}
           />
           <TextField
-            label="Written on"
+            label="Geschreven op"
             type="date"
             optional
             value={draft.date}
@@ -177,16 +182,16 @@ export function LetterForm({
           />
         </div>
         <TextArea
-          label="The letter"
+          label="De brief"
           variant="letter"
           value={draft.body}
           onChange={(v) => set('body', v)}
           error={errors.body}
           rows={10}
-          placeholder="Write it like you’d say it."
+          placeholder="Schrijf het zoals je het zou zeggen."
         />
         <TextField
-          label="Signed"
+          label="Ondertekend"
           optional
           value={draft.signature}
           onChange={(v) => set('signature', v)}
@@ -195,7 +200,7 @@ export function LetterForm({
 
         <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
           <legend className="field__label" style={{ marginBottom: 8 }}>
-            Envelope colour
+            Kleur van de envelop
           </legend>
           <div className="swatches">
             {(Object.keys(LETTER_COLORS) as LetterColor[]).map((c) => (
@@ -215,7 +220,7 @@ export function LetterForm({
         </fieldset>
 
         <Segmented
-          legend="Wax seal"
+          legend="Lakzegel"
           value={draft.seal}
           onChange={(v) => set('seal', v)}
           options={SEALS.map((s) => {
@@ -225,35 +230,35 @@ export function LetterForm({
         />
 
         <Segmented
-          legend="Where does it go?"
+          legend="Waar gaat hij heen?"
           value={draft.status}
           onChange={(v) => set('status', v)}
           options={[
-            { value: 'shared', label: 'On the shelf' },
-            { value: 'draft', label: 'Keep as draft' },
+            { value: 'shared', label: 'Op de plank' },
+            { value: 'draft', label: 'Als concept houden' },
           ]}
-          hint="Drafts stay off the envelope shelf until you’re ready. (They’re still on this device — not a password-protected secret.)"
+          hint="Concepten blijven van de plank tot je er klaar voor bent. (Ze staan wel gewoon in de app — geen geheim met wachtwoord.)"
         />
 
         <Segmented
-          legend="How does it open?"
+          legend="Hoe gaat hij open?"
           value={draft.lock}
           onChange={(v) => set('lock', v)}
           options={[
-            { value: 'none', label: 'Just open it' },
-            { value: 'hold', label: 'Hold the seal' },
-            { value: 'date', label: 'Not before a date' },
+            { value: 'none', label: 'Gewoon openen' },
+            { value: 'hold', label: 'Zegel vasthouden' },
+            { value: 'date', label: 'Niet vóór een datum' },
           ]}
         />
         {draft.lock === 'date' && (
           <TextField
-            label="Can be opened from"
+            label="Mag open vanaf"
             type="date"
             value={draft.until}
             min={todayIso()}
             onChange={(v) => set('until', v)}
             error={errors.until}
-            hint="Perfect for an anniversary or a birthday."
+            hint="Perfect voor een jubileum of een verjaardag."
           />
         )}
       </form>

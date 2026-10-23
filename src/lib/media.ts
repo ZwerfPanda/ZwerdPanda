@@ -26,7 +26,7 @@ function openDb(): Promise<IDBDatabase> {
   if (dbPromise) return dbPromise;
   dbPromise = new Promise((resolve, reject) => {
     if (typeof indexedDB === 'undefined') {
-      reject(new Error('This browser cannot store photos locally.'));
+      reject(new Error('Deze browser kan geen foto’s lokaal bewaren.'));
       return;
     }
     const request = indexedDB.open(DB_NAME, 1);
@@ -34,7 +34,7 @@ function openDb(): Promise<IDBDatabase> {
       request.result.createObjectStore(STORE, { keyPath: 'id' });
     };
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error('Could not open photo storage.'));
+    request.onerror = () => reject(request.error ?? new Error('Fotoopslag openen lukte niet.'));
   });
   dbPromise.catch(() => {
     dbPromise = null;
@@ -52,8 +52,8 @@ function run<T>(
         const tx = db.transaction(STORE, mode);
         const request = fn(tx.objectStore(STORE));
         tx.oncomplete = () => resolve(request.result);
-        tx.onerror = () => reject(tx.error ?? new Error('Photo storage error.'));
-        tx.onabort = () => reject(tx.error ?? new Error('Photo storage was interrupted.'));
+        tx.onerror = () => reject(tx.error ?? new Error('Fout in de fotoopslag.'));
+        tx.onabort = () => reject(tx.error ?? new Error('De fotoopslag werd onderbroken.'));
       }),
   );
 }
@@ -223,7 +223,7 @@ async function decodeImage(file: File): Promise<Drawable> {
   } catch {
     URL.revokeObjectURL(url);
     throw new Error(
-      `“${file.name}” couldn't be opened. Try a JPG or PNG (on iPhone, choose the photo from your library).`,
+      `“${file.name}” kon niet geopend worden. Probeer een JPG of PNG (kies op iPhone de foto uit je bibliotheek).`,
     );
   }
 }
@@ -242,12 +242,12 @@ export async function prepareImage(file: File): Promise<PreparedImage> {
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Your browser could not process this image.');
+    if (!ctx) throw new Error('Je browser kon deze afbeelding niet verwerken.');
     ctx.drawImage(image.source, 0, 0, width, height);
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, 'image/jpeg', 0.86),
     );
-    if (!blob) throw new Error('Your browser could not process this image.');
+    if (!blob) throw new Error('Je browser kon deze afbeelding niet verwerken.');
     return { blob, width, height };
   } finally {
     image.release();

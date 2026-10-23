@@ -25,9 +25,9 @@ export function Playlists() {
 
   const remove = async (playlist: Playlist) => {
     const ok = await confirm({
-      title: 'Disconnect this playlist?',
-      message: 'It stays on Spotify — it just won’t show here anymore.',
-      confirmLabel: 'Disconnect',
+      title: 'Deze playlist ontkoppelen?',
+      message: 'Hij blijft gewoon op Spotify — hij staat alleen niet meer hier.',
+      confirmLabel: 'Ontkoppelen',
       tone: 'danger',
     });
     if (!ok) return;
@@ -38,14 +38,14 @@ export function Playlists() {
     <section className="playlists" aria-labelledby="playlists-title">
       <div className="playlists__head">
         <h2 id="playlists-title" className="section-title" style={{ margin: 0 }}>
-          Our playlists
+          Onze playlists
         </h2>
         <button
           type="button"
           className="btn btn--soft btn--small"
           onClick={() => setForm({ open: true, playlist: null })}
         >
-          <Plus aria-hidden="true" /> Connect a playlist
+          <Plus aria-hidden="true" /> Playlist koppelen
         </button>
       </div>
 
@@ -55,11 +55,12 @@ export function Playlists() {
             <ListMusic />
           </span>
           <div>
-            <p className="playlists__empty-title">Connect our Spotify playlist</p>
+            <p className="playlists__empty-title">Koppel onze Spotify-playlist</p>
             <p className="muted">
-              In Spotify, open the playlist, tap <strong>⋯</strong> → <strong>Share</strong> →{' '}
-              <strong>Copy link</strong>, and paste it here. Tip: make it a collaborative playlist
-              in Spotify, then you can both add songs and they show up here too.
+              Open in Spotify de playlist, tik op <strong>⋯</strong> → <strong>Delen</strong> →{' '}
+              <strong>Link kopiëren</strong> en plak hem hier. Tip: maak er in Spotify een
+              gezamenlijke playlist van, dan kunnen jullie allebei liedjes toevoegen en zie je ze
+              hier ook.
             </p>
           </div>
         </div>
@@ -97,7 +98,7 @@ function PlaylistCard({
   const spotify = spotifyCollection(playlist.url);
   const player = useSpotify();
   if (!spotify) return null;
-  const name = playlist.title || (spotify.kind === 'album' ? 'Our album' : 'Our playlist');
+  const name = playlist.title || (spotify.kind === 'album' ? 'Ons album' : 'Onze playlist');
   const uri = `spotify:${spotify.kind}:${spotify.id}`;
   const isOn = player.current?.uri === uri;
   return (
@@ -111,13 +112,13 @@ function PlaylistCard({
           {playlist.note && <p className="playlist__note">{playlist.note}</p>}
           <ByTag by={playlist.by} />
         </div>
-        <button type="button" className="icon-btn" aria-label={`Edit ${name}`} onClick={onEdit}>
+        <button type="button" className="icon-btn" aria-label={`${name} bewerken`} onClick={onEdit}>
           <Pencil />
         </button>
         <button
           type="button"
           className="icon-btn"
-          aria-label={`Disconnect ${name}`}
+          aria-label={`${name} ontkoppelen`}
           onClick={onRemove}
         >
           <Trash2 />
@@ -131,7 +132,7 @@ function PlaylistCard({
             isOn ? player.setExpanded(true) : player.open({ title: name, uri, url: spotify.url })
           }
         >
-          <PlayCircle aria-hidden="true" /> {isOn ? 'Show the player' : 'Play here'}
+          <PlayCircle aria-hidden="true" /> {isOn ? 'Toon de speler' : 'Hier afspelen'}
         </button>
         <a
           className="btn btn--ghost btn--small"
@@ -176,8 +177,8 @@ function PlaylistForm({
     if (!spotify) {
       setError(
         shortLink
-          ? 'That’s a short spotify.link. Open it in your browser first, then copy the open.spotify.com link from the address bar.'
-          : 'Paste a Spotify playlist link — it looks like https://open.spotify.com/playlist/…',
+          ? 'Dat is een korte spotify.link. Open hem eerst in je browser en kopieer dan de open.spotify.com-link uit de adresbalk.'
+          : 'Plak een link naar een Spotify-playlist — die ziet eruit als https://open.spotify.com/playlist/…',
       );
       return;
     }
@@ -195,7 +196,7 @@ function PlaylistForm({
         ? c.playlists.map((p) => (p.id === item.id ? item : p))
         : [...c.playlists, item],
     }));
-    toast(playlist ? 'Playlist saved' : 'Playlist connected ♫');
+    toast(playlist ? 'Playlist opgeslagen' : 'Playlist gekoppeld ♫');
     onClose();
   };
 
@@ -203,23 +204,23 @@ function PlaylistForm({
     <Dialog
       open={open}
       onClose={onClose}
-      title={playlist ? 'Edit playlist' : 'Connect a Spotify playlist'}
+      title={playlist ? 'Playlist bewerken' : 'Spotify-playlist koppelen'}
       eyebrow="music corner"
       size="md"
       footer={
         <>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Cancel
+            Annuleren
           </button>
           <button type="submit" form="playlist-form" className="btn btn--primary">
-            {playlist ? 'Save' : 'Connect'}
+            {playlist ? 'Opslaan' : 'Koppelen'}
           </button>
         </>
       }
     >
       <form id="playlist-form" className="form" onSubmit={save} noValidate>
         <TextField
-          label="Spotify link"
+          label="Spotify-link"
           value={url}
           onChange={(v) => {
             setUrl(v);
@@ -231,19 +232,19 @@ function PlaylistForm({
           error={error}
           hint={
             spotify
-              ? `✓ Spotify ${spotify.kind} recognised.`
-              : 'In Spotify: ⋯ → Share → Copy link. Albums work too.'
+              ? `✓ Spotify-${spotify.kind} herkend.`
+              : 'In Spotify: ⋯ → Delen → Link kopiëren. Albums werken ook.'
           }
         />
         <TextField
-          label="Our name for it"
+          label="Onze naam ervoor"
           optional
           value={title}
           onChange={setTitle}
           maxLength={120}
           placeholder="Songs that sound like us"
         />
-        <TextArea label="A little note" optional value={note} onChange={setNote} rows={3} />
+        <TextArea label="Een notitie" optional value={note} onChange={setNote} rows={3} />
       </form>
     </Dialog>
   );

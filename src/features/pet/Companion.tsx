@@ -15,15 +15,15 @@ import './companion.css';
 
 /** Little things Coco says when you arrive somewhere with her. */
 const LINES: Partial<Record<RoutePath, string[]>> = {
-  '/': ['Home sweet home.', 'Hi! I came along.'],
-  '/story': ['Is there a chapter about me?', 'I love this story.'],
-  '/memories': ['So many photos… am I in them?', 'Ooh, pictures!'],
-  '/world': ['I know the way to my house!', 'Can we visit the Matcha Corner?'],
-  '/letters': ['I promise not to nibble the envelopes.', 'Shh, someone’s reading.'],
-  '/future': ['Is there a garden for me in the future?', 'Big dreams. I approve.'],
-  '/surprises': ['I love surprises. Especially crunchy ones.'],
-  '/music': ['*ears up* I like this one.', 'Do bunnies dance? This one does.'],
-  '/settings': ['Don’t forget to back up my photos!'],
+  '/': ['Home sweet home.', 'Hoi! Ik ben meegekomen.'],
+  '/story': ['Is er een hoofdstuk over mij?', 'Ik vind dit verhaal zo leuk.'],
+  '/memories': ['Zoveel foto’s… sta ik erop?', 'Ooh, foto’s!'],
+  '/world': ['Ik weet de weg naar mijn huisje!', 'Gaan we naar de Matcha Corner?'],
+  '/letters': ['Ik beloof dat ik niet aan de enveloppen knabbel.', 'Ssst, er wordt gelezen.'],
+  '/future': ['Is er later een tuintje voor mij?', 'Grote dromen. Approved.'],
+  '/surprises': ['Ik hou van surprises. Vooral knapperige.'],
+  '/music': ['*oortjes omhoog* Deze vind ik leuk.', 'Dansen konijnen? Deze wel.'],
+  '/settings': ['Vergeet geen back-up van mijn foto’s!'],
 };
 
 /* Her little patch of screen is 100 px wide; 50 is her resting spot. */
@@ -135,7 +135,7 @@ function Companion({ path }: { path: RoutePath }) {
     const result = care(getContent().pet, { type: 'pet' }, getMe());
     if (result.ok) updateContent((c) => ({ ...c, pet: result.pet }));
     setHearts((h) => h + 1);
-    speak('*happy tooth purr*', 2400);
+    speak('*blij tandengeknars*', 2400);
     const t = hop.begin();
     hop.show('front');
     await hop.hopInPlace(t, 0.1);
@@ -144,7 +144,7 @@ function Companion({ path }: { path: RoutePath }) {
   const goHome = async () => {
     setOpen(false);
     setLeaving(true);
-    speak('Bye! I’ll be in my hutch…', 1800);
+    speak('Doei! Ik ben in mijn hokje…', 1800);
     const t = hop.begin();
     if (!reduce) {
       await hop.hopTo(t, desktop ? 96 : 4, 'run');
@@ -173,13 +173,13 @@ function Companion({ path }: { path: RoutePath }) {
           >
             <p className="companion__menu-title">
               {wants === 'food'
-                ? 'Coco is a bit hungry.'
+                ? 'Coco heeft een beetje honger.'
                 : wants === 'love'
-                  ? 'Coco misses you.'
-                  : `Hi ${nameOf(getMe(), profile)}!`}
+                  ? 'Coco mist je.'
+                  : `Hoi ${nameOf(getMe(), profile)}!`}
             </p>
             <button type="button" role="menuitem" onClick={() => void cuddle()}>
-              <HandHeart aria-hidden="true" /> Give her a cuddle
+              <HandHeart aria-hidden="true" /> Geef haar een knuffel
             </button>
             <button
               type="button"
@@ -190,10 +190,10 @@ function Companion({ path }: { path: RoutePath }) {
               }}
             >
               {wants === 'food' ? <Carrot aria-hidden="true" /> : <House aria-hidden="true" />}
-              {wants === 'food' ? 'Feed her in her den' : 'Visit her den'}
+              {wants === 'food' ? 'Geef haar eten in haar holletje' : 'Naar haar holletje'}
             </button>
             <button type="button" role="menuitem" onClick={() => void goHome()}>
-              <House aria-hidden="true" /> Let her stay home
+              <House aria-hidden="true" /> Laat haar thuis
             </button>
           </motion.div>
         ) : (
@@ -224,9 +224,9 @@ function Companion({ path }: { path: RoutePath }) {
               disabled={leaving}
               aria-label={
                 wants === 'food'
-                  ? 'Coco is hungry. Open Coco’s menu'
+                  ? 'Coco heeft honger. Open Coco’s menu'
                   : wants === 'love'
-                    ? 'Coco wants a cuddle. Open Coco’s menu'
+                    ? 'Coco wil een knuffel. Open Coco’s menu'
                     : 'Coco. Open Coco’s menu'
               }
               onClick={() => {

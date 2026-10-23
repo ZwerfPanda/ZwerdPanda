@@ -219,7 +219,7 @@ export function CocoDen() {
 
   const wake = () => {
     if (sleeping) {
-      say('*yawn* …oh, hi!');
+      say('*gaap* …oh, hoi!');
       setFrontPose('sit');
     }
     setAwakeUntil(Date.now() + 5 * 60_000);
@@ -404,7 +404,7 @@ export function CocoDen() {
       const startAt = hop.pct() < 50 ? 74 : 26;
       foodX.set(px(startAt));
       setFloorFood({ food, bites: 0, key: Date.now() });
-      say(reduce ? `${info.label} for Coco.` : 'Drag it around — she’ll follow her nose.');
+      say(reduce ? `${info.label} voor Coco.` : 'Sleep het rond — ze volgt haar neusje.');
       let side: 1 | -1 = 1;
       for (let tries = 0; tries < 40; tries++) {
         if (!(await hop.wait(t, 420))) return;
@@ -479,7 +479,7 @@ export function CocoDen() {
       setFrontPose('loaf');
       setMode(next);
       stroke.current = { total: 0, last: null, sinceFx: 0 };
-      say(next === 'cuddle' ? 'Stroke her forehead and cheeks.' : 'Brush along her back.');
+      say(next === 'cuddle' ? 'Aai haar voorhoofd en wangetjes.' : 'Borstel langs haar rug.');
     }, false);
 
   const finishStroke = () => {
@@ -536,7 +536,9 @@ export function CocoDen() {
         stroke.current.sinceFx = -999;
         setFrontPose('thump');
         setFace('open');
-        say('Thump! Most bunnies don’t like their feet touched — try her forehead.');
+        say(
+          'Thump! De meeste konijntjes vinden hun pootjes aanraken niet fijn — probeer haar voorhoofd.',
+        );
         window.setTimeout(() => {
           setFrontPose('loaf');
           stroke.current.sinceFx = 0;
@@ -577,10 +579,14 @@ export function CocoDen() {
     void scene(async (t) => {
       wake();
       setTray(null);
-      setFact('Willow balls are great: rabbits can nudge, toss and chew them safely.');
+      setFact('Wilgenballetjes zijn top: konijnen kunnen ze veilig duwen, gooien en eraan knagen.');
       ballX.set(px(hop.pct() < 50 ? 72 : 28));
       setBall(true);
-      say(reduce ? 'Ball time!' : 'Flick the ball — or tap it — and watch her chase it.');
+      say(
+        reduce
+          ? 'Ball time!'
+          : 'Geef het balletje een zwiep — of tik erop — en kijk hoe ze erachteraan gaat.',
+      );
       let nudges = 0;
       const started = Date.now();
       while (nudges < 5 && Date.now() - started < 18_000) {
@@ -603,7 +609,7 @@ export function CocoDen() {
       }
       if (!hop.alive(t)) return;
       setBall(false);
-      doCare({ type: 'play', toy: 'with the willow ball' });
+      doCare({ type: 'play', toy: 'met het wilgenballetje' });
       await hop.binky(t);
     });
 
@@ -611,7 +617,7 @@ export function CocoDen() {
     void scene(async (t) => {
       wake();
       setTray(null);
-      setFact('Tunnels feel like burrows — rabbits love to dash through them.');
+      setFact('Tunnels voelen als holletjes — konijnen rennen er dolgraag doorheen.');
       if (!(await hop.hopTo(t, AT.tunnelMouth + 6))) return;
       if (!(await hop.turn(t, -1))) return;
       hop.show('side', 'crouch');
@@ -632,20 +638,20 @@ export function CocoDen() {
     void scene(async (t) => {
       wake();
       setTray(null);
-      setFact('Chewing and digging cardboard is a favourite rabbit hobby — and good for them.');
+      setFact('Karton knagen en graven is een favoriete konijnenhobby — en goed voor ze.');
       if (!(await hop.hopTo(t, AT.boxDoor - 4))) return;
       hop.show('front');
       await hop.hopInPlace(t, 0.03);
       if (!(await hop.fade(t, 0, 0.25))) return;
       setRustle('box');
-      say('*chew chew* She’s redesigning the box.');
+      say('*knaag knaag* Ze geeft de doos een make-over.');
       if (!(await hop.wait(t, 2200))) return;
       setRustle(null);
       if (!(await hop.fade(t, 1, 0.2))) return;
       setFrontPose('sit');
       setFace('happy');
       burst('crumb', 4);
-      doCare({ type: 'play', toy: 'in the cardboard box' });
+      doCare({ type: 'play', toy: 'in de kartonnen doos' });
       if (!(await hop.wait(t, 700))) return;
       await hop.hopTo(t, 66);
     });
@@ -656,7 +662,7 @@ export function CocoDen() {
       setTray(null);
       const spots: HideSpot[] = ['tunnel', 'box', 'hay'];
       const hideIn = spots[Math.floor(Math.random() * spots.length)];
-      say('Close your eyes… she’s hiding!');
+      say('Ogen dicht… ze verstopt zich!');
       if (!(await hop.hopTo(t, HIDE[hideIn], 'run'))) return;
       await hop.fade(t, 0, 0.25);
       setSeek({ hideIn, tries: 0 });
@@ -666,7 +672,7 @@ export function CocoDen() {
     if (!seek) return;
     const found = place === seek.hideIn || seek.tries >= 1;
     if (!found) {
-      say('Not there… listen: something is rustling!');
+      say('Daar niet… luister: er ritselt iets!');
       setSeek({ ...seek, tries: seek.tries + 1 });
       setRustle(seek.hideIn);
       window.setTimeout(() => setRustle(null), 900);
@@ -676,8 +682,8 @@ export function CocoDen() {
     setSeek(null);
     void scene(async (t) => {
       hop.place(HIDE[hiddenAt]);
-      say(place === hiddenAt ? 'You found me!' : 'Here she is! Peekaboo.');
-      doCare({ type: 'play', toy: 'hide and seek' });
+      say(place === hiddenAt ? 'Je hebt me gevonden!' : 'Daar is ze! Kiekeboe.');
+      doCare({ type: 'play', toy: 'verstoppertje' });
       if (!(await hop.fade(t, 1, 0.2))) return;
       if (!(await hop.binky(t))) return;
       await hop.hopTo(t, AT.middle);
@@ -790,33 +796,33 @@ export function CocoDen() {
         <div>
           <p className="den__eyebrow hand">our digital bunny</p>
           <h2 id="den-title" className="den__title">
-            Coco’s den
+            Coco’s holletje
           </h2>
           <p className="den__meta">
-            {pet.sex === 'girl' ? 'Girl' : 'Boy'}
+            {pet.sex === 'girl' ? 'Meisje' : 'Jongen'}
             {age && (
               <>
                 {' · '}
-                {age.label} old · {age.stage}
+                {age.label} oud · {age.stage}
               </>
             )}
           </p>
         </div>
-        <div className="den__bond" aria-label={`Bond: ${bond.name}`}>
+        <div className="den__bond" aria-label={`Band: ${bond.name}`}>
           <span className="den__bond-name">
             <Heart aria-hidden="true" /> {bond.name}
           </span>
           <span className="den__bond-bar" aria-hidden="true">
             <span style={{ width: `${Math.round(bond.progress * 100)}%` }} />
           </span>
-          {bond.next && <span className="den__bond-next">next: {bond.next}</span>}
+          {bond.next && <span className="den__bond-next">volgende: {bond.next}</span>}
         </div>
       </header>
 
       {age?.isBirthday && (
         <p className="den__birthday">
-          <Cake aria-hidden="true" /> It’s Coco’s birthday — she’s {age.turning} today! The party
-          hat is unlocked.
+          <Cake aria-hidden="true" /> Coco is jarig — ze wordt vandaag {age.turning}! Het
+          feesthoedje is vrijgespeeld.
         </p>
       )}
 
@@ -843,7 +849,7 @@ export function CocoDen() {
             if (!(await hop.hopTo(t, to))) return;
             hop.show('front');
             setFace('happy');
-            if (Math.random() < 0.4) say('Here I am!');
+            if (Math.random() < 0.4) say('Hier ben ik!');
             await hop.hopInPlace(t, 0.03);
             await hop.wait(t, 1200);
           }, false);
@@ -897,7 +903,7 @@ export function CocoDen() {
             onDragStart={() => (dragging.current = true)}
             onDragEnd={() => (dragging.current = false)}
             onClick={() => rollBall(pctOf(ballX.get()) >= hop.pct() ? 1 : -1, 26)}
-            aria-label="Roll the ball"
+            aria-label="Rol het balletje"
           >
             <motion.svg viewBox="-24 -24 48 48" style={{ rotate: ballSpin }} aria-hidden="true">
               <WillowBall />
@@ -925,12 +931,12 @@ export function CocoDen() {
                 className={`den__bunny${mode ? ` is-${mode}` : ''}`}
                 aria-label={
                   mode === 'cuddle'
-                    ? 'Stroke Coco (or press to give her a cuddle)'
+                    ? 'Aai Coco (of druk om haar te knuffelen)'
                     : mode === 'brush'
-                      ? 'Brush Coco (or press to brush her)'
+                      ? 'Borstel Coco (of druk om haar te borstelen)'
                       : sleeping
-                        ? 'Coco is napping. Tap to wake her gently'
-                        : 'Coco. Tap to say hi'
+                        ? 'Coco doet een dutje. Tik om haar zachtjes wakker te maken'
+                        : 'Coco. Tik om hoi te zeggen'
                 }
                 onClick={(e) => {
                   if (mode) {
@@ -952,8 +958,8 @@ export function CocoDen() {
                     setFace('happy');
                     const lines = [
                       'Nose boop!',
-                      'She sniffs your fingers… approved.',
-                      `${nameOf(getMe(), profile)}! She knows you.`,
+                      'Ze snuffelt aan je vingers… goedgekeurd.',
+                      `${nameOf(getMe(), profile)}! Ze kent je.`,
                       MOOD_LINES[mood],
                     ];
                     say(lines[Math.floor(Math.random() * lines.length)]);
@@ -1039,8 +1045,8 @@ export function CocoDen() {
         </AnimatePresence>
 
         {seek && (
-          <div className="den__seek" role="group" aria-label="Where is Coco hiding?">
-            <span>Where is she hiding?</span>
+          <div className="den__seek" role="group" aria-label="Waar verstopt Coco zich?">
+            <span>Waar verstopt ze zich?</span>
             {(['hay', 'tunnel', 'box'] as HideSpot[]).map((place) => (
               <button
                 key={place}
@@ -1050,13 +1056,13 @@ export function CocoDen() {
                 onClick={() => guess(place)}
                 aria-label={
                   place === 'box'
-                    ? 'In the box?'
+                    ? 'In de doos?'
                     : place === 'tunnel'
-                      ? 'In the tunnel?'
-                      : 'Behind the hay?'
+                      ? 'In de tunnel?'
+                      : 'Achter het hooi?'
                 }
               >
-                {place === 'box' ? 'Box?' : place === 'tunnel' ? 'Tunnel?' : 'Hay?'}
+                {place === 'box' ? 'Doos?' : place === 'tunnel' ? 'Tunnel?' : 'Hooi?'}
               </button>
             ))}
           </div>
@@ -1067,11 +1073,11 @@ export function CocoDen() {
             <span>
               {mode === 'cuddle' ? (
                 <>
-                  <HandHeart aria-hidden="true" /> Stroke her with your finger
+                  <HandHeart aria-hidden="true" /> Aai haar met je vinger
                 </>
               ) : (
                 <>
-                  <Brush aria-hidden="true" /> Brush her with your finger
+                  <Brush aria-hidden="true" /> Borstel haar met je vinger
                 </>
               )}
             </span>
@@ -1099,18 +1105,19 @@ export function CocoDen() {
 
       <p className="den__status" aria-live="polite">
         {sleeping
-          ? 'Coco is napping. Rabbits doze in the middle of the day and night — they’re most awake around dawn and dusk.'
+          ? 'Coco doet een dutje. Konijnen slapen midden op de dag en ’s nachts — ze zijn het wakkerst rond zonsopgang en schemering.'
           : heard || MOOD_LINES[mood]}
       </p>
 
       {!reduce && (
         <p className="den__hint">
-          Tip: tap the floor and she hops over · drag her food to her · flick her ball
+          Tip: tik op de vloer en ze hupt erheen · sleep haar eten naar haar toe · zwiep haar
+          balletje
         </p>
       )}
 
-      <div className="den__tools" role="group" aria-label="Look after Coco">
-        {trayButton('feed', 'Feed', <Carrot aria-hidden="true" />)}
+      <div className="den__tools" role="group" aria-label="Zorg voor Coco">
+        {trayButton('feed', 'Eten', <Carrot aria-hidden="true" />)}
         <button
           type="button"
           className={`den-tool${mode === 'cuddle' ? ' is-active' : ''}`}
@@ -1118,7 +1125,7 @@ export function CocoDen() {
           disabled={busy}
         >
           <HandHeart aria-hidden="true" />
-          <span>Cuddle</span>
+          <span>Knuffelen</span>
         </button>
         <button
           type="button"
@@ -1127,11 +1134,11 @@ export function CocoDen() {
           disabled={busy}
         >
           <Brush aria-hidden="true" />
-          <span>Brush</span>
+          <span>Borstelen</span>
         </button>
-        {trayButton('play', 'Play', <Volleyball aria-hidden="true" />)}
-        {trayButton('train', 'Tricks', <GraduationCap aria-hidden="true" />)}
-        {trayButton('dress', 'Dress up', <Shirt aria-hidden="true" />)}
+        {trayButton('play', 'Spelen', <Volleyball aria-hidden="true" />)}
+        {trayButton('train', 'Trucjes', <GraduationCap aria-hidden="true" />)}
+        {trayButton('dress', 'Aankleden', <Shirt aria-hidden="true" />)}
       </div>
 
       <AnimatePresence initial={false}>
@@ -1151,16 +1158,16 @@ export function CocoDen() {
                   <svg viewBox="-24 -24 48 48" className="den-option__food" aria-hidden="true">
                     <WillowBall />
                   </svg>
-                  Willow ball
+                  Wilgenbal
                 </button>
                 <button type="button" className="den-option" onClick={playTunnel}>
                   <Sparkles aria-hidden="true" /> Tunnel zoomies
                 </button>
                 <button type="button" className="den-option" onClick={playBox}>
-                  <Package aria-hidden="true" /> Cardboard box
+                  <Package aria-hidden="true" /> Kartonnen doos
                 </button>
                 <button type="button" className="den-option" onClick={startSeek}>
-                  <Sparkles aria-hidden="true" /> Hide &amp; seek
+                  <Sparkles aria-hidden="true" /> Verstoppertje
                 </button>
               </div>
             )}
@@ -1205,8 +1212,8 @@ export function CocoDen() {
                         <span className="den-option__lock">
                           <Lock aria-hidden="true" />
                           {o === 'party'
-                            ? 'birthday or Family'
-                            : `bond: ${bondNames[OUTFITS[o].level]}`}
+                            ? 'verjaardag of Family'
+                            : `band: ${bondNames[OUTFITS[o].level]}`}
                         </span>
                       )}
                     </button>
@@ -1228,37 +1235,37 @@ export function CocoDen() {
       {companion ? (
         <div className="den__along">
           <p>
-            <Heart aria-hidden="true" /> Coco hops along with you on every page.
+            <Heart aria-hidden="true" /> Coco hupt op elke pagina met je mee.
           </p>
           <button
             type="button"
             className="btn btn--quiet btn--small"
             onClick={() => sendCocoHome('/coco')}
           >
-            <House aria-hidden="true" /> Let her stay home
+            <House aria-hidden="true" /> Laat haar thuis
           </button>
         </div>
       ) : (
         <div className="den__along">
           <p>
-            <House aria-hidden="true" /> Coco is home in her hutch — it’s hidden somewhere in our
-            universe, peeking out from the edge of one of the pages. Find it to take her along
-            again.
+            <House aria-hidden="true" /> Coco is thuis in haar hokje — dat staat ergens verstopt in
+            ons universe en piept aan de rand van een van de pagina’s. Vind het om haar weer mee te
+            nemen.
           </p>
           <button
             type="button"
             className="link-btn"
             onClick={() => updatePrefs({ companion: true, cocoHome: undefined })}
           >
-            Or just call her back
+            Of roep haar gewoon terug
           </button>
         </div>
       )}
 
       {age && !age.isBirthday && (
         <p className="den__foot">
-          <Cake aria-hidden="true" /> Born 1 June 2026 · birthday in {age.daysToBirthday}{' '}
-          {age.daysToBirthday === 1 ? 'day' : 'days'} (she turns {age.turning})
+          <Cake aria-hidden="true" /> Geboren 1 juni 2026 · jarig over {age.daysToBirthday}{' '}
+          {age.daysToBirthday === 1 ? 'dag' : 'dagen'} (ze wordt {age.turning})
         </p>
       )}
     </section>

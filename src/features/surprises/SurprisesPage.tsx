@@ -20,16 +20,16 @@ export function SurprisesPage() {
   return (
     <div className="page surprises-page">
       <PageHeader
-        eyebrow="hidden on purpose"
+        eyebrow="expres verstopt"
         title={
           <>
             Little <em>Surprises</em>
           </>
         }
-        lede="Small things to tap, shake and discover. No scores, no streaks — just little hellos for whenever you feel like it."
+        lede="Kleine dingetjes om op te tikken, te schudden en te ontdekken. Geen scores, geen streaks — gewoon kleine hallo’tjes voor wanneer je zin hebt."
         actions={
           <button type="button" className="btn btn--ghost" onClick={() => setEditing(true)}>
-            <Pencil aria-hidden="true" /> Edit the surprises
+            <Pencil aria-hidden="true" /> Surprises bewerken
           </button>
         }
       />
@@ -41,7 +41,8 @@ export function SurprisesPage() {
         <NightSky />
       </div>
       <p className="surprises-page__hint">
-        Psst — there are a few tiny hearts hidden around our universe. Here’s one: <HiddenHeart />
+        Psst — er zijn een paar kleine hartjes verstopt in ons universe. Hier is er een:{' '}
+        <HiddenHeart />
       </p>
       <SurpriseEditor open={editing} onClose={() => setEditing(false)} />
       <SiteFooter />
@@ -74,10 +75,10 @@ function ReasonJar() {
   return (
     <article className="surprise surprise--jar" aria-labelledby="jar-title">
       <h2 id="jar-title" className="surprise__title">
-        A jar of little reasons
+        Een pot met kleine redenen
       </h2>
-      <p className="surprise__sub">{reasons.length} folded notes inside</p>
-      <button type="button" className="jar" onClick={draw} aria-label="Take a note out of the jar">
+      <p className="surprise__sub">{reasons.length} opgevouwen briefjes</p>
+      <button type="button" className="jar" onClick={draw} aria-label="Pak een briefje uit de pot">
         <motion.svg viewBox="0 0 160 190" animate={jar} style={{ originY: 1 }}>
           <rect
             x="44"
@@ -147,7 +148,7 @@ function ReasonJar() {
             </motion.p>
           ) : (
             <motion.p key="hint" className="surprise__hint" exit={{ opacity: 0 }}>
-              Tap the jar for one.
+              Tik op de pot voor een briefje.
             </motion.p>
           )}
         </AnimatePresence>
@@ -167,15 +168,15 @@ function GiftBox() {
   return (
     <article className="surprise surprise--gift" aria-labelledby="gift-title">
       <h2 id="gift-title" className="surprise__title">
-        A little gift
+        Een klein cadeautje
       </h2>
-      <p className="surprise__sub">{open ? 'opened' : 'with your name on it'}</p>
+      <p className="surprise__sub">{open ? 'opened' : 'met jouw naam erop'}</p>
       <button
         ref={ref}
         type="button"
         className="gift"
         aria-expanded={open}
-        aria-label={open ? 'Close the gift box' : 'Open the gift box'}
+        aria-label={open ? 'Cadeaudoosje sluiten' : 'Cadeaudoosje openen'}
         onClick={() => {
           if (!open) celebrateFrom(ref.current);
           setOpen((o) => !o);
@@ -261,15 +262,15 @@ function BloomFlower() {
   return (
     <article className="surprise surprise--flower" aria-labelledby="flower-title">
       <h2 id="flower-title" className="surprise__title">
-        Today’s flower
+        Bloem van vandaag
       </h2>
-      <p className="surprise__sub">a new one every day</p>
+      <p className="surprise__sub">elke dag een nieuwe</p>
       <button
         ref={ref}
         type="button"
         className={`flower ${bloomed ? 'is-bloomed' : ''}`}
         aria-pressed={bloomed}
-        aria-label={bloomed ? 'The flower has bloomed' : 'Help the flower bloom'}
+        aria-label={bloomed ? 'De bloem is open' : 'Help de bloem open te gaan'}
         onClick={() => {
           if (!bloomed) celebrateFrom(ref.current);
           setBloomed(true);
@@ -307,11 +308,11 @@ function BloomFlower() {
       <div className="surprise__reveal" aria-live="polite">
         {bloomed ? (
           <p className="bloom-card">
-            <span>today I love…</span>
+            <span>vandaag hou ik van…</span>
             {reason}
           </p>
         ) : (
-          <p className="surprise__hint">Tap the bud to help it bloom.</p>
+          <p className="surprise__hint">Tik op de knop om hem te laten bloeien.</p>
         )}
       </div>
     </article>
@@ -329,21 +330,21 @@ function SecretPolaroid() {
   return (
     <article className="surprise surprise--polaroid" aria-labelledby="polaroid-title">
       <h2 id="polaroid-title" className="surprise__title">
-        A photo with a secret
+        Een foto met een geheimpje
       </h2>
-      <p className="surprise__sub">turn it over</p>
+      <p className="surprise__sub">draai hem om</p>
       <button
         type="button"
         className={`flip ${flipped ? 'is-flipped' : ''}`}
         aria-pressed={flipped}
         onClick={() => setFlipped((f) => !f)}
       >
-        <span className="visually-hidden">Turn the photo over</span>
+        <span className="visually-hidden">Draai de foto om</span>
         <span className="flip__inner" aria-hidden="true">
           <span className="flip__face flip__front polaroid">
             <span className="polaroid__photo flip__photo">
               {favorite ? (
-                <MediaView source={favorite.media} alt="A favourite photo of us" />
+                <MediaView source={favorite.media} alt="Een favoriete foto van ons" />
               ) : (
                 <SampleArt art="stars" />
               )}
@@ -352,15 +353,15 @@ function SecretPolaroid() {
           </span>
           <span className="flip__face flip__back">
             <span className="flip__note">{note}</span>
-            <span className="flip__stamp">turn me back</span>
+            <span className="flip__stamp">draai me terug</span>
           </span>
         </span>
       </button>
       <p className="visually-hidden" aria-live="polite">
-        {flipped ? `On the back: ${note}` : ''}
+        {flipped ? `Op de achterkant: ${note}` : ''}
       </p>
       <p className="surprise__hint" aria-hidden="true">
-        <RotateCcw /> Tap to flip
+        <RotateCcw /> Tik om om te draaien
       </p>
     </article>
   );
@@ -396,19 +397,19 @@ function NightSky() {
     <article className="surprise surprise--sky" aria-labelledby="sky-title">
       <div className="sky__text">
         <h2 id="sky-title" className="surprise__title">
-          Our night sky
+          Onze nachthemel
         </h2>
         <p className="surprise__sub">
           {all
-            ? 'You found every star ♡'
-            : `${found.length} of ${stars.length} stars found — each one is a memory`}
+            ? 'Je vond elke ster ♡'
+            : `${found.length} van ${stars.length} sterren gevonden — elke ster is een herinnering`}
         </p>
       </div>
       <svg
         className={`sky ${all ? 'is-complete' : ''}`}
         viewBox="0 0 400 240"
         role="group"
-        aria-label="Stars to discover"
+        aria-label="Sterren om te ontdekken"
       >
         {Array.from({ length: 40 }, (_, i) => (
           <circle
@@ -439,7 +440,7 @@ function NightSky() {
               transform={`translate(${x} ${y})`}
               role="button"
               tabIndex={0}
-              aria-label={isFound ? `Star ${i + 1}: ${s.text}` : `Star ${i + 1}, not found yet`}
+              aria-label={isFound ? `Ster ${i + 1}: ${s.text}` : `Ster ${i + 1}, nog niet gevonden`}
               onClick={() => tap(s.id)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -461,7 +462,7 @@ function NightSky() {
         })}
       </svg>
       <div className="sky__caption" aria-live="polite">
-        {activeStar ? <p>{activeStar.text}</p> : <p className="sky__hint">Tap a star.</p>}
+        {activeStar ? <p>{activeStar.text}</p> : <p className="sky__hint">Tik op een ster.</p>}
         {found.length > 0 && (
           <button
             type="button"
@@ -471,7 +472,7 @@ function NightSky() {
               setActive(null);
             }}
           >
-            Hide them again
+            Weer verstoppen
           </button>
         )}
       </div>

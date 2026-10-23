@@ -119,7 +119,7 @@ function LightboxInner({
       className="lightbox"
       role="dialog"
       aria-modal="true"
-      aria-label={`Memory ${safeIndex + 1} of ${items.length}${memory.caption ? `: ${memory.caption}` : ''}`}
+      aria-label={`Herinnering ${safeIndex + 1} van ${items.length}${memory.caption ? `: ${memory.caption}` : ''}`}
       tabIndex={-1}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -142,7 +142,7 @@ function LightboxInner({
               type="button"
               className="icon-btn icon-btn--on-dark"
               onClick={() => setPlaying((p) => !p)}
-              aria-label={playing ? 'Pause slideshow' : 'Play slideshow'}
+              aria-label={playing ? 'Slideshow pauzeren' : 'Slideshow afspelen'}
               aria-pressed={playing}
             >
               {playing ? <Pause /> : <Play />}
@@ -152,7 +152,7 @@ function LightboxInner({
             type="button"
             className="icon-btn icon-btn--on-dark"
             onClick={music.toggle}
-            aria-label={music.playing ? 'Turn music off' : 'Play our soundtrack'}
+            aria-label={music.playing ? 'Muziek uit' : 'Onze soundtrack afspelen'}
             aria-pressed={music.playing}
           >
             <Music />
@@ -161,7 +161,7 @@ function LightboxInner({
             type="button"
             className="icon-btn icon-btn--on-dark fav-btn"
             aria-pressed={memory.favorite}
-            aria-label={memory.favorite ? 'Remove from favourites' : 'Mark as favourite'}
+            aria-label={memory.favorite ? 'Uit favorieten halen' : 'Markeer als favoriet'}
             onClick={() => toggleFavorite('memories', memory.id)}
           >
             <Heart />
@@ -169,7 +169,7 @@ function LightboxInner({
           <button
             type="button"
             className="icon-btn icon-btn--on-dark"
-            aria-label="Edit memory"
+            aria-label="Herinnering bewerken"
             onClick={() => onEdit(memory)}
           >
             <Pencil />
@@ -177,7 +177,7 @@ function LightboxInner({
           <button
             type="button"
             className="icon-btn icon-btn--on-dark"
-            aria-label="Delete memory"
+            aria-label="Herinnering verwijderen"
             onClick={() => onDelete(memory)}
           >
             <Trash2 />
@@ -185,7 +185,7 @@ function LightboxInner({
           <button
             type="button"
             className="icon-btn icon-btn--on-dark"
-            aria-label="Close"
+            aria-label="Sluiten"
             onClick={onClose}
           >
             <X />
@@ -224,7 +224,7 @@ function LightboxInner({
           >
             <MediaView
               source={memory.media}
-              alt={memory.caption || 'Memory'}
+              alt={memory.caption || 'Herinnering'}
               mode="full"
               fit="contain"
               className="lightbox__media"
@@ -238,7 +238,7 @@ function LightboxInner({
               type="button"
               className="lightbox__nav lightbox__nav--prev"
               onClick={() => go(-1)}
-              aria-label="Previous memory"
+              aria-label="Vorige herinnering"
             >
               <ChevronLeft />
             </button>
@@ -246,7 +246,7 @@ function LightboxInner({
               type="button"
               className="lightbox__nav lightbox__nav--next"
               onClick={() => go(1)}
-              aria-label="Next memory"
+              aria-label="Volgende herinnering"
             >
               <ChevronRight />
             </button>
@@ -256,7 +256,9 @@ function LightboxInner({
 
       <div className="lightbox__caption">
         {memory.isSample && (
-          <span className="tag tag--sample lightbox__sample">Sample · replace with your photo</span>
+          <span className="tag tag--sample lightbox__sample">
+            Voorbeeld · vervang door je eigen foto
+          </span>
         )}
         {memory.caption && <p className="lightbox__title">{memory.caption}</p>}
         {memory.note && <p className="lightbox__note">{memory.note}</p>}

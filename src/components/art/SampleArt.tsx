@@ -8,21 +8,21 @@ import { HeartShape, INK, SparkleShape, StarShape } from './shapes';
  */
 
 export const ART_LABELS: Record<ArtKey, string> = {
-  phone: 'Illustration: a phone showing a livestream with floating hearts',
-  meet: 'Illustration: two map pins joined by a dotted line and a heart',
-  mall: 'Illustration: shopping bags with a little heart',
-  matcha: 'Illustration: an iced vanilla matcha with extra syrup',
-  boba: 'Illustration: a cup of bubble tea',
-  arcade: 'Illustration: a glowing arcade machine at night',
-  karaoke: 'Illustration: a karaoke microphone with music notes',
-  train: 'Illustration: the view from a train window at dusk',
-  car: 'Illustration: a little car driving at sunset',
-  growth: 'Illustration: a small plant sprouting in a pot',
-  coco: 'Illustration: a little dwarf rabbit',
-  house: 'Illustration: a little house on a hill under the stars',
-  nails: 'Illustration: nail polish bottles and colour swatches',
-  stars: 'Illustration: a heart-shaped constellation in the night sky',
-  future: 'Illustration: an open book with stars rising from its pages',
+  phone: 'Illustratie: een telefoon met een livestream en zwevende hartjes',
+  meet: 'Illustratie: twee kaartpinnen verbonden door een stippellijn en een hartje',
+  mall: 'Illustratie: shoppingtassen met een klein hartje',
+  matcha: 'Illustratie: een iced vanilla matcha met extra siroop',
+  boba: 'Illustratie: een beker bubble tea',
+  arcade: 'Illustratie: een gloeiende arcadekast in de nacht',
+  karaoke: 'Illustratie: een karaokemicrofoon met muzieknootjes',
+  train: 'Illustratie: het uitzicht uit een treinraam bij schemer',
+  car: 'Illustratie: een autootje dat rijdt bij zonsondergang',
+  growth: 'Illustratie: een plantje dat ontkiemt in een potje',
+  coco: 'Illustratie: een klein dwergkonijntje',
+  house: 'Illustratie: een huisje op een heuvel onder de sterren',
+  nails: 'Illustratie: nagellakflesjes en kleurstaaltjes',
+  stars: 'Illustratie: een hartvormig sterrenbeeld aan de nachtelijke hemel',
+  future: 'Illustratie: een open boek met sterren die uit de pagina’s opstijgen',
 };
 
 const S = { stroke: INK, strokeWidth: 3, strokeLinejoin: 'round', strokeLinecap: 'round' } as const;

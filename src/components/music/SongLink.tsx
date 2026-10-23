@@ -61,7 +61,7 @@ export function SongLink({
               }}
             >
               <PlayCircle aria-hidden="true" />
-              Play here
+              Hier afspelen
             </button>
           )}
           <a
@@ -78,7 +78,7 @@ export function SongLink({
       {embedOpen && info?.embedUrl && (
         <iframe
           className="song-link__embed"
-          title={`${title} player`}
+          title={`${title} speler`}
           src={info.embedUrl}
           height={info.embedHeight}
           loading="lazy"

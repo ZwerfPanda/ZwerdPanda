@@ -28,87 +28,92 @@ export const PLACES: Record<PlaceId, PlaceInfo> = {
     id: 'station',
     name: 'The Little Station',
     sign: 'The Station',
-    tagline: 'where it started',
+    tagline: 'waar het begon',
     blurb:
-      'For a while, every visit began here: a train, a metro, and a lot of counting stops to The Hague. The first chapters of our story leave from this platform.',
-    cta: { label: 'Read our story', path: '/story' },
+      'Een tijdlang begon elk bezoek hier: een trein, een metro en heel veel haltes aftellen naar Den Haag. De eerste hoofdstukken van ons verhaal vertrekken vanaf dit perron.',
+    cta: { label: 'Lees ons verhaal', path: '/story' },
     Body: StationBody,
   },
   cafe: {
     id: 'cafe',
     name: 'The Matcha Corner',
     sign: 'Matcha Corner',
-    tagline: 'vanilla matcha, extra syrup',
+    tagline: 'vanilla matcha, extra siroop',
     blurb:
-      'Her order, perfected. Plus bubble tea for when we’re feeling adventurous — and all the dates that started with a drink.',
-    cta: { label: 'See our date memories', path: '/memories', params: { album: 'album-dates' } },
+      'Haar bestelling, geperfectioneerd. Plus bubble tea voor als we avontuurlijk zijn — en alle dates die met een drankje begonnen.',
+    cta: {
+      label: 'Bekijk onze date-herinneringen',
+      path: '/memories',
+      params: { album: 'album-dates' },
+    },
     Body: MatchaBody,
   },
   arcade: {
     id: 'arcade',
     name: 'The Arcade',
     sign: 'Arcade',
-    tagline: 'one more round',
+    tagline: 'nog één rondje',
     blurb:
-      'Bright lights, too many coins, and the claw machine that never lets go. This one is rigged in your favour.',
-    cta: { label: 'More little surprises', path: '/surprises' },
+      'Felle lichtjes, te veel muntjes en de grijpmachine die nooit loslaat. Deze is in jouw voordeel afgesteld.',
+    cta: { label: 'Meer little surprises', path: '/surprises' },
     Body: ArcadeBody,
   },
   karaoke: {
     id: 'karaoke',
     name: 'The Karaoke Booth',
     sign: 'Karaoke',
-    tagline: 'our songs live here',
+    tagline: 'onze liedjes wonen hier',
     blurb:
-      'The songs that sound like us — and a little music box tune that belongs to this universe.',
-    cta: { label: 'Open the music corner', path: '/music' },
+      'De liedjes die naar ons klinken — en een klein muziekdoosdeuntje dat bij dit universe hoort.',
+    cta: { label: 'Open de music corner', path: '/music' },
     Body: KaraokeBody,
   },
   tree: {
     id: 'tree',
     name: 'The Memory Tree',
     sign: 'Memory Tree',
-    tagline: 'photos on every branch',
-    blurb: 'Every memory we add grows a new little polaroid on this tree.',
-    cta: { label: 'Open our scrapbook', path: '/memories' },
+    tagline: 'foto’s aan elke tak',
+    blurb:
+      'Elke herinnering die we toevoegen laat een nieuwe kleine polaroid aan deze boom groeien.',
+    cta: { label: 'Open ons plakboek', path: '/memories' },
     Body: TreeBody,
   },
   moonpost: {
     id: 'moonpost',
     name: 'The Moon Post',
     sign: 'Moon Post',
-    tagline: 'letters by moonlight',
-    blurb: '“Open when…” letters wait in this mailbox for exactly the right moment.',
-    cta: { label: 'Go to our letters', path: '/letters' },
+    tagline: 'brieven bij maanlicht',
+    blurb: '“Open when…”-brieven wachten in deze brievenbus op precies het juiste moment.',
+    cta: { label: 'Naar onze brieven', path: '/letters' },
     Body: MoonPostBody,
   },
   hutch: {
     id: 'hutch',
     name: 'Coco’s House',
     sign: 'Coco’s House',
-    tagline: 'small rabbit, big personality',
-    blurb: 'The smallest house in our universe, for the smallest member of the family.',
-    cta: { label: 'Visit Coco’s corner', path: '/coco' },
+    tagline: 'klein konijn, groot karakter',
+    blurb: 'Het kleinste huisje in ons universe, voor het kleinste lid van de familie.',
+    cta: { label: 'Naar Coco’s hoekje', path: '/coco' },
     Body: HutchBody,
   },
   garden: {
     id: 'garden',
     name: 'The Little Garden',
     sign: 'Garden',
-    tagline: 'things we’re growing',
+    tagline: 'wat we laten groeien',
     blurb:
-      'We’re both still growing and learning. Some things take time to bloom — tap a bud and see.',
-    cta: { label: 'Find more surprises', path: '/surprises' },
+      'We groeien en leren allebei nog. Sommige dingen hebben tijd nodig om te bloeien — tik op een knop en kijk.',
+    cta: { label: 'Meer surprises vinden', path: '/surprises' },
     Body: GardenBody,
   },
   house: {
     id: 'house',
     name: 'Our Home, One Day',
     sign: 'Home, one day',
-    tagline: 'at the end of the path',
+    tagline: 'aan het eind van het pad',
     blurb:
-      'A home with our names on the door, room for Coco to run, and maybe — one day — a family of our own.',
-    cta: { label: 'Dream with me', path: '/future' },
+      'Een huis met onze namen op de deur, ruimte voor Coco om te rennen en misschien — ooit — een eigen gezinnetje.',
+    cta: { label: 'Droom met me mee', path: '/future' },
     Body: HouseBody,
   },
 };
@@ -134,11 +139,11 @@ function StationBody() {
   return (
     <div className="departures">
       <p className="departures__head" aria-hidden="true">
-        <span>chapter</span>
-        <span>destination</span>
-        <span>platform</span>
+        <span>hoofdstuk</span>
+        <span>bestemming</span>
+        <span>spoor</span>
       </p>
-      <ul aria-label="Departures — the first chapters">
+      <ul aria-label="Vertrek — de eerste hoofdstukken">
         {departures.map((m) => (
           <li key={m.id}>
             <button
@@ -160,11 +165,11 @@ function StationBody() {
 }
 
 const SYRUP_LINES = [
-  'A vanilla matcha… but something’s missing.',
-  'One pump. She did say extra.',
-  'Two pumps. Getting closer…',
-  'Extra syrup. Exactly how she likes it ♡',
-  'Okay… that might be enough syrup now.',
+  'Een vanilla matcha… maar er mist iets.',
+  'Eén pompje. Ze zei wel extra.',
+  'Twee pompjes. Bijna…',
+  'Extra siroop. Precies zoals zij het lekker vindt ♡',
+  'Oké… dit is misschien wel genoeg siroop.',
 ];
 
 function MatchaBody() {
@@ -222,11 +227,11 @@ function MatchaBody() {
         </p>
         <div className="matcha-game__actions">
           <button type="button" className="btn btn--primary btn--small" onClick={add}>
-            Add a pump of syrup
+            Pompje siroop erbij
           </button>
           {pumps > 0 && (
             <button type="button" className="btn btn--quiet btn--small" onClick={() => setPumps(0)}>
-              <RotateCcw aria-hidden="true" /> New cup
+              <RotateCcw aria-hidden="true" /> Nieuwe beker
             </button>
           )}
         </div>
@@ -325,8 +330,8 @@ function ArcadeBody() {
         ) : (
           <p className="claw__hint" aria-live="polite">
             {state === 'grabbing'
-              ? 'The claw is going down…'
-              : 'Every round wins. No coins needed.'}
+              ? 'De grijper gaat omlaag…'
+              : 'Elk rondje is raak. Geen muntjes nodig.'}
           </p>
         )}
         <button
@@ -335,7 +340,7 @@ function ArcadeBody() {
           onClick={play}
           disabled={state === 'grabbing'}
         >
-          {state === 'won' ? 'Play again' : 'Press to play'}
+          {state === 'won' ? 'Nog een keer' : 'Druk om te spelen'}
         </button>
       </div>
     </div>
@@ -349,7 +354,7 @@ function KaraokeBody() {
     <div className="stack-12">
       <button type="button" className="btn btn--primary" onClick={music.toggle}>
         {music.playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
-        {music.playing ? 'Pause the music' : `Play ${music.label.toLowerCase()}`}
+        {music.playing ? 'Muziek pauzeren' : `${music.label} afspelen`}
       </button>
       {songs.length > 0 ? (
         <ul className="mini-list">
@@ -361,7 +366,7 @@ function KaraokeBody() {
           ))}
         </ul>
       ) : (
-        <p className="muted">No songs saved yet — which song makes you think of us?</p>
+        <p className="muted">Nog geen liedjes bewaard — bij welk liedje denk jij aan ons?</p>
       )}
     </div>
   );
@@ -373,8 +378,7 @@ function TreeBody() {
     () => [...memories].sort((a, b) => Number(b.favorite) - Number(a.favorite)).slice(0, 4),
     [memories],
   );
-  if (picks.length === 0)
-    return <p className="muted">The branches are waiting for our first photo.</p>;
+  if (picks.length === 0) return <p className="muted">De takken wachten op onze eerste foto.</p>;
   return (
     <div className="branch">
       <div className="branch__line" aria-hidden="true" />
@@ -390,7 +394,7 @@ function TreeBody() {
             } as React.CSSProperties
           }
           onClick={() => navigate('/memories')}
-          aria-label={`Open the scrapbook — ${m.caption || 'memory'}`}
+          aria-label={`Open het plakboek — ${m.caption || 'herinnering'}`}
         >
           <span className="branch__string" aria-hidden="true" />
           <span className="branch__photo">
@@ -406,9 +410,7 @@ function MoonPostBody() {
   const letters = useContent((c) => c.letters);
   const waiting = letters.filter((l) => l.status === 'shared' && !l.readAt).slice(0, 3);
   if (waiting.length === 0) {
-    return (
-      <p className="muted">Every letter has been opened. Maybe it’s time to write a new one?</p>
-    );
+    return <p className="muted">Alle brieven zijn open. Misschien tijd voor een nieuwe?</p>;
   }
   return (
     <ul className="mail-list">
@@ -465,10 +467,10 @@ function HutchBody() {
       <div className="stack-12">
         <p className="muted" aria-live="polite">
           {pats === 0
-            ? 'Coco is having a quiet day.'
+            ? 'Coco heeft een rustig dagje.'
             : pats < 3
-              ? 'A happy little binky!'
-              : 'Coco loves you. Obviously.'}
+              ? 'Een blij sprongetje — een binky!'
+              : 'Coco houdt van je. Obviously.'}
         </p>
         <button
           type="button"
@@ -478,7 +480,7 @@ function HutchBody() {
             celebrateFrom(ref.current);
           }}
         >
-          <Hand aria-hidden="true" /> Give Coco a pat
+          <Hand aria-hidden="true" /> Aai Coco
         </button>
         {filled.length > 0 && (
           <dl className="fact-list">
@@ -506,14 +508,14 @@ function GardenBody() {
   if (reasons.length === 0) return null;
   return (
     <div className="stack-12">
-      <div className="buds" role="group" aria-label="Flower buds">
+      <div className="buds" role="group" aria-label="Bloemknoppen">
         {colors.map((color, i) => (
           <button
             key={i}
             type="button"
             className={`bud ${open === i ? 'is-open' : ''}`}
             aria-pressed={open === i}
-            aria-label={`Flower ${i + 1}`}
+            aria-label={`Bloem ${i + 1}`}
             onClick={() => setOpen(i)}
           >
             <svg viewBox="-30 -40 60 80" aria-hidden="true">
@@ -540,7 +542,7 @@ function GardenBody() {
         ))}
       </div>
       <p className="bloom-note" aria-live="polite">
-        {open === null ? 'Tap a bud.' : reasons[(offset + open) % reasons.length]}
+        {open === null ? 'Tik op een knop.' : reasons[(offset + open) % reasons.length]}
       </p>
     </div>
   );
@@ -563,7 +565,7 @@ function HouseBody() {
         </ul>
       )}
       <p className="muted">
-        {plans} {plans === 1 ? 'plan' : 'plans'} on our dream board right now.
+        {plans} {plans === 1 ? 'plan' : 'plannen'} op ons dromenbord op dit moment.
       </p>
     </div>
   );

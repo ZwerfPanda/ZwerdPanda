@@ -27,16 +27,16 @@ export function MusicPage() {
 
   const remove = async (song: Song) => {
     const ok = await confirm({
-      title: 'Remove this song?',
-      message: `“${song.title}” will be removed from our songs.`,
-      confirmLabel: 'Remove',
+      title: 'Dit liedje weghalen?',
+      message: `“${song.title}” gaat uit onze liedjes.`,
+      confirmLabel: 'Weghalen',
       tone: 'danger',
     });
     if (!ok) return;
     const position = getContent().songs.findIndex((s) => s.id === song.id);
     removeItem('songs', song.id);
-    toast('Song removed', {
-      action: { label: 'Undo', run: () => restoreItem('songs', song, position) },
+    toast('Liedje weggehaald', {
+      action: { label: 'Ongedaan maken', run: () => restoreItem('songs', song, position) },
     });
   };
 
@@ -51,14 +51,14 @@ export function MusicPage() {
             Music <em>Corner</em>
           </>
         }
-        lede="The songs that belong to us, why they matter, and a little soundtrack for this universe. Nothing plays until you press play."
+        lede="De liedjes die bij ons horen, waarom ze ertoe doen, en een kleine soundtrack voor dit universe. Er speelt niets tot jij op play drukt."
         actions={
           <button
             type="button"
             className="btn btn--primary"
             onClick={() => setForm({ open: true, song: null })}
           >
-            <Plus aria-hidden="true" /> Add a song
+            <Plus aria-hidden="true" /> Liedje toevoegen
           </button>
         }
       />
@@ -68,21 +68,22 @@ export function MusicPage() {
       <Playlists />
 
       <h2 className="section-title">
-        Our songs <span className="hand">{songs.length ? `${songs.length} so far` : ''}</span>
+        Onze liedjes{' '}
+        <span className="hand">{songs.length ? `${songs.length} tot nu toe` : ''}</span>
       </h2>
 
       {songs.length === 0 ? (
         <EmptyState
           art={<Cassette />}
-          title="Our mixtape is still blank"
-          text="Which song makes you think of her? The one from the car, the karaoke classic, the one that just feels like us."
+          title="Onze mixtape is nog leeg"
+          text="Bij welk liedje denk je aan elkaar? Die uit de auto, de karaoke-klassieker, die ene die gewoon als ons voelt."
           action={
             <button
               type="button"
               className="btn btn--primary"
               onClick={() => setForm({ open: true, song: null })}
             >
-              <Plus aria-hidden="true" /> Add our first song
+              <Plus aria-hidden="true" /> Ons eerste liedje toevoegen
             </button>
           }
         />
@@ -109,13 +110,13 @@ export function MusicPage() {
                 <ByTag by={song.by} />
                 {song.why && (
                   <p className="sleeve__why">
-                    <span>why it’s ours</span>
+                    <span>waarom hij van ons is</span>
                     {song.why}
                   </p>
                 )}
                 {song.memory && (
                   <p className="sleeve__memory">
-                    <span>a memory</span>
+                    <span>een herinnering</span>
                     {song.memory}
                   </p>
                 )}
@@ -124,7 +125,7 @@ export function MusicPage() {
                     type="button"
                     className="icon-btn fav-btn"
                     aria-pressed={song.favorite}
-                    aria-label={song.favorite ? 'Remove from favourites' : 'Mark as favourite'}
+                    aria-label={song.favorite ? 'Uit favorieten halen' : 'Markeer als favoriet'}
                     onClick={() => toggleFavorite('songs', song.id)}
                   >
                     <Heart />
@@ -132,7 +133,7 @@ export function MusicPage() {
                   <button
                     type="button"
                     className="icon-btn"
-                    aria-label={`Edit ${song.title}`}
+                    aria-label={`${song.title} bewerken`}
                     onClick={() => setForm({ open: true, song })}
                   >
                     <Pencil />
@@ -140,7 +141,7 @@ export function MusicPage() {
                   <button
                     type="button"
                     className="icon-btn"
-                    aria-label={`Remove ${song.title}`}
+                    aria-label={`${song.title} weghalen`}
                     onClick={() => remove(song)}
                   >
                     <Trash2 />
@@ -238,13 +239,13 @@ function RecordPlayer() {
         </h2>
         <p className="player__desc">
           {prefs.soundtrack === 'custom' && prefs.customSoundtrackId
-            ? 'Our own song, stored on this device.'
-            : 'An original little music-box lullaby, made just for this universe.'}
+            ? 'Ons eigen liedje, bewaard op dit apparaat.'
+            : 'Een origineel muziekdoosliedje, speciaal gemaakt voor dit universe.'}
         </p>
         <div className="player__controls">
           <button type="button" className="btn btn--primary player__play" onClick={music.toggle}>
             {music.playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
-            {music.playing ? 'Pause' : 'Play'}
+            {music.playing ? 'Pauze' : 'Play'}
           </button>
           <label className="player__volume">
             <span className="visually-hidden">Volume</span>
@@ -261,7 +262,7 @@ function RecordPlayer() {
           </label>
         </div>
         <a className="player__settings" href={href('/settings')}>
-          <Settings2 aria-hidden="true" /> Upload our own song in Settings
+          <Settings2 aria-hidden="true" /> Upload ons eigen liedje bij Instellingen
         </a>
       </div>
     </section>

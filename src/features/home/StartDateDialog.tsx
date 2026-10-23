@@ -7,11 +7,11 @@ import { updateProfile } from '../../data/actions';
 import { parseIsoDate, todayIso } from '../../lib/dates';
 
 export function validateStartDate(value: string): string | null {
-  if (!value) return 'Pick the date you consider the start of “us”.';
+  if (!value) return 'Kies de datum die voor jullie het begin van “ons” is.';
   const date = parseIsoDate(value);
-  if (!date) return 'That doesn’t look like a real date.';
-  if (value > todayIso()) return 'That date is in the future — our story has already started!';
-  if (date.getUTCFullYear() < 1950) return 'That date seems a little too long ago.';
+  if (!date) return 'Dat lijkt geen echte datum.';
+  if (value > todayIso()) return 'Die datum ligt in de toekomst — ons verhaal is al begonnen!';
+  if (date.getUTCFullYear() < 1950) return 'Die datum lijkt wel heel lang geleden.';
   return null;
 }
 
@@ -32,7 +32,7 @@ export function StartDateDialog({ open, onClose }: { open: boolean; onClose: () 
     setError(problem);
     if (problem) return;
     updateProfile({ startDate: value });
-    toast('Saved. Every day counts now ♡');
+    toast('Opgeslagen. Elke dag telt nu ♡');
     onClose();
   };
 
@@ -40,27 +40,27 @@ export function StartDateDialog({ open, onClose }: { open: boolean; onClose: () 
     <Dialog
       open={open}
       onClose={onClose}
-      title="When did we begin?"
+      title="Wanneer begonnen we?"
       eyebrow="our date"
       size="sm"
       footer={
         <>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Cancel
+            Annuleren
           </button>
           <button type="submit" form="start-date-form" className="btn btn--primary">
-            Save our date
+            Onze datum opslaan
           </button>
         </>
       }
     >
       <form id="start-date-form" className="form" onSubmit={save} noValidate>
         <p style={{ color: 'var(--ink-soft)' }}>
-          The first date, the day we made it official — whichever day feels like the beginning to
-          us. You can change it any time in Settings.
+          De eerste date, de dag dat het officieel werd — welke dag voor ons ook als het begin
+          voelt. Je kunt het altijd aanpassen bij Instellingen.
         </p>
         <TextField
-          label="Our start date"
+          label="Onze startdatum"
           type="date"
           value={value}
           max={todayIso()}

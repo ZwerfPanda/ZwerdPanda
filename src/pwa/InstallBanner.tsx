@@ -30,20 +30,20 @@ export function InstallBanner() {
   };
 
   return (
-    <aside className="install-banner" aria-label="Install the app">
+    <aside className="install-banner" aria-label="Installeer de app">
       <img src="./icons/icon-192.png" alt="" width={48} height={48} />
       <div className="install-banner__text">
-        <p className="install-banner__title">Take our universe with you</p>
-        <p className="install-banner__sub">Install it as an app — on any phone or computer.</p>
+        <p className="install-banner__title">Neem ons universe overal mee</p>
+        <p className="install-banner__sub">Zet het als app op je telefoon of computer.</p>
         <button type="button" className="install-banner__go" onClick={openInstallSheet}>
-          Install
+          Installeren
         </button>
       </div>
       <button
         type="button"
         className="icon-btn install-banner__close"
         onClick={dismiss}
-        aria-label="Hide this"
+        aria-label="Verbergen"
       >
         <X />
       </button>

@@ -47,7 +47,7 @@ export function MiniUsPage() {
             Mini <em>Us</em>
           </>
         }
-        lede="Cartoon versions of us, dressed in our real outfits. Tap one of us to hear something sweet, make us hug, take a mirror selfie, or let us plan a date — everything they say is saved below so we can read it back."
+        lede="Cartoonversies van ons, in onze echte outfits. Tik op een van ons voor iets liefs, laat ons knuffelen, maak een spiegelselfie of laat ons een date plannen — alles wat ze zeggen bewaren we hieronder, zodat we het terug kunnen lezen."
       />
       <Stage />
       <ChatLog />
@@ -66,15 +66,15 @@ const ACTIONS: {
   label: string;
   icon: LucideIcon;
 }[] = [
-  { id: 'hug', label: 'Hug', icon: HeartHandshake },
-  { id: 'kiss', label: 'Forehead kiss', icon: Heart },
+  { id: 'hug', label: 'Knuffel', icon: HeartHandshake },
+  { id: 'kiss', label: 'Kusje op het voorhoofd', icon: Heart },
   { id: 'twirl', label: 'Twirl', icon: RotateCw },
   { id: 'heart', label: 'Heart hands', icon: Sparkles },
-  { id: 'selfie', label: 'Mirror selfie', icon: Camera },
+  { id: 'selfie', label: 'Spiegelselfie', icon: Camera },
   { id: 'highfive', label: 'High five', icon: Hand },
-  { id: 'wave', label: 'Wave', icon: Smile },
-  { id: 'date', label: 'Date idea', icon: CalendarHeart },
-  { id: 'remember', label: 'Remember when…', icon: MessagesSquare },
+  { id: 'wave', label: 'Zwaaien', icon: Smile },
+  { id: 'date', label: 'Date-idee', icon: CalendarHeart },
+  { id: 'remember', label: 'Weet je nog…', icon: MessagesSquare },
   { id: 'sweet', label: 'Sweet talk', icon: Heart },
 ];
 
@@ -314,7 +314,7 @@ function Stage() {
             }}
             onClick={() => tap(who)}
           >
-            <span className="visually-hidden">Tap mini {names[who]}</span>
+            <span className="visually-hidden">Tik op mini {names[who]}</span>
           </button>
         ))}
 
@@ -351,7 +351,7 @@ function Stage() {
         {bubble ? `${names[bubble.who]}: ${bubble.text}` : ''}
       </p>
 
-      <div className="us-stage__actions" role="group" aria-label="Things to do together">
+      <div className="us-stage__actions" role="group" aria-label="Dingen om samen te doen">
         {ACTIONS.map(({ id, label, icon: Icon }) => (
           <button key={id} type="button" className="chip" onClick={() => act(id)}>
             <Icon aria-hidden="true" /> {label}
@@ -359,7 +359,7 @@ function Stage() {
         ))}
       </div>
 
-      <div className="chip-row us-stage__scenes" role="group" aria-label="Where we are">
+      <div className="chip-row us-stage__scenes" role="group" aria-label="Waar we zijn">
         {SCENES.map((s) => (
           <button
             key={s.id}

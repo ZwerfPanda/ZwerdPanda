@@ -83,7 +83,7 @@ export interface SyncState {
 
 /** A failure caused by the connection rather than by what we sent. */
 export class OfflineError extends Error {
-  constructor(message = 'No connection right now.') {
+  constructor(message = 'Even geen verbinding.') {
     super(message);
     this.name = 'OfflineError';
   }

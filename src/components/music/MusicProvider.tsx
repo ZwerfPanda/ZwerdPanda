@@ -46,7 +46,9 @@ export function MusicProvider({ children }: { children: ReactNode }) {
 
   const useCustom = prefs.soundtrack === 'custom' && Boolean(prefs.customSoundtrackId);
   const source: MusicApi['source'] = useCustom ? 'custom' : 'musicbox';
-  const label = useCustom ? (prefs.customSoundtrackName ?? 'Our song') : 'Our little music box';
+  const label = useCustom
+    ? (prefs.customSoundtrackName ?? 'Ons liedje')
+    : 'Ons kleine muziekdoosje';
 
   const stopAll = useCallback(() => {
     boxRef.current?.stop();
@@ -67,7 +69,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
         if (!url) {
           updatePrefs({ soundtrack: 'musicbox' });
           throw new Error(
-            'Your uploaded song isn’t on this device any more — switched back to the music box.',
+            'Je geüploade liedje staat niet meer op dit apparaat — we spelen weer het muziekdoosje.',
           );
         }
         if (!audioRef.current) {
@@ -90,7 +92,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
       toast(
         error instanceof Error && error.message
           ? error.message
-          : 'Sound couldn’t start in this browser.',
+          : 'Geluid starten lukte niet in deze browser.',
         {
           tone: 'error',
         },

@@ -23,9 +23,9 @@ export function ChatLog() {
 
   const clear = async () => {
     const ok = await confirm({
-      title: 'Clear what they said?',
-      message: 'This clears the chat log for both of us.',
-      confirmLabel: 'Clear',
+      title: 'Alles wat ze zeiden wissen?',
+      message: 'Dit wist het gesprek voor ons allebei.',
+      confirmLabel: 'Wissen',
       tone: 'danger',
     });
     if (ok) updateUs((us) => ({ ...us, chat: [] }));
@@ -35,18 +35,16 @@ export function ChatLog() {
     <section className="us-chat" aria-labelledby="us-chat-title">
       <div className="us-section-head">
         <h2 id="us-chat-title" className="section-title" style={{ margin: 0 }}>
-          What they said
+          Wat ze zeiden
         </h2>
         {chat.length > 0 && (
           <button type="button" className="btn btn--quiet btn--small" onClick={clear}>
-            <Trash2 aria-hidden="true" /> Clear
+            <Trash2 aria-hidden="true" /> Wissen
           </button>
         )}
       </div>
       {chat.length === 0 ? (
-        <p className="muted">
-          Nothing yet. Tap one of us up there and the conversation starts here.
-        </p>
+        <p className="muted">Nog niets. Tik hierboven op een van ons en het gesprek begint hier.</p>
       ) : (
         <>
           <ol className="us-chat__list">
@@ -66,7 +64,7 @@ export function ChatLog() {
               className="btn btn--ghost btn--small"
               onClick={() => setAll((a) => !a)}
             >
-              {all ? 'Show less' : `Read back all ${chat.length}`}
+              {all ? 'Minder tonen' : `Alle ${chat.length} teruglezen`}
             </button>
           )}
         </>
@@ -101,10 +99,10 @@ export function Wardrobe() {
   return (
     <section className="us-wardrobe" aria-labelledby="us-wardrobe-title">
       <h2 id="us-wardrobe-title" className="section-title">
-        Wardrobe <span className="hand">from our real outfits</span>
+        Kledingkast <span className="hand">from our real outfits</span>
       </h2>
       <Segmented
-        legend="Dress up"
+        legend="Aankleden"
         value={who}
         onChange={setWho}
         options={[
@@ -135,17 +133,17 @@ export function Wardrobe() {
       </ul>
       {who === 'partner' ? (
         <Segmented
-          legend="Hair"
+          legend="Haar"
           value={mini.look.hair === 'wavy' ? 'wavy' : 'straight'}
           onChange={(hair) => updateMini(who, { look: { ...mini.look, hair } })}
           options={[
-            { value: 'straight', label: 'Straight' },
-            { value: 'wavy', label: 'Wavy' },
+            { value: 'straight', label: 'Steil' },
+            { value: 'wavy', label: 'Golvend' },
           ]}
         />
       ) : (
         <Segmented
-          legend="Hair"
+          legend="Haar"
           value={mini.look.hair === 'curls' ? 'curls' : 'slick-back'}
           onChange={(hair) => updateMini(who, { look: { ...mini.look, hair } })}
           options={[
@@ -154,8 +152,8 @@ export function Wardrobe() {
           ]}
         />
       )}
-      <p className="field__label us-wardrobe__label">Accessories</p>
-      <div className="us-accessories" role="group" aria-label="Accessories">
+      <p className="field__label us-wardrobe__label">Accessoires</p>
+      <div className="us-accessories" role="group" aria-label="Accessoires">
         {accessories.map((a) => (
           <button
             key={a.id}
@@ -182,21 +180,21 @@ function TeachLine({ who, name, lines }: { who: Person; name: string; lines: str
     if (!line) return;
     updateMini(who, { lines: [...lines.filter((l) => l !== line), line].slice(-30) });
     setText('');
-    toast(`Mini ${name} learned a new line`);
+    toast(`Mini ${name} heeft iets nieuws geleerd`);
   };
 
   return (
     <div className="us-teach">
       <form className="us-teach__form" onSubmit={teach}>
         <TextField
-          label={`Teach mini ${name} something to say`}
+          label={`Leer mini ${name} iets zeggen`}
           value={text}
           onChange={setText}
           maxLength={120}
-          placeholder="Something we always say"
+          placeholder="Iets wat we altijd zeggen"
         />
         <button type="submit" className="btn btn--soft btn--small" disabled={!text.trim()}>
-          <Plus aria-hidden="true" /> Teach
+          <Plus aria-hidden="true" /> Leren
         </button>
       </form>
       {lines.length > 0 && (
@@ -207,7 +205,7 @@ function TeachLine({ who, name, lines }: { who: Person; name: string; lines: str
               <button
                 type="button"
                 className="icon-btn"
-                aria-label={`Forget “${l}”`}
+                aria-label={`“${l}” vergeten`}
                 onClick={() => updateMini(who, { lines: lines.filter((x) => x !== l) })}
               >
                 <X />
@@ -261,11 +259,11 @@ function AboutCard({ who }: { who: Person }) {
     event.preventDefault();
     const cm = Math.round(Number(height));
     if (birthday && !isValidIsoDate(birthday)) {
-      setError('That birthday doesn’t look right.');
+      setError('Die verjaardag klopt niet helemaal.');
       return;
     }
     if (!Number.isFinite(cm) || cm < 120 || cm > 230) {
-      setError('Height in centimetres, between 120 and 230.');
+      setError('Lengte in centimeters, tussen 120 en 230.');
       return;
     }
     updateMini(who, { fullName: fullName.trim(), birthday, heightCm: cm });
@@ -280,7 +278,7 @@ function AboutCard({ who }: { who: Person }) {
           <button
             type="button"
             className="icon-btn"
-            aria-label={`Edit ${name}’s details`}
+            aria-label={`Gegevens van ${name} bewerken`}
             onClick={() => setEditing(true)}
           >
             <Pencil />
@@ -290,21 +288,21 @@ function AboutCard({ who }: { who: Person }) {
       {editing ? (
         <form className="form" onSubmit={save} noValidate>
           <TextField
-            label="Full name"
+            label="Volledige naam"
             optional
             value={fullName}
             onChange={setFullName}
             maxLength={80}
           />
           <TextField
-            label="Birthday"
+            label="Verjaardag"
             optional
             type="date"
             value={birthday}
             onChange={setBirthday}
           />
           <TextField
-            label="Height (cm)"
+            label="Lengte (cm)"
             type="number"
             inputMode="numeric"
             min={120}
@@ -320,35 +318,35 @@ function AboutCard({ who }: { who: Person }) {
               className="btn btn--ghost btn--small"
               onClick={() => setEditing(false)}
             >
-              Cancel
+              Annuleren
             </button>
             <button type="submit" className="btn btn--primary btn--small">
-              Save
+              Opslaan
             </button>
           </div>
         </form>
       ) : (
         <dl className="us-card__facts">
           <div>
-            <dt>Full name</dt>
+            <dt>Volledige naam</dt>
             <dd className={mini.fullName ? '' : 'is-empty'}>
-              {mini.fullName || 'tap ✎ to fill in'}
+              {mini.fullName || 'tik ✎ om in te vullen'}
             </dd>
           </div>
           <div>
-            <dt>Birthday</dt>
+            <dt>Verjaardag</dt>
             <dd className={mini.birthday ? '' : 'is-empty'}>
-              {mini.birthday ? formatDate(mini.birthday) : 'tap ✎ to fill in'}
+              {mini.birthday ? formatDate(mini.birthday) : 'tik ✎ om in te vullen'}
             </dd>
           </div>
           {age !== null && (
             <div>
-              <dt>Age</dt>
+              <dt>Leeftijd</dt>
               <dd>{age}</dd>
             </div>
           )}
           <div>
-            <dt>Height</dt>
+            <dt>Lengte</dt>
             <dd>{mini.heightCm} cm</dd>
           </div>
         </dl>
@@ -366,7 +364,7 @@ export function PetNames() {
   const [from, setFrom] = useState<PetName['from']>('both');
   const label = (f: PetName['from']) =>
     f === 'both'
-      ? 'We both say it'
+      ? 'We zeggen het allebei'
       : `${nameOf(f, profile)} → ${nameOf(f === 'you' ? 'partner' : 'you', profile)}`;
 
   const set = (next: PetName[]) => updateUs((us) => ({ ...us, petNames: next }));
@@ -388,7 +386,7 @@ export function PetNames() {
   return (
     <section className="us-pets" aria-labelledby="us-pets-title">
       <h2 id="us-pets-title" className="section-title">
-        What we call each other <span className="hand">most used first</span>
+        Hoe we elkaar noemen <span className="hand">meest gebruikt eerst</span>
       </h2>
       <ol className="us-pets__list">
         {names.map((p, i) => (
@@ -399,7 +397,7 @@ export function PetNames() {
               <button
                 type="button"
                 className="icon-btn"
-                aria-label={`Move ${p.name} up`}
+                aria-label={`${p.name} omhoog`}
                 disabled={i === 0}
                 onClick={() => move(i, -1)}
               >
@@ -408,7 +406,7 @@ export function PetNames() {
               <button
                 type="button"
                 className="icon-btn"
-                aria-label={`Move ${p.name} down`}
+                aria-label={`${p.name} omlaag`}
                 disabled={i === names.length - 1}
                 onClick={() => move(i, 1)}
               >
@@ -417,7 +415,7 @@ export function PetNames() {
               <button
                 type="button"
                 className="icon-btn"
-                aria-label={`Remove ${p.name}`}
+                aria-label={`${p.name} weghalen`}
                 onClick={() => set(names.filter((n) => n.id !== p.id))}
               >
                 <Trash2 />
@@ -427,9 +425,9 @@ export function PetNames() {
         ))}
       </ol>
       <form className="us-pets__add" onSubmit={add}>
-        <TextField label="Another name" value={text} onChange={setText} maxLength={40} />
+        <TextField label="Nog een naam" value={text} onChange={setText} maxLength={40} />
         <SelectField
-          label="Who says it"
+          label="Wie zegt het"
           value={from}
           onChange={setFrom}
           options={(['both', 'you', 'partner'] as const).map((f) => ({
@@ -438,7 +436,7 @@ export function PetNames() {
           }))}
         />
         <button type="submit" className="btn btn--soft btn--small" disabled={!text.trim()}>
-          <Plus aria-hidden="true" /> Add
+          <Plus aria-hidden="true" /> Toevoegen
         </button>
       </form>
     </section>

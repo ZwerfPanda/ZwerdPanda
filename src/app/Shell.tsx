@@ -52,7 +52,7 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
         </a>
 
         {desktop && (
-          <nav className="topnav" aria-label="Main">
+          <nav className="topnav" aria-label="Hoofdmenu">
             {DESKTOP_PATHS.map((p) => {
               const s = sectionFor(p);
               const active = path === p;
@@ -79,7 +79,7 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
             <a
               className="icon-btn"
               href={href('/settings')}
-              aria-label="Settings"
+              aria-label="Instellingen"
               aria-current={path === '/settings' ? 'page' : undefined}
             >
               <Settings2 />
@@ -92,7 +92,7 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
             aria-haspopup="dialog"
           >
             <LayoutGrid aria-hidden="true" />
-            <span>{desktop ? 'Everything' : 'Menu'}</span>
+            <span>{desktop ? 'Alles' : 'Menu'}</span>
           </button>
         </div>
       </div>
@@ -107,12 +107,12 @@ function SyncBadge() {
   if (sync.phase === 'off' || sync.phase === 'signed-out') return null;
   const label =
     sync.phase === 'syncing'
-      ? 'Syncing'
+      ? 'Bezig met syncen'
       : sync.phase === 'offline'
-        ? 'Offline — will sync later'
+        ? 'Offline — synct straks vanzelf'
         : sync.phase === 'error'
-          ? 'Sync problem'
-          : 'Synced';
+          ? 'Probleem met syncen'
+          : 'Gesynct';
   const Icon =
     sync.phase === 'syncing'
       ? LoaderCircle
@@ -123,7 +123,7 @@ function SyncBadge() {
     <a
       className={`sync-badge sync-badge--${sync.phase}`}
       href={href('/settings', { section: 'together' })}
-      aria-label={`${label}. Open sharing settings`}
+      aria-label={`${label}. Open de deel-instellingen`}
       title={label}
     >
       <Icon aria-hidden="true" className={sync.phase === 'syncing' ? 'spin' : undefined} />
@@ -134,7 +134,7 @@ function SyncBadge() {
 export function TabBar() {
   const { path } = useRoute();
   return (
-    <nav className="tabbar" aria-label="Main">
+    <nav className="tabbar" aria-label="Hoofdmenu">
       {TAB_PATHS.map((p) => {
         const s = sectionFor(p);
         const Icon = s.icon;
@@ -220,11 +220,11 @@ export function MenuSheet({ open, onClose }: { open: boolean; onClose: () => voi
     <Dialog
       open={open}
       onClose={onClose}
-      title="Everything in our universe"
+      title="Alles in ons universe"
       eyebrow="a little map"
       size="md"
     >
-      <nav aria-label="All sections">
+      <nav aria-label="Alle onderdelen">
         <ul className="menu-grid">
           {SECTIONS.map((s) => {
             const Icon = s.icon;
@@ -263,15 +263,15 @@ export function MenuSheet({ open, onClose }: { open: boolean; onClose: () => voi
         >
           <Smartphone aria-hidden="true" />
           <span>
-            <strong>Get the app</strong>
-            <span>Install on iPhone, Android or a computer</span>
+            <strong>Zet de app op je telefoon</strong>
+            <span>Op iPhone, Android of je computer</span>
           </span>
         </button>
         <a className="menu-app__btn" href={href('/settings', { section: 'together' })}>
           <Cloud aria-hidden="true" />
           <span>
-            <strong>Together on every device</strong>
-            <span>Share one universe between your phones</span>
+            <strong>Samen op elk apparaat</strong>
+            <span>Eén universe op jullie allebei je telefoon</span>
           </span>
         </a>
       </div>
@@ -297,7 +297,7 @@ export function MiniPlayer() {
           key="spotify"
           className="miniplayer miniplayer--spotify"
           role="region"
-          aria-label="Now playing on Spotify"
+          aria-label="Nu op Spotify"
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -313,7 +313,7 @@ export function MiniPlayer() {
             className="miniplayer__label miniplayer__label--btn"
             onClick={() => spotify.setExpanded(!spotify.expanded)}
             aria-expanded={spotify.expanded}
-            aria-label={`${spotify.current.title} on Spotify — ${spotify.expanded ? 'hide' : 'show'} the player`}
+            aria-label={`${spotify.current.title} op Spotify — speler ${spotify.expanded ? 'verbergen' : 'tonen'}`}
           >
             {spotify.current.title}
           </button>
@@ -322,7 +322,7 @@ export function MiniPlayer() {
               type="button"
               className="miniplayer__btn"
               onClick={spotify.togglePlay}
-              aria-label={playing ? 'Pause Spotify' : 'Play Spotify'}
+              aria-label={playing ? 'Spotify pauzeren' : 'Spotify afspelen'}
             >
               {playing ? <Pause /> : <Play />}
             </button>
@@ -331,7 +331,7 @@ export function MiniPlayer() {
               type="button"
               className="miniplayer__btn"
               onClick={() => spotify.setExpanded(!spotify.expanded)}
-              aria-label={spotify.expanded ? 'Hide the Spotify player' : 'Show the Spotify player'}
+              aria-label={spotify.expanded ? 'Spotify-speler verbergen' : 'Spotify-speler tonen'}
             >
               {spotify.expanded ? <ChevronDown /> : <ChevronUp />}
             </button>
@@ -340,7 +340,7 @@ export function MiniPlayer() {
             type="button"
             className="miniplayer__btn"
             onClick={spotify.close}
-            aria-label="Stop Spotify and close the player"
+            aria-label="Spotify stoppen en speler sluiten"
           >
             <X />
           </button>
@@ -374,7 +374,7 @@ export function MiniPlayer() {
             type="button"
             className="miniplayer__btn"
             onClick={music.toggle}
-            aria-label={music.playing ? 'Pause music' : 'Play music'}
+            aria-label={music.playing ? 'Muziek pauzeren' : 'Muziek afspelen'}
           >
             {music.playing ? <Pause /> : <Play />}
           </button>
@@ -385,7 +385,7 @@ export function MiniPlayer() {
               music.pause();
               setVisible(false);
             }}
-            aria-label="Stop music and close player"
+            aria-label="Muziek stoppen en speler sluiten"
           >
             <X />
           </button>

@@ -51,15 +51,15 @@ export function Counter() {
       <section className="counter counter--empty" aria-labelledby="counter-title">
         <p className="counter__eyebrow hand">our counter</p>
         <h2 id="counter-title" className="counter__placeholder">
-          Waiting for the day it all began
+          Wachten op de dag dat het begon
         </h2>
         <p className="counter__text">
-          Add the date {yourName} &amp; {partnerName} started, and this little clock will keep count
-          of every day together.
+          Vul de datum in waarop {yourName} &amp; {partnerName} begonnen, en dit klokje telt elke
+          dag samen bij.
         </p>
         <button type="button" className="btn btn--primary" onClick={() => setDialogOpen(true)}>
           <CalendarHeart aria-hidden="true" />
-          Add our date
+          Onze datum invullen
         </button>
         <StartDateDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
       </section>
@@ -69,10 +69,10 @@ export function Counter() {
   if (!duration) {
     return (
       <section className="counter counter--empty">
-        <h2 className="counter__placeholder">That start date is in the future</h2>
-        <p className="counter__text">It's set to {formatDate(startDate)}. Mind checking it?</p>
+        <h2 className="counter__placeholder">Die startdatum ligt in de toekomst</h2>
+        <p className="counter__text">Hij staat op {formatDate(startDate)}. Even checken?</p>
         <button type="button" className="btn btn--soft" onClick={() => setDialogOpen(true)}>
-          Fix our date
+          Datum aanpassen
         </button>
         <StartDateDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
       </section>
@@ -84,17 +84,17 @@ export function Counter() {
   const toggle = () => updateProfile({ counterMode: showDays ? 'ymd' : 'days' });
 
   const units = [
-    { value: duration.years, label: duration.years === 1 ? 'year' : 'years', hideWhenZero: true },
+    { value: duration.years, label: duration.years === 1 ? 'jaar' : 'jaar', hideWhenZero: true },
     {
       value: duration.months,
-      label: duration.months === 1 ? 'month' : 'months',
+      label: duration.months === 1 ? 'maand' : 'maanden',
       hideWhenZero: false,
     },
-    { value: duration.days, label: duration.days === 1 ? 'day' : 'days', hideWhenZero: false },
+    { value: duration.days, label: duration.days === 1 ? 'dag' : 'dagen', hideWhenZero: false },
   ].filter((u) => !(u.hideWhenZero && u.value === 0));
 
   const spoken = showDays
-    ? plural(duration.totalDays, 'day')
+    ? plural(duration.totalDays, 'dag', 'dagen')
     : units.map((u) => `${u.value} ${u.label}`).join(', ');
 
   return (
@@ -107,14 +107,14 @@ export function Counter() {
           type="button"
           className="counter__toggle"
           onClick={toggle}
-          aria-label={showDays ? 'Show years, months and days' : 'Show total days'}
+          aria-label={showDays ? 'Toon jaren, maanden en dagen' : 'Toon het totaal aan dagen'}
         >
           <Repeat aria-hidden="true" />
-          {showDays ? 'y · m · d' : 'days'}
+          {showDays ? 'j · m · d' : 'dagen'}
         </button>
       </div>
       <p className="visually-hidden" aria-live="polite">
-        Together for {spoken}.
+        Samen sinds {spoken}.
       </p>
       <div className="counter__units" aria-hidden="true">
         {showDays ? (
@@ -122,7 +122,7 @@ export function Counter() {
             <span className="counter__num">
               <CountUp value={duration.totalDays} />
             </span>
-            <span className="counter__label">days together</span>
+            <span className="counter__label">dagen samen</span>
           </div>
         ) : (
           units.map((u) => (
@@ -136,15 +136,15 @@ export function Counter() {
         )}
       </div>
       <p className="counter__foot">
-        since {formatDate(startDate)} ·{' '}
+        sinds {formatDate(startDate)} ·{' '}
         {anniversary.years === 0 ? (
-          <strong>day one ♡</strong>
+          <strong>dag één ♡</strong>
         ) : anniversary.days === 0 ? (
           <strong>Happy anniversary ♡</strong>
         ) : (
           <>
-            {anniversary.years === 1 ? 'first' : `${ordinal(anniversary.years)}`} anniversary in{' '}
-            {plural(anniversary.days, 'day')}
+            {anniversary.years === 1 ? 'eerste' : `${ordinal(anniversary.years)}`} jubileum over{' '}
+            {plural(anniversary.days, 'dag', 'dagen')}
           </>
         )}
       </p>
@@ -152,10 +152,7 @@ export function Counter() {
   );
 }
 
+/** Dutch ordinals: 2e, 3e, 10e … */
 function ordinal(n: number): string {
-  const suffix =
-    n % 100 >= 11 && n % 100 <= 13
-      ? 'th'
-      : (({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[n % 10] ?? 'th');
-  return `${n}${suffix}`;
+  return `${n}e`;
 }

@@ -58,24 +58,24 @@ export function MemoriesPage() {
 
   const remove = async (memory: Memory) => {
     const ok = await confirm({
-      title: 'Delete this memory?',
+      title: 'Deze herinnering verwijderen?',
       message: memory.isSample
-        ? 'This sample will be removed from the scrapbook.'
-        : 'It will be removed from the scrapbook on this device. Make sure you still have the photo somewhere if you want to keep it.',
-      confirmLabel: 'Delete memory',
+        ? 'Dit voorbeeld gaat uit het plakboek.'
+        : 'Hij gaat uit het plakboek. Zorg dat je de foto nog ergens hebt als je hem wilt houden.',
+      confirmLabel: 'Herinnering verwijderen',
       tone: 'danger',
     });
     if (!ok) return;
     const position = getContent().memories.findIndex((m) => m.id === memory.id);
     removeItem('memories', memory.id);
     if (visible.length <= 1) setLightbox(null);
-    toast('Memory deleted', {
-      action: { label: 'Undo', run: () => restoreItem('memories', memory, position) },
+    toast('Herinnering verwijderd', {
+      action: { label: 'Ongedaan maken', run: () => restoreItem('memories', memory, position) },
     });
   };
 
   const currentAlbumName =
-    album === FAVORITES ? 'Favourites' : albums.find((a) => a.id === album)?.name;
+    album === FAVORITES ? 'Favorieten' : albums.find((a) => a.id === album)?.name;
   const defaultAlbumId = album !== 'all' && album !== FAVORITES ? album : undefined;
 
   return (
@@ -84,10 +84,10 @@ export function MemoriesPage() {
         eyebrow="our scrapbook"
         title={
           <>
-            <em>Memories</em>
+            <em>Herinneringen</em>
           </>
         }
-        lede="Polaroids, silly moments and little everyday things. Add photos straight from your phone — they’re kept privately on this device."
+        lede="Polaroids, gekke momentjes en kleine alledaagse dingen. Voeg foto’s toe vanaf je telefoon — ze blijven privé."
         actions={
           <>
             <button
@@ -95,7 +95,7 @@ export function MemoriesPage() {
               className="btn btn--primary"
               onClick={() => setForm({ open: true, memory: null })}
             >
-              <ImagePlus aria-hidden="true" /> Add memories
+              <ImagePlus aria-hidden="true" /> Herinneringen toevoegen
             </button>
             <button
               type="button"
@@ -113,13 +113,13 @@ export function MemoriesPage() {
         <div className="search">
           <Search aria-hidden="true" />
           <label className="visually-hidden" htmlFor="memory-search">
-            Search memories
+            Zoek in herinneringen
           </label>
           <input
             id="memory-search"
             className="input"
             type="search"
-            placeholder="Search memories…"
+            placeholder="Zoek in herinneringen…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -129,18 +129,18 @@ export function MemoriesPage() {
           className="btn btn--quiet btn--small"
           onClick={() => setAlbumsOpen(true)}
         >
-          <FolderPen aria-hidden="true" /> Edit albums
+          <FolderPen aria-hidden="true" /> Albums bewerken
         </button>
       </div>
 
-      <div className="chip-row" role="group" aria-label="Filter by album">
+      <div className="chip-row" role="group" aria-label="Filter op album">
         <button
           type="button"
           className="chip"
           aria-pressed={album === 'all'}
           onClick={() => setAlbum('all')}
         >
-          Everything <span className="chip__count">{countFor('all')}</span>
+          Alles <span className="chip__count">{countFor('all')}</span>
         </button>
         <button
           type="button"
@@ -148,7 +148,7 @@ export function MemoriesPage() {
           aria-pressed={album === FAVORITES}
           onClick={() => setAlbum(FAVORITES)}
         >
-          <Heart aria-hidden="true" /> Favourites{' '}
+          <Heart aria-hidden="true" /> Favorieten{' '}
           <span className="chip__count">{countFor(FAVORITES)}</span>
         </button>
         {albums.map((a) => (
@@ -165,7 +165,7 @@ export function MemoriesPage() {
       </div>
 
       <p className="visually-hidden" aria-live="polite">
-        Showing {visible.length} {visible.length === 1 ? 'memory' : 'memories'}
+        {visible.length} {visible.length === 1 ? 'herinnering' : 'herinneringen'} zichtbaar
       </p>
 
       {visible.length === 0 ? (
@@ -173,22 +173,22 @@ export function MemoriesPage() {
           art={<SampleArt art="stars" />}
           title={
             memories.length === 0
-              ? 'An empty scrapbook, ready for us'
+              ? 'Een leeg plakboek, klaar voor ons'
               : query
-                ? 'Nothing matches that'
-                : `Nothing in ${currentAlbumName ?? 'this album'} yet`
+                ? 'Niets gevonden'
+                : `Nog niets in ${currentAlbumName ?? 'dit album'}`
           }
           text={
             memories.length === 0
-              ? 'Add our first photo — a date, a silly face, Coco, anything.'
+              ? 'Voeg onze eerste foto toe — een date, een gek gezicht, Coco, wat dan ook.'
               : query
-                ? 'Try another word, or clear the search.'
-                : 'Add a memory here, or pick a different album.'
+                ? 'Probeer een ander woord, of wis de zoekopdracht.'
+                : 'Voeg hier een herinnering toe, of kies een ander album.'
           }
           action={
             query ? (
               <button type="button" className="btn btn--soft" onClick={() => setQuery('')}>
-                Clear search
+                Zoekopdracht wissen
               </button>
             ) : (
               <button
@@ -196,7 +196,7 @@ export function MemoriesPage() {
                 className="btn btn--primary"
                 onClick={() => setForm({ open: true, memory: null })}
               >
-                <ImagePlus aria-hidden="true" /> Add a memory
+                <ImagePlus aria-hidden="true" /> Herinnering toevoegen
               </button>
             )
           }
@@ -268,7 +268,7 @@ function MemoryCard({
           <div
             className={`polaroid__photo scrapbook__photo ${m.media.type === 'sample' ? 'is-square' : ''}`}
           >
-            <MediaView source={m.media} alt={m.caption || 'Memory'} />
+            <MediaView source={m.media} alt={m.caption || 'Herinnering'} />
           </div>
         </button>
         <div className="scrapbook__under">
@@ -279,7 +279,7 @@ function MemoryCard({
             type="button"
             className="icon-btn fav-btn scrapbook__fav"
             aria-pressed={m.favorite}
-            aria-label={m.favorite ? 'Remove from favourites' : 'Mark as favourite'}
+            aria-label={m.favorite ? 'Uit favorieten halen' : 'Markeer als favoriet'}
             onClick={() => toggleFavorite('memories', m.id)}
           >
             <Heart />
@@ -288,7 +288,7 @@ function MemoryCard({
         {(m.isSample || m.date || m.by) && (
           <p className="scrapbook__meta">
             {m.isSample ? (
-              <span className="tag tag--sample">Sample</span>
+              <span className="tag tag--sample">Voorbeeld</span>
             ) : (
               formatDate(m.date, 'short')
             )}

@@ -25,9 +25,9 @@ export function AlbumsDialog({ open, onClose }: { open: boolean; onClose: () => 
     const used = getContent().memories.filter((m) => m.albumIds.includes(album.id)).length;
     if (used) {
       const ok = await confirm({
-        title: `Remove “${album.name || 'this album'}”?`,
-        message: `The ${used} ${used === 1 ? 'memory' : 'memories'} inside stay in the scrapbook — they just won’t be in this album any more.`,
-        confirmLabel: 'Remove album',
+        title: `“${album.name || 'dit album'}” weghalen?`,
+        message: `De ${used} ${used === 1 ? 'herinnering' : 'herinneringen'} erin blijven in het plakboek — alleen niet meer in dit album.`,
+        confirmLabel: 'Album weghalen',
         tone: 'danger',
       });
       if (!ok) return;
@@ -39,16 +39,16 @@ export function AlbumsDialog({ open, onClose }: { open: boolean; onClose: () => 
     event.preventDefault();
     const cleaned = list.map((a) => ({ ...a, name: a.name.trim() }));
     if (cleaned.some((a) => !a.name)) {
-      setError('Every album needs a name (or remove the empty one).');
+      setError('Elk album heeft een naam nodig (of haal het lege album weg).');
       return;
     }
     const names = cleaned.map((a) => a.name.toLowerCase());
     if (new Set(names).size !== names.length) {
-      setError('Two albums have the same name.');
+      setError('Twee albums hebben dezelfde naam.');
       return;
     }
     setAlbums(cleaned);
-    toast('Albums saved');
+    toast('Albums opgeslagen');
     onClose();
   };
 
@@ -56,16 +56,16 @@ export function AlbumsDialog({ open, onClose }: { open: boolean; onClose: () => 
     <Dialog
       open={open}
       onClose={onClose}
-      title="Our albums"
+      title="Onze albums"
       eyebrow="organise"
       size="md"
       footer={
         <>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Cancel
+            Annuleren
           </button>
           <button type="submit" form="albums-form" className="btn btn--primary">
-            Save albums
+            Albums opslaan
           </button>
         </>
       }
@@ -87,7 +87,7 @@ export function AlbumsDialog({ open, onClose }: { open: boolean; onClose: () => 
               <button
                 type="button"
                 className="icon-btn"
-                aria-label={`Remove album ${album.name}`}
+                aria-label={`Album ${album.name} weghalen`}
                 onClick={() => remove(album)}
               >
                 <Trash2 />
@@ -100,7 +100,7 @@ export function AlbumsDialog({ open, onClose }: { open: boolean; onClose: () => 
           className="btn btn--soft"
           onClick={() => setList((l) => [...l, { id: createId('album'), name: '' }])}
         >
-          <Plus aria-hidden="true" /> New album
+          <Plus aria-hidden="true" /> Nieuw album
         </button>
         {error && (
           <p className="field__error" role="alert">

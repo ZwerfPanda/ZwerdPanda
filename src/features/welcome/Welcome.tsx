@@ -66,7 +66,7 @@ function WelcomeMoment({ onDone }: { onDone: () => void }) {
   const outfit = useContent((c) => c.pet.outfit);
   const reduce = useReducedMotion();
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const title = welcome.title.trim() || `Welcome home, ${profile.partnerName}`;
+  const title = welcome.title.trim() || `Welkom thuis, ${profile.partnerName}`;
   const signature = welcome.signature.trim() || `— ${profile.yourName}`;
   const paragraphs = welcome.message.split(/\n{2,}/).filter((p) => p.trim());
   const delay = (i: number) => (reduce ? 0 : 0.9 + i * 0.6);
@@ -142,7 +142,7 @@ function WelcomeMoment({ onDone }: { onDone: () => void }) {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: delay(paragraphs.length) + 0.3 }}
         >
-          Come in ♡
+          Kom binnen ♡
         </motion.button>
       </div>
     </motion.div>

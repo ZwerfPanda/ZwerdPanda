@@ -37,10 +37,10 @@ export function SurpriseEditor({ open, onClose }: { open: boolean; onClose: () =
     const reasonList = lines(reasons);
     const starList = lines(stars);
     const problems: typeof errors = {};
-    if (reasonList.length === 0) problems.reasons = 'Keep at least one reason in the jar.';
-    if (reasonList.length > 80) problems.reasons = 'The jar holds up to 80 reasons.';
-    if (starList.length < 3) problems.stars = 'The sky needs at least 3 stars.';
-    if (starList.length > 12) problems.stars = 'Up to 12 stars fit in the sky.';
+    if (reasonList.length === 0) problems.reasons = 'Houd minstens één reden in de pot.';
+    if (reasonList.length > 80) problems.reasons = 'Er passen maximaal 80 redenen in de pot.';
+    if (starList.length < 3) problems.stars = 'De lucht heeft minstens 3 sterren nodig.';
+    if (starList.length > 12) problems.stars = 'Er passen maximaal 12 sterren in de lucht.';
     setErrors(problems);
     if (Object.keys(problems).length) return;
     const current = getContent().surprises.stars;
@@ -51,7 +51,7 @@ export function SurpriseEditor({ open, onClose }: { open: boolean; onClose: () =
       secretNote: secret.trim(),
       hiddenHeartNote: hidden.trim(),
     });
-    toast('Surprises updated ♡');
+    toast('Surprises bijgewerkt ♡');
     onClose();
   };
 
@@ -59,46 +59,46 @@ export function SurpriseEditor({ open, onClose }: { open: boolean; onClose: () =
     <Dialog
       open={open}
       onClose={onClose}
-      title="Edit the surprises"
+      title="Surprises bewerken"
       eyebrow="behind the curtain"
       size="lg"
       footer={
         <>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Cancel
+            Annuleren
           </button>
           <button type="submit" form="surprise-form" className="btn btn--primary">
-            Save surprises
+            Opslaan
           </button>
         </>
       }
     >
       <form id="surprise-form" className="form" onSubmit={save} noValidate>
         <TextArea
-          label="Reasons in the jar"
+          label="Redenen in de pot"
           value={reasons}
           onChange={setReasons}
           error={errors.reasons}
           rows={9}
-          hint={`One per line (${lines(reasons).length} now). They also bloom in the flower, float off the home-page planet and drop out of the arcade’s claw machine.`}
+          hint={`Eén per regel (nu ${lines(reasons).length}). Ze bloeien ook in de bloem, zweven van de planeet op Home en vallen uit de grijpmachine in de arcade.`}
         />
         <TextArea
-          label="Stars in the night sky"
+          label="Sterren aan de nachthemel"
           value={stars}
           onChange={setStars}
           error={errors.stars}
           rows={6}
-          hint="One short memory per line, 3–12 stars. Together they draw a heart."
+          hint="Eén korte herinnering per regel, 3–12 sterren. Samen tekenen ze een hartje."
         />
-        <TextArea label="Message in the gift box" value={gift} onChange={setGift} rows={3} />
+        <TextArea label="Bericht in het cadeaudoosje" value={gift} onChange={setGift} rows={3} />
         <TextArea
-          label="Note on the back of the polaroid"
+          label="Briefje op de achterkant van de polaroid"
           value={secret}
           onChange={setSecret}
           rows={3}
         />
         <TextArea
-          label="Note for whoever finds a hidden heart"
+          label="Briefje voor wie een verstopt hartje vindt"
           value={hidden}
           onChange={setHidden}
           rows={3}

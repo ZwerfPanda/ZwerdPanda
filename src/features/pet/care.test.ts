@@ -84,8 +84,8 @@ describe('looking after Coco', () => {
 describe('growing up', () => {
   it('knows Coco’s real age from her birthday (1 June 2026)', () => {
     const age = ageOf('2026-06-01', new Date(Date.UTC(2026, 9, 22)))!;
-    expect(age.label).toBe('4 months, 3 weeks');
-    expect(age.stage).toBe('Youngster');
+    expect(age.label).toBe('4 maanden, 3 weken');
+    expect(age.stage).toBe('Jonkie');
     expect(age.daysToBirthday).toBe(222);
     expect(age.turning).toBe(1);
     expect(age.isBirthday).toBe(false);
@@ -95,12 +95,12 @@ describe('growing up', () => {
     const age = ageOf('2026-06-01', new Date(Date.UTC(2027, 5, 1)))!;
     expect(age.isBirthday).toBe(true);
     expect(age.turning).toBe(1);
-    expect(age.stage).toBe('Grown-up');
+    expect(age.stage).toBe('Volwassen');
   });
 
   it('unlocks outfits as the bond grows', () => {
-    expect(bondLevel(0).name).toBe('Shy');
-    expect(bondLevel(90).name).toBe('Trusting');
+    expect(bondLevel(0).name).toBe('Verlegen');
+    expect(bondLevel(90).name).toBe('Vertrouwd');
     expect(outfitUnlocked('bow', 0, false)).toBe(false);
     expect(outfitUnlocked('bow', 30, false)).toBe(true);
     expect(outfitUnlocked('party', 0, true)).toBe(true);

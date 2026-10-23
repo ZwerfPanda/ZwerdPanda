@@ -24,54 +24,54 @@ export interface FoodInfo {
 
 export const FOODS: Record<PetFood, FoodInfo> = {
   hay: {
-    label: 'Fresh hay',
+    label: 'Vers hooi',
     kind: 'hay',
-    fact: 'Hay is about 80% of what a rabbit eats. It keeps her tummy moving and her ever-growing teeth worn down.',
+    fact: 'Hooi is zo’n 80% van wat een konijn eet. Het houdt haar buikje aan de gang en slijt haar altijd doorgroeiende tandjes.',
   },
   pellets: {
-    label: 'A little spoon of pellets',
+    label: 'Een lepeltje korrels',
     kind: 'pellets',
-    fact: 'Pellets are a small extra, never the main meal — a spoonful is plenty for a dwarf rabbit.',
+    fact: 'Korrels zijn een klein extraatje, nooit de hoofdmaaltijd — een lepeltje is genoeg voor een dwergkonijn.',
   },
   romaine: {
-    label: 'Romaine lettuce',
+    label: 'Romaine sla',
     kind: 'greens',
-    fact: 'Dark leafy greens like romaine are great. Iceberg lettuce isn’t — it’s mostly water.',
+    fact: 'Donkere bladgroenten zoals romaine zijn top. IJsbergsla niet — dat is vooral water.',
   },
   parsley: {
-    label: 'Parsley',
+    label: 'Peterselie',
     kind: 'greens',
-    fact: 'Fresh herbs like parsley are a favourite with lots of rabbits.',
+    fact: 'Verse kruiden zoals peterselie zijn bij veel konijnen favoriet.',
   },
   coriander: {
-    label: 'Coriander',
+    label: 'Koriander',
     kind: 'greens',
-    fact: 'Coriander is a safe, tasty herb for rabbits — great mixed with other greens.',
+    fact: 'Koriander is een veilig, lekker kruid voor konijnen — top gemengd met ander groen.',
   },
   basil: {
-    label: 'Basil',
+    label: 'Basilicum',
     kind: 'greens',
-    fact: 'Basil is a safe herb for bunnies and smells amazing to that little nose.',
+    fact: 'Basilicum is een veilig kruid voor konijntjes en ruikt heerlijk voor dat kleine neusje.',
   },
   carrot: {
-    label: 'A slice of carrot',
+    label: 'Een plakje wortel',
     kind: 'treat',
-    fact: 'Carrots are sweet, so for rabbits they’re a treat — not an everyday food.',
+    fact: 'Wortels zijn zoet, dus voor konijnen een snoepje — geen dagelijkse kost.',
   },
   apple: {
-    label: 'A bit of apple',
+    label: 'Een stukje appel',
     kind: 'treat',
-    fact: 'Apple is fine as a small treat — always without the seeds.',
+    fact: 'Appel is prima als klein snoepje — altijd zonder pitjes.',
   },
   banana: {
-    label: 'A thin slice of banana',
+    label: 'Een dun plakje banaan',
     kind: 'treat',
-    fact: 'Banana is very sugary. A tiny piece is a big treat for a small bunny.',
+    fact: 'Banaan zit vol suiker. Een klein stukje is een grote traktatie voor een klein konijntje.',
   },
   strawberry: {
-    label: 'Half a strawberry',
+    label: 'Een halve aardbei',
     kind: 'treat',
-    fact: 'Strawberries are a lovely treat now and then — the green top is fine too.',
+    fact: 'Aardbeien zijn af en toe een heerlijk snoepje — het groene kroontje mag ook.',
   },
 };
 
@@ -88,29 +88,29 @@ export interface TrickInfo {
 
 export const TRICKS: Record<PetTrick, TrickInfo> = {
   come: {
-    label: 'Come when called',
-    cue: 'Call her name and reward her when she hops over.',
-    fact: 'Rabbits can learn their name and come running for a reward.',
+    label: 'Komen als je roept',
+    cue: 'Roep haar naam en beloon haar als ze komt aanhuppen.',
+    fact: 'Konijnen kunnen hun naam leren en komen aanrennen voor een beloning.',
   },
   boop: {
     label: 'Nose boop',
-    cue: 'Hold out the target stick — click when her nose touches it.',
-    fact: 'Touching a target with the nose is how most rabbit tricks start.',
+    cue: 'Houd het targetstokje voor — klik als haar neusje het raakt.',
+    fact: 'Met het neusje een doel aanraken is hoe de meeste konijnentrucjes beginnen.',
   },
   spin: {
-    label: 'Spin around',
-    cue: 'Lead her nose in a circle with a treat.',
-    fact: 'Clicker training works for rabbits too: click the moment she does it right.',
+    label: 'Rondje draaien',
+    cue: 'Leid haar neusje met een snoepje in een rondje.',
+    fact: 'Clickertraining werkt ook bij konijnen: klik precies als ze het goed doet.',
   },
   stand: {
-    label: 'Stand up tall',
-    cue: 'Hold the reward just above her head.',
-    fact: 'Rabbits stand on their back legs naturally to look around — the trick is doing it on cue.',
+    label: 'Mannetje maken',
+    cue: 'Houd de beloning net boven haar kopje.',
+    fact: 'Konijnen gaan uit zichzelf op hun achterpootjes staan om rond te kijken — het trucje is dat op commando doen.',
   },
   jump: {
-    label: 'Hop over a hurdle',
-    cue: 'Encourage her over a tiny jump.',
-    fact: 'Rabbit show jumping — “kaninhop” — started in Sweden.',
+    label: 'Over een hindernis springen',
+    cue: 'Moedig haar aan over een klein sprongetje.',
+    fact: 'Konijnen-springconcours — “kaninhop” — begon in Zweden.',
   },
 };
 
@@ -172,20 +172,20 @@ export function moodOf(needs: Needs): Mood {
 }
 
 export const MOOD_LINES: Record<Mood, string> = {
-  hungry: 'Coco is nibbling at an empty hay rack. Some hay, please?',
-  lonely: 'Coco keeps nudging your hand. She wants cuddles.',
-  bored: 'Coco is digging at the floor. Playtime?',
-  scruffy: 'There’s a bit of loose fur everywhere. Time for a brush.',
-  happy: 'Coco is doing little binkies. She’s a very happy bunny.',
-  content: 'Coco is loafing comfortably, nose twitching.',
+  hungry: 'Coco knabbelt aan een leeg hooirekje. Wat hooi, alsjeblieft?',
+  lonely: 'Coco blijft je hand aanstoten. Ze wil knuffels.',
+  bored: 'Coco graaft in de vloer. Speeltijd?',
+  scruffy: 'Er ligt overal een beetje los haar. Tijd om te borstelen.',
+  happy: 'Coco maakt kleine binky’s. Ze is een heel blij konijntje.',
+  content: 'Coco ligt lekker als een broodje, met een wiebelend neusje.',
 };
 
 /* ------------------------------------------------------------- bond & age */
 
 export const BOND_LEVELS = [
-  { min: 0, name: 'Shy' },
-  { min: 25, name: 'Curious' },
-  { min: 80, name: 'Trusting' },
+  { min: 0, name: 'Verlegen' },
+  { min: 25, name: 'Nieuwsgierig' },
+  { min: 80, name: 'Vertrouwd' },
   { min: 180, name: 'Best friends' },
   { min: 350, name: 'Family' },
 ] as const;
@@ -212,11 +212,11 @@ export interface OutfitInfo {
 }
 
 export const OUTFITS: Record<PetOutfit, OutfitInfo> = {
-  none: { label: 'Just Coco', level: 0 },
-  bow: { label: 'Pink bow', level: 1 },
-  flowers: { label: 'Flower crown', level: 2 },
-  scarf: { label: 'Cosy scarf', level: 3 },
-  party: { label: 'Party hat', level: 4 },
+  none: { label: 'Gewoon Coco', level: 0 },
+  bow: { label: 'Roze strikje', level: 1 },
+  flowers: { label: 'Bloemenkroontje', level: 2 },
+  scarf: { label: 'Knus sjaaltje', level: 3 },
+  party: { label: 'Feesthoedje', level: 4 },
 };
 
 export function outfitUnlocked(outfit: PetOutfit, bond: number, isBirthday: boolean): boolean {
@@ -224,7 +224,7 @@ export function outfitUnlocked(outfit: PetOutfit, bond: number, isBirthday: bool
   return bondLevel(bond).index >= OUTFITS[outfit].level;
 }
 
-export type Stage = 'Baby' | 'Youngster' | 'Teen' | 'Grown-up';
+export type Stage = 'Baby' | 'Jonkie' | 'Puber' | 'Volwassen';
 
 export interface Age {
   label: string;
@@ -245,13 +245,13 @@ export function ageOf(birthday: string, today: Date = todayUtc()): Age | null {
   const months = d.years * 12 + d.months;
   const weeks = Math.floor(d.days / 7);
   const parts: string[] = [];
-  if (d.years) parts.push(`${d.years} ${d.years === 1 ? 'year' : 'years'}`);
-  if (d.months) parts.push(`${d.months} ${d.months === 1 ? 'month' : 'months'}`);
-  if (!d.years && weeks) parts.push(`${weeks} ${weeks === 1 ? 'week' : 'weeks'}`);
-  if (!parts.length) parts.push(d.totalDays === 0 ? 'born today' : `${d.totalDays} days`);
+  if (d.years) parts.push(`${d.years} jaar`);
+  if (d.months) parts.push(`${d.months} ${d.months === 1 ? 'maand' : 'maanden'}`);
+  if (!d.years && weeks) parts.push(`${weeks} ${weeks === 1 ? 'week' : 'weken'}`);
+  if (!parts.length) parts.push(d.totalDays === 0 ? 'vandaag geboren' : `${d.totalDays} dagen`);
   const stage: Stage =
-    months < 3 ? 'Baby' : months < 7 ? 'Youngster' : months < 12 ? 'Teen' : 'Grown-up';
-  const scale = { Baby: 0.78, Youngster: 0.88, Teen: 0.95, 'Grown-up': 1 }[stage];
+    months < 3 ? 'Baby' : months < 7 ? 'Jonkie' : months < 12 ? 'Puber' : 'Volwassen';
+  const scale = { Baby: 0.78, Jonkie: 0.88, Puber: 0.95, Volwassen: 1 }[stage];
   let turning = d.years + 1;
   let next = new Date(
     Date.UTC(born.getUTCFullYear() + turning, born.getUTCMonth(), born.getUTCDate()),
@@ -345,32 +345,30 @@ export function care(pet: CocoPet, action: Care, by: Person, now: Date = new Dat
           'hay',
           action.food,
           needs.hay < 80 ? 2 : 0,
-          'Fresh hay and water. Crunch, crunch, crunch.',
+          'Vers hooi en water. Krak, krak, krak.',
         );
       }
       if (food.kind === 'treat') {
         const today = todayIso(now);
         const count = pet.treats.date === today ? pet.treats.count : 0;
         if (count >= TREATS_PER_DAY) {
-          return decline(
-            'That’s enough treats for today — her tummy is small. Hay is always okay!',
-          );
+          return decline('Genoeg snoepjes voor vandaag — haar buikje is klein. Hooi mag altijd!');
         }
         return done(
           { treats: { date: today, count: count + 1 } },
           'treat',
           action.food,
           2,
-          'She takes it so gently… and it’s gone.',
+          'Ze pakt het zo voorzichtig… en weg is het.',
         );
       }
-      if (needs.tummy > 85) return decline('Coco sniffs it and hops away. She’s full for now.');
+      if (needs.tummy > 85) return decline('Coco snuffelt eraan en hupt weg. Ze zit even vol.');
       return done(
         { fedAt: at },
         'fed',
         action.food,
         3,
-        food.kind === 'pellets' ? 'Every last pellet, gone.' : 'Munch munch munch.',
+        food.kind === 'pellets' ? 'Tot de laatste korrel op.' : 'Smikkel smikkel smikkel.',
       );
     }
     case 'pet':
@@ -379,7 +377,7 @@ export function care(pet: CocoPet, action: Care, by: Person, now: Date = new Dat
         'petted',
         undefined,
         needs.love < 80 ? 4 : 1,
-        'A soft tooth purr — that’s a very content bunny.',
+        'Zacht tandengeknars — dat is een heel tevreden konijntje.',
       );
     case 'play':
       return done(
@@ -387,7 +385,7 @@ export function care(pet: CocoPet, action: Care, by: Person, now: Date = new Dat
         'played',
         action.toy,
         needs.play < 80 ? 5 : 2,
-        'Zoomies! And a binky to finish.',
+        'Zoomies! En een binky als afsluiter.',
       );
     case 'groom':
       return done(
@@ -395,13 +393,13 @@ export function care(pet: CocoPet, action: Care, by: Person, now: Date = new Dat
         'groomed',
         undefined,
         needs.fur < 70 ? 3 : 1,
-        'All soft and shiny again.',
+        'Weer helemaal zacht en glanzend.',
       );
     case 'train': {
-      if (action.gain <= 0) return decline('Almost — try clicking right as she does it.');
+      if (action.gain <= 0) return decline('Bijna — probeer te klikken precies als ze het doet.');
       const before = pet.tricks[action.trick] ?? 0;
       if (before >= 100) {
-        return done({}, 'trained', action.trick, 1, 'She knows this one! Good girl.');
+        return done({}, 'trained', action.trick, 1, 'Deze kent ze al! Good girl.');
       }
       const after = Math.min(100, before + action.gain);
       const learned = after >= 100;
@@ -411,8 +409,8 @@ export function care(pet: CocoPet, action: Care, by: Person, now: Date = new Dat
         action.trick,
         learned ? 15 : 2,
         learned
-          ? `Coco learned “${TRICKS[action.trick].label}”!`
-          : 'Click — treat! She’s getting it.',
+          ? `Coco heeft “${TRICKS[action.trick].label}” geleerd!`
+          : 'Klik — snoepje! Ze begint het te snappen.',
         learned ? action.trick : undefined,
       );
     }
@@ -423,8 +421,8 @@ export function care(pet: CocoPet, action: Care, by: Person, now: Date = new Dat
         action.outfit,
         0,
         action.outfit === 'none'
-          ? 'Just Coco. Perfect as she is.'
-          : `${OUTFITS[action.outfit].label} on!`,
+          ? 'Gewoon Coco. Perfect zoals ze is.'
+          : `${OUTFITS[action.outfit].label} aan!`,
       );
   }
 }
@@ -434,38 +432,38 @@ export function describeCare(entry: CocoPet['log'][number]): string {
   const food = entry.detail && entry.detail in FOODS ? FOODS[entry.detail as PetFood].label : '';
   switch (entry.action) {
     case 'fed':
-      return `gave her ${food.toLowerCase() || 'a meal'}`;
+      return `gaf haar ${food.toLowerCase() || 'eten'}`;
     case 'treat':
-      return `gave her a treat (${food.toLowerCase() || 'something sweet'})`;
+      return `gaf haar een snoepje (${food.toLowerCase() || 'iets zoets'})`;
     case 'hay':
-      return 'topped up her hay and water';
+      return 'vulde haar hooi en water bij';
     case 'petted':
-      return 'gave her cuddles';
+      return 'gaf haar knuffels';
     case 'played':
-      return entry.detail ? `played ${entry.detail} with her` : 'played with her';
+      return entry.detail ? `speelde ${entry.detail} met haar` : 'speelde met haar';
     case 'groomed':
-      return 'brushed her fur';
+      return 'borstelde haar vacht';
     case 'trained':
-      return `practised “${entry.detail && entry.detail in TRICKS ? TRICKS[entry.detail as PetTrick].label : 'a trick'}”`;
+      return `oefende “${entry.detail && entry.detail in TRICKS ? TRICKS[entry.detail as PetTrick].label : 'een trucje'}”`;
     case 'learned':
-      return `taught her “${entry.detail && entry.detail in TRICKS ? TRICKS[entry.detail as PetTrick].label : 'a trick'}”`;
+      return `leerde haar “${entry.detail && entry.detail in TRICKS ? TRICKS[entry.detail as PetTrick].label : 'een trucje'}”`;
     case 'outfit':
       return entry.detail === 'none'
-        ? 'took off her outfit'
-        : `dressed her in the ${entry.detail && entry.detail in OUTFITS ? OUTFITS[entry.detail as PetOutfit].label.toLowerCase() : 'outfit'}`;
+        ? 'deed haar outfit uit'
+        : `deed haar ${entry.detail && entry.detail in OUTFITS ? OUTFITS[entry.detail as PetOutfit].label.toLowerCase() : 'een outfit'} aan`;
   }
 }
 
 /** Short, true rabbit facts shown around Coco's den. */
 export const BUNNY_FACTS = [
-  'A “binky” is a happy jump with a twist in mid-air.',
-  'A “flop” — suddenly falling onto her side — means she feels completely safe.',
-  'A soft teeth-grinding “purr” while being stroked means she’s content.',
-  'A loud thump with a back foot means “something’s not right!”',
-  'Rabbits are most awake around dawn and dusk — that’s called crepuscular.',
-  'A rabbit’s teeth never stop growing, which is why hay matters so much.',
-  'Most rabbits love forehead and cheek strokes, but not their feet or belly being touched.',
-  'Dwarf rabbits are usually fully grown at around 6 to 8 months.',
-  'Pet rabbits often live 8 to 12 years.',
-  'Chin rubbing is how rabbits say “this is mine” — including you.',
+  'Een “binky” is een blij sprongetje met een draai in de lucht.',
+  'Een “flop” — opeens op haar zij vallen — betekent dat ze zich helemaal veilig voelt.',
+  'Zacht tandengeknars terwijl je haar aait betekent dat ze tevreden is.',
+  'Een harde thump met een achterpoot betekent “er klopt iets niet!”',
+  'Konijnen zijn het wakkerst rond zonsopgang en schemering — dat heet schemeractief.',
+  'De tandjes van een konijn groeien altijd door, daarom is hooi zo belangrijk.',
+  'De meeste konijnen houden van aaitjes op hun voorhoofd en wangen, maar niet aan hun pootjes of buik.',
+  'Dwergkonijnen zijn meestal volgroeid rond 6 tot 8 maanden.',
+  'Huiskonijnen worden vaak 8 tot 12 jaar.',
+  'Met hun kin langs iets wrijven is hoe konijnen zeggen “dit is van mij” — jij ook.',
 ];

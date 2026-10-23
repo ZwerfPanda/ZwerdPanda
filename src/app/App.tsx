@@ -145,7 +145,7 @@ export function App() {
       <MusicProvider>
         <SpotifyProvider>
           <button type="button" className="skip-link" onClick={skipToContent}>
-            Skip to content
+            Naar de inhoud
           </button>
           <TopBar onOpenMenu={() => setMenuOpen(true)} />
           <AnimatePresence mode="wait" initial={false} onExitComplete={() => window.scrollTo(0, 0)}>

@@ -45,49 +45,49 @@ export function LettersPage() {
 
   const remove = async (letter: Letter) => {
     const ok = await confirm({
-      title: 'Delete this letter?',
-      message: `“Open when ${letter.occasion}” will be gone from the shelf.`,
-      confirmLabel: 'Delete letter',
+      title: 'Deze brief verwijderen?',
+      message: `“Open when ${letter.occasion}” verdwijnt van de plank.`,
+      confirmLabel: 'Brief verwijderen',
       tone: 'danger',
     });
     if (!ok) return;
     const position = getContent().letters.findIndex((l) => l.id === letter.id);
     removeItem('letters', letter.id);
     setOpenId(null);
-    toast('Letter deleted', {
-      action: { label: 'Undo', run: () => restoreItem('letters', letter, position) },
+    toast('Brief verwijderd', {
+      action: { label: 'Ongedaan maken', run: () => restoreItem('letters', letter, position) },
     });
   };
 
   return (
     <div className="page letters-page">
       <PageHeader
-        eyebrow="for whenever you need them"
+        eyebrow="voor wanneer je ze nodig hebt"
         title={
           <>
             Open <em>when…</em>
           </>
         }
-        lede="Little letters, sealed and waiting for the right moment. Some open with a tap, some need you to hold the seal, and some wait for a special day."
+        lede="Kleine briefjes, verzegeld en wachtend op het juiste moment. Sommige gaan open met een tik, bij sommige moet je het zegel vasthouden en sommige wachten op een speciale dag."
         actions={
           <button
             type="button"
             className="btn btn--primary"
             onClick={() => setForm({ open: true, letter: null })}
           >
-            <PenLine aria-hidden="true" /> Write a letter
+            <PenLine aria-hidden="true" /> Schrijf een brief
           </button>
         }
       />
 
-      <div className="chip-row" role="group" aria-label="Which letters">
+      <div className="chip-row" role="group" aria-label="Welke brieven">
         <button
           type="button"
           className="chip"
           aria-pressed={filter === 'shelf'}
           onClick={() => setFilter('shelf')}
         >
-          On the shelf <span className="chip__count">{shelf.length}</span>
+          Op de plank <span className="chip__count">{shelf.length}</span>
         </button>
         <button
           type="button"
@@ -95,7 +95,7 @@ export function LettersPage() {
           aria-pressed={filter === 'unopened'}
           onClick={() => setFilter('unopened')}
         >
-          Unopened <span className="chip__count">{unopened.length}</span>
+          Ongeopend <span className="chip__count">{unopened.length}</span>
         </button>
         <button
           type="button"
@@ -103,7 +103,7 @@ export function LettersPage() {
           aria-pressed={filter === 'drafts'}
           onClick={() => setFilter('drafts')}
         >
-          Drafts <span className="chip__count">{drafts.length}</span>
+          Concepten <span className="chip__count">{drafts.length}</span>
         </button>
       </div>
 
@@ -112,15 +112,15 @@ export function LettersPage() {
           art={<Feather size={56} strokeWidth={1.3} color="var(--accent)" />}
           title={
             filter === 'drafts'
-              ? 'No drafts'
+              ? 'Geen concepten'
               : filter === 'unopened'
-                ? 'Every letter has been opened'
-                : 'The shelf is empty'
+                ? 'Alle brieven zijn geopend'
+                : 'De plank is leeg'
           }
           text={
             filter === 'drafts'
-              ? 'Letters saved as drafts wait here until they’re ready.'
-              : 'Write one for a moment that hasn’t happened yet — a hard day, a happy one, a long distance.'
+              ? 'Brieven die als concept bewaard zijn, wachten hier tot ze klaar zijn.'
+              : 'Schrijf er een voor een moment dat nog moet komen — een zware dag, een blije, een tijd op afstand.'
           }
           action={
             <button
@@ -128,7 +128,7 @@ export function LettersPage() {
               className="btn btn--primary"
               onClick={() => setForm({ open: true, letter: null })}
             >
-              <PenLine aria-hidden="true" /> Write a letter
+              <PenLine aria-hidden="true" /> Schrijf een brief
             </button>
           }
         />
@@ -178,14 +178,14 @@ function ShelfEnvelope({
   const tilt = [-2.2, 1.6, -1, 2.4, -1.8, 1][index % 6];
   const status =
     letter.status === 'draft'
-      ? 'Draft'
+      ? 'Concept'
       : locked
-        ? `Sealed until ${formatDate(letter.lock.type === 'date' ? letter.lock.until : '', 'short')}`
+        ? `Verzegeld tot ${formatDate(letter.lock.type === 'date' ? letter.lock.until : '', 'short')}`
         : letter.readAt
-          ? `Opened ${formatTimestamp(letter.readAt)}`
+          ? `Geopend ${formatTimestamp(letter.readAt)}`
           : letter.lock.type === 'hold'
-            ? 'Hold the seal to open'
-            : 'Unopened';
+            ? 'Houd het zegel vast om te openen'
+            : 'Ongeopend';
 
   return (
     <motion.li
@@ -211,7 +211,7 @@ function ShelfEnvelope({
           <MailOpen aria-hidden="true" />
         ) : null}
         {status}
-        {letter.isSample && <span className="tag tag--sample">Starter</span>}
+        {letter.isSample && <span className="tag tag--sample">Voorbeeld</span>}
         <ByTag by={letter.by} />
       </p>
     </motion.li>

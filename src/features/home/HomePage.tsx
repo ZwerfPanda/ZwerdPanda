@@ -56,7 +56,7 @@ function HomeNote() {
   const { homeGreeting, homeMessage, yourName } = useContent((c) => c.profile);
   if (!homeMessage.trim()) return null;
   return (
-    <article className="home-note paper" aria-label="A note from the person who made this">
+    <article className="home-note paper" aria-label="Een briefje van degene die dit maakte">
       <span
         className="tape"
         style={{ top: -12, left: '50%', marginLeft: -43, transform: 'rotate(-3deg)' }}
@@ -83,11 +83,11 @@ function TodayNote() {
     <aside className="today" aria-labelledby="today-title">
       <SparkleIcon size={26} className="today__spark" color="var(--gold-400)" />
       <h2 id="today-title" className="today__title hand">
-        today I love…
+        vandaag hou ik van…
       </h2>
       <p className="today__text">{reason}</p>
       <a className="today__link" href={href('/surprises')}>
-        Open the jar of little reasons <ArrowRight aria-hidden="true" />
+        Open de pot met kleine redenen <ArrowRight aria-hidden="true" />
       </a>
     </aside>
   );

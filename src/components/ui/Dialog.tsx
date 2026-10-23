@@ -145,7 +145,7 @@ function DialogInner({
               type="button"
               className="icon-btn"
               onClick={onClose}
-              aria-label="Close"
+              aria-label="Sluiten"
               style={hideTitle ? { marginLeft: 'auto' } : undefined}
             >
               <X />

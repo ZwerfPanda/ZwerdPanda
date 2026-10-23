@@ -210,7 +210,7 @@ export function SpotifyProvider({ children }: { children: ReactNode }) {
           <div
             className={`spotify-dock ${expanded ? 'is-open' : ''}`}
             role="region"
-            aria-label={`${current.title} — Spotify player`}
+            aria-label={`${current.title} — Spotify-speler`}
             aria-hidden={!expanded}
             inert={!expanded}
           >
@@ -229,7 +229,7 @@ export function SpotifyProvider({ children }: { children: ReactNode }) {
                 type="button"
                 className="spotify-dock__btn"
                 onClick={() => setExpanded(false)}
-                aria-label="Hide the Spotify player (it keeps playing)"
+                aria-label="Spotify-speler verbergen (hij speelt door)"
               >
                 <ChevronDown />
               </button>
@@ -238,7 +238,7 @@ export function SpotifyProvider({ children }: { children: ReactNode }) {
             <div ref={hostRef} className="spotify-dock__player">
               {mode === 'plain' && (
                 <iframe
-                  title={`${current.title} — Spotify player`}
+                  title={`${current.title} — Spotify-speler`}
                   src={embedUrlFor(current.uri)}
                   height={352}
                   allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"

@@ -8,7 +8,7 @@ export function SiteFooter() {
     <footer className="site-footer">
       <p className="site-footer__sig">{signature}</p>
       <p className="site-footer__small">
-        A private little world for two <HiddenHeart />
+        Een privé wereldje voor twee <HiddenHeart />
       </p>
     </footer>
   );

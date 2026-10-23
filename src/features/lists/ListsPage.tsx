@@ -31,15 +31,15 @@ import './lists.css';
 
 export const LIST_ICONS: Record<ListIcon, { icon: LucideIcon; label: string }> = {
   baby: { icon: Baby, label: 'Baby' },
-  heart: { icon: Heart, label: 'Heart' },
-  star: { icon: Star, label: 'Star' },
+  heart: { icon: Heart, label: 'Hartje' },
+  star: { icon: Star, label: 'Ster' },
   film: { icon: Film, label: 'Films' },
-  plane: { icon: Plane, label: 'Travel' },
-  utensils: { icon: UtensilsCrossed, label: 'Food' },
-  gift: { icon: Gift, label: 'Gifts' },
-  music: { icon: Music, label: 'Music' },
-  book: { icon: BookOpen, label: 'Books' },
-  home: { icon: House, label: 'Home' },
+  plane: { icon: Plane, label: 'Reizen' },
+  utensils: { icon: UtensilsCrossed, label: 'Eten' },
+  gift: { icon: Gift, label: 'Cadeaus' },
+  music: { icon: Music, label: 'Muziek' },
+  book: { icon: BookOpen, label: 'Boeken' },
+  home: { icon: House, label: 'Thuis' },
 };
 
 export function ListsPage() {
@@ -58,38 +58,38 @@ export function ListsPage() {
         eyebrow="little lists of us"
         title={
           <>
-            Our <em>Lists</em>
+            Onze <em>Lijstjes</em>
           </>
         }
-        lede="Baby names we love, films to watch, places to eat — make a list, add to it together and heart the ones you love. When we both heart something, it gets a little crown."
+        lede="Babynamen die we mooi vinden, films om te kijken, plekjes om te eten — maak een lijstje, vul het samen aan en geef een hartje aan wat je leuk vindt. Geven we allebei een hartje, dan krijgt het een kroontje."
         actions={
           <button
             type="button"
             className="btn btn--primary"
             onClick={() => setForm({ open: true, list: null })}
           >
-            <Plus aria-hidden="true" /> New list
+            <Plus aria-hidden="true" /> Nieuw lijstje
           </button>
         }
       />
 
       {lists.length === 0 ? (
         <EmptyState
-          title="No lists yet"
-          text="Start one: names we love, restaurants to try, films for movie night."
+          title="Nog geen lijstjes"
+          text="Begin er een: namen die we mooi vinden, restaurants om te proberen, films voor movie night."
           action={
             <button
               type="button"
               className="btn btn--primary"
               onClick={() => setForm({ open: true, list: null })}
             >
-              <Plus aria-hidden="true" /> Make our first list
+              <Plus aria-hidden="true" /> Ons eerste lijstje maken
             </button>
           }
         />
       ) : (
         <>
-          <div className="chip-row lists-tabs" role="group" aria-label="Our lists">
+          <div className="chip-row lists-tabs" role="group" aria-label="Onze lijstjes">
             {lists.map((l) => {
               const Icon = LIST_ICONS[l.icon].icon;
               return (
@@ -141,7 +141,7 @@ function ListView({ list, onEdit }: { list: OurList; onEdit: () => void }) {
     const value = text.trim();
     if (!value) return;
     if (list.items.some((i) => i.text.toLowerCase() === value.toLowerCase())) {
-      toast('That one’s already on the list');
+      toast('Die staat er al op');
       return;
     }
     const item: ListItem = {
@@ -168,9 +168,9 @@ function ListView({ list, onEdit }: { list: OurList; onEdit: () => void }) {
   const removeItem = (item: ListItem) => {
     const index = list.items.findIndex((i) => i.id === item.id);
     patchList(list.id, (l) => ({ ...l, items: l.items.filter((i) => i.id !== item.id) }));
-    toast('Removed', {
+    toast('Weggehaald', {
       action: {
-        label: 'Undo',
+        label: 'Ongedaan maken',
         run: () =>
           patchList(list.id, (l) => {
             const items = [...l.items];
@@ -201,7 +201,7 @@ function ListView({ list, onEdit }: { list: OurList; onEdit: () => void }) {
         <button
           type="button"
           className="icon-btn"
-          aria-label={`Edit “${list.title}”`}
+          aria-label={`“${list.title}” bewerken`}
           onClick={onEdit}
         >
           <Pencil />
@@ -209,9 +209,14 @@ function ListView({ list, onEdit }: { list: OurList; onEdit: () => void }) {
       </div>
 
       <form className="our-list__add" onSubmit={add}>
-        <TextField label="Add to this list" value={text} onChange={setText} maxLength={120} />
+        <TextField
+          label="Toevoegen aan dit lijstje"
+          value={text}
+          onChange={setText}
+          maxLength={120}
+        />
         <button type="submit" className="btn btn--primary btn--small" disabled={!text.trim()}>
-          <Plus aria-hidden="true" /> Add
+          <Plus aria-hidden="true" /> Toevoegen
         </button>
       </form>
 
@@ -226,14 +231,14 @@ function ListView({ list, onEdit }: { list: OurList; onEdit: () => void }) {
             <Heart aria-hidden="true" /> We both love
             <span className="chip__count">{loved}</span>
           </button>
-          <span className="muted our-list__hint">You’re hearting as {nameOf(me, profile)}</span>
+          <span className="muted our-list__hint">Je geeft hartjes als {nameOf(me, profile)}</span>
         </div>
       )}
 
       {list.items.length === 0 ? (
-        <p className="muted">Nothing on this list yet — add the first one above.</p>
+        <p className="muted">Nog niets op dit lijstje — voeg hierboven de eerste toe.</p>
       ) : shown.length === 0 ? (
-        <p className="muted">Nothing we both hearted yet.</p>
+        <p className="muted">Nog niets waar we allebei een hartje aan gaven.</p>
       ) : (
         <ul className="our-list__items">
           {shown.map((item) => (
@@ -246,7 +251,7 @@ function ListView({ list, onEdit }: { list: OurList; onEdit: () => void }) {
                 className="list-item__check"
                 aria-pressed={item.done}
                 aria-label={
-                  item.done ? `Mark “${item.text}” as not done` : `Mark “${item.text}” as done`
+                  item.done ? `“${item.text}” als niet gedaan markeren` : `“${item.text}” afvinken`
                 }
                 onClick={() => patchItem(item.id, (i) => ({ ...i, done: !i.done }))}
               >
@@ -274,7 +279,9 @@ function ListView({ list, onEdit }: { list: OurList; onEdit: () => void }) {
                 className="icon-btn fav-btn"
                 aria-pressed={item.hearts.includes(me)}
                 aria-label={
-                  item.hearts.includes(me) ? `Unheart “${item.text}”` : `Heart “${item.text}”`
+                  item.hearts.includes(me)
+                    ? `Hartje weghalen bij “${item.text}”`
+                    : `Hartje geven aan “${item.text}”`
                 }
                 onClick={() => heart(item)}
               >
@@ -283,7 +290,7 @@ function ListView({ list, onEdit }: { list: OurList; onEdit: () => void }) {
               <button
                 type="button"
                 className="icon-btn"
-                aria-label={`Remove “${item.text}”`}
+                aria-label={`“${item.text}” weghalen`}
                 onClick={() => removeItem(item)}
               >
                 <Trash2 />
@@ -297,9 +304,9 @@ function ListView({ list, onEdit }: { list: OurList; onEdit: () => void }) {
 }
 
 function heartsLabel(hearts: Person[], profile: { yourName: string; partnerName: string }) {
-  if (hearts.length === 2) return 'We both love this';
-  if (hearts.length === 1) return `${nameOf(hearts[0], profile)} loves this`;
-  return 'No hearts yet';
+  if (hearts.length === 2) return 'We vinden dit allebei leuk';
+  if (hearts.length === 1) return `${nameOf(hearts[0], profile)} vindt dit leuk`;
+  return 'Nog geen hartjes';
 }
 
 function ListForm({
@@ -326,7 +333,7 @@ function ListForm({
   const save = (event: React.FormEvent) => {
     event.preventDefault();
     if (!title.trim()) {
-      setError('Give the list a name.');
+      setError('Geef het lijstje een naam.');
       return;
     }
     if (list) {
@@ -349,11 +356,11 @@ function ListForm({
   const remove = async () => {
     if (!list) return;
     const ok = await confirm({
-      title: `Delete “${list.title}”?`,
+      title: `“${list.title}” verwijderen?`,
       message: list.items.length
-        ? `The ${list.items.length} things on it go too.`
-        : 'It’s empty anyway.',
-      confirmLabel: 'Delete',
+        ? `De ${list.items.length} dingen erop gaan ook weg.`
+        : 'Hij is toch leeg.',
+      confirmLabel: 'Verwijderen',
       tone: 'danger',
     });
     if (!ok) return;
@@ -366,37 +373,37 @@ function ListForm({
     <Dialog
       open={open}
       onClose={onClose}
-      title={list ? 'Edit list' : 'A new list'}
+      title={list ? 'Lijstje bewerken' : 'Een nieuw lijstje'}
       eyebrow="our lists"
       size="sm"
       footer={
         <>
           {list && (
             <button type="button" className="btn btn--quiet" onClick={remove}>
-              <Trash2 aria-hidden="true" /> Delete
+              <Trash2 aria-hidden="true" /> Verwijderen
             </button>
           )}
           <span style={{ flex: 1 }} />
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Cancel
+            Annuleren
           </button>
           <button type="submit" form="list-form" className="btn btn--primary">
-            Save
+            Opslaan
           </button>
         </>
       }
     >
       <form id="list-form" className="form" onSubmit={save} noValidate>
         <TextField
-          label="Name"
+          label="Naam"
           value={title}
           onChange={setTitle}
           maxLength={60}
-          placeholder="Restaurants to try"
+          placeholder="Restaurants om te proberen"
           error={error}
         />
         <fieldset className="field list-icons">
-          <legend className="field__label">Icon</legend>
+          <legend className="field__label">Icoon</legend>
           <div className="list-icons__grid">
             {(Object.keys(LIST_ICONS) as ListIcon[]).map((key) => {
               const { icon: I, label } = LIST_ICONS[key];

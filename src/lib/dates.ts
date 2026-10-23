@@ -89,13 +89,13 @@ export function daysUntil(target: Date, today: Date): number {
   return Math.round((target.getTime() - today.getTime()) / DAY_MS);
 }
 
-const longFormat = new Intl.DateTimeFormat(undefined, {
+const longFormat = new Intl.DateTimeFormat('nl-NL', {
   day: 'numeric',
   month: 'long',
   year: 'numeric',
   timeZone: 'UTC',
 });
-const shortFormat = new Intl.DateTimeFormat(undefined, {
+const shortFormat = new Intl.DateTimeFormat('nl-NL', {
   day: 'numeric',
   month: 'short',
   year: 'numeric',
@@ -112,7 +112,7 @@ export function formatTimestamp(iso: string | undefined): string {
   if (!iso) return '';
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat('nl-NL', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -123,17 +123,17 @@ export function plural(count: number, one: string, many = `${one}s`): string {
   return `${count} ${count === 1 ? one : many}`;
 }
 
-/** "just now", "5 min ago", "3 h ago", or the date. */
+/** "zojuist", "5 min geleden", "3 uur geleden", or the date. */
 export function timeAgo(iso: string | null | undefined): string {
   if (!iso) return '';
   const seconds = Math.max(0, (Date.now() - Date.parse(iso)) / 1000);
   if (Number.isNaN(seconds)) return '';
-  if (seconds < 45) return 'just now';
-  if (seconds < 3600) return `${Math.round(seconds / 60)} min ago`;
-  if (seconds < 86_400) return `${Math.round(seconds / 3600)} h ago`;
+  if (seconds < 45) return 'zojuist';
+  if (seconds < 3600) return `${Math.round(seconds / 60)} min geleden`;
+  if (seconds < 86_400) return `${Math.round(seconds / 3600)} uur geleden`;
   if (seconds < 7 * 86_400) {
     const days = Math.round(seconds / 86_400);
-    return days === 1 ? 'yesterday' : `${days} days ago`;
+    return days === 1 ? 'gisteren' : `${days} dagen geleden`;
   }
-  return new Date(iso).toLocaleDateString();
+  return new Date(iso).toLocaleDateString('nl-NL');
 }

@@ -48,7 +48,7 @@ function LocalMedia({
 
   if (state.status === 'loading') {
     return (
-      <div className={`media media--loading ${className}`} aria-label="Loading photo" role="img" />
+      <div className={`media media--loading ${className}`} aria-label="Foto laden" role="img" />
     );
   }
   if (state.status === 'missing') {
@@ -56,10 +56,10 @@ function LocalMedia({
       <div
         className={`media media--missing ${className}`}
         role="img"
-        aria-label="This photo isn't stored on this device"
+        aria-label="Deze foto staat niet op dit apparaat"
       >
         <ImageOff aria-hidden="true" />
-        <span>Not on this device</span>
+        <span>Niet op dit apparaat</span>
       </div>
     );
   }

@@ -41,7 +41,7 @@ export function HeroPlanet() {
         type="button"
         className="hero-planet__button"
         onClick={spin}
-        aria-label="Spin our little planet for a surprise"
+        aria-label="Draai aan ons planeetje voor een verrassing"
       >
         <svg viewBox="0 0 300 300" className="hero-planet__svg" aria-hidden="true">
           <defs>
@@ -221,7 +221,7 @@ export function HeroPlanet() {
             </motion.p>
           ) : (
             <motion.p key="hint" className="hero-planet__hint" exit={{ opacity: 0 }}>
-              tap the planet ↑
+              tik op de planeet ↑
             </motion.p>
           )}
         </AnimatePresence>

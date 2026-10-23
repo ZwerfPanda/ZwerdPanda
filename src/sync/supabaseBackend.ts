@@ -20,24 +20,27 @@ function toAccount(user: User | null | undefined): Account | null {
 }
 
 const FRIENDLY: [RegExp, string][] = [
-  [/invalid login credentials/i, 'That email and password don’t match.'],
-  [/email not confirmed/i, 'Please confirm your email first — check your inbox (and spam folder).'],
+  [/invalid login credentials/i, 'Dat e-mailadres en wachtwoord horen niet bij elkaar.'],
+  [/email not confirmed/i, 'Bevestig eerst je e-mailadres — kijk in je inbox (en je spam).'],
   [
     /already registered|already been registered/i,
-    'There’s already an account with this email — sign in instead.',
+    'Er is al een account met dit e-mailadres — log gewoon in.',
   ],
-  [/rate limit/i, 'Too many attempts or emails in a short time. Wait a few minutes and try again.'],
-  [/password should be at least/i, 'Choose a password of at least 8 characters.'],
-  [/jwt expired|invalid jwt/i, 'Your session expired — please sign in again.'],
+  [
+    /rate limit/i,
+    'Te veel pogingen of e-mails in korte tijd. Wacht een paar minuten en probeer het opnieuw.',
+  ],
+  [/password should be at least/i, 'Kies een wachtwoord van minstens 8 tekens.'],
+  [/jwt expired|invalid jwt/i, 'Je sessie is verlopen — log opnieuw in.'],
   [
     /signups? not allowed|signups? (are|is) disabled/i,
-    'New accounts are switched off for our universe. Ask for an account to be added in Supabase (see the guide), then sign in.',
+    'Nieuwe accounts staan uit voor ons universe. Laat een account toevoegen in Supabase (zie de handleiding) en log dan in.',
   ],
   [
     /email address not authorized|error sending .*email/i,
-    'The email couldn’t be sent from this project yet. The account can be added in Supabase instead — see the guide.',
+    'De e-mail kon nog niet verstuurd worden vanuit dit project. Het account kan ook in Supabase worden toegevoegd — zie de handleiding.',
   ],
-  [/should be different from the old/i, 'That’s already your password — pick a new one.'],
+  [/should be different from the old/i, 'Dat is al je wachtwoord — kies een nieuwe.'],
 ];
 
 /** Turns any Supabase error into a readable Error (or OfflineError for connection trouble). */
@@ -52,7 +55,7 @@ function toError(error: unknown): Error {
     return new OfflineError();
   }
   for (const [pattern, friendly] of FRIENDLY) if (pattern.test(message)) return new Error(friendly);
-  return new Error(message || 'Something went wrong talking to the server.');
+  return new Error(message || 'Er ging iets mis in het contact met de server.');
 }
 
 function redirectUrl(): string {
@@ -142,7 +145,8 @@ export function createSupabaseBackend(config: SyncConfig): SyncBackend {
 
     async createSpace(partnerEmail) {
       const id = await call(client.rpc('create_space', { p_partner_email: partnerEmail.trim() }));
-      if (typeof id !== 'string') throw new Error('The shared universe could not be created.');
+      if (typeof id !== 'string')
+        throw new Error('Het gedeelde universe kon niet worden aangemaakt.');
       return id;
     },
 
@@ -190,7 +194,7 @@ export function createSupabaseBackend(config: SyncConfig): SyncBackend {
       const row = (Array.isArray(rows) ? rows[0] : rows) as
         | { saved: boolean; new_version: number | string; current_content: unknown }
         | undefined;
-      if (!row) throw new Error('The server gave an unexpected answer while saving.');
+      if (!row) throw new Error('De server gaf een onverwacht antwoord bij het opslaan.');
       return {
         saved: Boolean(row.saved),
         version: Number(row.new_version),

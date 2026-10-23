@@ -37,13 +37,13 @@ const ICONS: Record<Upcoming['icon'], typeof Heart> = {
   rabbit: Rabbit,
 };
 const ICON_CHOICES: { value: CountdownIcon; label: string }[] = [
-  { value: 'heart', label: 'Heart' },
-  { value: 'star', label: 'Star' },
-  { value: 'plane', label: 'Trip' },
-  { value: 'gift', label: 'Gift' },
-  { value: 'cake', label: 'Birthday' },
-  { value: 'home', label: 'Home' },
-  { value: 'music', label: 'Music' },
+  { value: 'heart', label: 'Hartje' },
+  { value: 'star', label: 'Ster' },
+  { value: 'plane', label: 'Tripje' },
+  { value: 'gift', label: 'Cadeau' },
+  { value: 'cake', label: 'Verjaardag' },
+  { value: 'home', label: 'Thuis' },
+  { value: 'music', label: 'Muziek' },
   { value: 'matcha', label: 'Matcha' },
 ];
 
@@ -64,7 +64,7 @@ export function Countdowns() {
         <div>
           <p className="countdowns__eyebrow hand">can’t wait</p>
           <h2 id="countdowns-title" className="countdowns__title">
-            Counting down
+            Aftellen
           </h2>
         </div>
         <button
@@ -72,12 +72,12 @@ export function Countdowns() {
           className="btn btn--soft btn--small"
           onClick={() => setForm({ open: true, item: null })}
         >
-          <Plus aria-hidden="true" /> Add a date
+          <Plus aria-hidden="true" /> Datum toevoegen
         </button>
       </div>
       {list.length === 0 ? (
         <p className="muted">
-          Our next date, a trip, a birthday — add something to look forward to.
+          Onze volgende date, een tripje, een verjaardag — zet iets neer om naar uit te kijken.
         </p>
       ) : (
         <ul className="countdowns__list">
@@ -92,14 +92,14 @@ export function Countdowns() {
                   <span className="countdown__title">{u.title}</span>
                   <span className="countdown__date">
                     {formatDate(u.date)}
-                    {u.item?.yearly && ' · every year'}
+                    {u.item?.yearly && ' · elk jaar'}
                     {u.item?.by && <ByTag by={u.item.by} />}
                   </span>
                 </span>
                 <span className="countdown__days">
                   {u.days > 1 ? (
                     <>
-                      <strong>{u.days}</strong> days
+                      <strong>{u.days}</strong> dagen
                     </>
                   ) : (
                     <strong className="countdown__soon">{daysLabel(u.days)}</strong>
@@ -109,7 +109,7 @@ export function Countdowns() {
                   <button
                     type="button"
                     className="icon-btn countdown__edit"
-                    aria-label={`Edit “${u.title}”`}
+                    aria-label={`“${u.title}” bewerken`}
                     onClick={() => setForm({ open: true, item: u.item! })}
                   >
                     <Pencil />
@@ -156,8 +156,8 @@ function CountdownForm({
   const save = (event: React.FormEvent) => {
     event.preventDefault();
     const problems: typeof errors = {};
-    if (!title.trim()) problems.title = 'What are we counting down to?';
-    if (!isValidIsoDate(date)) problems.date = 'Pick the date.';
+    if (!title.trim()) problems.title = 'Waar tellen we naar af?';
+    if (!isValidIsoDate(date)) problems.date = 'Kies de datum.';
     setErrors(problems);
     if (Object.keys(problems).length) return;
     const next: Countdown = {
@@ -175,16 +175,16 @@ function CountdownForm({
         ? c.countdowns.map((x) => (x.id === item.id ? next : x))
         : [...c.countdowns, next],
     }));
-    toast(item ? 'Countdown updated' : 'Counting down ♡');
+    toast(item ? 'Countdown bijgewerkt' : 'We tellen af ♡');
     onClose();
   };
 
   const remove = async () => {
     if (!item) return;
     const ok = await confirm({
-      title: 'Delete this countdown?',
+      title: 'Deze countdown verwijderen?',
       message: item.title,
-      confirmLabel: 'Delete',
+      confirmLabel: 'Verwijderen',
       tone: 'danger',
     });
     if (!ok) return;
@@ -196,39 +196,39 @@ function CountdownForm({
     <Dialog
       open={open}
       onClose={onClose}
-      title={item ? 'Edit countdown' : 'Something to look forward to'}
+      title={item ? 'Countdown bewerken' : 'Iets om naar uit te kijken'}
       eyebrow="counting down"
       size="sm"
       footer={
         <>
           {item && (
             <button type="button" className="btn btn--quiet" onClick={() => void remove()}>
-              <Trash2 aria-hidden="true" /> Delete
+              <Trash2 aria-hidden="true" /> Verwijderen
             </button>
           )}
           <span style={{ flex: 1 }} />
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Cancel
+            Annuleren
           </button>
           <button type="submit" form="countdown-form" className="btn btn--primary">
-            Save
+            Opslaan
           </button>
         </>
       }
     >
       <form id="countdown-form" className="form" onSubmit={save} noValidate>
         <TextField
-          label="What’s happening"
+          label="Wat gaat er gebeuren"
           value={title}
           onChange={setTitle}
           maxLength={80}
-          placeholder="Our next date"
+          placeholder="Onze volgende date"
           error={errors.title}
         />
-        <TextField label="Date" type="date" value={date} onChange={setDate} error={errors.date} />
-        <Checkbox label="Every year (like a birthday)" checked={yearly} onChange={setYearly} />
+        <TextField label="Datum" type="date" value={date} onChange={setDate} error={errors.date} />
+        <Checkbox label="Elk jaar (zoals een verjaardag)" checked={yearly} onChange={setYearly} />
         <fieldset className="countdown-icons">
-          <legend className="field__label">Little icon</legend>
+          <legend className="field__label">Icoontje</legend>
           <div className="countdown-icons__grid">
             {ICON_CHOICES.map((choice) => {
               const Icon = ICONS[choice.value];
@@ -250,7 +250,7 @@ function CountdownForm({
           </div>
         </fieldset>
         <p className="field__hint">
-          Our anniversary and Coco’s birthday appear here by themselves.
+          Ons jubileum, onze verjaardagen en die van Coco verschijnen hier vanzelf.
         </p>
       </form>
     </Dialog>

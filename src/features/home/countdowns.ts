@@ -57,8 +57,7 @@ export function upcoming(content: AppContent, today: Date): Upcoming[] {
     if (next && next.years > 0) {
       list.push({
         id: 'auto-anniversary',
-        title:
-          next.years === 1 ? 'Our first anniversary' : `Our ${ordinal(next.years)} anniversary`,
+        title: next.years === 1 ? 'Ons eerste jubileum' : `Ons ${ordinal(next.years)} jubileum`,
         icon: 'heart',
         date: next.date,
         days: next.days,
@@ -70,7 +69,7 @@ export function upcoming(content: AppContent, today: Date): Upcoming[] {
   if (coco && coco.years > 0) {
     list.push({
       id: 'auto-coco',
-      title: `Coco turns ${coco.years}`,
+      title: `Coco wordt ${coco.years}`,
       icon: 'rabbit',
       date: coco.date,
       days: coco.days,
@@ -84,7 +83,7 @@ export function upcoming(content: AppContent, today: Date): Upcoming[] {
       const name = who === 'you' ? content.profile.yourName : content.profile.partnerName;
       list.push({
         id: `auto-birthday-${who}`,
-        title: `${name} turns ${next.years}`,
+        title: `${name} wordt ${next.years}`,
         icon: 'cake',
         date: next.date,
         days: next.days,
@@ -95,14 +94,13 @@ export function upcoming(content: AppContent, today: Date): Upcoming[] {
   return list.sort((a, b) => a.days - b.days || a.title.localeCompare(b.title));
 }
 
+/** Dutch ordinals: 2e, 3e, 10e … */
 export function ordinal(n: number): string {
-  const rest = n % 100;
-  if (rest >= 11 && rest <= 13) return `${n}th`;
-  return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
+  return `${n}e`;
 }
 
 export function daysLabel(days: number): string {
-  if (days === 0) return 'Today!';
-  if (days === 1) return 'Tomorrow';
-  return `${days} days`;
+  if (days === 0) return 'Vandaag!';
+  if (days === 1) return 'Morgen';
+  return `${days} dagen`;
 }

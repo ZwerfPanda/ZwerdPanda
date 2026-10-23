@@ -58,10 +58,10 @@ export function StoryPage() {
         eyebrow="the chapters so far"
         title={
           <>
-            Our <em>Story</em>
+            Ons <em>Verhaal</em>
           </>
         }
-        lede="From a livestream to wherever we’re going next. Tap a chapter to open it — every one can be rewritten, dated and filled with our own photos."
+        lede="Van een livestream tot waar we ook heen gaan. Tik op een hoofdstuk om het te openen — elk hoofdstuk kun je herschrijven, dateren en vullen met onze eigen foto’s."
         actions={
           <>
             <button
@@ -69,7 +69,7 @@ export function StoryPage() {
               className="btn btn--primary"
               onClick={() => setEditing({ open: true, id: null })}
             >
-              <Plus aria-hidden="true" /> Add a chapter
+              <Plus aria-hidden="true" /> Hoofdstuk toevoegen
             </button>
             <button
               type="button"
@@ -77,7 +77,7 @@ export function StoryPage() {
               aria-pressed={onlyFavorites}
               onClick={() => setOnlyFavorites((v) => !v)}
             >
-              <Heart aria-hidden="true" /> Favourites{' '}
+              <Heart aria-hidden="true" /> Favorieten{' '}
               <span className="chip__count">{favoriteCount}</span>
             </button>
           </>
@@ -87,26 +87,26 @@ export function StoryPage() {
       {milestones.length === 0 ? (
         <EmptyState
           art={<SampleArt art="future" />}
-          title="Our story starts here"
-          text="Add the first chapter — the livestream, the first message, whatever feels like page one."
+          title="Ons verhaal begint hier"
+          text="Voeg het eerste hoofdstuk toe — de livestream, het eerste berichtje, wat voor ons als bladzijde één voelt."
           action={
             <button
               type="button"
               className="btn btn--primary"
               onClick={() => setEditing({ open: true, id: null })}
             >
-              <Plus aria-hidden="true" /> Write chapter one
+              <Plus aria-hidden="true" /> Schrijf hoofdstuk één
             </button>
           }
         />
       ) : visible.length === 0 ? (
         <EmptyState
           art={<BookHeart size={56} strokeWidth={1.4} color="var(--accent)" />}
-          title="No favourite chapters yet"
-          text="Open a chapter and tap the heart to keep it here."
+          title="Nog geen favoriete hoofdstukken"
+          text="Open een hoofdstuk en tik op het hartje om het hier te bewaren."
           action={
             <button type="button" className="btn btn--soft" onClick={() => setOnlyFavorites(false)}>
-              Show every chapter
+              Toon alle hoofdstukken
             </button>
           }
         />
@@ -164,7 +164,7 @@ function TimelineEntry({
   const motif = motifFor(m.motif);
   const Icon = motif.icon;
   const cover = m.media[0];
-  const when = m.date ? formatDate(m.date) : m.dateLabel || (m.future ? 'someday' : 'date to add');
+  const when = m.date ? formatDate(m.date) : m.dateLabel || (m.future ? 'ooit' : 'datum volgt');
   const layout = m.future
     ? 'future'
     : cover
@@ -190,7 +190,7 @@ function TimelineEntry({
 
       <article className={`tl__card tl__card--${layout}`} onClick={onOpen}>
         <p className="tl__chapter">
-          {m.future ? 'to be continued' : `chapter ${roman(number)}`} ·{' '}
+          {m.future ? 'to be continued' : `hoofdstuk ${roman(number)}`} ·{' '}
           <span className="tl__when">{when}</span>
         </p>
         <h2 className="tl__title">
@@ -221,7 +221,7 @@ function TimelineEntry({
         {m.story && <p className="tl__story">{m.story}</p>}
 
         <div className="tl__foot">
-          {m.isSample && <span className="tag tag--sample">Sample</span>}
+          {m.isSample && <span className="tag tag--sample">Voorbeeld</span>}
           <ByTag by={m.by} />
           {m.song && <span className="tag">♫ {m.song.title}</span>}
           <button
@@ -230,8 +230,8 @@ function TimelineEntry({
             aria-pressed={m.favorite}
             aria-label={
               m.favorite
-                ? `Remove “${m.title}” from favourites`
-                : `Mark “${m.title}” as a favourite`
+                ? `“${m.title}” uit favorieten halen`
+                : `“${m.title}” als favoriet markeren`
             }
             onClick={(e) => {
               e.stopPropagation();

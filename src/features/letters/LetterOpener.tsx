@@ -95,7 +95,7 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
       className="opener"
       role="dialog"
       aria-modal="true"
-      aria-label={`Letter: open when ${letter.occasion}`}
+      aria-label={`Brief: open when ${letter.occasion}`}
       tabIndex={-1}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -105,7 +105,7 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
       <button
         type="button"
         className="opener__backdrop"
-        aria-label="Close letter"
+        aria-label="Brief sluiten"
         tabIndex={-1}
         onClick={onClose}
       />
@@ -113,7 +113,7 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
         type="button"
         className="icon-btn icon-btn--on-dark opener__close"
         onClick={onClose}
-        aria-label="Close"
+        aria-label="Sluiten"
       >
         <X />
       </button>
@@ -140,25 +140,25 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
               {dateLocked ? (
                 <>
                   <p className="opener__lock">
-                    <Lock aria-hidden="true" /> Sealed until {formatDate(until)}
+                    <Lock aria-hidden="true" /> Verzegeld tot {formatDate(until)}
                   </p>
                   <p className="opener__hint">
                     {daysLeft === 1
-                      ? 'Just one more day.'
-                      : `${plural(daysLeft, 'day')} to go. Good things are worth waiting for.`}
+                      ? 'Nog maar één dagje.'
+                      : `Nog ${plural(daysLeft, 'dag', 'dagen')}. Goede dingen zijn het wachten waard.`}
                   </p>
                   <button
                     type="button"
                     className="btn btn--ghost btn--small opener__ghost"
                     onClick={() => onEdit(letter)}
                   >
-                    <Pencil aria-hidden="true" /> Edit (for the writer)
+                    <Pencil aria-hidden="true" /> Bewerken (voor de schrijver)
                   </button>
                 </>
               ) : needsHold && stage === 'closed' ? (
-                <p className="opener__hint">Press and hold the seal to break it</p>
+                <p className="opener__hint">Houd het zegel ingedrukt om het te breken</p>
               ) : (
-                <p className="opener__hint">{stage === 'closed' ? 'Opening…' : ' '}</p>
+                <p className="opener__hint">{stage === 'closed' ? 'Openen…' : ' '}</p>
               )}
             </div>
           </motion.div>
@@ -174,7 +174,7 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
             <div className="letter-paper__scroll">
               <header className="letter-paper__head">
                 <p className="letter-paper__for">
-                  {letter.recipient ? `for ${letter.recipient}` : 'for you'}
+                  {letter.recipient ? `voor ${letter.recipient}` : 'voor jou'}
                   {letter.date && <span> · {formatDate(letter.date)}</span>}
                 </p>
                 <h2 className="letter-paper__title">
@@ -182,7 +182,7 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
                 </h2>
                 {letter.isSample && (
                   <p className="tag tag--sample letter-paper__sample">
-                    Starter letter — Valencio, rewrite it in your own words
+                    Voorbeeldbrief — Valencio, herschrijf hem in je eigen woorden
                   </p>
                 )}
               </header>
@@ -195,7 +195,7 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
             </div>
             <footer className="letter-paper__foot">
               <span className="letter-paper__read">
-                {letter.readAt ? `Opened ${formatTimestamp(letter.readAt)}` : ''}
+                {letter.readAt ? `Geopend ${formatTimestamp(letter.readAt)}` : ''}
               </span>
               <button
                 type="button"
@@ -205,12 +205,12 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
                   onClose();
                 }}
               >
-                <Mail aria-hidden="true" /> Seal it again
+                <Mail aria-hidden="true" /> Opnieuw verzegelen
               </button>
               <button
                 type="button"
                 className="icon-btn"
-                aria-label="Edit letter"
+                aria-label="Brief bewerken"
                 onClick={() => onEdit(letter)}
               >
                 <Pencil />
@@ -218,7 +218,7 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
               <button
                 type="button"
                 className="icon-btn"
-                aria-label="Delete letter"
+                aria-label="Brief verwijderen"
                 onClick={() => onDelete(letter)}
               >
                 <Trash2 />
@@ -259,7 +259,7 @@ function HoldSeal({ letter, onDone }: { letter: Letter; onDone: () => void }) {
     <button
       type="button"
       className={`env__seal env__seal--hold ${holding ? 'is-holding' : ''}`}
-      aria-label="Press and hold to break the seal"
+      aria-label="Ingedrukt houden om het zegel te breken"
       onPointerDown={(e) => {
         e.preventDefault();
         start();

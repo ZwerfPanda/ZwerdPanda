@@ -39,10 +39,11 @@ export function MediaPicker({
     for (const file of Array.from(files)) {
       try {
         if (file.type.startsWith('video/')) {
-          if (!allowVideo) throw new Error(`“${file.name}” is a video — only photos can go here.`);
+          if (!allowVideo)
+            throw new Error(`“${file.name}” is een video — hier passen alleen foto’s.`);
           if (file.size > MAX_VIDEO_BYTES) {
             throw new Error(
-              `“${file.name}” is ${formatBytes(file.size)}. Clips up to ${formatBytes(MAX_VIDEO_BYTES)} fit here.`,
+              `“${file.name}” is ${formatBytes(file.size)}. Filmpjes tot ${formatBytes(MAX_VIDEO_BYTES)} passen hier.`,
             );
           }
           const mediaId = await putMedia(file, file.name);
@@ -58,10 +59,12 @@ export function MediaPicker({
             height: prepared.height,
           });
         } else {
-          throw new Error(`“${file.name}” isn't a photo${allowVideo ? ' or video' : ''}.`);
+          throw new Error(`“${file.name}” is geen foto${allowVideo ? ' of video' : ''}.`);
         }
       } catch (error) {
-        problems.push(error instanceof Error ? error.message : `Couldn't add “${file.name}”.`);
+        problems.push(
+          error instanceof Error ? error.message : `“${file.name}” toevoegen lukte niet.`,
+        );
       }
     }
     setErrors(problems);
@@ -83,15 +86,15 @@ export function MediaPicker({
             className="picker__item"
             key={source.type === 'local' ? source.mediaId : `${source.art}-${index}`}
           >
-            <MediaView source={source} alt={`Selected ${index + 1}`} />
+            <MediaView source={source} alt={`Gekozen ${index + 1}`} />
             {source.type === 'sample' && (
-              <span className="tag tag--sample picker__tag">Sample</span>
+              <span className="tag tag--sample picker__tag">Voorbeeld</span>
             )}
             <button
               type="button"
               className="picker__remove"
               onClick={() => remove(index)}
-              aria-label={`Remove item ${index + 1}`}
+              aria-label={`Item ${index + 1} weghalen`}
             >
               <X />
             </button>
@@ -112,12 +115,12 @@ export function MediaPicker({
             )}
             <span>
               {busy
-                ? 'Adding…'
+                ? 'Toevoegen…'
                 : value.length
-                  ? 'Add more'
+                  ? 'Meer toevoegen'
                   : allowVideo
-                    ? 'Add photos or a clip'
-                    : 'Add a photo'}
+                    ? 'Foto’s of een filmpje toevoegen'
+                    : 'Foto toevoegen'}
             </span>
           </button>
         )}
@@ -129,7 +132,7 @@ export function MediaPicker({
             disabled={busy}
           >
             <ImagePlus aria-hidden="true" />
-            <span>Replace</span>
+            <span>Vervangen</span>
           </button>
         )}
       </div>

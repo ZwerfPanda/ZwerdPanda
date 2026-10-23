@@ -44,7 +44,7 @@ export const localContentAdapter: ContentAdapter = {
     }
   },
   save(content) {
-    if (!storage) throw new Error('Storage is unavailable in this browser mode.');
+    if (!storage) throw new Error('Opslag is niet beschikbaar in deze browsermodus.');
     storage.setItem(CONTENT_KEY, JSON.stringify(content));
   },
   clear() {
@@ -81,8 +81,8 @@ export function flushContent() {
   } catch (error) {
     const quota = error instanceof DOMException && error.name === 'QuotaExceededError';
     const message = quota
-      ? 'This browser’s storage is full, so the last change could not be saved.'
-      : 'Changes can’t be saved in this browser mode (private browsing?).';
+      ? 'De opslag van deze browser is vol, dus de laatste wijziging kon niet bewaard worden.'
+      : 'Wijzigingen kunnen in deze browsermodus niet bewaard worden (privé browsen?).';
     errorListeners.forEach((listener) => listener(message));
   }
 }

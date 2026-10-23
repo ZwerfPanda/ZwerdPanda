@@ -92,7 +92,7 @@ export async function startSync() {
     setState({
       ...OFF,
       phase: 'error',
-      error: error instanceof Error ? error.message : 'Could not start syncing.',
+      error: error instanceof Error ? error.message : 'Syncen starten lukte niet.',
     });
   }
 }

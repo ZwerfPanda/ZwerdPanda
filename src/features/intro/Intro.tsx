@@ -61,7 +61,7 @@ export function Intro({ onEnter }: { onEnter: () => void }) {
       <div className="intro__nebula" aria-hidden="true" />
 
       <button type="button" className="intro__skip" onClick={enter}>
-        Skip intro
+        Intro overslaan
       </button>
 
       <div className="intro__stage">
@@ -71,7 +71,7 @@ export function Intro({ onEnter }: { onEnter: () => void }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: t(0.3), duration: 0.8 }}
         >
-          Two people. One unexpected livestream.
+          Twee mensen. Eén onverwachte livestream.
         </motion.p>
 
         <svg className="intro__sky" viewBox="0 0 320 170" aria-hidden="true">

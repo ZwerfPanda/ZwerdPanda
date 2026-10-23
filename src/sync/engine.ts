@@ -68,7 +68,7 @@ function isOffline(error: unknown): boolean {
 
 function messageOf(error: unknown): string {
   if (error instanceof Error && error.message) return error.message;
-  return 'Something went wrong while syncing.';
+  return 'Er ging iets mis bij het syncen.';
 }
 
 export class SyncEngine {
@@ -160,7 +160,7 @@ export class SyncEngine {
   }
 
   async invite(email: string) {
-    if (!this.state.spaceId) throw new Error('Create our shared universe first.');
+    if (!this.state.spaceId) throw new Error('Maak eerst ons gedeelde universe aan.');
     await this.backend.invite(this.state.spaceId, email);
     await this.refreshPeople();
   }
@@ -343,7 +343,7 @@ export class SyncEngine {
         return;
       }
     }
-    throw new Error('The other phone keeps saving at the same moment — trying again shortly.');
+    throw new Error('De andere telefoon slaat precies tegelijk op — we proberen het zo opnieuw.');
   }
 
   private fail(error: unknown) {

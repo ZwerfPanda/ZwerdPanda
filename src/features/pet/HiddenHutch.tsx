@@ -56,7 +56,7 @@ export function HiddenHutch() {
           type="button"
           className={`hidden-hutch hidden-hutch--${cocoHome?.spot ?? 0}`}
           onClick={() => setFound(true)}
-          aria-label="Coco’s hutch is peeking out here"
+          aria-label="Coco’s hokje piept hier tevoorschijn"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.6 }}
@@ -69,7 +69,7 @@ export function HiddenHutch() {
       <Dialog
         open={found}
         onClose={() => setFound(false)}
-        title="You found Coco’s hutch!"
+        title="Je vond Coco’s hokje!"
         eyebrow="peekaboo"
         size="sm"
         footer={
@@ -80,10 +80,10 @@ export function HiddenHutch() {
               onClick={() => {
                 updatePrefs({ cocoHome: pickHome(path) });
                 setFound(false);
-                toast('She’ll hide her hutch somewhere else for a while.');
+                toast('Ze verstopt haar hokje een tijdje ergens anders.');
               }}
             >
-              Stay home a bit longer
+              Nog even thuisblijven
             </button>
             <button
               type="button"
@@ -94,7 +94,7 @@ export function HiddenHutch() {
                 celebrate();
               }}
             >
-              Come along ♡
+              Ga mee ♡
             </button>
           </>
         }
@@ -104,8 +104,8 @@ export function HiddenHutch() {
             <HutchArt open peek={1} />
           </svg>
           <p>
-            Two ears, a twitchy nose… and then Coco pokes her head out. “You found me! Can I come
-            with you again?”
+            Twee oortjes, een wiebelneusje… en dan steekt Coco haar kopje naar buiten. “Je hebt me
+            gevonden! Mag ik weer met je mee?”
           </p>
         </div>
       </Dialog>

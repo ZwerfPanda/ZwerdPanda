@@ -24,7 +24,7 @@ export function Explore() {
       <div className="explore__head">
         <p className="hand explore__eyebrow">come explore</p>
         <h2 id="explore-title" className="explore__title">
-          Places in <em>our</em> universe
+          Plekjes in <em>ons</em> universe
         </h2>
       </div>
 
@@ -86,30 +86,30 @@ export function Explore() {
             </g>
           </svg>
           <div className="ex-world__text">
-            <p className="hand ex-world__eyebrow">step inside</p>
-            <h3 className="ex-world__title">Our Little World</h3>
+            <p className="hand ex-world__eyebrow">stap binnen</p>
+            <h3 className="ex-world__title">Onze Kleine Wereld</h3>
             <p className="ex-world__blurb">
-              A tiny map of us — the matcha corner, the arcade, the moon post, Coco’s house and the
-              home we’re dreaming of.
+              Een klein kaartje van ons — de matcha-hoek, de arcade, de maanpost, Coco’s huisje en
+              het huis waar we van dromen.
             </p>
             <span className="ex-world__cta">
-              Explore the map <ArrowRight aria-hidden="true" />
+              Bekijk de kaart <ArrowRight aria-hidden="true" />
             </span>
           </div>
         </a>
 
         <a className="ex-ticket" href={href('/story')}>
           <div className="ex-ticket__main">
-            <p className="ex-ticket__kicker">Line ♡ · single journey, no return</p>
-            <h3 className="ex-ticket__title">Our Story</h3>
+            <p className="ex-ticket__kicker">Lijn ♡ · enkele reis, geen retour</p>
+            <h3 className="ex-ticket__title">Ons Verhaal</h3>
             <dl className="ex-ticket__route">
               <div>
-                <dt>from</dt>
-                <dd>a livestream</dd>
+                <dt>van</dt>
+                <dd>een livestream</dd>
               </div>
               <div>
-                <dt>to</dt>
-                <dd>wherever we go next</dd>
+                <dt>naar</dt>
+                <dd>waar we ook heen gaan</dd>
               </div>
             </dl>
           </div>
@@ -138,9 +138,11 @@ export function Explore() {
             )}
           </div>
           <div className="ex-memories__text">
-            <h3 className="ex-label">Memories</h3>
+            <h3 className="ex-label">Herinneringen</h3>
             <p className="ex-sub">
-              {memories.length ? plural(memories.length, 'moment') : 'add the first one'}
+              {memories.length
+                ? plural(memories.length, 'moment', 'momenten')
+                : 'voeg de eerste toe'}
             </p>
           </div>
         </a>
@@ -176,7 +178,7 @@ export function Explore() {
           </svg>
           <h3 className="ex-label">Open when…</h3>
           <p className="ex-sub">
-            {unread ? `${plural(unread, 'letter')} waiting` : 'love letters'}
+            {unread ? `${plural(unread, 'brief', 'brieven')} wachten` : 'love letters'}
           </p>
         </a>
 
@@ -200,9 +202,9 @@ export function Explore() {
             </svg>
           </div>
           <p className="hand ex-future__note">wish you were here (you are)</p>
-          <h3 className="ex-label">Our Future</h3>
+          <h3 className="ex-label">Onze Toekomst</h3>
           <p className="ex-sub">
-            {plural(plans, 'plan')} · {plural(somedays, 'one-day', 'one-days')}
+            {plural(plans, 'plan', 'plannen')} · {plural(somedays, 'ooit-droom', 'ooit-dromen')}
           </p>
         </a>
 
@@ -239,7 +241,7 @@ export function Explore() {
             <SparkleShape x={80} y={14} size={12} fill="#e8bd6a" />
           </svg>
           <h3 className="ex-label">Little surprises</h3>
-          <p className="ex-sub">hidden on purpose</p>
+          <p className="ex-sub">expres verstopt</p>
         </a>
 
         <a className="ex-sticker ex-sticker--music" href={href('/music')}>
@@ -252,7 +254,7 @@ export function Explore() {
           </svg>
           <span>
             <h3 className="ex-label">Music corner</h3>
-            <span className="ex-sub">our songs</span>
+            <span className="ex-sub">onze liedjes</span>
           </span>
         </a>
 
@@ -265,8 +267,8 @@ export function Explore() {
             <StarShape x={66} y={16} size={10} fill="#e8bd6a" />
           </svg>
           <span>
-            <h3 className="ex-label">Coco’s corner</h3>
-            <span className="ex-sub">our little rabbit</span>
+            <h3 className="ex-label">Coco’s hoekje</h3>
+            <span className="ex-sub">ons kleine konijntje</span>
           </span>
         </a>
         <a className="ex-sticker ex-sticker--us" href={href('/us')}>
@@ -282,7 +284,7 @@ export function Explore() {
           </svg>
           <span>
             <h3 className="ex-label">Mini us</h3>
-            <span className="ex-sub">the two of us, but tiny</span>
+            <span className="ex-sub">wij tweetjes, maar dan mini</span>
           </span>
         </a>
 
@@ -308,8 +310,8 @@ export function Explore() {
             <HeartShape x={56} y={56} size={10} fill="#e6889b" />
           </svg>
           <span>
-            <h3 className="ex-label">Our lists</h3>
-            <span className="ex-sub">baby names & more</span>
+            <h3 className="ex-label">Onze lijstjes</h3>
+            <span className="ex-sub">babynamen & meer</span>
           </span>
         </a>
       </div>

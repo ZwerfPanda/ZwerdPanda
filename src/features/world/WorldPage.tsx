@@ -22,7 +22,7 @@ function lightFromClock(date = new Date()): Light {
 }
 
 const LIGHT_ICONS = { day: Sun, dusk: Sunset, night: Moon } as const;
-const LIGHT_LABEL = { day: 'Day', dusk: 'Dusk', night: 'Night' } as const;
+const LIGHT_LABEL = { day: 'Dag', dusk: 'Schemer', night: 'Nacht' } as const;
 const NEXT_MODE = { auto: 'day', day: 'dusk', dusk: 'night', night: 'auto' } as const;
 
 export function WorldPage() {
@@ -110,7 +110,7 @@ export function WorldPage() {
         <div className={`world-overlay ${selected ? 'is-hidden' : ''}`}>
           <p className="world-overlay__eyebrow hand">a tiny map of us</p>
           <h1 id="world-title" className="world-overlay__title">
-            Our Little World
+            Onze Kleine Wereld
           </h1>
           <AnimatePresence>
             {!touched && (
@@ -121,7 +121,7 @@ export function WorldPage() {
                 exit={{ opacity: 0 }}
                 transition={{ delay: 0.6 }}
               >
-                Tap any place to visit it
+                Tik op een plek om erheen te gaan
               </motion.p>
             )}
           </AnimatePresence>
@@ -131,7 +131,7 @@ export function WorldPage() {
           type="button"
           className={`world-light ${selected ? 'is-hidden' : ''}`}
           onClick={() => updatePrefs({ worldLight: NEXT_MODE[prefs.worldLight] })}
-          aria-label={`${lightText} — change the lighting${prefs.worldLight === 'auto' ? ' (now following the clock)' : ''}`}
+          aria-label={`${lightText} — verander het licht${prefs.worldLight === 'auto' ? ' (volgt nu de klok)' : ''}`}
         >
           <LightIcon aria-hidden="true" />
           <span>{lightText}</span>
@@ -155,7 +155,7 @@ export function WorldPage() {
 
       <section className="world-index" aria-labelledby="world-index-title">
         <h2 id="world-index-title" className="world-index__title">
-          Places in our world
+          Plekjes in onze wereld
         </h2>
         <ul className="world-index__list">
           {PLACE_ORDER.map((id) => (
@@ -173,7 +173,7 @@ export function WorldPage() {
           ))}
         </ul>
         <p className="world-index__secret">
-          Some things in this world are hidden on purpose <HiddenHeart />
+          Sommige dingen in deze wereld zijn expres verstopt <HiddenHeart />
         </p>
         <SiteFooter />
       </section>
@@ -236,14 +236,14 @@ function PlacePanel({
     >
       <div className="place-panel__top">
         <button type="button" className="btn btn--ghost btn--small" onClick={onClose}>
-          <ArrowLeft aria-hidden="true" /> Back to our world
+          <ArrowLeft aria-hidden="true" /> Terug naar onze wereld
         </button>
         <div className="place-panel__step">
           <button
             type="button"
             className="icon-btn"
             onClick={() => onGo(prev)}
-            aria-label={`Previous place: ${PLACES[prev].name}`}
+            aria-label={`Vorige plek: ${PLACES[prev].name}`}
           >
             <ArrowLeft />
           </button>
@@ -251,7 +251,7 @@ function PlacePanel({
             type="button"
             className="icon-btn"
             onClick={() => onGo(next)}
-            aria-label={`Next place: ${PLACES[next].name}`}
+            aria-label={`Volgende plek: ${PLACES[next].name}`}
           >
             <ArrowRight />
           </button>

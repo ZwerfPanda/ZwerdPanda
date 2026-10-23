@@ -109,14 +109,14 @@ export const HIS_OUTFITS: Outfit[] = [
 export const HER_OUTFITS: Outfit[] = [
   {
     id: 'pink-top',
-    label: 'Pink dress',
+    label: 'Roze jurk',
     top: { kind: 'longsleeve', color: '#f2c3d3' },
     bottom: { kind: 'dress', color: '#f2c3d3', length: 'maxi' },
     shoes: { kind: 'runner', color: '#1d1b1f' },
   },
   {
     id: 'blue-dress',
-    label: 'Blue dress',
+    label: 'Blauwe jurk',
     top: { kind: 'cami', color: '#2f73c9' },
     bottom: { kind: 'dress', color: '#2f73c9', length: 'maxi', straps: true, slit: true },
     shoes: { kind: 'fluffy', color: '#1d1b1f' },
@@ -139,14 +139,14 @@ export const HER_OUTFITS: Outfit[] = [
   },
   {
     id: 'burgundy',
-    label: 'Red dress',
+    label: 'Rode jurk',
     top: { kind: 'longsleeve', color: '#8e2433' },
     bottom: { kind: 'dress', color: '#8e2433', length: 'maxi' },
     shoes: { kind: 'heels', color: '#141215' },
   },
   {
     id: 'brown-dress',
-    label: 'Brown set',
+    label: 'Bruin setje',
     top: { kind: 'cami', color: '#5a3527' },
     bottom: { kind: 'skirt', color: '#5a3527', length: 'midi', trim: '#141215' },
     shoes: { kind: 'runner', color: '#1d1b1f' },
@@ -161,7 +161,7 @@ export const HER_OUTFITS: Outfit[] = [
   },
   {
     id: 'denim-skirt',
-    label: 'Denim & skirt',
+    label: 'Denim & rokje',
     top: { kind: 'tee', color: '#1f1d22' },
     layer: { kind: 'denim', color: '#9fb9d6' },
     bottom: { kind: 'skirt', color: '#1f1d22', tights: '#2b2730' },
@@ -175,21 +175,21 @@ export interface Accessory {
 }
 
 export const HIS_ACCESSORIES: Accessory[] = [
-  { id: 'chain', label: 'Silver chain & cross' },
-  { id: 'bracelet', label: 'Bracelet' },
+  { id: 'chain', label: 'Zilveren ketting met kruisje' },
+  { id: 'bracelet', label: 'Armbandje' },
   { id: 'cap', label: 'Flat cap' },
-  { id: 'sunglasses', label: 'Sunglasses' },
-  { id: 'backpack', label: 'Backpack' },
+  { id: 'sunglasses', label: 'Zonnebril' },
+  { id: 'backpack', label: 'Rugzak' },
 ];
 
 export const HER_ACCESSORIES: Accessory[] = [
-  { id: 'necklace', label: 'Gold necklace' },
+  { id: 'necklace', label: 'Gouden ketting' },
   { id: 'ring', label: 'Ring' },
-  { id: 'stanley', label: 'Her Stanley cup' },
-  { id: 'pink-bag', label: 'Pink handbag' },
-  { id: 'black-bag', label: 'Black shoulder bag' },
+  { id: 'stanley', label: 'Haar Stanley cup' },
+  { id: 'pink-bag', label: 'Roze handtasje' },
+  { id: 'black-bag', label: 'Zwarte schoudertas' },
   { id: 'bucket-hat', label: 'Bucket hat' },
-  { id: 'teddy', label: 'Giant teddy bear' },
+  { id: 'teddy', label: 'Grote teddybeer' },
 ];
 
 export function outfitFor(person: 'you' | 'partner', id: string): Outfit {

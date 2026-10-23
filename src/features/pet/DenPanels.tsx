@@ -12,15 +12,15 @@ import { FOODS, TREATS_PER_DAY, TRICKS, TRICK_ORDER, describeCare, type Needs } 
 export const GREENS: PetFood[] = ['pellets', 'romaine', 'parsley', 'coriander', 'basil'];
 export const TREATS: PetFood[] = ['carrot', 'apple', 'banana', 'strawberry'];
 
-export const bondNames = ['Shy', 'Curious', 'Trusting', 'Best friends', 'Family'];
+export const bondNames = ['Verlegen', 'Nieuwsgierig', 'Vertrouwd', 'Best friends', 'Family'];
 
 export function Meters({ needs }: { needs: Needs }) {
   const items: { key: keyof Needs; label: string; icon: React.ReactNode }[] = [
-    { key: 'hay', label: 'Hay & water', icon: <Wheat aria-hidden="true" /> },
-    { key: 'tummy', label: 'Tummy', icon: <Salad aria-hidden="true" /> },
-    { key: 'love', label: 'Cuddles', icon: <Heart aria-hidden="true" /> },
-    { key: 'play', label: 'Playtime', icon: <Volleyball aria-hidden="true" /> },
-    { key: 'fur', label: 'Fur', icon: <Sparkles aria-hidden="true" /> },
+    { key: 'hay', label: 'Hooi & water', icon: <Wheat aria-hidden="true" /> },
+    { key: 'tummy', label: 'Buikje', icon: <Salad aria-hidden="true" /> },
+    { key: 'love', label: 'Knuffels', icon: <Heart aria-hidden="true" /> },
+    { key: 'play', label: 'Speeltijd', icon: <Volleyball aria-hidden="true" /> },
+    { key: 'fur', label: 'Vacht', icon: <Sparkles aria-hidden="true" /> },
   ];
   return (
     <ul className="den__meters">
@@ -55,7 +55,7 @@ export function FeedTray({ today, onFeed }: { today: string; onFeed: (food: PetF
   return (
     <div className="den-feed">
       <div className="den-feed__group">
-        <h3>Every day</h3>
+        <h3>Elke dag</h3>
         <div className="den-options">
           <button
             type="button"
@@ -78,9 +78,9 @@ export function FeedTray({ today, onFeed }: { today: string; onFeed: (food: PetF
       </div>
       <div className="den-feed__group">
         <h3>
-          Treats{' '}
+          Snoepjes{' '}
           <span className="den-feed__count">
-            {Math.min(used, TREATS_PER_DAY)}/{TREATS_PER_DAY} today
+            {Math.min(used, TREATS_PER_DAY)}/{TREATS_PER_DAY} vandaag
           </span>
         </h3>
         <div className="den-options">
@@ -155,13 +155,13 @@ export function TrainTray({
         )}
         <div className="settings-actions">
           <button type="button" className="btn btn--primary" onClick={click} disabled={busy}>
-            Click &amp; reward
+            Klik &amp; beloon
           </button>
           <button type="button" className="btn btn--quiet btn--small" onClick={onStop}>
-            Done training
+            Klaar met trainen
           </button>
         </div>
-        {!reduce && <p className="den-train__hint">Press when the marker is in the pink zone.</p>}
+        {!reduce && <p className="den-train__hint">Druk als het streepje in het roze vak staat.</p>}
       </div>
     );
   }
@@ -175,7 +175,7 @@ export function TrainTray({
           <li key={trick}>
             <div className="den-tricks__info">
               <span className="den-tricks__name">
-                {TRICKS[trick].label} {learned && <span className="tag">learned ✓</span>}
+                {TRICKS[trick].label} {learned && <span className="tag">geleerd ✓</span>}
               </span>
               <span className="den-meter__bar" aria-hidden="true">
                 <span style={{ width: `${value}%` }} />
@@ -188,16 +188,16 @@ export function TrainTray({
                 onClick={() => onShow(trick)}
                 disabled={busy}
               >
-                Show me
+                Laat zien
               </button>
             ) : (
               <button
                 type="button"
                 className="btn btn--soft btn--small"
                 onClick={() => onStart(trick)}
-                aria-label={`Train ${TRICKS[trick].label}, ${value}% learned`}
+                aria-label={`${TRICKS[trick].label} trainen, ${value}% geleerd`}
               >
-                Train
+                Trainen
               </button>
             )}
           </li>
@@ -213,13 +213,13 @@ export function CareDiary() {
   if (!log.length) {
     return (
       <p className="den__diary-empty muted">
-        Coco’s care diary is empty — whatever either of you does for her shows up here.
+        Coco’s zorgdagboek is nog leeg — alles wat jullie voor haar doen komt hier te staan.
       </p>
     );
   }
   return (
     <div className="den__diary">
-      <h3 className="den__diary-title">Care diary</h3>
+      <h3 className="den__diary-title">Zorgdagboek</h3>
       <ul>
         {log.slice(0, 6).map((entry) => (
           <li key={entry.id}>

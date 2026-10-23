@@ -88,9 +88,9 @@ export function MemoryForm({
     const problems: typeof errors = {};
     if (draft.media.length === 0)
       problems.media = memory
-        ? 'Keep at least one photo or clip.'
-        : 'Add at least one photo or clip.';
-    if (draft.date && !isValidIsoDate(draft.date)) problems.date = 'That date doesn’t look right.';
+        ? 'Houd minstens één foto of filmpje.'
+        : 'Voeg minstens één foto of filmpje toe.';
+    if (draft.date && !isValidIsoDate(draft.date)) problems.date = 'Die datum klopt niet helemaal.';
     setErrors(problems);
     if (Object.keys(problems).length) return;
 
@@ -110,7 +110,7 @@ export function MemoryForm({
         ...c,
         memories: c.memories.map((m) => (m.id === memory.id ? updated : m)),
       }));
-      toast('Memory saved');
+      toast('Herinnering opgeslagen');
     } else {
       const created: Memory[] = draft.media.map((media) => ({
         id: createId('mem'),
@@ -122,8 +122,8 @@ export function MemoryForm({
       updateContent((c) => ({ ...c, memories: [...created, ...c.memories] }));
       toast(
         created.length === 1
-          ? 'Added to our scrapbook'
-          : `${created.length} memories added to our scrapbook`,
+          ? 'In ons plakboek gezet ♡'
+          : `${created.length} herinneringen in ons plakboek gezet`,
       );
     }
     onClose();
@@ -133,27 +133,27 @@ export function MemoryForm({
     <Dialog
       open={open}
       onClose={onClose}
-      title={memory ? 'Edit memory' : 'Add memories'}
+      title={memory ? 'Herinnering bewerken' : 'Herinneringen toevoegen'}
       eyebrow="our scrapbook"
       size="lg"
       footer={
         <>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Cancel
+            Annuleren
           </button>
           <button type="submit" form="memory-form" className="btn btn--primary">
             {memory
-              ? 'Save memory'
+              ? 'Opslaan'
               : draft.media.length > 1
-                ? `Add ${draft.media.length} memories`
-                : 'Add memory'}
+                ? `${draft.media.length} herinneringen toevoegen`
+                : 'Toevoegen'}
           </button>
         </>
       }
     >
       <form id="memory-form" className="form" onSubmit={save} noValidate>
         <MediaPicker
-          label={memory ? 'Photo or clip' : 'Photos or clips'}
+          label={memory ? 'Foto of filmpje' : 'Foto’s of filmpjes'}
           value={draft.media}
           onChange={(v) => {
             set('media', v);
@@ -164,7 +164,7 @@ export function MemoryForm({
           hint={
             memory
               ? undefined
-              : 'Pick several at once — each becomes its own memory with the details below. Photos stay on this device.'
+              : 'Kies er meerdere tegelijk — elke foto wordt een eigen herinnering met de details hieronder.'
           }
         />
         {errors.media && (
@@ -173,24 +173,24 @@ export function MemoryForm({
           </p>
         )}
         <TextField
-          label="Caption"
+          label="Onderschrift"
           optional
           value={draft.caption}
           onChange={(v) => set('caption', v)}
           maxLength={120}
-          placeholder="e.g. Matcha number three of the day"
+          placeholder="bv. Matcha nummer drie van de dag"
         />
         <TextArea
-          label="A little note"
+          label="Een notitie"
           optional
           value={draft.note}
           onChange={(v) => set('note', v)}
           rows={3}
-          placeholder="What was happening just outside the photo?"
+          placeholder="Wat gebeurde er net buiten beeld?"
         />
         <div className="form-row form-row--2">
           <TextField
-            label="Date"
+            label="Datum"
             type="date"
             optional
             value={draft.date}
@@ -198,11 +198,11 @@ export function MemoryForm({
             error={errors.date}
           />
           <TextField
-            label="Where"
+            label="Waar"
             optional
             value={draft.location}
             onChange={(v) => set('location', v)}
-            placeholder="e.g. The Hague"
+            placeholder="bv. Den Haag"
           />
         </div>
         <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
@@ -224,7 +224,7 @@ export function MemoryForm({
           </div>
         </fieldset>
         <Checkbox
-          label="One of our favourites"
+          label="Een van onze favorieten"
           checked={draft.favorite}
           onChange={(v) => set('favorite', v)}
         />

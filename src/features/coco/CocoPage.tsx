@@ -30,10 +30,10 @@ export function CocoPage() {
         eyebrow="the smallest member of the family"
         title={
           <>
-            Coco’s <em>Corner</em>
+            Coco’s <em>Hoekje</em>
           </>
         }
-        lede="Our little dwarf rabbit. Feed her, cuddle her and teach her tricks together — plus her photos, funny moments and the official facts."
+        lede="Ons kleine dwergkonijntje. Geef haar eten, knuffel haar en leer haar samen trucjes — plus haar foto’s, grappige momentjes en de officiële feitjes."
       />
       <CocoDen />
       <div className="coco-top">
@@ -57,7 +57,7 @@ function Portrait() {
   const frameRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <section className="portrait" aria-label="Coco’s portrait">
+    <section className="portrait" aria-label="Coco’s portret">
       <button
         ref={frameRef}
         type="button"
@@ -66,7 +66,7 @@ function Portrait() {
           setHops((h) => h + 1);
           celebrateFrom(frameRef.current);
         }}
-        aria-label="Say hi to Coco"
+        aria-label="Zeg hoi tegen Coco"
       >
         {portrait ? (
           <MediaView source={portrait} alt="Coco" />
@@ -83,7 +83,7 @@ function Portrait() {
         )}
       </button>
       <p className="portrait__name">Coco</p>
-      {!portrait && <p className="tag tag--sample">Illustration — add a real photo of Coco</p>}
+      {!portrait && <p className="tag tag--sample">Tekening — voeg een echte foto van Coco toe</p>}
       <div className="portrait__actions">
         <button
           type="button"
@@ -93,7 +93,7 @@ function Portrait() {
             setPicking(true);
           }}
         >
-          <Camera aria-hidden="true" /> {portrait ? 'Change photo' : 'Set Coco’s photo'}
+          <Camera aria-hidden="true" /> {portrait ? 'Andere foto' : 'Foto van Coco kiezen'}
         </button>
         {portrait && (
           <button
@@ -101,20 +101,20 @@ function Portrait() {
             className="btn btn--quiet btn--small"
             onClick={() => updateCoco({ portrait: undefined })}
           >
-            <X aria-hidden="true" /> Use the drawing
+            <X aria-hidden="true" /> Tekening gebruiken
           </button>
         )}
       </div>
       <Dialog
         open={picking}
         onClose={() => setPicking(false)}
-        title="Coco’s portrait"
+        title="Coco’s portret"
         eyebrow="say cheese"
         size="sm"
         footer={
           <>
             <button type="button" className="btn btn--ghost" onClick={() => setPicking(false)}>
-              Cancel
+              Annuleren
             </button>
             <button
               type="button"
@@ -123,20 +123,20 @@ function Portrait() {
               onClick={() => {
                 updateCoco({ portrait: draft[0] });
                 setPicking(false);
-                toast('Looking good, Coco');
+                toast('Looking good, Coco ♡');
               }}
             >
-              Use this photo
+              Deze foto gebruiken
             </button>
           </>
         }
       >
         <MediaPicker
-          label="Photo"
+          label="Foto"
           value={draft}
           onChange={setDraft}
           multiple={false}
-          hint="Square-ish photos look best in the frame."
+          hint="Vierkante foto’s passen het mooist in de lijst."
         />
       </Dialog>
     </section>
@@ -163,12 +163,12 @@ function BunnyId() {
       .map((f) => ({ ...f, label: f.label.trim(), value: f.value.trim() }))
       .filter((f) => f.label || f.value);
     if (cleaned.some((f) => !f.label)) {
-      setError('Every fact needs a label (like “Favourite snack”).');
+      setError('Elk feitje heeft een label nodig (zoals “Lievelingssnack”).');
       return;
     }
     updateCoco({ facts: cleaned });
     setEditing(false);
-    toast('Coco’s ID updated');
+    toast('Coco’s ID bijgewerkt');
   };
 
   return (
@@ -181,7 +181,7 @@ function BunnyId() {
           <button
             type="button"
             className="icon-btn"
-            aria-label="Edit Coco’s facts"
+            aria-label="Coco’s feitjes bewerken"
             onClick={() => setEditing(true)}
           >
             <Pencil />
@@ -193,7 +193,7 @@ function BunnyId() {
           {draft.map((fact, i) => (
             <div className="bunny-id__edit" key={fact.id}>
               <TextField
-                label={`Fact ${i + 1}`}
+                label={`Feitje ${i + 1}`}
                 value={fact.label}
                 onChange={(v) =>
                   setDraft((d) => d.map((f) => (f.id === fact.id ? { ...f, label: v } : f)))
@@ -201,7 +201,7 @@ function BunnyId() {
                 maxLength={40}
               />
               <TextField
-                label="Answer"
+                label="Antwoord"
                 value={fact.value}
                 onChange={(v) =>
                   setDraft((d) => d.map((f) => (f.id === fact.id ? { ...f, value: v } : f)))
@@ -211,7 +211,7 @@ function BunnyId() {
               <button
                 type="button"
                 className="icon-btn"
-                aria-label={`Remove fact ${i + 1}`}
+                aria-label={`Feitje ${i + 1} weghalen`}
                 onClick={() => setDraft((d) => d.filter((f) => f.id !== fact.id))}
               >
                 <Trash2 />
@@ -231,7 +231,7 @@ function BunnyId() {
                 setDraft((d) => [...d, { id: createId('fact'), label: '', value: '' }])
               }
             >
-              <Plus aria-hidden="true" /> Add a fact
+              <Plus aria-hidden="true" /> Feitje toevoegen
             </button>
             <span style={{ flex: 1 }} />
             <button
@@ -239,31 +239,31 @@ function BunnyId() {
               className="btn btn--ghost btn--small"
               onClick={() => setEditing(false)}
             >
-              Cancel
+              Annuleren
             </button>
             <button type="submit" className="btn btn--primary btn--small">
-              Save
+              Opslaan
             </button>
           </div>
         </form>
       ) : (
         <dl className="bunny-id__facts">
           <div>
-            <dt>Born</dt>
+            <dt>Geboren</dt>
             <dd>{formatDate(pet.birthday)}</dd>
           </div>
           <div>
-            <dt>She’s a</dt>
-            <dd>{pet.sex === 'girl' ? 'Girl' : 'Boy'}</dd>
+            <dt>Ze is een</dt>
+            <dd>{pet.sex === 'girl' ? 'meisje' : 'jongen'}</dd>
           </div>
           <div>
-            <dt>Coat</dt>
+            <dt>Vacht</dt>
             <dd>{pet.coat}</dd>
           </div>
           {facts.map((f) => (
             <div key={f.id}>
               <dt>{f.label}</dt>
-              <dd className={f.value ? '' : 'is-empty'}>{f.value || 'tap ✎ to fill in'}</dd>
+              <dd className={f.value ? '' : 'is-empty'}>{f.value || 'tik ✎ om in te vullen'}</dd>
             </div>
           ))}
         </dl>
@@ -285,15 +285,16 @@ function CocoPhotos() {
     <section className="coco-photos" aria-labelledby="coco-photos-title">
       <div className="coco-photos__head">
         <h2 id="coco-photos-title" className="section-title" style={{ margin: 0 }}>
-          Photos of Coco
+          Foto’s van Coco
         </h2>
         <button type="button" className="btn btn--soft btn--small" onClick={() => setAdding(true)}>
-          <ImagePlus aria-hidden="true" /> Add photos
+          <ImagePlus aria-hidden="true" /> Foto’s toevoegen
         </button>
       </div>
       {photos.length === 0 ? (
         <p className="muted">
-          No Coco photos yet — add one and it lands in the Coco album of our scrapbook too.
+          Nog geen foto’s van Coco — voeg er een toe en hij komt ook in het Coco-album van ons
+          plakboek.
         </p>
       ) : (
         <ul className="coco-strip">
@@ -346,11 +347,11 @@ function CocoNotes() {
   const save = (event: React.FormEvent) => {
     event.preventDefault();
     if (!text.trim()) {
-      setError('What did Coco do?');
+      setError('Wat deed Coco?');
       return;
     }
     if (date && !isValidIsoDate(date)) {
-      setError('That date doesn’t look right.');
+      setError('Die datum klopt niet helemaal.');
       return;
     }
     const note: CocoNote = {
@@ -368,9 +369,9 @@ function CocoNotes() {
 
   const remove = async (note: CocoNote) => {
     const ok = await confirm({
-      title: 'Delete this Coco moment?',
+      title: 'Dit Coco-momentje verwijderen?',
       message: note.text,
-      confirmLabel: 'Delete',
+      confirmLabel: 'Verwijderen',
       tone: 'danger',
     });
     if (ok) updateCoco({ notes: notes.filter((n) => n.id !== note.id) });
@@ -380,20 +381,20 @@ function CocoNotes() {
     <section className="coco-notes" aria-labelledby="coco-notes-title">
       <div className="coco-photos__head">
         <h2 id="coco-notes-title" className="section-title" style={{ margin: 0 }}>
-          Coco moments
+          Coco-momentjes
         </h2>
         <button
           type="button"
           className="btn btn--soft btn--small"
           onClick={() => setForm({ open: true, note: null })}
         >
-          <Plus aria-hidden="true" /> Add a moment
+          <Plus aria-hidden="true" /> Momentje toevoegen
         </button>
       </div>
       {notes.length === 0 ? (
         <EmptyState
-          title="No Coco moments yet"
-          text="The zoomies, the stolen snacks, the time Coco refused to come out — write them down before we forget."
+          title="Nog geen Coco-momentjes"
+          text="De zoomies, de gestolen snacks, die keer dat Coco niet naar buiten wilde — schrijf ze op voor we ze vergeten."
         />
       ) : (
         <ul className="coco-notes__list">
@@ -407,7 +408,7 @@ function CocoNotes() {
                 <button
                   type="button"
                   className="icon-btn"
-                  aria-label="Edit this moment"
+                  aria-label="Momentje bewerken"
                   onClick={() => setForm({ open: true, note: n })}
                 >
                   <Pencil />
@@ -415,7 +416,7 @@ function CocoNotes() {
                 <button
                   type="button"
                   className="icon-btn"
-                  aria-label="Delete this moment"
+                  aria-label="Momentje verwijderen"
                   onClick={() => remove(n)}
                 >
                   <Trash2 />
@@ -428,7 +429,7 @@ function CocoNotes() {
       <Dialog
         open={form.open}
         onClose={() => setForm({ open: false, note: null })}
-        title={form.note ? 'Edit Coco moment' : 'A Coco moment'}
+        title={form.note ? 'Coco-momentje bewerken' : 'Een Coco-momentje'}
         eyebrow="coco’s corner"
         size="sm"
         footer={
@@ -438,17 +439,23 @@ function CocoNotes() {
               className="btn btn--ghost"
               onClick={() => setForm({ open: false, note: null })}
             >
-              Cancel
+              Annuleren
             </button>
             <button type="submit" form="coco-note-form" className="btn btn--primary">
-              Save
+              Opslaan
             </button>
           </>
         }
       >
         <form id="coco-note-form" className="form" onSubmit={save} noValidate>
-          <TextArea label="What happened" value={text} onChange={setText} rows={4} error={error} />
-          <TextField label="When" type="date" optional value={date} onChange={setDate} />
+          <TextArea
+            label="Wat er gebeurde"
+            value={text}
+            onChange={setText}
+            rows={4}
+            error={error}
+          />
+          <TextField label="Wanneer" type="date" optional value={date} onChange={setDate} />
         </form>
       </Dialog>
     </section>

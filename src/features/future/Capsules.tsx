@@ -30,10 +30,10 @@ export function Capsules() {
     const early = capsule.openOn > today;
     if (early) {
       const ok = await confirm({
-        title: 'Open it early?',
-        message: `This one is meant for ${formatDate(capsule.openOn)}. Waiting is half the fun — but it’s your universe.`,
-        confirmLabel: 'Peek anyway',
-        cancelLabel: 'I’ll wait',
+        title: 'Nu al openen?',
+        message: `Deze is bedoeld voor ${formatDate(capsule.openOn)}. Wachten is de helft van de lol — maar het is jullie universe.`,
+        confirmLabel: 'Toch even gluren',
+        cancelLabel: 'Ik wacht wel',
       });
       if (!ok) return;
     }
@@ -46,17 +46,17 @@ export function Capsules() {
 
   const remove = async (capsule: TimeCapsule) => {
     const ok = await confirm({
-      title: 'Delete this time capsule?',
-      message: `“${capsule.title}” will be gone for good.`,
-      confirmLabel: 'Delete',
+      title: 'Deze tijdcapsule verwijderen?',
+      message: `“${capsule.title}” is dan voorgoed weg.`,
+      confirmLabel: 'Verwijderen',
       tone: 'danger',
     });
     if (!ok) return;
     const position = getContent().capsules.findIndex((c) => c.id === capsule.id);
     removeItem('capsules', capsule.id);
     setReading(null);
-    toast('Time capsule deleted', {
-      action: { label: 'Undo', run: () => restoreItem('capsules', capsule, position) },
+    toast('Tijdcapsule verwijderd', {
+      action: { label: 'Ongedaan maken', run: () => restoreItem('capsules', capsule, position) },
     });
   };
 
@@ -68,23 +68,21 @@ export function Capsules() {
         <div>
           <p className="hand capsules__eyebrow">to us, later</p>
           <h2 id="capsules-title" className="capsules__title">
-            Time capsules
+            Tijdcapsules
           </h2>
           <p className="capsules__lede">
-            Write something together today and seal it until a day in the future.
+            Schrijf vandaag samen iets en verzegel het tot een dag in de toekomst.
           </p>
         </div>
         <button type="button" className="btn btn--soft" onClick={() => setFormOpen(true)}>
-          <Plus aria-hidden="true" /> Seal a capsule
+          <Plus aria-hidden="true" /> Capsule verzegelen
         </button>
       </div>
 
       {capsules.length === 0 ? (
         <div className="capsule capsule--empty">
           <Hourglass aria-hidden="true" />
-          <p>
-            No capsules yet. A letter to open on our first anniversary would be a lovely first one.
-          </p>
+          <p>Nog geen capsules. Een brief voor ons eerste jubileum zou een mooie eerste zijn.</p>
         </div>
       ) : (
         <ul className="capsules__list">
@@ -105,10 +103,10 @@ export function Capsules() {
                     <span className="capsule__title">{capsule.title}</span>
                     <span className="capsule__meta">
                       {capsule.openedAt
-                        ? `Opened ${formatTimestamp(capsule.openedAt)}`
+                        ? `Geopend ${formatTimestamp(capsule.openedAt)}`
                         : ready
-                          ? 'Ready to open ♡'
-                          : `Opens ${formatDate(capsule.openOn)} · ${plural(left, 'day')} to go`}
+                          ? 'Klaar om te openen ♡'
+                          : `Opent ${formatDate(capsule.openOn)} · nog ${plural(left, 'dag', 'dagen')}`}
                     </span>
                   </span>
                 </button>
@@ -123,17 +121,17 @@ export function Capsules() {
         open={current !== null}
         onClose={() => setReading(null)}
         title={current?.title ?? ''}
-        eyebrow={current ? `sealed for ${formatDate(current.openOn)}` : ''}
+        eyebrow={current ? `verzegeld voor ${formatDate(current.openOn)}` : ''}
         size="md"
         footer={
           current && (
             <>
               <button type="button" className="btn btn--quiet" onClick={() => remove(current)}>
-                <Trash2 aria-hidden="true" /> Delete
+                <Trash2 aria-hidden="true" /> Verwijderen
               </button>
               <span className="spacer" />
               <button type="button" className="btn btn--primary" onClick={() => setReading(null)}>
-                Close
+                Sluiten
               </button>
             </>
           )
@@ -145,7 +143,7 @@ export function Capsules() {
               <p key={i}>{p}</p>
             ))}
             {current.from && <p className="capsule-letter__from">— {current.from}</p>}
-            <p className="field__hint">Written {formatTimestamp(current.createdAt)}</p>
+            <p className="field__hint">Geschreven {formatTimestamp(current.createdAt)}</p>
           </div>
         )}
       </Dialog>
@@ -174,10 +172,10 @@ function CapsuleForm({ open, onClose }: { open: boolean; onClose: () => void }) 
   const save = (event: React.FormEvent) => {
     event.preventDefault();
     const problems: typeof errors = {};
-    if (!title.trim()) problems.title = 'Give it a name, like “For our first anniversary”.';
-    if (!body.trim()) problems.body = 'Write something to your future selves.';
-    if (!isValidIsoDate(openOn)) problems.openOn = 'Choose the day it unseals.';
-    else if (openOn <= today) problems.openOn = 'Pick a day in the future.';
+    if (!title.trim()) problems.title = 'Geef hem een naam, zoals “Voor ons eerste jubileum”.';
+    if (!body.trim()) problems.body = 'Schrijf iets aan jullie toekomstige zelf.';
+    if (!isValidIsoDate(openOn)) problems.openOn = 'Kies de dag waarop hij opengaat.';
+    else if (openOn <= today) problems.openOn = 'Kies een dag in de toekomst.';
     setErrors(problems);
     if (Object.keys(problems).length) return;
     const capsule: TimeCapsule = {
@@ -193,7 +191,7 @@ function CapsuleForm({ open, onClose }: { open: boolean; onClose: () => void }) 
       ...c,
       capsules: [...c.capsules, capsule].sort((a, b) => a.openOn.localeCompare(b.openOn)),
     }));
-    toast(`Sealed until ${formatDate(openOn)}`);
+    toast(`Verzegeld tot ${formatDate(openOn)}`);
     onClose();
   };
 
@@ -201,42 +199,42 @@ function CapsuleForm({ open, onClose }: { open: boolean; onClose: () => void }) 
     <Dialog
       open={open}
       onClose={onClose}
-      title="Seal a time capsule"
+      title="Tijdcapsule verzegelen"
       eyebrow="to us, later"
       size="md"
       footer={
         <>
           <button type="button" className="btn btn--ghost" onClick={onClose}>
-            Cancel
+            Annuleren
           </button>
           <button type="submit" form="capsule-form" className="btn btn--primary">
-            Seal it
+            Verzegelen
           </button>
         </>
       }
     >
       <form id="capsule-form" className="form" onSubmit={save} noValidate>
         <TextField
-          label="Name"
+          label="Naam"
           value={title}
           onChange={setTitle}
           error={errors.title}
           maxLength={100}
-          placeholder="For our first anniversary"
+          placeholder="Voor ons eerste jubileum"
         />
         <TextArea
-          label="The letter"
+          label="De brief"
           variant="letter"
           value={body}
           onChange={setBody}
           error={errors.body}
           rows={8}
-          placeholder="Dear future us…"
+          placeholder="Lieve toekomstige wij…"
         />
         <div className="form-row form-row--2">
-          <TextField label="From" value={from} onChange={setFrom} maxLength={120} />
+          <TextField label="Van" value={from} onChange={setFrom} maxLength={120} />
           <TextField
-            label="Opens on"
+            label="Opent op"
             type="date"
             min={today}
             value={openOn}

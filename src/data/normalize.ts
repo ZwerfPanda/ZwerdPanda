@@ -1,3 +1,4 @@
+import { refreshStarterTexts } from './starterTexts';
 import {
   createDefaultContent,
   defaultPet,
@@ -557,7 +558,7 @@ export function normalizeContent(raw: unknown): AppContent {
   const defaults = createDefaultContent();
   if (!isObj(raw)) return defaults;
   const albums = list(raw.albums, normalizeAlbum);
-  return {
+  return refreshStarterTexts({
     version: 1,
     profile: normalizeProfile(raw.profile),
     milestones: Array.isArray(raw.milestones)
@@ -579,7 +580,7 @@ export function normalizeContent(raw: unknown): AppContent {
       ? list(raw.lists, normalizeList).slice(0, 60)
       : defaultLists.map((l) => ({ ...l, items: [] })),
     us: normalizeUs(raw.us),
-  };
+  });
 }
 
 /** True when the object looks like one of our content files at all. */

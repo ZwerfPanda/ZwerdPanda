@@ -28,51 +28,51 @@ const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
 const SWEET: Record<Person, string[]> = {
   you: [
-    'Hey {pet}. Just wanted to say hi.',
-    '{Pet}, did I tell you I love your laugh?',
-    'Matcha soon, {pet}? Vanilla, extra syrup — I know.',
-    'I’d take the train and the metro all over again for you, {pet}.',
-    '{Pet}, Coco says hi. (Okay, I say hi.)',
-    'You look so good today, {pet}.',
-    'Proud of you, {pet}. Always.',
-    'Come here, {pet}. Hug. Now.',
+    'Hey {pet}. Wilde gewoon even hoi zeggen.',
+    '{Pet}, heb ik al gezegd dat ik je lach zo mooi vind?',
+    'Matcha binnenkort, {pet}? Vanilla, extra siroop — I know.',
+    'Ik zou die trein en metro zo weer voor je pakken, {pet}.',
+    '{Pet}, Coco zegt hoi. (Oké, ík zeg hoi.)',
+    'Je ziet er zo mooi uit vandaag, {pet}.',
+    'Proud of you, {pet}. Altijd.',
+    'Kom hier, {pet}. Knuffel. Nu.',
   ],
   partner: [
     'Hi {pet} ♡',
-    '{Pet}, hold my Stanley for a sec?',
-    'You’re so tall, {pet}. I need a ladder to kiss you.',
-    'Arcade rematch, {pet}? I’m winning this time.',
-    'Karaoke tonight, {pet}?',
-    'Bubble tea run, {pet}?',
-    '{Pet}, you’re mine. Just so you know.',
-    'Miss you already, {pet}.',
+    '{Pet}, hou je mijn Stanley even vast?',
+    'Je bent zó lang, {pet}. Ik heb een trapje nodig om je te kussen.',
+    'Arcade rematch, {pet}? Deze keer win ik.',
+    'Karaoke vanavond, {pet}?',
+    'Bubble tea halen, {pet}?',
+    '{Pet}, je bent van mij. Just so you know.',
+    'Ik mis je nu al, {pet}.',
   ],
 };
 
 const REPLIES: Record<Person, string[]> = {
   you: [
-    'Always, {pet}.',
-    'Anything for you, {pet}.',
+    'Altijd, {pet}.',
+    'Alles voor jou, {pet}.',
     'Say less, {pet}.',
-    'You know I’m in, {pet}.',
+    'Je weet dat ik erbij ben, {pet}.',
   ],
   partner: [
     'Yesss {pet} ♡',
-    'Okay but you’re paying, {pet}.',
-    'Only if you hold my bag, {pet}.',
+    'Oké, maar jij betaalt, {pet}.',
+    'Alleen als jij mijn tas draagt, {pet}.',
     'Deal, {pet}.',
   ],
 };
 
 const DATE_IDEAS = [
-  'a matcha and bubble tea crawl',
-  'an arcade battle — loser buys snacks',
-  'a karaoke duet, loudly',
-  'a mall day with mirror selfies in every fitting room',
-  'the train to The Hague, just because',
-  'a movie night with Coco on the couch',
-  'a picnic with way too many snacks',
-  'trying on silly hats and sunglasses',
+  'een matcha- en bubble tea-tour',
+  'een arcade battle — de verliezer trakteert op snacks',
+  'een karaoke-duet, keihard',
+  'een shopdag met spiegelselfies in elke paskamer',
+  'de trein naar Den Haag, gewoon omdat het kan',
+  'een movie night met Coco op de bank',
+  'een picknick met veel te veel snacks',
+  'gekke hoedjes en zonnebrillen passen',
 ];
 
 function fill(template: string, pet: string) {
@@ -100,7 +100,7 @@ export function dateIdea(content: AppContent, starter: Person, rng: Rng): Exchan
     .map((d) => d.title.charAt(0).toLowerCase() + d.title.slice(1));
   const idea = ours.length && rng() < 0.6 ? pick(ours, rng) : pick(DATE_IDEAS, rng);
   return [
-    { who: starter, text: fill(`Date idea, {pet}: ${idea}?`, petNameFor(content, starter, rng)) },
+    { who: starter, text: fill(`Date-idee, {pet}: ${idea}?`, petNameFor(content, starter, rng)) },
     {
       who: other(starter),
       text: fill(pick(REPLIES[other(starter)], rng), petNameFor(content, other(starter), rng)),
@@ -121,17 +121,22 @@ export function rememberWhen(content: AppContent, starter: Person, rng: Rng): Ex
         ...content.milestones.filter((m) => !m.future).map((m) => m.title.trim()),
       ];
   if (!pool.length) {
-    return [{ who: starter, text: 'Let’s make a memory today. Then I’ll remember it forever.' }];
+    return [
+      { who: starter, text: 'Laten we vandaag een herinnering maken. Dan onthoud ik hem forever.' },
+    ];
   }
   const memory = pick(pool, rng);
   const replies = [
-    'I think about that one a lot.',
-    'One of my favourites. Again soon?',
-    'Stop, I’m smiling again.',
-    'Best day. Or one of them.',
+    'Daar denk ik nog vaak aan.',
+    'Een van mijn favorieten. Snel weer?',
+    'Stop, ik zit alweer te lachen.',
+    'Best day ever. Of een van de besten.',
   ];
   return [
-    { who: starter, text: fill(`Remember “${memory}”, {pet}?`, petNameFor(content, starter, rng)) },
+    {
+      who: starter,
+      text: fill(`Weet je nog, “${memory}”, {pet}?`, petNameFor(content, starter, rng)),
+    },
     { who: other(starter), text: pick(replies, rng) },
   ];
 }
@@ -162,31 +167,31 @@ export type MomentKind = 'hug' | 'kiss' | 'heart' | 'selfie' | 'highfive' | 'wav
 
 const MOMENT_LINES: Record<MomentKind, [string[], string[]]> = {
   hug: [
-    ['Come here, {pet}.', 'Hug. Now, {pet}.', 'I missed you, {pet}.'],
-    ['Five more minutes.', 'Don’t let go yet.', 'My favourite place.'],
+    ['Kom hier, {pet}.', 'Knuffel. Nu, {pet}.', 'Ik heb je gemist, {pet}.'],
+    ['Nog vijf minuutjes.', 'Nog niet loslaten.', 'Mijn favoriete plekje.'],
   ],
   kiss: [
-    ['A forehead kiss for you, {pet}.', 'Hold still, {pet}.'],
-    ['♡', 'Again.', 'Okay, I’m melting.'],
+    ['Een kusje op je voorhoofd, {pet}.', 'Even stilstaan, {pet}.'],
+    ['♡', 'Nog een keer.', 'Oké, ik smelt.'],
   ],
   heart: [
-    ['Love you, {pet}.', 'You and me, {pet}.'],
-    ['Love you more.', 'Always ♡'],
+    ['Love you, {pet}.', 'Jij en ik, {pet}.'],
+    ['Love you more.', 'Altijd ♡'],
   ],
   selfie: [
-    ['Mirror selfie, {pet}! Peace ✌', 'Pose, {pet}! For the album.'],
-    ['One more, I blinked.', 'Okay, that one’s cute.'],
+    ['Spiegelselfie, {pet}! Peace ✌', 'Pose, {pet}! Voor het album.'],
+    ['Nog eentje, ik knipperde.', 'Oké, die is cute.'],
   ],
   highfive: [
-    ['Team us, {pet}!', 'We did that, {pet}.'],
-    ['Obviously.', 'Best team.'],
+    ['Team us, {pet}!', 'Dat hebben we geflikt, {pet}.'],
+    ['Obviously.', 'Beste team.'],
   ],
   twirl: [
-    ['Spin for me, {pet}.', 'One twirl, {pet}. Go!'],
-    ['Wheee!', 'Again, again!', 'I’m dizzy. Catch me.'],
+    ['Draai voor me, {pet}.', 'Eén rondje, {pet}. Go!'],
+    ['Wieee!', 'Nog een keer, nog een keer!', 'Ik ben duizelig. Vang me.'],
   ],
   wave: [
-    ['Hiii {pet}!', 'There you are, {pet}.'],
+    ['Hoiii {pet}!', 'Daar ben je, {pet}.'],
     ['Hi you ♡', 'Hey {pet}.'],
   ],
 };

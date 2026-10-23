@@ -37,7 +37,7 @@ function useAction() {
     try {
       await fn();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong.');
+      setError(e instanceof Error ? e.message : 'Er ging iets mis.');
     } finally {
       setBusy(false);
     }
@@ -60,7 +60,7 @@ export function TogetherSection() {
     <section className="settings-card together" aria-labelledby="together-title" ref={ref}>
       <p className="settings-card__kicker hand">his phone, her phone, any laptop</p>
       <h2 id="together-title" className="settings-card__title">
-        Together on every device
+        Samen op elk apparaat
       </h2>
       {sync.recovery ? (
         <NewPassword />
@@ -68,7 +68,7 @@ export function TogetherSection() {
         <NotConfigured />
       ) : sync.phase === 'starting' ? (
         <p className="together__status">
-          <LoaderCircle className="spin" aria-hidden="true" /> Connecting…
+          <LoaderCircle className="spin" aria-hidden="true" /> Verbinden…
         </p>
       ) : sync.phase === 'signed-out' || (!sync.account && sync.phase === 'error') ? (
         <SignIn error={sync.error} />
@@ -92,17 +92,17 @@ function NotConfigured() {
   return (
     <div className="together__body">
       <p className="settings-text">
-        Right now everything lives on <strong>this device only</strong>. Connect our own free,
-        private Supabase project and you’ll both see the same memories, letters and photos on every
-        phone and computer — updated live.
+        Op dit moment staat alles op <strong>alleen dit apparaat</strong>. Koppel ons eigen gratis,
+        privé Supabase-project en jullie zien allebei dezelfde herinneringen, brieven en foto’s op
+        elke telefoon en computer — live bijgewerkt.
       </p>
       <p className="settings-text">
-        The step-by-step guide (in Dutch) is in <code>docs/HANDLEIDING.md</code>. Once the site is
-        set up with the project, this section turns into a simple sign-in.
+        De stap-voor-stap handleiding staat in <code>docs/HANDLEIDING.md</code>. Zodra de site aan
+        het project gekoppeld is, wordt dit gewoon een inlogscherm.
       </p>
       {!open ? (
         <button type="button" className="btn btn--ghost btn--small" onClick={() => setOpen(true)}>
-          <Cloud aria-hidden="true" /> Connect a project on this device
+          <Cloud aria-hidden="true" /> Koppel een project op dit apparaat
         </button>
       ) : (
         <form
@@ -112,14 +112,12 @@ function NotConfigured() {
             e.preventDefault();
             if (looksLikeSecretKey(key)) {
               action.setError(
-                'That’s the secret key — never put it in a website. Use the publishable (or anon public) key.',
+                'Dat is de geheime sleutel — zet die nooit in een website. Gebruik de publishable (of anon public) key.',
               );
               return;
             }
             if (!isValidConfig(url, key)) {
-              action.setError(
-                'Paste the Project URL (https://….supabase.co) and the publishable key.',
-              );
+              action.setError('Plak de Project URL (https://….supabase.co) en de publishable key.');
               return;
             }
             void action.run(() => connectThisDevice(url, key));
@@ -140,7 +138,7 @@ function NotConfigured() {
             onChange={setKey}
             autoComplete="off"
             spellCheck={false}
-            hint="Supabase → Project Settings → API Keys (sb_publishable_…, or the legacy anon public key). It’s meant to be public; the database rules keep everything private."
+            hint="Supabase → Project Settings → API Keys (sb_publishable_…, of de oude anon public key). Die mag openbaar zijn; de databaseregels houden alles privé."
           />
           {action.error && (
             <p className="field__error" role="alert">
@@ -149,10 +147,10 @@ function NotConfigured() {
           )}
           <div className="settings-actions">
             <button type="submit" className="btn btn--primary" disabled={action.busy}>
-              {action.busy ? 'Connecting…' : 'Connect'}
+              {action.busy ? 'Verbinden…' : 'Koppelen'}
             </button>
             <button type="button" className="btn btn--quiet" onClick={() => setOpen(false)}>
-              Cancel
+              Annuleren
             </button>
           </div>
         </form>
@@ -175,20 +173,21 @@ function SignIn({ error }: { error: string | null }) {
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     setNotice(null);
-    if (!EMAIL.test(email.trim())) return action.setError('That email address looks incomplete.');
-    if (password.length < 8) return action.setError('Use a password of at least 8 characters.');
+    if (!EMAIL.test(email.trim())) return action.setError('Dat e-mailadres lijkt niet compleet.');
+    if (password.length < 8)
+      return action.setError('Gebruik een wachtwoord van minstens 8 tekens.');
     if (mode === 'up' && password !== repeat)
-      return action.setError('The two passwords aren’t the same.');
+      return action.setError('De twee wachtwoorden zijn niet hetzelfde.');
     void action.run(async () => {
-      if (!engine) throw new Error('Not connected to a server.');
+      if (!engine) throw new Error('Niet verbonden met een server.');
       if (mode === 'in') {
         await engine.signIn(email, password);
-        toast('Signed in ♡');
+        toast('Ingelogd ♡');
       } else {
         const { needsConfirmation } = await engine.signUp(email, password);
         if (needsConfirmation) {
           setNotice(
-            `Almost there: we sent a confirmation email to ${email.trim()}. Tap the link in it (check spam too), then come back here and sign in.`,
+            `Bijna: we hebben een bevestigingsmail gestuurd naar ${email.trim()}. Tik op de link erin (kijk ook bij spam), kom dan hier terug en log in.`,
           );
           setMode('in');
           setRepeat('');
@@ -199,11 +198,11 @@ function SignIn({ error }: { error: string | null }) {
 
   const forgot = () => {
     if (!EMAIL.test(email.trim()))
-      return action.setError('Type your email first, then tap “Forgot password”.');
+      return action.setError('Typ eerst je e-mail en tik dan op “Wachtwoord vergeten”.');
     void action.run(async () => {
       await engine?.requestPasswordReset(email);
       setNotice(
-        'If that email has an account, a reset link is on its way. Open it on this device.',
+        'Als dat e-mailadres een account heeft, komt er een resetlink aan. Open hem op dit apparaat.',
       );
     });
   };
@@ -211,24 +210,24 @@ function SignIn({ error }: { error: string | null }) {
   return (
     <div className="together__body">
       <p className="settings-text">
-        Sign in to share this universe. Each of you uses your own email and password — nobody else
-        can get in.
+        Log in om dit universe te delen. Jullie gebruiken allebei je eigen e-mail en wachtwoord —
+        niemand anders komt erin.
       </p>
       <Segmented
-        legend="I want to"
+        legend="Ik wil"
         value={mode}
         onChange={(m) => {
           setMode(m);
           action.setError(null);
         }}
         options={[
-          { value: 'in', label: 'Sign in' },
-          { value: 'up', label: 'Create an account' },
+          { value: 'in', label: 'Inloggen' },
+          { value: 'up', label: 'Een account maken' },
         ]}
       />
       <form className="form" onSubmit={submit} noValidate>
         <TextField
-          label="Email"
+          label="E-mail"
           type="email"
           inputMode="email"
           autoComplete="email"
@@ -236,16 +235,16 @@ function SignIn({ error }: { error: string | null }) {
           onChange={setEmail}
         />
         <TextField
-          label="Password"
+          label="Wachtwoord"
           type="password"
           autoComplete={mode === 'in' ? 'current-password' : 'new-password'}
           value={password}
           onChange={setPassword}
-          hint={mode === 'up' ? 'At least 8 characters. It’s never stored in the app.' : undefined}
+          hint={mode === 'up' ? 'Minstens 8 tekens. Het wordt nooit in de app bewaard.' : undefined}
         />
         {mode === 'up' && (
           <TextField
-            label="Password again"
+            label="Wachtwoord nog een keer"
             type="password"
             autoComplete="new-password"
             value={repeat}
@@ -265,7 +264,7 @@ function SignIn({ error }: { error: string | null }) {
         )}
         <div className="settings-actions">
           <button type="submit" className="btn btn--primary" disabled={action.busy}>
-            {action.busy ? 'One moment…' : mode === 'in' ? 'Sign in' : 'Create account'}
+            {action.busy ? 'Momentje…' : mode === 'in' ? 'Inloggen' : 'Account maken'}
           </button>
           {mode === 'in' && (
             <button
@@ -274,7 +273,7 @@ function SignIn({ error }: { error: string | null }) {
               onClick={forgot}
               disabled={action.busy}
             >
-              <KeyRound aria-hidden="true" /> Forgot password
+              <KeyRound aria-hidden="true" /> Wachtwoord vergeten
             </button>
           )}
         </div>
@@ -293,16 +292,16 @@ function NewPassword() {
       noValidate
       onSubmit={(e) => {
         e.preventDefault();
-        if (password.length < 8) return action.setError('Use at least 8 characters.');
+        if (password.length < 8) return action.setError('Gebruik minstens 8 tekens.');
         void action.run(async () => {
           await getSyncEngine()?.updatePassword(password);
-          toast('New password saved');
+          toast('Nieuw wachtwoord opgeslagen');
         });
       }}
     >
-      <p className="settings-text">Choose a new password for your account.</p>
+      <p className="settings-text">Kies een nieuw wachtwoord voor je account.</p>
       <TextField
-        label="New password"
+        label="Nieuw wachtwoord"
         type="password"
         autoComplete="new-password"
         value={password}
@@ -314,7 +313,7 @@ function NewPassword() {
         </p>
       )}
       <button type="submit" className="btn btn--primary" disabled={action.busy}>
-        Save new password
+        Nieuw wachtwoord opslaan
       </button>
     </form>
   );
@@ -331,13 +330,13 @@ function CreateSpace({ sync }: { sync: SyncState }) {
   return (
     <div className="together__body">
       <p className="settings-text">
-        Signed in as <strong>{sync.account?.email}</strong>.
+        Ingelogd als <strong>{sync.account?.email}</strong>.
       </p>
       <div className="together__choice">
-        <h3>Start our shared universe</h3>
+        <h3>Start ons gedeelde universe</h3>
         <p className="settings-text">
-          Everything on this device becomes the shared copy. {partnerName} joins by creating an
-          account with the email you invite here.
+          Alles op dit apparaat wordt de gedeelde versie. {partnerName} doet mee door een account te
+          maken met het e-mailadres dat je hier uitnodigt.
         </p>
         <form
           className="form"
@@ -345,15 +344,15 @@ function CreateSpace({ sync }: { sync: SyncState }) {
           onSubmit={(e) => {
             e.preventDefault();
             if (!EMAIL.test(email.trim()))
-              return action.setError(`Type ${partnerName}’s email address.`);
+              return action.setError(`Typ het e-mailadres van ${partnerName}.`);
             void action.run(async () => {
               await engine?.createSpace(email);
-              toast('Our universe is shared now ♡');
+              toast('Ons universe is nu gedeeld ♡');
             });
           }}
         >
           <TextField
-            label={`${partnerName}’s email`}
+            label={`E-mail van ${partnerName}`}
             type="email"
             inputMode="email"
             value={email}
@@ -366,22 +365,22 @@ function CreateSpace({ sync }: { sync: SyncState }) {
             </p>
           )}
           <button type="submit" className="btn btn--primary" disabled={action.busy}>
-            <UserPlus aria-hidden="true" /> {action.busy ? 'Creating…' : 'Create & invite'}
+            <UserPlus aria-hidden="true" /> {action.busy ? 'Aanmaken…' : 'Aanmaken & uitnodigen'}
           </button>
         </form>
       </div>
       <div className="together__choice">
-        <h3>Were you invited?</h3>
+        <h3>Ben je uitgenodigd?</h3>
         <p className="settings-text">
-          You join automatically when you sign in with the invited email address (after confirming
-          it). Created the account just now?
+          Je doet automatisch mee als je inlogt met het uitgenodigde e-mailadres (na het
+          bevestigen). Net je account gemaakt?
         </p>
         <button
           type="button"
           className="btn btn--ghost btn--small"
           onClick={() => void engine?.connect()}
         >
-          <RefreshCw aria-hidden="true" /> Check again
+          <RefreshCw aria-hidden="true" /> Opnieuw checken
         </button>
       </div>
       <button
@@ -389,7 +388,7 @@ function CreateSpace({ sync }: { sync: SyncState }) {
         className="btn btn--quiet btn--small"
         onClick={() => void engine?.signOut()}
       >
-        <LogOut aria-hidden="true" /> Sign out
+        <LogOut aria-hidden="true" /> Uitloggen
       </button>
     </div>
   );
@@ -411,25 +410,25 @@ function Connected({ sync }: { sync: SyncState }) {
 
   const status =
     sync.phase === 'syncing'
-      ? { icon: <LoaderCircle className="spin" />, text: 'Syncing…', tone: 'busy' }
+      ? { icon: <LoaderCircle className="spin" />, text: 'Synchroniseren…', tone: 'busy' }
       : sync.phase === 'offline'
         ? {
             icon: <CloudOff />,
             text: sync.pendingChanges
-              ? 'Offline — your changes will sync when you’re back online'
-              : 'Offline right now',
+              ? 'Offline — je wijzigingen worden gesynct zodra je weer online bent'
+              : 'Nu even offline',
             tone: 'offline',
           }
         : sync.phase === 'error'
-          ? { icon: <CloudOff />, text: sync.error ?? 'Something went wrong', tone: 'error' }
-          : { icon: <Cloud />, text: `Synced ${timeAgo(sync.lastSyncedAt)}`, tone: 'ok' };
+          ? { icon: <CloudOff />, text: sync.error ?? 'Er ging iets mis', tone: 'error' }
+          : { icon: <Cloud />, text: `Gesynct ${timeAgo(sync.lastSyncedAt)}`, tone: 'ok' };
 
   const signOut = async () => {
     const ok = await confirm({
-      title: 'Sign out on this device?',
+      title: 'Uitloggen op dit apparaat?',
       message:
-        'This device keeps its own copy, but stops receiving new memories until you sign in again. The shared universe stays safe online.',
-      confirmLabel: 'Sign out',
+        'Dit apparaat houdt zijn eigen kopie, maar krijgt geen nieuwe herinneringen meer tot je weer inlogt. Het gedeelde universe blijft veilig online.',
+      confirmLabel: 'Uitloggen',
     });
     if (ok) await engine?.signOut();
   };
@@ -442,8 +441,8 @@ function Connected({ sync }: { sync: SyncState }) {
       </p>
       {sync.uploading > 0 && (
         <p className="together__upload">
-          <CloudUpload aria-hidden="true" /> Uploading {sync.uploading} photo
-          {sync.uploading === 1 ? '' : 's'}…
+          <CloudUpload aria-hidden="true" /> {sync.uploading}{' '}
+          {sync.uploading === 1 ? 'foto' : 'foto’s'} uploaden…
         </p>
       )}
 
@@ -460,7 +459,7 @@ function Connected({ sync }: { sync: SyncState }) {
           <li key={m}>
             <span className="together__dot" aria-hidden="true" />
             <span className="together__who">
-              {m} <span className="tag tag--sample">invited · waiting to join</span>
+              {m} <span className="tag tag--sample">uitgenodigd · wacht om mee te doen</span>
             </span>
           </li>
         ))}
@@ -475,7 +474,7 @@ function Connected({ sync }: { sync: SyncState }) {
               onClick={() => setInviteOpen(true)}
             >
               <UserPlus aria-hidden="true" />{' '}
-              {sync.invites.length ? 'Change the invited email' : 'Invite the other person'}
+              {sync.invites.length ? 'Uitgenodigd e-mailadres wijzigen' : 'Nodig de ander uit'}
             </button>
           ) : (
             <form
@@ -484,17 +483,17 @@ function Connected({ sync }: { sync: SyncState }) {
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!EMAIL.test(email.trim()))
-                  return action.setError('That email address looks incomplete.');
+                  return action.setError('Dat e-mailadres lijkt niet compleet.');
                 void action.run(async () => {
                   await engine?.invite(email);
                   setInviteOpen(false);
                   setEmail('');
-                  toast('Invite updated');
+                  toast('Uitnodiging bijgewerkt');
                 });
               }}
             >
               <TextField
-                label="Email to invite"
+                label="E-mail om uit te nodigen"
                 type="email"
                 inputMode="email"
                 value={email}
@@ -511,21 +510,21 @@ function Connected({ sync }: { sync: SyncState }) {
                   className="btn btn--primary btn--small"
                   disabled={action.busy}
                 >
-                  Save invite
+                  Uitnodiging opslaan
                 </button>
                 <button
                   type="button"
                   className="btn btn--quiet btn--small"
                   onClick={() => setInviteOpen(false)}
                 >
-                  Cancel
+                  Annuleren
                 </button>
               </div>
             </form>
           )}
           <p className="field__hint">
-            They open the site, install it, and create an account with exactly this email — they’re
-            in automatically.
+            Diegene opent de site, installeert hem en maakt een account met precies dit e-mailadres
+            — dan zit diegene er automatisch in.
           </p>
         </>
       )}
@@ -537,10 +536,10 @@ function Connected({ sync }: { sync: SyncState }) {
           onClick={() => void engine?.syncNow()}
           disabled={sync.phase === 'syncing'}
         >
-          <RefreshCw aria-hidden="true" /> Sync now
+          <RefreshCw aria-hidden="true" /> Nu syncen
         </button>
         <button type="button" className="btn btn--quiet btn--small" onClick={signOut}>
-          <LogOut aria-hidden="true" /> Sign out
+          <LogOut aria-hidden="true" /> Uitloggen
         </button>
       </div>
       <ChangePassword />
@@ -558,7 +557,7 @@ function ChangePassword() {
   if (!open) {
     return (
       <button type="button" className="link-btn together__password" onClick={() => setOpen(true)}>
-        <KeyRound aria-hidden="true" /> Change my password
+        <KeyRound aria-hidden="true" /> Mijn wachtwoord wijzigen
       </button>
     );
   }
@@ -574,24 +573,25 @@ function ChangePassword() {
       noValidate
       onSubmit={(e) => {
         e.preventDefault();
-        if (password.length < 8) return action.setError('Use at least 8 characters.');
-        if (password !== repeat) return action.setError('The two passwords aren’t the same.');
+        if (password.length < 8) return action.setError('Gebruik minstens 8 tekens.');
+        if (password !== repeat)
+          return action.setError('De twee wachtwoorden zijn niet hetzelfde.');
         void action.run(async () => {
           await getSyncEngine()?.updatePassword(password);
-          toast('New password saved');
+          toast('Nieuw wachtwoord opgeslagen');
           close();
         });
       }}
     >
       <TextField
-        label="New password"
+        label="Nieuw wachtwoord"
         type="password"
         autoComplete="new-password"
         value={password}
         onChange={setPassword}
       />
       <TextField
-        label="New password again"
+        label="Nieuw wachtwoord nog een keer"
         type="password"
         autoComplete="new-password"
         value={repeat}
@@ -604,10 +604,10 @@ function ChangePassword() {
       )}
       <div className="settings-actions">
         <button type="submit" className="btn btn--primary btn--small" disabled={action.busy}>
-          Save new password
+          Nieuw wachtwoord opslaan
         </button>
         <button type="button" className="btn btn--quiet btn--small" onClick={close}>
-          Cancel
+          Annuleren
         </button>
       </div>
     </form>
@@ -619,9 +619,9 @@ function DeviceServerNote() {
   if (config?.source !== 'device') return null;
   return (
     <p className="field__hint">
-      This device was connected by hand.{' '}
+      Dit apparaat is handmatig gekoppeld.{' '}
       <button type="button" className="link-btn" onClick={() => void forgetThisDevicesServer()}>
-        Disconnect this device from the project
+        Dit apparaat loskoppelen van het project
       </button>
     </p>
   );

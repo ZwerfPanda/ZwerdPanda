@@ -48,16 +48,16 @@ export function FuturePage() {
 
   const remove = async (dream: Dream) => {
     const ok = await confirm({
-      title: 'Remove this dream?',
-      message: `“${dream.title}” will be removed.`,
-      confirmLabel: 'Remove',
+      title: 'Deze droom weghalen?',
+      message: `“${dream.title}” wordt weggehaald.`,
+      confirmLabel: 'Weghalen',
       tone: 'danger',
     });
     if (!ok) return;
     const position = getContent().dreams.findIndex((d) => d.id === dream.id);
     removeItem('dreams', dream.id);
-    toast('Dream removed', {
-      action: { label: 'Undo', run: () => restoreItem('dreams', dream, position) },
+    toast('Droom weggehaald', {
+      action: { label: 'Ongedaan maken', run: () => restoreItem('dreams', dream, position) },
     });
   };
 
@@ -67,17 +67,17 @@ export function FuturePage() {
         eyebrow="dreams, plans & one-days"
         title={
           <>
-            Our <em>Future</em>
+            Onze <em>Toekomst</em>
           </>
         }
-        lede="The places, dates and little milestones we want — and a softer corner for the dreams that don’t need a plan yet."
+        lede="De plekken, dates en kleine mijlpalen die we willen — en een zacht hoekje voor de dromen die nog geen plan nodig hebben."
         actions={
           <button
             type="button"
             className="btn btn--primary"
             onClick={() => setForm({ open: true, dream: null })}
           >
-            <Plus aria-hidden="true" /> Add a dream
+            <Plus aria-hidden="true" /> Droom toevoegen
           </button>
         }
       />
@@ -85,10 +85,10 @@ export function FuturePage() {
       <section aria-labelledby="board-title">
         <div className="board-head">
           <h2 id="board-title" className="section-title" style={{ margin: 0 }}>
-            The dream board
+            Het dromenbord
           </h2>
           <p className="board-head__count">
-            {done} of {plans.length} done
+            {done} van {plans.length} gedaan
           </p>
         </div>
 
@@ -96,19 +96,19 @@ export function FuturePage() {
           <div className="search">
             <Search aria-hidden="true" />
             <label className="visually-hidden" htmlFor="dream-search">
-              Search dreams
+              Zoek in dromen
             </label>
             <input
               id="dream-search"
               className="input"
               type="search"
-              placeholder="Search dreams…"
+              placeholder="Zoek in dromen…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
           </div>
         </div>
-        <div className="chip-row" role="group" aria-label="Filter by status">
+        <div className="chip-row" role="group" aria-label="Filter op status">
           {(['all', 'planned', 'progress', 'done'] as StatusFilter[]).map((s) => (
             <button
               key={s}
@@ -117,18 +117,18 @@ export function FuturePage() {
               aria-pressed={status === s}
               onClick={() => setStatus(s)}
             >
-              {s === 'all' ? 'Any status' : STATUSES[s].label}
+              {s === 'all' ? 'Elke status' : STATUSES[s].label}
             </button>
           ))}
         </div>
-        <div className="chip-row" role="group" aria-label="Filter by kind of dream">
+        <div className="chip-row" role="group" aria-label="Filter op soort droom">
           <button
             type="button"
             className="chip"
             aria-pressed={category === 'all'}
             onClick={() => setCategory('all')}
           >
-            Every kind
+            Alle soorten
           </button>
           {usedCategories.map((c) => {
             const Icon = CATEGORIES[c].icon;
@@ -149,11 +149,11 @@ export function FuturePage() {
         {visible.length === 0 ? (
           <EmptyState
             art={<Telescope size={56} strokeWidth={1.3} color="var(--accent)" />}
-            title={plans.length === 0 ? 'Our dream board is empty' : 'No dreams match that'}
+            title={plans.length === 0 ? 'Ons dromenbord is leeg' : 'Geen dromen gevonden'}
             text={
               plans.length === 0
-                ? 'Add a place, a date, or something we want to learn together.'
-                : 'Try a different filter.'
+                ? 'Voeg een plek toe, een date, of iets wat we samen willen leren.'
+                : 'Probeer een ander filter.'
             }
             action={
               <button
@@ -161,7 +161,7 @@ export function FuturePage() {
                 className="btn btn--primary"
                 onClick={() => setForm({ open: true, dream: null })}
               >
-                <Plus aria-hidden="true" /> Add a dream
+                <Plus aria-hidden="true" /> Droom toevoegen
               </button>
             }
           />
@@ -225,7 +225,7 @@ function DreamCard({
     });
     if (next === 'done') {
       celebrateFrom(statusRef.current);
-      toast(`Done: ${d.title} ♡`);
+      toast(`Gedaan: ${d.title} ♡`);
     }
   };
 
@@ -249,10 +249,10 @@ function DreamCard({
       <h3 className="dream__title">{d.title}</h3>
       {d.description && <p className="dream__desc">{d.description}</p>}
       {d.targetDate && d.status !== 'done' && (
-        <p className="dream__when">hoping for around {formatDate(d.targetDate)}</p>
+        <p className="dream__when">hopelijk rond {formatDate(d.targetDate)}</p>
       )}
       {d.status === 'done' && d.completedAt && (
-        <p className="dream__stamp">done ♡ {formatTimestamp(d.completedAt)}</p>
+        <p className="dream__stamp">gedaan ♡ {formatTimestamp(d.completedAt)}</p>
       )}
       <div className="dream__foot">
         <button
@@ -260,17 +260,17 @@ function DreamCard({
           type="button"
           className={`dream__status dream__status--${d.status}`}
           onClick={advance}
-          aria-label={`Status: ${status.label}. Change to ${STATUSES[status.next].label}`}
+          aria-label={`Status: ${status.label}. Zet op ${STATUSES[status.next].label}`}
         >
           <StatusIcon aria-hidden="true" /> {status.label}
         </button>
-        {d.isSample && <span className="tag tag--sample">Sample</span>}
+        {d.isSample && <span className="tag tag--sample">Voorbeeld</span>}
         <ByTag by={d.by} />
         <span className="dream__tools">
           <button
             type="button"
             className="icon-btn"
-            aria-label={`Edit ${d.title}`}
+            aria-label={`${d.title} bewerken`}
             onClick={onEdit}
           >
             <Pencil />
@@ -278,7 +278,7 @@ function DreamCard({
           <button
             type="button"
             className="icon-btn"
-            aria-label={`Remove ${d.title}`}
+            aria-label={`${d.title} weghalen`}
             onClick={onRemove}
           >
             <Trash2 />
@@ -305,7 +305,7 @@ function OneDay({
     event.preventDefault();
     const title = text.trim().replace(/^one day,?\s*/i, '');
     if (!title) {
-      setError('Finish the sentence first.');
+      setError('Maak eerst de zin af.');
       return;
     }
     const dream: Dream = {
@@ -331,7 +331,7 @@ function OneDay({
           One day…
         </h2>
         <p className="oneday__lede">
-          Dreams that don’t need a plan yet. They can just float here until we’re ready.
+          Dromen die nog geen plan nodig hebben. Ze mogen hier gewoon zweven tot we eraan toe zijn.
         </p>
 
         <form className="oneday__form" onSubmit={add} noValidate>
@@ -346,13 +346,13 @@ function OneDay({
             className="oneday__input"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="we’ll dance in our own kitchen"
+            placeholder="dansen we in onze eigen keuken"
             maxLength={140}
             aria-invalid={Boolean(error) || undefined}
             aria-describedby={error ? 'oneday-error' : undefined}
           />
           <button type="submit" className="btn btn--accent btn--small">
-            Let it float
+            Laat hem zweven
           </button>
         </form>
         {error && (
@@ -379,15 +379,15 @@ function OneDay({
                   className="lantern__btn"
                   onClick={() => {
                     patchItem('dreams', d.id, { someday: false, status: 'planned' });
-                    toast('Moved to the dream board');
+                    toast('Naar het dromenbord verplaatst');
                   }}
                 >
-                  <ArrowUpRight aria-hidden="true" /> Make it a plan
+                  <ArrowUpRight aria-hidden="true" /> Maak er een plan van
                 </button>
                 <button
                   type="button"
                   className="lantern__btn"
-                  aria-label={`Edit “${d.title}”`}
+                  aria-label={`“${d.title}” bewerken`}
                   onClick={() => onEdit(d)}
                 >
                   <Pencil aria-hidden="true" />
@@ -395,7 +395,7 @@ function OneDay({
                 <button
                   type="button"
                   className="lantern__btn"
-                  aria-label={`Remove “${d.title}”`}
+                  aria-label={`“${d.title}” weghalen`}
                   onClick={() => onRemove(d)}
                 >
                   <Trash2 aria-hidden="true" />

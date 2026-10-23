@@ -16,18 +16,18 @@ import {
 import type { Motif } from '../../data/types';
 
 export const MOTIFS: { value: Motif; label: string; icon: LucideIcon; tint: string }[] = [
-  { value: 'phone', label: 'Phone', icon: Smartphone, tint: '#e4ddf5' },
-  { value: 'sparkle', label: 'Spark', icon: Sparkles, tint: '#f8e6bb' },
+  { value: 'phone', label: 'Telefoon', icon: Smartphone, tint: '#e4ddf5' },
+  { value: 'sparkle', label: 'Vonk', icon: Sparkles, tint: '#f8e6bb' },
   { value: 'bag', label: 'Date', icon: ShoppingBag, tint: '#f5dad6' },
   { value: 'matcha', label: 'Matcha', icon: CupSoda, tint: '#e0ebd4' },
-  { value: 'train', label: 'Train', icon: TrainFront, tint: '#fbe0cd' },
-  { value: 'car', label: 'Car', icon: CarFront, tint: '#f6c5a6' },
-  { value: 'leaf', label: 'Growth', icon: Sprout, tint: '#e0ebd4' },
+  { value: 'train', label: 'Trein', icon: TrainFront, tint: '#fbe0cd' },
+  { value: 'car', label: 'Auto', icon: CarFront, tint: '#f6c5a6' },
+  { value: 'leaf', label: 'Groei', icon: Sprout, tint: '#e0ebd4' },
   { value: 'rabbit', label: 'Coco', icon: Rabbit, tint: '#f0dcc4' },
-  { value: 'house', label: 'Home', icon: House, tint: '#ebbfba' },
-  { value: 'star', label: 'Star', icon: Star, tint: '#f8e6bb' },
-  { value: 'heart', label: 'Heart', icon: Heart, tint: '#f5dad6' },
-  { value: 'music', label: 'Music', icon: Music, tint: '#e4ddf5' },
+  { value: 'house', label: 'Thuis', icon: House, tint: '#ebbfba' },
+  { value: 'star', label: 'Ster', icon: Star, tint: '#f8e6bb' },
+  { value: 'heart', label: 'Hartje', icon: Heart, tint: '#f5dad6' },
+  { value: 'music', label: 'Muziek', icon: Music, tint: '#e4ddf5' },
 ];
 
 export const motifFor = (value: Motif) => MOTIFS.find((m) => m.value === value) ?? MOTIFS[10];

@@ -52,10 +52,10 @@ export function SettingsPage() {
         eyebrow="behind the scenes"
         title={
           <>
-            <em>Settings</em>
+            <em>Instellingen</em>
           </>
         }
-        lede="Our names, our date, the words on the front page, how everything looks and sounds — and backups, so none of it gets lost."
+        lede="Onze namen, onze datum, de woorden op de voorpagina, hoe alles eruitziet en klinkt — en backups, zodat er niets verloren gaat."
       />
       <div className="settings-grid">
         <ProfileSection />
@@ -115,7 +115,7 @@ function WelcomeSection() {
   const save = (event: React.FormEvent) => {
     event.preventDefault();
     if (!message.trim()) {
-      setError('Write a few words — this is the first thing she reads.');
+      setError('Schrijf een paar woorden — dit is het eerste wat ze leest.');
       return;
     }
     setError(null);
@@ -128,7 +128,7 @@ function WelcomeSection() {
         signature: signature.trim(),
       },
     }));
-    toast('Welcome saved');
+    toast('Welkom opgeslagen');
   };
   const setWelcome = (patch: Partial<typeof welcome>) =>
     updateContent((c) => ({ ...c, welcome: { ...c.welcome, ...patch } }));
@@ -136,30 +136,30 @@ function WelcomeSection() {
   return (
     <Section
       id="welcome"
-      title={`A welcome for ${profile.partnerName}`}
+      title={`Een welkom voor ${profile.partnerName}`}
       kicker="the very first moment"
     >
       <p className="settings-text">
-        The first time {profile.partnerName} signs in on her phone, our universe opens with this
-        message — once, full-screen, with Coco hopping in. Only she sees it.
+        De eerste keer dat {profile.partnerName} op haar telefoon inlogt, opent ons universe met dit
+        bericht — één keer, schermvullend, met Coco die binnen komt huppen. Alleen zij ziet het.
       </p>
       <Checkbox
-        label="Show the welcome the first time she signs in"
+        label="Laat het welkom zien de eerste keer dat ze inlogt"
         checked={welcome.enabled}
         onChange={(on) => setWelcome({ enabled: on })}
       />
       <form className="form" onSubmit={save} noValidate>
         <TextField
-          label="Title"
+          label="Titel"
           optional
           value={title}
           onChange={setTitle}
           placeholder={`Welcome home, ${profile.partnerName}`}
           maxLength={120}
         />
-        <TextArea label="Message" value={message} onChange={setMessage} rows={6} error={error} />
+        <TextArea label="Bericht" value={message} onChange={setMessage} rows={6} error={error} />
         <TextField
-          label="Signed"
+          label="Ondertekend"
           optional
           value={signature}
           onChange={setSignature}
@@ -168,7 +168,7 @@ function WelcomeSection() {
         />
         <div className="settings-actions">
           <button type="submit" className="btn btn--primary" disabled={!dirty}>
-            Save welcome
+            Welkom opslaan
           </button>
           <button
             type="button"
@@ -183,17 +183,17 @@ function WelcomeSection() {
       <p className="field__hint">
         {welcome.seenAt ? (
           <>
-            {profile.partnerName} opened it on {formatTimestamp(welcome.seenAt)} ♡{' '}
+            {profile.partnerName} opende het op {formatTimestamp(welcome.seenAt)} ♡{' '}
             <button
               type="button"
               className="link-btn"
               onClick={() => setWelcome({ seenAt: undefined })}
             >
-              Show it again next time
+              Laat het volgende keer weer zien
             </button>
           </>
         ) : (
-          'Not seen yet.'
+          'Nog niet gezien.'
         )}
       </p>
     </Section>
@@ -244,16 +244,16 @@ function ProfileSection() {
   const save = (event: React.FormEvent) => {
     event.preventDefault();
     const problems: typeof errors = {};
-    if (!draft.yourName.trim()) problems.yourName = 'Your name can’t be empty.';
-    if (!draft.partnerName.trim()) problems.partnerName = 'Her name can’t be empty.';
-    if (!draft.siteTitle.trim()) problems.siteTitle = 'Give the universe a name.';
+    if (!draft.yourName.trim()) problems.yourName = 'Je naam mag niet leeg zijn.';
+    if (!draft.partnerName.trim()) problems.partnerName = 'Haar naam mag niet leeg zijn.';
+    if (!draft.siteTitle.trim()) problems.siteTitle = 'Geef het universe een naam.';
     if (draft.startDate) {
       const dateProblem = validateStartDate(draft.startDate);
       if (dateProblem) problems.startDate = dateProblem;
     }
     setErrors(problems);
     if (Object.keys(problems).length) {
-      toast('A few things need a look before saving.', { tone: 'error' });
+      toast('Een paar dingetjes kloppen nog niet.', { tone: 'error' });
       return;
     }
     updateProfile({
@@ -266,15 +266,15 @@ function ProfileSection() {
       signature: draft.signature.trim(),
       startDate: draft.startDate || null,
     });
-    toast('Saved ♡');
+    toast('Opgeslagen ♡');
   };
 
   return (
-    <Section id="profile" title="Us & our words" kicker="the important bits">
+    <Section id="profile" title="Wij & onze woorden" kicker="the important bits">
       <form className="form" onSubmit={save} noValidate>
         <div className="form-row form-row--2">
           <TextField
-            label="Your name"
+            label="Jouw naam"
             value={draft.yourName}
             onChange={(v) => set('yourName', v)}
             error={errors.yourName}
@@ -282,7 +282,7 @@ function ProfileSection() {
             autoComplete="off"
           />
           <TextField
-            label="Her name"
+            label="Haar naam"
             value={draft.partnerName}
             onChange={(v) => set('partnerName', v)}
             error={errors.partnerName}
@@ -291,25 +291,25 @@ function ProfileSection() {
           />
         </div>
         <TextField
-          label="Our start date"
+          label="Onze startdatum"
           type="date"
           optional
           max={todayIso()}
           value={draft.startDate}
           onChange={(v) => set('startDate', v)}
           error={errors.startDate}
-          hint="Used for the “together for” counter and anniversary countdown. Never guessed — only what we enter here."
+          hint="Voor de “samen sinds”-teller en de aftelling naar ons jubileum. Nooit gegokt — alleen wat we hier invullen."
         />
         <div className="form-row form-row--2">
           <TextField
-            label="Name of our universe"
+            label="Naam van ons universe"
             value={draft.siteTitle}
             onChange={(v) => set('siteTitle', v)}
             error={errors.siteTitle}
             maxLength={80}
           />
           <TextField
-            label="Subtitle"
+            label="Ondertitel"
             optional
             value={draft.subtitle}
             onChange={(v) => set('subtitle', v)}
@@ -317,31 +317,31 @@ function ProfileSection() {
           />
         </div>
         <TextField
-          label="Greeting on the home note"
+          label="Aanhef van het briefje op home"
           optional
           value={draft.homeGreeting}
           onChange={(v) => set('homeGreeting', v)}
           maxLength={80}
         />
         <TextArea
-          label="The note on the home page"
+          label="Het briefje op de homepagina"
           optional
           value={draft.homeMessage}
           onChange={(v) => set('homeMessage', v)}
           rows={6}
-          hint="Leave an empty line between paragraphs. Leave it blank to hide the note."
+          hint="Laat een lege regel tussen alinea’s. Laat het leeg om het briefje te verbergen."
         />
         <TextField
-          label="Signature"
+          label="Handtekening"
           optional
           value={draft.signature}
           onChange={(v) => set('signature', v)}
           maxLength={120}
-          hint="Shown at the bottom of every page."
+          hint="Staat onderaan elke pagina."
         />
         <div className="settings-actions">
           <button type="submit" className="btn btn--primary" disabled={!dirty}>
-            Save changes
+            Wijzigingen opslaan
           </button>
           {dirty && (
             <button
@@ -352,7 +352,7 @@ function ProfileSection() {
                 setErrors({});
               }}
             >
-              Undo edits
+              Wijzigingen terugdraaien
             </button>
           )}
         </div>
@@ -367,20 +367,20 @@ function AppSection() {
   const install = useInstall();
   const { companion } = usePrefs();
   return (
-    <Section id="app" title="The app" kicker="on any phone or computer">
+    <Section id="app" title="De app" kicker="on any phone or computer">
       <p className="settings-text">
         {install.installed
-          ? 'You’re using the installed app on this device. ♡'
-          : 'Install our universe like an app: it gets its own icon, opens full-screen and works offline — on iPhone, Android, Windows and Mac. No app store needed.'}
+          ? 'Je gebruikt de geïnstalleerde app op dit apparaat. ♡'
+          : 'Installeer ons universe als een app: hij krijgt een eigen icoontje, opent schermvullend en werkt offline — op iPhone, Android, Windows en Mac. Geen app store nodig.'}
       </p>
       <div className="settings-actions">
         <button type="button" className="btn btn--primary" onClick={openInstallSheet}>
           <Smartphone aria-hidden="true" />{' '}
-          {install.installed ? 'Install on another device' : 'Install the app'}
+          {install.installed ? 'Installeren op een ander apparaat' : 'Installeer de app'}
         </button>
       </div>
       <Checkbox
-        label="Take Coco along — she hops along in a corner of every page"
+        label="Neem Coco mee — ze hupt mee in een hoekje van elke pagina"
         checked={companion}
         onChange={(on) => updatePrefs({ companion: on })}
       />
@@ -397,7 +397,7 @@ function LookSection() {
     <Section id="look" title="Look & feel" kicker="make it ours">
       <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
         <legend className="field__label" style={{ marginBottom: 10 }}>
-          Colours
+          Kleuren
         </legend>
         <div className="theme-cards">
           {THEMES.map((t) => (
@@ -421,40 +421,40 @@ function LookSection() {
       </fieldset>
       <div className="form" style={{ marginTop: 22 }}>
         <Segmented
-          legend="Animation"
+          legend="Animatie"
           value={prefs.motion}
           onChange={(motion) => updatePrefs({ motion })}
           options={[
-            { value: 'system', label: 'Follow my phone' },
-            { value: 'reduce', label: 'Calm' },
+            { value: 'system', label: 'Zoals mijn telefoon' },
+            { value: 'reduce', label: 'Rustig' },
             { value: 'full', label: 'All the sparkle' },
           ]}
-          hint="“Calm” keeps everything still and simple — handy if movement feels like too much."
+          hint="“Rustig” houdt alles stil en simpel — fijn als beweging te veel voelt."
         />
         <Segmented
-          legend="Opening scene"
+          legend="Openingsscène"
           value={prefs.intro}
           onChange={(intro) => updatePrefs({ intro })}
           options={[
-            { value: 'session', label: 'Once per visit' },
-            { value: 'always', label: 'Every time' },
-            { value: 'never', label: 'Skip it' },
+            { value: 'session', label: 'Eén keer per bezoek' },
+            { value: 'always', label: 'Elke keer' },
+            { value: 'never', label: 'Overslaan' },
           ]}
         />
         <Segmented
-          legend="Light in Our Little World"
+          legend="Licht in Onze Kleine Wereld"
           value={prefs.worldLight}
           onChange={(worldLight) => updatePrefs({ worldLight })}
           options={[
-            { value: 'auto', label: 'Follow the clock' },
-            { value: 'day', label: 'Day' },
-            { value: 'dusk', label: 'Dusk' },
-            { value: 'night', label: 'Night' },
+            { value: 'auto', label: 'Volg de klok' },
+            { value: 'day', label: 'Dag' },
+            { value: 'dusk', label: 'Schemer' },
+            { value: 'night', label: 'Nacht' },
           ]}
         />
       </div>
       <p className="field__hint" style={{ marginTop: 14 }}>
-        Animation, intro and lighting are remembered on this device only.
+        Animatie, intro en licht worden alleen op dit apparaat onthouden.
       </p>
     </Section>
   );
@@ -472,12 +472,12 @@ function SoundSection() {
     if (!file) return;
     setError(null);
     if (!file.type.startsWith('audio/')) {
-      setError('That file isn’t audio. Try an MP3 or M4A.');
+      setError('Dat bestand is geen audio. Probeer een MP3 of M4A.');
       return;
     }
     if (file.size > MAX_AUDIO_BYTES) {
       setError(
-        `That song is ${formatBytes(file.size)} — up to ${formatBytes(MAX_AUDIO_BYTES)} fits here.`,
+        `Dat liedje is ${formatBytes(file.size)} — er past hier maximaal ${formatBytes(MAX_AUDIO_BYTES)}.`,
       );
       return;
     }
@@ -490,9 +490,9 @@ function SoundSection() {
         soundtrack: 'custom',
       });
       if (old) await deleteMedia(old);
-      toast('Our soundtrack is set');
+      toast('Onze soundtrack staat klaar');
     } catch {
-      setError('This browser couldn’t store the song.');
+      setError('Deze browser kon het liedje niet bewaren.');
     } finally {
       if (inputRef.current) inputRef.current.value = '';
     }
@@ -509,10 +509,10 @@ function SoundSection() {
   };
 
   return (
-    <Section id="sound" title="Sound" kicker="nothing ever autoplays">
+    <Section id="sound" title="Geluid" kicker="nothing ever autoplays">
       <div className="form">
         <Segmented
-          legend="Our soundtrack"
+          legend="Onze soundtrack"
           value={prefs.soundtrack}
           onChange={(soundtrack) => {
             if (soundtrack === 'custom' && !prefs.customSoundtrackId) {
@@ -522,20 +522,20 @@ function SoundSection() {
             updatePrefs({ soundtrack });
           }}
           options={[
-            { value: 'musicbox', label: 'Little music box' },
+            { value: 'musicbox', label: 'Klein muziekdoosje' },
             {
               value: 'custom',
               label: prefs.customSoundtrackName
                 ? `“${prefs.customSoundtrackName}”`
-                : 'Our own song',
+                : 'Ons eigen liedje',
             },
           ]}
-          hint="The music box is an original lullaby made for this site. Your own song is an audio file stored on this device."
+          hint="Het muziekdoosje is een origineel slaapliedje, gemaakt voor deze site. Jullie eigen liedje is een audiobestand dat op dit apparaat staat."
         />
         <div className="settings-actions">
           <button type="button" className="btn btn--soft" onClick={music.toggle}>
             {music.playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
-            {music.playing ? 'Pause' : 'Play it'}
+            {music.playing ? 'Pauze' : 'Afspelen'}
           </button>
           <button
             type="button"
@@ -543,11 +543,11 @@ function SoundSection() {
             onClick={() => inputRef.current?.click()}
           >
             <Music aria-hidden="true" />{' '}
-            {prefs.customSoundtrackId ? 'Choose a different song' : 'Upload our song'}
+            {prefs.customSoundtrackId ? 'Kies een ander liedje' : 'Upload ons liedje'}
           </button>
           {prefs.customSoundtrackId && (
             <button type="button" className="btn btn--quiet" onClick={removeSong}>
-              Remove song
+              Liedje weghalen
             </button>
           )}
         </div>
@@ -608,7 +608,7 @@ function DataSection() {
       ?.estimate?.()
       .then(({ usage: used, quota }) => {
         if (used !== undefined && quota)
-          setUsage(`${formatBytes(used)} used of about ${formatBytes(quota)} available`);
+          setUsage(`${formatBytes(used)} gebruikt van ongeveer ${formatBytes(quota)}`);
       })
       .catch(() => undefined);
   }, [content]);
@@ -620,11 +620,11 @@ function DataSection() {
       downloadBlob(blob, filename);
       toast(
         withMedia
-          ? `Backup saved with ${mediaCount} photos/clips (${formatBytes(blob.size)})`
-          : 'Backup saved',
+          ? `Backup opgeslagen met ${mediaCount} foto’s/clips (${formatBytes(blob.size)})`
+          : 'Backup opgeslagen',
       );
     } catch {
-      toast('The backup couldn’t be created.', { tone: 'error' });
+      toast('De backup kon niet gemaakt worden.', { tone: 'error' });
     } finally {
       setBusy(null);
     }
@@ -637,21 +637,17 @@ function DataSection() {
     try {
       const preview = await readBackup(file);
       const ok = await confirm({
-        title: 'Restore this backup?',
-        message: `It contains ${preview.summary} Everything currently on this device will be replaced by it.${
-          isSharing()
-            ? ' Because our universe is shared, the other phone gets this version too.'
-            : ''
-        }`,
-        confirmLabel: 'Replace & restore',
+        title: 'Deze backup terugzetten?',
+        message: `Er zit in: ${preview.summary} Alles wat nu op dit apparaat staat wordt hierdoor vervangen.${isSharing() ? ' Omdat ons universe gedeeld is, krijgt de andere telefoon deze versie ook.' : ''}`,
+        confirmLabel: 'Vervangen & terugzetten',
         tone: 'danger',
       });
       if (ok) {
         await applyBackup(preview);
-        toast('Backup restored ♡');
+        toast('Backup teruggezet ♡');
       }
     } catch (error) {
-      toast(error instanceof Error ? error.message : 'That backup couldn’t be read.', {
+      toast(error instanceof Error ? error.message : 'Die backup kon niet gelezen worden.', {
         tone: 'error',
       });
     } finally {
@@ -661,45 +657,45 @@ function DataSection() {
 
   const removeSamples = async () => {
     const ok = await confirm({
-      title: `Remove ${samples} sample items?`,
+      title: `${samples} voorbeelditems weghalen?`,
       message:
-        'This clears the placeholder chapters, memories, starter letters and dreams, so only what we’ve written ourselves remains. Things you’ve edited are kept.',
-      confirmLabel: 'Remove samples',
+        'Dit wist de voorbeeldhoofdstukken, -herinneringen, starterbrieven en -dromen, zodat alleen overblijft wat we zelf geschreven hebben. Wat je hebt aangepast blijft staan.',
+      confirmLabel: 'Voorbeelden weghalen',
       tone: 'danger',
     });
     if (!ok) return;
     removeSampleContent();
-    toast('Sample content removed — it’s all ours now');
+    toast('Voorbeelden weggehaald — it’s all ours now');
   };
 
   const resetEverything = async () => {
     const ok = await confirm({
-      title: 'Erase everything on this device?',
+      title: 'Alles op dit apparaat wissen?',
       message: isSharing()
-        ? 'This device signs out of our shared universe and forgets everything stored on it. The shared universe online — and the other phone — stay exactly as they are.'
-        : 'All chapters, photos, letters, dreams and settings stored in this browser will be deleted and the starter content comes back. This cannot be undone — export a backup first if you want to keep anything.',
-      confirmLabel: 'Erase everything',
+        ? 'Dit apparaat logt uit van ons gedeelde universe en vergeet alles wat erop staat. Het gedeelde universe online — en de andere telefoon — blijven precies zoals ze zijn.'
+        : 'Alle hoofdstukken, foto’s, brieven, dromen en instellingen in deze browser worden verwijderd en de startinhoud komt terug. Dit kan niet ongedaan worden — maak eerst een backup als je iets wilt bewaren.',
+      confirmLabel: 'Alles wissen',
       tone: 'danger',
     });
     if (!ok) return;
     await disconnectBeforeReset();
     await clearMedia().catch(() => undefined);
     resetAllLocalData();
-    toast('Everything was reset');
+    toast('Alles is gereset');
   };
 
   return (
-    <Section id="data" title="Our data & backups" kicker="keep it safe">
+    <Section id="data" title="Onze data & backups" kicker="keep it safe">
       {!storageAvailable && (
         <p className="notice" role="alert">
           <HardDrive aria-hidden="true" />
-          This browser is blocking storage (private browsing?), so changes won’t be kept after
-          closing the page.
+          Deze browser blokkeert opslag (privé browsen?), dus wijzigingen blijven niet bewaard na
+          het sluiten.
         </p>
       )}
       <p className="settings-text">
-        Everything lives in this browser on this device. Export a backup now and then — it’s also
-        how content moves to another phone for now.
+        Alles staat in deze browser op dit apparaat. Maak af en toe een backup — zo zet je voorlopig
+        ook alles over naar een andere telefoon.
       </p>
       {usage && <p className="field__hint">{usage}</p>}
       <div className="settings-actions">
@@ -710,7 +706,7 @@ function DataSection() {
           disabled={busy !== null}
         >
           <Download aria-hidden="true" />{' '}
-          {busy === 'export-media' ? 'Packing photos…' : 'Export with photos'}
+          {busy === 'export-media' ? 'Foto’s inpakken…' : 'Exporteren met foto’s'}
         </button>
         <button
           type="button"
@@ -718,7 +714,7 @@ function DataSection() {
           onClick={() => exportBackup(false)}
           disabled={busy !== null}
         >
-          <Download aria-hidden="true" /> Text only
+          <Download aria-hidden="true" /> Alleen tekst
         </button>
         <button
           type="button"
@@ -726,7 +722,7 @@ function DataSection() {
           onClick={() => importRef.current?.click()}
           disabled={busy !== null}
         >
-          <Upload aria-hidden="true" /> {busy === 'import' ? 'Reading…' : 'Restore a backup'}
+          <Upload aria-hidden="true" /> {busy === 'import' ? 'Lezen…' : 'Backup terugzetten'}
         </button>
         <input
           ref={importRef}
@@ -739,11 +735,11 @@ function DataSection() {
 
       <div className="settings-danger">
         <div>
-          <h3>Sample content</h3>
+          <h3>Voorbeeldinhoud</h3>
           <p className="settings-text">
             {samples > 0
-              ? `${samples} placeholder items are still here (marked “Sample” or “Starter”).`
-              : 'No sample content left — everything here is ours.'}
+              ? `Er staan nog ${samples} voorbeelditems (gemarkeerd met “Voorbeeld” of “Starter”).`
+              : 'Geen voorbeelden meer — alles hier is van ons.'}
           </p>
         </div>
         <button
@@ -752,21 +748,21 @@ function DataSection() {
           onClick={removeSamples}
           disabled={samples === 0}
         >
-          <Eraser aria-hidden="true" /> Remove samples
+          <Eraser aria-hidden="true" /> Voorbeelden weghalen
         </button>
       </div>
       <div className="settings-danger">
         <div>
-          <h3>Start over</h3>
-          <p className="settings-text">Erase everything stored on this device.</p>
+          <h3>Opnieuw beginnen</h3>
+          <p className="settings-text">Wis alles wat op dit apparaat staat.</p>
         </div>
         <button type="button" className="btn btn--danger" onClick={resetEverything}>
-          <RotateCcw aria-hidden="true" /> Erase everything
+          <RotateCcw aria-hidden="true" /> Alles wissen
         </button>
       </div>
       <p className="field__hint">
-        Currently {content.memories.length} memories, {content.letters.length} letters and{' '}
-        {content.milestones.length} chapters.
+        Nu: {content.memories.length} herinneringen, {content.letters.length} brieven en{' '}
+        {content.milestones.length} hoofdstukken.
       </p>
     </Section>
   );
@@ -776,30 +772,30 @@ function DataSection() {
 
 function PrivacySection() {
   return (
-    <Section id="privacy" title="Privacy & sharing" kicker="being honest">
+    <Section id="privacy" title="Privacy & delen" kicker="being honest">
       <ul className="settings-list">
         <li>
-          <strong>Without sharing:</strong> nothing leaves this device. Photos, letters and
-          everything else stay in this browser.
+          <strong>Zonder delen:</strong> er verlaat niets dit apparaat. Foto’s, brieven en al het
+          andere blijven in deze browser.
         </li>
         <li>
-          <strong>With sharing:</strong> our universe lives in our own Supabase project. Only the
-          two signed-in accounts can read it — the database itself enforces that, and photos sit in
-          a private folder only we can open.
+          <strong>Met delen:</strong> ons universe woont in ons eigen Supabase-project. Alleen de
+          twee ingelogde accounts kunnen het lezen — de database zelf dwingt dat af, en foto’s staan
+          in een privémap die alleen wij kunnen openen.
         </li>
         <li>
-          <strong>Passwords</strong> are never stored in the app. A device stays signed in with a
-          session that can be ended any time with “Sign out”.
+          <strong>Wachtwoorden</strong> worden nooit in de app bewaard. Een apparaat blijft ingelogd
+          met een sessie die je altijd kunt beëindigen met “Uitloggen”.
         </li>
         <li>
-          <strong>Without an account</strong>, there’s no password screen: a lock without a real
-          server would only look secure. Anyone holding this unlocked phone can open the site.
+          <strong>Zonder account</strong> is er geen wachtwoordscherm: een slot zonder echte server
+          zou alleen veilig lijken. Wie deze ontgrendelde telefoon vasthoudt, kan de site openen.
         </li>
       </ul>
       <p className="notice notice--plain" style={{ marginTop: 16 }}>
         <ShieldCheck aria-hidden="true" />
-        Browsers can clear website data when a phone runs low on space. Adding the site to the Home
-        Screen and keeping a recent backup makes that much less likely to hurt.
+        Browsers kunnen websitedata wissen als een telefoon bijna vol zit. De site op je beginscherm
+        zetten en een recente backup bewaren maakt dat een stuk minder erg.
       </p>
     </Section>
   );

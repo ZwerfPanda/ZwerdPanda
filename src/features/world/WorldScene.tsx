@@ -168,7 +168,7 @@ export function WorldScene({ layout, light, selected, onSelect, animate }: Scene
       preserveAspectRatio="xMidYMid meet"
       data-light={light}
       role="group"
-      aria-label="Our Little World: an illustrated map with places to visit"
+      aria-label="Onze Kleine Wereld: een getekende kaart met plekjes om te bezoeken"
     >
       <defs>
         <linearGradient

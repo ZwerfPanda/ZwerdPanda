@@ -111,8 +111,8 @@ export function confirm(options: {
     pending = {
       title: options.title,
       message: options.message,
-      confirmLabel: options.confirmLabel ?? 'Yes',
-      cancelLabel: options.cancelLabel ?? 'Cancel',
+      confirmLabel: options.confirmLabel ?? 'Ja',
+      cancelLabel: options.cancelLabel ?? 'Annuleren',
       tone: options.tone ?? 'default',
       resolve,
     };
