@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { playSfx } from '../../lib/audio/sfx';
 import { Lock, Mail, Pencil, Trash2, X } from 'lucide-react';
 import type { Letter } from '../../data/types';
 import { patchItem } from '../../data/actions';
@@ -70,6 +71,8 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
   const open = () => {
     if (stage !== 'closed' || dateLocked) return;
     if (!letter.readAt) patchItem('letters', letter.id, { readAt: nowIso() });
+    playSfx(needsHold ? 'seal' : 'paper', true);
+    window.setTimeout(() => playSfx('paper', true), 380);
     if (reduce) {
       setStage('reading');
       return;

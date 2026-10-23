@@ -16,6 +16,8 @@ import { LetterOpener, isDateLocked } from './LetterOpener';
 import { LetterForm } from './LetterForm';
 import './letters.css';
 import { ByTag } from '../../components/common/ByTag';
+import { SampleNotice } from '../../components/common/SampleNotice';
+import { HuntStar } from '../hunt/HuntStar';
 
 type Filter = 'shelf' | 'unopened' | 'drafts';
 
@@ -79,6 +81,7 @@ export function LettersPage() {
           </button>
         }
       />
+      <SampleNotice kind="letters" />
 
       <div className="chip-row" role="group" aria-label="Welke brieven">
         <button
@@ -152,6 +155,9 @@ export function LettersPage() {
         onEdit={(letter) => setForm({ open: true, letter })}
         onDelete={remove}
       />
+      <p className="hunt-tuck">
+        <HuntStar id="letters" className="hunt-star--inline" />
+      </p>
       <LetterForm
         open={form.open}
         letter={form.letter}

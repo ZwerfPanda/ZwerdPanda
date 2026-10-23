@@ -8,6 +8,9 @@ import {
   defaultProfile,
   defaultUs,
   defaultWelcome,
+  cloneHer,
+  defaultHer,
+  defaultHunt,
 } from './defaults';
 import type {
   Album,
@@ -47,9 +50,18 @@ import type {
   SurpriseContent,
   ThemeName,
   TimeCapsule,
+  BucketItem,
+  Goal,
+  GoalStep,
+  HerMood,
+  HerPattern,
+  HerSpace,
+  HerTheme,
+  JournalEntry,
+  StarHunt,
 } from './types';
 import { isValidIsoDate } from '../lib/dates';
-import { spotifyCollection } from '../lib/embeds';
+import { isHttpUrl, spotifyCollection } from '../lib/embeds';
 
 /**
  * Defensive parsing for anything read from storage or an imported backup.
@@ -554,6 +566,130 @@ function list<T>(v: unknown, fn: (item: unknown, i: number) => T | null): T[] {
   return out;
 }
 
+/* ------------------------------------------------------- her little world */
+
+const HER_THEMES: readonly HerTheme[] = [
+  'strawberry',
+  'lavender',
+  'cherry',
+  'vanilla',
+  'glitter',
+  'ocean',
+];
+const HER_PATTERNS: readonly HerPattern[] = ['hearts', 'bows', 'stars', 'checks', 'dots', 'plain'];
+export const HER_MOODS: readonly HerMood[] = [
+  'happy',
+  'loved',
+  'calm',
+  'excited',
+  'tired',
+  'sad',
+  'stressed',
+];
+
+/** Only ordinary web links — never `javascript:` or anything else. */
+const optLink = (v: unknown): string | undefined =>
+  typeof v === 'string' && isHttpUrl(v.trim()) ? v.trim().slice(0, 2000) : undefined;
+
+export function normalizeJournalEntry(v: unknown, i: number): JournalEntry | null {
+  if (!isObj(v) || !optStr(v.text) || !isValidIsoDate(v.date as string)) return null;
+  return {
+    id: id(v.id, 'journal', i),
+    date: v.date as string,
+    title: optStr(v.title, 140),
+    text: str(v.text, '', 20_000),
+    mood: HER_MOODS.includes(v.mood as HerMood) ? (v.mood as HerMood) : undefined,
+    private: bool(v.private) || undefined,
+    createdAt: stamp(v.createdAt),
+    editedAt: optStamp(v.editedAt),
+  };
+}
+
+export function normalizeBucketItem(v: unknown, i: number): BucketItem | null {
+  if (!isObj(v) || !optStr(v.title)) return null;
+  return {
+    id: id(v.id, 'bucket', i),
+    title: str(v.title, '', 200),
+    note: optStr(v.note, 2000),
+    link: optLink(v.link),
+    media: normalizeMedia(v.media) ?? undefined,
+    done: bool(v.done),
+    doneAt: optStamp(v.doneAt),
+    private: bool(v.private) || undefined,
+    createdAt: stamp(v.createdAt),
+  };
+}
+
+function normalizeGoalStep(v: unknown, i: number): GoalStep | null {
+  if (!isObj(v) || !optStr(v.text)) return null;
+  return { id: id(v.id, 'step', i), text: str(v.text, '', 200), done: bool(v.done) };
+}
+
+export function normalizeGoal(v: unknown, i: number): Goal | null {
+  if (!isObj(v) || !optStr(v.title)) return null;
+  return {
+    id: id(v.id, 'goal', i),
+    title: str(v.title, '', 200),
+    why: optStr(v.why, 2000),
+    steps: list(v.steps, normalizeGoalStep).slice(0, 40),
+    target: optDate(v.target),
+    done: bool(v.done),
+    doneAt: optStamp(v.doneAt),
+    private: bool(v.private) || undefined,
+    createdAt: stamp(v.createdAt),
+  };
+}
+
+const lines = (v: unknown, max: number, fallback: string[]) =>
+  Array.isArray(v)
+    ? v
+        .filter((x): x is string => typeof x === 'string' && x.trim() !== '')
+        .map((x) => x.slice(0, 200))
+        .slice(0, max)
+    : [...fallback];
+
+export function normalizeHer(v: unknown): HerSpace {
+  if (!isObj(v)) return cloneHer(defaultHer);
+  const done = isObj(v.selfCareDone) ? v.selfCareDone : {};
+  return {
+    title: str(v.title, '', 80),
+    subtitle: str(v.subtitle, defaultHer.subtitle, 200),
+    theme: oneOf(v.theme, HER_THEMES, defaultHer.theme),
+    pattern: oneOf(v.pattern, HER_PATTERNS, defaultHer.pattern),
+    sticker: str(v.sticker, defaultHer.sticker, 16) || defaultHer.sticker,
+    affirmations: lines(v.affirmations, 60, defaultHer.affirmations),
+    selfCare: lines(v.selfCare, 12, defaultHer.selfCare),
+    selfCareDone: {
+      date: optDate(done.date) ?? '',
+      items: lines(done.items, 12, []),
+    },
+    playlistUrl: spotifyCollection(str(v.playlistUrl))?.url,
+    coco: bool(v.coco, defaultHer.coco),
+    // Private things never belong in the shared copy.
+    journal: list(v.journal, normalizeJournalEntry)
+      .filter((j) => !j.private)
+      .slice(0, 2000),
+    bucket: list(v.bucket, normalizeBucketItem)
+      .filter((b) => !b.private)
+      .slice(0, 500),
+    goals: list(v.goals, normalizeGoal)
+      .filter((g) => !g.private)
+      .slice(0, 200),
+  };
+}
+
+function normalizeHunt(v: unknown): StarHunt {
+  const h = isObj(v) ? v : {};
+  const found: StarHunt['found'] = {};
+  if (isObj(h.found)) {
+    for (const [star, value] of Object.entries(h.found).slice(0, 100)) {
+      if (isObj(value) && optStamp(value.at))
+        found[star.slice(0, 40)] = { at: value.at as string, by: person(value.by) };
+    }
+  }
+  return { found, reward: str(h.reward, defaultHunt.reward, 4000) };
+}
+
 export function normalizeContent(raw: unknown): AppContent {
   const defaults = createDefaultContent();
   if (!isObj(raw)) return defaults;
@@ -580,6 +716,8 @@ export function normalizeContent(raw: unknown): AppContent {
       ? list(raw.lists, normalizeList).slice(0, 60)
       : defaultLists.map((l) => ({ ...l, items: [] })),
     us: normalizeUs(raw.us),
+    her: normalizeHer(raw.her),
+    hunt: normalizeHunt(raw.hunt),
   });
 }
 
@@ -606,6 +744,7 @@ export function normalizePreferences(raw: unknown): Preferences {
       defaultPreferences.worldLight,
     ),
     companion: bool(p.companion, defaultPreferences.companion),
+    sfx: bool(p.sfx, defaultPreferences.sfx),
     cocoHome:
       isObj(p.cocoHome) &&
       typeof p.cocoHome.path === 'string' &&

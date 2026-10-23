@@ -2,6 +2,7 @@ import { useCallback, useRef, useSyncExternalStore } from 'react';
 import { createDefaultContent, defaultPreferences } from './defaults';
 import { normalizeContent, normalizePreferences } from './normalize';
 import type { AppContent, Preferences } from './types';
+import { clearHerPrivate } from './herPrivate';
 
 /**
  * Where content is persisted.
@@ -194,6 +195,7 @@ export function resetAllLocalData() {
   // Who-am-I and last-visit markers belong to this device too.
   storage?.removeItem('olu:me:v1');
   storage?.removeItem('olu:last-visit:v1');
+  clearHerPrivate();
   content = createDefaultContent();
   prefs = { ...defaultPreferences };
   contentListeners.forEach((listener) => listener());

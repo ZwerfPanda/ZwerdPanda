@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useDragControls, type PanInfo } from 'framer-m
 import { X } from 'lucide-react';
 import { lockScroll, trapTab } from './scrollLock';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { playSfx } from '../../lib/audio/sfx';
 import { useReducedMotion } from '../../hooks/useMotion';
 
 /** Open dialogs, topmost last — only the top one reacts to Escape and Tab. */
@@ -50,6 +51,11 @@ function DialogInner({
   const wide = useMediaQuery('(min-width: 720px)');
   const reduce = useReducedMotion();
   const drag = useDragControls();
+
+  useEffect(() => {
+    playSfx('open', true);
+    return () => playSfx('close', true);
+  }, []);
 
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement | null;

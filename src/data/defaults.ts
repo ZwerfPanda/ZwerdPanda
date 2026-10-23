@@ -3,6 +3,8 @@ import type {
   AppContent,
   CocoContent,
   CocoPet,
+  HerSpace,
+  StarHunt,
   OurList,
   UsContent,
   Welcome,
@@ -476,6 +478,54 @@ export const defaultUs: UsContent = {
   chat: [],
 };
 
+/** Her own corner. Everything here is hers to rename, restyle and rewrite. */
+export const defaultHer: HerSpace = {
+  title: '',
+  subtitle: 'Mijn eigen plekje. Mijn regels, mijn vibe.',
+  theme: 'strawberry',
+  pattern: 'hearts',
+  sticker: '🎀',
+  affirmations: [
+    'Ik ben genoeg, precies zoals ik ben.',
+    'Ik mag rustig aan doen vandaag.',
+    'Kleine stapjes tellen ook.',
+    'Ik verdien zachte dagen.',
+    'Mijn gevoel mag er zijn.',
+    'Ik ben trots op hoe ver ik al ben.',
+    'Vandaag kies ik voor mezelf.',
+  ],
+  selfCare: [
+    'Water drinken 💧',
+    'Skincare 🧴',
+    'Iets lekkers eten 🍓',
+    'Even naar buiten 🌸',
+    'Iets liefs voor mezelf 🎀',
+  ],
+  selfCareDone: { date: '', items: [] },
+  coco: true,
+  journal: [],
+  bucket: [],
+  goals: [],
+};
+
+export const defaultHunt: StarHunt = {
+  found: {},
+  reward:
+    'Je hebt ze allemaal gevonden. Elk sterretje was een klein stukje van ons universe — en jij bent de reden dat het bestaat. ♡',
+};
+
+export function cloneHer(her: HerSpace): HerSpace {
+  return {
+    ...her,
+    affirmations: [...her.affirmations],
+    selfCare: [...her.selfCare],
+    selfCareDone: { ...her.selfCareDone, items: [...her.selfCareDone.items] },
+    journal: her.journal.map((j) => ({ ...j })),
+    bucket: her.bucket.map((b) => ({ ...b })),
+    goals: her.goals.map((g) => ({ ...g, steps: g.steps.map((s) => ({ ...s })) })),
+  };
+}
+
 export function cloneUs(us: UsContent): UsContent {
   const me = (m: UsContent['you']) => ({
     ...m,
@@ -513,6 +563,8 @@ export function createDefaultContent(): AppContent {
     welcome: { ...defaultWelcome },
     lists: defaultLists.map((l) => ({ ...l, items: [] })),
     us: cloneUs(defaultUs),
+    her: cloneHer(defaultHer),
+    hunt: { found: {}, reward: defaultHunt.reward },
   };
 }
 
@@ -523,4 +575,5 @@ export const defaultPreferences: Preferences = {
   volume: 0.6,
   worldLight: 'auto',
   companion: true,
+  sfx: true,
 };

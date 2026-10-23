@@ -17,6 +17,7 @@ import { PageLoading } from './PageLoading';
 import { CocoCompanion } from '../features/pet/Companion';
 import { WelcomeHost } from '../features/welcome/Welcome';
 import { HiddenHutch } from '../features/pet/HiddenHutch';
+import { installTapSounds, setSfxEnabled } from '../lib/audio/sfx';
 
 // Home ships with the first load; every other page is loaded on demand.
 const pages = {
@@ -33,6 +34,7 @@ const pages = {
   coco: () => import('../features/coco/CocoPage').then((m) => ({ default: m.CocoPage })),
   us: () => import('../features/us/MiniUsPage').then((m) => ({ default: m.MiniUsPage })),
   lists: () => import('../features/lists/ListsPage').then((m) => ({ default: m.ListsPage })),
+  her: () => import('../features/her/HerPage').then((m) => ({ default: m.HerPage })),
   settings: () =>
     import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 };
@@ -46,6 +48,7 @@ const MusicPage = lazy(pages.music);
 const CocoPage = lazy(pages.coco);
 const MiniUsPage = lazy(pages.us);
 const ListsPage = lazy(pages.lists);
+const HerPage = lazy(pages.her);
 const SettingsPage = lazy(pages.settings);
 
 const PAGES: Record<RoutePath, () => React.ReactNode> = {
@@ -60,6 +63,7 @@ const PAGES: Record<RoutePath, () => React.ReactNode> = {
   '/coco': () => <CocoPage />,
   '/us': () => <MiniUsPage />,
   '/lists': () => <ListsPage />,
+  '/her': () => <HerPage />,
   '/settings': () => <SettingsPage />,
 };
 
@@ -110,6 +114,9 @@ export function App() {
   }, [route.path, profile.siteTitle]);
 
   useEffect(() => onPersistError((message) => toast(message, { tone: 'error' })), []);
+
+  useEffect(() => setSfxEnabled(prefs.sfx), [prefs.sfx]);
+  useEffect(() => installTapSounds(), []);
 
   // Connect to our shared universe, if one is configured.
   useEffect(() => {

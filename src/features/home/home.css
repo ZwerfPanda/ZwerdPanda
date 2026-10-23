@@ -162,6 +162,7 @@
 /* ---------- Planet ---------- */
 
 .hero-planet {
+  position: relative;
   display: grid;
   justify-items: center;
   width: min(80vw, 340px);
@@ -521,7 +522,8 @@
     'music music'
     'coco coco'
     'us us'
-    'lists lists';
+    'lists lists'
+    'her her';
   gap: 14px;
 }
 
@@ -533,7 +535,8 @@
       'mem letters'
       'future gift'
       'music coco'
-      'us lists';
+      'us lists'
+      'her her';
   }
 }
 
@@ -545,7 +548,8 @@
       'world world world world letters letters'
       'story story story future future gift'
       'music music music coco coco coco'
-      'us us us lists lists lists';
+      'us us us lists lists lists'
+      'her her her her her her';
     gap: 18px;
   }
 }
@@ -1225,4 +1229,51 @@
 .countdown-icons__option input:focus-visible + span {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
+}
+
+.home__hunt {
+  display: flex;
+  justify-content: center;
+}
+
+/* Her own corner, in her own colours. */
+.ex-her {
+  grid-area: her;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  overflow: hidden;
+  padding: 20px 22px;
+  border-radius: var(--radius-l);
+  background:
+    radial-gradient(90% 120% at 100% 0%, rgba(255, 255, 255, 0.55), transparent 60%),
+    linear-gradient(135deg, #ffd1dd, #f6c4e0 55%, #e3d6fa);
+  box-shadow: var(--shadow-1);
+  color: #3a2132 !important;
+}
+
+.ex-her__sticker {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 2rem;
+  transition: transform 0.4s var(--ease-spring);
+}
+
+.ex-her:hover .ex-her__sticker {
+  transform: rotate(-12deg) scale(1.08);
+}
+
+.ex-her .ex-label {
+  font-family: var(--font-display);
+  font-style: italic;
+}
+
+.ex-her .ex-sub {
+  color: #6d5065;
 }

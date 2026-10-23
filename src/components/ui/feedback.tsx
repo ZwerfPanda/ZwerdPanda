@@ -5,6 +5,7 @@ import { AlertTriangle, Heart } from 'lucide-react';
 import { Dialog } from './Dialog';
 import { createId } from '../../lib/id';
 import { useReducedMotion } from '../../hooks/useMotion';
+import { playSfx } from '../../lib/audio/sfx';
 
 /* ------------------------------------------------------------------ Toasts */
 
@@ -31,6 +32,7 @@ export function toast(
   };
   toasts = [...toasts.slice(-2), item];
   emitToasts();
+  playSfx(item.tone === 'error' ? 'error' : 'success', true);
   window.setTimeout(() => dismissToast(item.id), options.action ? 6500 : 3600);
 }
 
@@ -181,6 +183,7 @@ export function celebrate(origin?: { x: number; y: number }) {
   };
   bursts = [...bursts, burst];
   burstListeners.forEach((l) => l());
+  playSfx('sparkle', true);
   window.setTimeout(() => {
     bursts = bursts.filter((b) => b.id !== burst.id);
     burstListeners.forEach((l) => l());

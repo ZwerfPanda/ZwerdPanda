@@ -1,5 +1,5 @@
 import { CHAT_LIMIT, PET_LOG_LIMIT } from '../data/normalize';
-import type { AppContent, CocoPet, OurList, UsContent } from '../data/types';
+import type { AppContent, CocoPet, HerSpace, OurList, StarHunt, UsContent } from '../data/types';
 
 /**
  * Merging two people's edits.
@@ -189,6 +189,25 @@ export function mergeUs(base: UsContent, local: UsContent, remote: UsContent): U
   };
 }
 
+/** Her corner: her settings field by field, and her things item by item. */
+export function mergeHer(base: HerSpace, local: HerSpace, remote: HerSpace): HerSpace {
+  return {
+    ...mergeFields(base, local, remote),
+    journal: mergeList(base.journal, local.journal, remote.journal),
+    bucket: mergeList(base.bucket, local.bucket, remote.bucket),
+    goals: mergeList(base.goals, local.goals, remote.goals),
+  };
+}
+
+/** A star found on either phone stays found (the earliest find counts). */
+export function mergeHunt(base: StarHunt, local: StarHunt, remote: StarHunt): StarHunt {
+  const found = { ...remote.found };
+  for (const [star, find] of Object.entries(local.found)) {
+    if (!found[star] || find.at < found[star].at) found[star] = find;
+  }
+  return { found, reward: mergeFields(base, local, remote).reward };
+}
+
 export function mergeContent(base: AppContent, local: AppContent, remote: AppContent): AppContent {
   return {
     version: 1,
@@ -215,6 +234,8 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
     welcome: mergeFields(base.welcome, local.welcome, remote.welcome),
     lists: mergeLists(base.lists, local.lists, remote.lists),
     us: mergeUs(base.us, local.us, remote.us),
+    her: mergeHer(base.her, local.her, remote.her),
+    hunt: mergeHunt(base.hunt, local.hunt, remote.hunt),
   };
 }
 
@@ -252,6 +273,13 @@ export function mergeFirstJoin(local: AppContent, remote: AppContent): AppConten
     playlists: addPlain(local.playlists, remote.playlists),
     coco: { ...remote.coco, notes: addPlain(local.coco.notes, remote.coco.notes) },
     countdowns: addPlain(local.countdowns, remote.countdowns),
+    hunt: mergeHunt(remote.hunt, local.hunt, remote.hunt),
+    her: {
+      ...remote.her,
+      journal: addPlain(local.her.journal, remote.her.journal),
+      bucket: addPlain(local.her.bucket, remote.her.bucket),
+      goals: addPlain(local.her.goals, remote.her.goals),
+    },
     lists: addPlain(
       local.lists.filter((l) => l.items.length > 0 || !remote.lists.some((r) => r.id === l.id)),
       remote.lists,
@@ -269,5 +297,6 @@ export function contentMediaIds(content: AppContent): string[] {
   content.memories.forEach((m) => add(m.media));
   content.dreams.forEach((d) => add(d.media));
   add(content.coco.portrait);
+  content.her.bucket.forEach((b) => add(b.media));
   return [...ids];
 }

@@ -15,6 +15,11 @@ import './companion.css';
 
 /** Little things Coco says when you arrive somewhere with her. */
 const LINES: Partial<Record<RoutePath, string[]>> = {
+  '/her': [
+    'Dit is jouw plekje. Ik pas erop.',
+    'Ik lees niet mee, beloofd. *oortjes plat*',
+    'Zo’n mooi thema!',
+  ],
   '/': ['Home sweet home.', 'Hoi! Ik ben meegekomen.'],
   '/story': ['Is er een hoofdstuk over mij?', 'Ik vind dit verhaal zo leuk.'],
   '/memories': ['Zoveel foto’s… sta ik erop?', 'Ooh, foto’s!'],
@@ -178,7 +183,7 @@ function Companion({ path }: { path: RoutePath }) {
                   ? 'Coco mist je.'
                   : `Hoi ${nameOf(getMe(), profile)}!`}
             </p>
-            <button type="button" role="menuitem" onClick={() => void cuddle()}>
+            <button type="button" role="menuitem" data-sfx="heart" onClick={() => void cuddle()}>
               <HandHeart aria-hidden="true" /> Geef haar een knuffel
             </button>
             <button
@@ -220,6 +225,7 @@ function Companion({ path }: { path: RoutePath }) {
               className="companion__coco"
               style={{ scaleX: hop.scaleX, scaleY: hop.scaleY, rotate: hop.rotate }}
               aria-haspopup="menu"
+              data-sfx="squeak"
               aria-expanded={open}
               disabled={leaving}
               aria-label={

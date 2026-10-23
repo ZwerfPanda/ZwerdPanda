@@ -1,5 +1,6 @@
 import {
   BookHeart,
+  Flower2,
   Gift,
   House,
   ListChecks,
@@ -33,6 +34,14 @@ export const SECTIONS: Section[] = [
     blurb: 'Waar alles begint',
     icon: House,
     tint: '#f6c5a6',
+  },
+  {
+    path: '/her',
+    label: 'Her Little World',
+    short: 'Haar plekje',
+    blurb: 'Helemaal van haar',
+    icon: Flower2,
+    tint: '#f9d0e0',
   },
   {
     path: '/story',

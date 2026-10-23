@@ -3,6 +3,12 @@ import { looksLikeContent, normalizeContent } from './normalize';
 import { referencedMediaIds } from './actions';
 import { blobToDataUrl, dataUrlToBlob, getMedia, putMedia } from '../lib/media';
 import { todayIso } from '../lib/dates';
+import {
+  getHerPrivate,
+  normalizeHerPrivate,
+  updateHerPrivate,
+  type HerPrivate,
+} from './herPrivate';
 
 /**
  * Backups: a single JSON file containing all written content and, optionally,
@@ -15,6 +21,8 @@ interface BackupFile {
   exportedAt: string;
   content: unknown;
   media?: Record<string, { name: string; dataUrl: string }>;
+  /** Her private things, only when the backup is made on her own phone. */
+  herPrivate?: HerPrivate;
 }
 
 export async function createBackup(
@@ -25,6 +33,8 @@ export async function createBackup(
     exportedAt: new Date().toISOString(),
     content: getContent(),
   };
+  const mine = getHerPrivate();
+  if (mine.journal.length || mine.bucket.length || mine.goals.length) backup.herPrivate = mine;
   let mediaCount = 0;
   if (includeMedia) {
     backup.media = {};
@@ -54,6 +64,7 @@ export function downloadBlob(blob: Blob, filename: string) {
 export interface ImportPreview {
   content: ReturnType<typeof normalizeContent>;
   media: BackupFile['media'];
+  herPrivate?: HerPrivate;
   summary: string;
 }
 
@@ -74,6 +85,13 @@ export async function readBackup(file: File): Promise<ImportPreview> {
   }
   const content = normalizeContent(raw);
   const media = wrapper.app === 'our-little-universe' ? wrapper.media : undefined;
+  const herPrivate =
+    wrapper.app === 'our-little-universe' && wrapper.herPrivate
+      ? normalizeHerPrivate(wrapper.herPrivate)
+      : undefined;
+  const privateCount = herPrivate
+    ? herPrivate.journal.length + herPrivate.bucket.length + herPrivate.goals.length
+    : 0;
   const parts = [
     `${content.milestones.length} hoofdstukken`,
     `${content.memories.length} herinneringen`,
@@ -81,11 +99,13 @@ export async function readBackup(file: File): Promise<ImportPreview> {
     `${content.dreams.length} dromen`,
     `${content.songs.length} liedjes`,
     `${content.playlists.length} playlists`,
+    ...(privateCount ? [`${privateCount} privé dingen uit haar plekje`] : []),
   ];
   const mediaCount = media ? Object.keys(media).length : 0;
   return {
     content,
     media,
+    herPrivate,
     summary: `${parts.join(', ')}${mediaCount ? ` en ${mediaCount} foto’s/clips` : ' (zonder foto’s)'}.`,
   };
 }
@@ -98,6 +118,21 @@ export async function applyBackup(preview: ImportPreview) {
       const blob = await dataUrlToBlob(entry.dataUrl);
       await putMedia(blob, String(entry.name ?? 'imported'), mediaId);
     }
+  }
+  if (preview.herPrivate) {
+    // Added to what's here; nothing private on this phone is overwritten.
+    const incoming = preview.herPrivate;
+    updateHerPrivate((mine) => {
+      const add = <T extends { id: string }>(a: T[], b: T[]) => [
+        ...a,
+        ...b.filter((x) => !a.some((y) => y.id === x.id)),
+      ];
+      return {
+        journal: add(mine.journal, incoming.journal),
+        bucket: add(mine.bucket, incoming.bucket),
+        goals: add(mine.goals, incoming.goals),
+      };
+    });
   }
   replaceContent(preview.content);
 }

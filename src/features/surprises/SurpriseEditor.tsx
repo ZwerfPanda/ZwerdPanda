@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Dialog } from '../../components/ui/Dialog';
 import { TextArea } from '../../components/ui/Fields';
 import { toast } from '../../components/ui/feedback';
-import { getContent } from '../../data/store';
+import { getContent, updateContent } from '../../data/store';
 import { updateSurprises } from '../../data/actions';
 import { createId } from '../../lib/id';
 
@@ -19,6 +19,7 @@ export function SurpriseEditor({ open, onClose }: { open: boolean; onClose: () =
   const [gift, setGift] = useState('');
   const [secret, setSecret] = useState('');
   const [hidden, setHidden] = useState('');
+  const [reward, setReward] = useState('');
   const [errors, setErrors] = useState<{ reasons?: string; stars?: string }>({});
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export function SurpriseEditor({ open, onClose }: { open: boolean; onClose: () =
     setGift(s.giftMessage);
     setSecret(s.secretNote);
     setHidden(s.hiddenHeartNote);
+    setReward(getContent().hunt.reward);
     setErrors({});
   }, [open]);
 
@@ -51,6 +53,7 @@ export function SurpriseEditor({ open, onClose }: { open: boolean; onClose: () =
       secretNote: secret.trim(),
       hiddenHeartNote: hidden.trim(),
     });
+    updateContent((c) => ({ ...c, hunt: { ...c.hunt, reward: reward.trim() } }));
     toast('Surprises bijgewerkt ♡');
     onClose();
   };
@@ -102,6 +105,13 @@ export function SurpriseEditor({ open, onClose }: { open: boolean; onClose: () =
           value={hidden}
           onChange={setHidden}
           rows={3}
+        />
+        <TextArea
+          label="Beloning als alle verstopte sterren gevonden zijn"
+          value={reward}
+          onChange={setReward}
+          rows={4}
+          hint="Dit opent pas als jullie samen elk sterretje in het universe gevonden hebben."
         />
       </form>
     </Dialog>

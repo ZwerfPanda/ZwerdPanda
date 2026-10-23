@@ -17,6 +17,7 @@ export type RoutePath =
   | '/coco'
   | '/us'
   | '/lists'
+  | '/her'
   | '/settings';
 
 export interface Route {
@@ -36,6 +37,7 @@ const KNOWN = new Set<RoutePath>([
   '/coco',
   '/us',
   '/lists',
+  '/her',
   '/settings',
 ]);
 

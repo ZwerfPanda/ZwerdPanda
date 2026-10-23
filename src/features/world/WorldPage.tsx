@@ -13,6 +13,7 @@ import { lockScroll } from '../../components/ui/scrollLock';
 import { HiddenHeart } from '../../components/common/HiddenHeart';
 import { SiteFooter } from '../../components/common/SiteFooter';
 import './world.css';
+import { HuntStar } from '../hunt/HuntStar';
 
 function lightFromClock(date = new Date()): Light {
   const hour = date.getHours();
@@ -174,6 +175,7 @@ export function WorldPage() {
         </ul>
         <p className="world-index__secret">
           Sommige dingen in deze wereld zijn expres verstopt <HiddenHeart />
+          <HuntStar id="world" className="hunt-star--inline" />
         </p>
         <SiteFooter />
       </section>

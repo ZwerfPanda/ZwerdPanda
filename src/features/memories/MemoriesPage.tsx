@@ -18,6 +18,8 @@ import { MemoryForm } from './MemoryForm';
 import { AlbumsDialog } from './AlbumsDialog';
 import './memories.css';
 import { ByTag } from '../../components/common/ByTag';
+import { SampleNotice } from '../../components/common/SampleNotice';
+import { HuntStar } from '../hunt/HuntStar';
 
 const FAVORITES = 'favorites';
 
@@ -81,7 +83,11 @@ export function MemoriesPage() {
   return (
     <div className="page memories-page">
       <PageHeader
-        eyebrow="our scrapbook"
+        eyebrow={
+          <>
+            our scrapbook <HuntStar id="memories" className="hunt-star--inline" />
+          </>
+        }
         title={
           <>
             <em>Herinneringen</em>
@@ -108,6 +114,7 @@ export function MemoriesPage() {
           </>
         }
       />
+      <SampleNotice kind="memories" />
 
       <div className="toolbar">
         <div className="search">

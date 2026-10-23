@@ -20,6 +20,7 @@ import { BunnySvg } from '../pet/Bunny';
 import './coco.css';
 import { getAuthor } from '../../data/people';
 import { ByTag } from '../../components/common/ByTag';
+import { HuntStar } from '../hunt/HuntStar';
 
 const COCO_ALBUM = 'album-coco';
 
@@ -175,7 +176,7 @@ function BunnyId() {
     <section className="bunny-id" aria-labelledby="bunny-id-title">
       <div className="bunny-id__head">
         <h2 id="bunny-id-title" className="bunny-id__title">
-          Official bunny ID
+          Official bunny ID <HuntStar id="coco" className="hunt-star--inline" />
         </h2>
         {!editing && (
           <button

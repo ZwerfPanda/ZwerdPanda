@@ -36,6 +36,7 @@ import {
 } from './lines';
 import { AboutUs, ChatLog, PetNames, Wardrobe } from './UsPanels';
 import './us.css';
+import { HuntStar } from '../hunt/HuntStar';
 
 export function MiniUsPage() {
   return (
@@ -77,6 +78,20 @@ const ACTIONS: {
   { id: 'remember', label: 'Weet je nog…', icon: MessagesSquare },
   { id: 'sweet', label: 'Sweet talk', icon: Heart },
 ];
+
+/** Each action's own little sound. */
+const ACTION_SOUND: Record<string, string> = {
+  hug: 'heart',
+  kiss: 'kiss',
+  twirl: 'sparkle',
+  heart: 'heart',
+  selfie: 'seal',
+  highfive: 'pop',
+  wave: 'boing',
+  date: 'sparkle',
+  remember: 'open',
+  sweet: 'heart',
+};
 
 /** How long a speech bubble stays, based on how much there is to read. */
 const readTime = (text: string) => Math.min(5200, 1600 + text.length * 45);
@@ -240,6 +255,7 @@ function Stage() {
         Mini us
       </h2>
       <div className="us-stage__frame">
+        <HuntStar id="us" style={{ right: 4, bottom: 4 }} />
         <svg className="us-stage__svg" viewBox="-240 -380 480 400" aria-hidden="true">
           <Scenery scene={scene} />
           <g transform="translate(-168 -30) scale(0.32)">
@@ -353,7 +369,13 @@ function Stage() {
 
       <div className="us-stage__actions" role="group" aria-label="Dingen om samen te doen">
         {ACTIONS.map(({ id, label, icon: Icon }) => (
-          <button key={id} type="button" className="chip" onClick={() => act(id)}>
+          <button
+            key={id}
+            type="button"
+            className="chip"
+            data-sfx={ACTION_SOUND[id] ?? 'pop'}
+            onClick={() => act(id)}
+          >
             <Icon aria-hidden="true" /> {label}
           </button>
         ))}

@@ -11,6 +11,7 @@ import type {
   UsContent,
 } from './types';
 import { deleteMedia, listMediaIds } from '../lib/media';
+import { getHerPrivate } from './herPrivate';
 
 /** Collections that hold a list of items with ids. */
 export type CollectionKey = 'milestones' | 'memories' | 'letters' | 'dreams' | 'capsules' | 'songs';
@@ -126,6 +127,16 @@ export function removeSampleContent() {
   }));
 }
 
+export type SampleKind = 'milestones' | 'memories' | 'letters' | 'dreams';
+
+/** Clears the starter items of one page; things we edited are ours and stay. */
+export function removeSamplesOf(kind: SampleKind) {
+  updateContent((c) => ({
+    ...c,
+    [kind]: (c[kind] as { isSample?: boolean }[]).filter((item) => !item.isSample),
+  }));
+}
+
 // --- Media bookkeeping --------------------------------------------------------
 
 function addSource(ids: Set<string>, source: MediaSource | undefined) {
@@ -138,6 +149,9 @@ export function referencedMediaIds(c: AppContent = getContent()): Set<string> {
   c.memories.forEach((m) => addSource(ids, m.media));
   c.dreams.forEach((d) => addSource(ids, d.media));
   addSource(ids, c.coco.portrait);
+  c.her.bucket.forEach((b) => addSource(ids, b.media));
+  // Her private wishes keep their photos too, even though they're not shared.
+  getHerPrivate().bucket.forEach((b) => addSource(ids, b.media));
   const soundtrack = getPrefs().customSoundtrackId;
   if (soundtrack) ids.add(soundtrack);
   return ids;

@@ -15,6 +15,7 @@ import { SongForm } from './SongForm';
 import { Playlists } from './Playlists';
 import './music.css';
 import { ByTag } from '../../components/common/ByTag';
+import { HuntStar } from '../hunt/HuntStar';
 
 const SLEEVES = ['#d48d96', '#8e7cc3', '#e9906c', '#6f9160', '#52294f', '#e8bd6a'];
 
@@ -233,7 +234,9 @@ function RecordPlayer() {
         </svg>
       </div>
       <div className="player__info">
-        <p className="hand player__eyebrow">now on the record player</p>
+        <p className="hand player__eyebrow">
+          now on the record player <HuntStar id="music" className="hunt-star--inline" />
+        </p>
         <h2 id="player-title" className="player__title">
           {music.label}
         </h2>

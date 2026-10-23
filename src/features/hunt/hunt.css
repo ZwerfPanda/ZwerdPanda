@@ -1,0 +1,225 @@
+/* The hidden stars: easy to miss on purpose, with a slow, faint twinkle. */
+
+.hunt-star {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gold-400);
+  cursor: pointer;
+  opacity: 0.55;
+  animation: hunt-twinkle 4.8s ease-in-out infinite;
+}
+
+.hunt-star svg {
+  width: 18px;
+  height: 18px;
+  overflow: visible;
+  filter: drop-shadow(0 0 4px rgba(232, 189, 106, 0.8));
+}
+
+.hunt-star:hover,
+.hunt-star:focus-visible {
+  opacity: 1;
+}
+
+/* Where a page tucks its star when it doesn't sit inside a picture. */
+.hunt-star--inline {
+  position: relative;
+  display: inline-grid;
+  vertical-align: middle;
+  margin: -12px 0;
+}
+
+@keyframes hunt-twinkle {
+  0%,
+  70%,
+  100% {
+    transform: scale(0.85) rotate(0deg);
+    opacity: 0.4;
+  }
+  80% {
+    transform: scale(1.15) rotate(18deg);
+    opacity: 0.95;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hunt-star {
+    animation: none;
+  }
+}
+
+/* Found! */
+.hunt-found {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.hunt-found p {
+  margin: 0;
+}
+
+.hunt-found__stars {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  font-size: 1.3rem;
+  color: var(--line-strong);
+}
+
+.hunt-found__stars .is-on {
+  color: var(--gold-400);
+  text-shadow: 0 0 8px rgba(232, 189, 106, 0.7);
+}
+
+.hunt-found__count {
+  font-family: var(--font-hand);
+  font-size: 1.6rem;
+  color: var(--accent-strong);
+}
+
+.hunt-found__reward {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-style: italic;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+/* The star map on Little Surprises */
+.hunt-board {
+  margin: 34px 0 10px;
+  padding: 24px 20px;
+  border-radius: var(--radius-xl);
+  background: radial-gradient(120% 90% at 50% 0%, #4a2d5e 0%, #2a1530 60%, #1d0f22 100%);
+  color: #fff3e6;
+  box-shadow: var(--shadow-2);
+}
+
+.hunt-board__eyebrow {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: 1.3rem;
+  color: var(--gold-400);
+}
+
+.hunt-board__title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+}
+
+.hunt-board__lede {
+  max-width: 60ch;
+  margin: 0 0 16px;
+  color: rgba(255, 243, 230, 0.78);
+}
+
+.hunt-board__bar {
+  height: 10px;
+  margin-bottom: 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.hunt-board__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f8e6bb, #e8bd6a);
+  box-shadow: 0 0 12px rgba(232, 189, 106, 0.7);
+  transition: width 0.6s ease;
+}
+
+.hunt-board__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+}
+
+.hunt-slot {
+  display: grid;
+  gap: 2px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.hunt-slot__star {
+  font-size: 1.4rem;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.22);
+}
+
+.hunt-slot.is-found .hunt-slot__star {
+  color: var(--gold-400);
+  text-shadow: 0 0 10px rgba(232, 189, 106, 0.8);
+}
+
+.hunt-slot__place {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.hunt-slot__go {
+  color: inherit;
+}
+
+.hunt-slot__who {
+  font-size: 0.75rem;
+  color: rgba(255, 243, 230, 0.6);
+}
+
+.hunt-slot__hint {
+  justify-self: start;
+  min-height: 32px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--gold-200);
+  font: inherit;
+  font-family: var(--font-hand);
+  font-size: 1.1rem;
+  line-height: 1.15;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* A little nudge on Home */
+.hunt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1.5px var(--accent-soft);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.hunt-chip span {
+  color: var(--gold-500);
+}
+
+.hunt-tuck {
+  margin: 4px 0 0;
+  text-align: right;
+}

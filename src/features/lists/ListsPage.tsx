@@ -28,6 +28,7 @@ import { confirm, toast } from '../../components/ui/feedback';
 import { ByTag } from '../../components/common/ByTag';
 import { SiteFooter } from '../../components/common/SiteFooter';
 import './lists.css';
+import { HuntStar } from '../hunt/HuntStar';
 
 export const LIST_ICONS: Record<ListIcon, { icon: LucideIcon; label: string }> = {
   baby: { icon: Baby, label: 'Baby' },
@@ -55,7 +56,11 @@ export function ListsPage() {
   return (
     <div className="page lists-page">
       <PageHeader
-        eyebrow="little lists of us"
+        eyebrow={
+          <>
+            little lists of us <HuntStar id="lists" className="hunt-star--inline" />
+          </>
+        }
         title={
           <>
             Onze <em>Lijstjes</em>

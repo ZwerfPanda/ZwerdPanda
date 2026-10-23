@@ -47,6 +47,16 @@ import {
   type CareResult,
 } from './care';
 import './pet.css';
+import { playSfx, type Sfx } from '../../lib/audio/sfx';
+
+const CARE_SOUND: Record<Care['type'], Sfx> = {
+  feed: 'munch',
+  pet: 'squeak',
+  play: 'boing',
+  groom: 'write',
+  train: 'coin',
+  outfit: 'sparkle',
+};
 
 type Tray = 'feed' | 'play' | 'train' | 'dress' | null;
 type Mode = 'cuddle' | 'brush' | null;
@@ -203,6 +213,7 @@ export function CocoDen() {
   const doCare = (action: Care) => {
     const result = care(getContent().pet, action, getMe());
     commit(result);
+    playSfx(!result.ok ? 'error' : result.learned ? 'success' : CARE_SOUND[action.type], true);
     say(result.message);
     return result;
   };

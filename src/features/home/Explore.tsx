@@ -13,6 +13,8 @@ export function Explore() {
   const memories = useContent((c) => c.memories);
   const letters = useContent((c) => c.letters);
   const dreams = useContent((c) => c.dreams);
+  const her = useContent((c) => c.her);
+  const partnerName = useContent((c) => c.profile.partnerName);
 
   const unread = letters.filter((l) => l.status === 'shared' && !l.readAt).length;
   const somedays = dreams.filter((d) => d.someday).length;
@@ -312,6 +314,16 @@ export function Explore() {
           <span>
             <h3 className="ex-label">Onze lijstjes</h3>
             <span className="ex-sub">babynamen & meer</span>
+          </span>
+        </a>
+
+        <a className="ex-her" href={href('/her')}>
+          <span className="ex-her__sticker" aria-hidden="true">
+            {her.sticker}
+          </span>
+          <span>
+            <h3 className="ex-label">{her.title || `${partnerName}’s Little World`}</h3>
+            <span className="ex-sub">haar eigen plekje — journal, bucket list & goals</span>
           </span>
         </a>
       </div>

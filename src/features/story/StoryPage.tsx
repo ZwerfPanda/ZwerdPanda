@@ -16,6 +16,8 @@ import { MilestoneForm } from './MilestoneForm';
 import { motifFor, roman } from './motifs';
 import './story.css';
 import { ByTag } from '../../components/common/ByTag';
+import { SampleNotice } from '../../components/common/SampleNotice';
+import { HuntStar } from '../hunt/HuntStar';
 
 type Track = 'rail' | 'road' | 'stars';
 
@@ -83,6 +85,7 @@ export function StoryPage() {
           </>
         }
       />
+      <SampleNotice kind="milestones" />
 
       {milestones.length === 0 ? (
         <EmptyState
@@ -190,7 +193,8 @@ function TimelineEntry({
 
       <article className={`tl__card tl__card--${layout}`} onClick={onOpen}>
         <p className="tl__chapter">
-          {m.future ? 'to be continued' : `hoofdstuk ${roman(number)}`} ·{' '}
+          {m.future ? 'to be continued' : `hoofdstuk ${roman(number)}`}
+          {m.future && <HuntStar id="story" className="hunt-star--inline" />} ·{' '}
           <span className="tl__when">{when}</span>
         </p>
         <h2 className="tl__title">

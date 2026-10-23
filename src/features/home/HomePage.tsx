@@ -13,6 +13,7 @@ import { InstallBanner } from '../../pwa/InstallBanner';
 import './home.css';
 import { Countdowns } from './Countdowns';
 import { WhatsNew } from './WhatsNew';
+import { HuntChip } from '../hunt/HuntBoard';
 
 export function HomePage() {
   const profile = useContent((c) => c.profile);
@@ -43,6 +44,9 @@ export function HomePage() {
           <HomeNote />
         </div>
         <Countdowns />
+        <div className="home__hunt">
+          <HuntChip />
+        </div>
         <InstallBanner />
         <Explore />
         <TodayNote />

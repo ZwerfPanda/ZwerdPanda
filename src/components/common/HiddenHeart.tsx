@@ -22,6 +22,7 @@ export function HiddenHeart({
       <button
         type="button"
         className={`hidden-heart hidden-heart--${tone} ${className}`}
+        data-sfx="sparkle"
         onClick={() => setOpen(true)}
         aria-label="Een klein verstopt hartje"
       >

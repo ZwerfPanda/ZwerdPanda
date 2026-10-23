@@ -14,6 +14,8 @@ import { SiteFooter } from '../../components/common/SiteFooter';
 import { HiddenHeart } from '../../components/common/HiddenHeart';
 import { SurpriseEditor } from './SurpriseEditor';
 import './surprises.css';
+import { HuntStar } from '../hunt/HuntStar';
+import { HuntBoard } from '../hunt/HuntBoard';
 
 export function SurprisesPage() {
   const [editing, setEditing] = useState(false);
@@ -42,8 +44,9 @@ export function SurprisesPage() {
       </div>
       <p className="surprises-page__hint">
         Psst — er zijn een paar kleine hartjes verstopt in ons universe. Hier is er een:{' '}
-        <HiddenHeart />
+        <HiddenHeart /> <HuntStar id="surprises" className="hunt-star--inline" />
       </p>
+      <HuntBoard />
       <SurpriseEditor open={editing} onClose={() => setEditing(false)} />
       <SiteFooter />
     </div>
@@ -78,7 +81,13 @@ function ReasonJar() {
         Een pot met kleine redenen
       </h2>
       <p className="surprise__sub">{reasons.length} opgevouwen briefjes</p>
-      <button type="button" className="jar" onClick={draw} aria-label="Pak een briefje uit de pot">
+      <button
+        type="button"
+        className="jar"
+        data-sfx="coin"
+        onClick={draw}
+        aria-label="Pak een briefje uit de pot"
+      >
         <motion.svg viewBox="0 0 160 190" animate={jar} style={{ originY: 1 }}>
           <rect
             x="44"
@@ -441,6 +450,7 @@ function NightSky() {
               role="button"
               tabIndex={0}
               aria-label={isFound ? `Ster ${i + 1}: ${s.text}` : `Ster ${i + 1}, nog niet gevonden`}
+              data-sfx={isFound ? 'tap' : 'star'}
               onClick={() => tap(s.id)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {

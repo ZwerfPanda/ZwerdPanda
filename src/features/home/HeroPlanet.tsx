@@ -4,6 +4,7 @@ import { useContent } from '../../data/store';
 import { useReducedMotion } from '../../hooks/useMotion';
 import { celebrateFrom } from '../../components/ui/feedback';
 import { HeartShape, INK, SparkleShape, StarShape } from '../../components/art/shapes';
+import { HuntStar } from '../hunt/HuntStar';
 
 /**
  * The little planet on the home page. Tiny versions of our places sit on its
@@ -36,12 +37,14 @@ export function HeroPlanet() {
 
   return (
     <div className="hero-planet">
+      <HuntStar id="home" style={{ left: '6%', top: '14%' }} />
       <button
         ref={buttonRef}
         type="button"
         className="hero-planet__button"
         onClick={spin}
         aria-label="Draai aan ons planeetje voor een verrassing"
+        data-sfx="sparkle"
       >
         <svg viewBox="0 0 300 300" className="hero-planet__svg" aria-hidden="true">
           <defs>

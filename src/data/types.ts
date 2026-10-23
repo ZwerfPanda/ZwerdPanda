@@ -397,6 +397,89 @@ export interface UsContent {
   chat: ChatLine[];
 }
 
+/* ------------------------------------------------------- her little world */
+
+export type HerTheme = 'strawberry' | 'lavender' | 'cherry' | 'vanilla' | 'glitter' | 'ocean';
+export type HerPattern = 'hearts' | 'bows' | 'stars' | 'checks' | 'dots' | 'plain';
+export type HerMood = 'happy' | 'loved' | 'calm' | 'excited' | 'tired' | 'sad' | 'stressed';
+
+/**
+ * Things in her space can be private: those never enter the shared content
+ * at all — they live only on the device they were written on.
+ */
+export interface JournalEntry {
+  id: ID;
+  /** YYYY-MM-DD */
+  date: string;
+  title?: string;
+  text: string;
+  mood?: HerMood;
+  private?: boolean;
+  createdAt: string;
+  editedAt?: string;
+}
+
+export interface BucketItem {
+  id: ID;
+  title: string;
+  note?: string;
+  /** Where tapping it takes her (a place, a product, a video…). */
+  link?: string;
+  media?: MediaSource;
+  done: boolean;
+  doneAt?: string;
+  private?: boolean;
+  createdAt: string;
+}
+
+export interface GoalStep {
+  id: ID;
+  text: string;
+  done: boolean;
+}
+
+export interface Goal {
+  id: ID;
+  title: string;
+  why?: string;
+  steps: GoalStep[];
+  /** YYYY-MM-DD, only if she wants one. */
+  target?: string;
+  done: boolean;
+  doneAt?: string;
+  private?: boolean;
+  createdAt: string;
+}
+
+export interface HerSpace {
+  /** Empty means "<her name>’s Little World". */
+  title: string;
+  subtitle: string;
+  theme: HerTheme;
+  pattern: HerPattern;
+  sticker: string;
+  /** Her own kind words to herself, one shown per day. */
+  affirmations: string[];
+  selfCare: string[];
+  selfCareDone: { date: string; items: string[] };
+  /** Her own Spotify playlist for her music box. */
+  playlistUrl?: string;
+  /** Coco keeps her company in her corner. */
+  coco: boolean;
+  journal: JournalEntry[];
+  bucket: BucketItem[];
+  goals: Goal[];
+}
+
+/* -------------------------------------------------------------- star hunt */
+
+/** Stars hidden around the universe, found together: id → when it was found. */
+export interface StarHunt {
+  found: Record<string, { at: string; by?: Person }>;
+  /** The note that opens once every star is found. */
+  reward: string;
+}
+
 export type ThemeName = 'blush' | 'lavender' | 'matcha' | 'midnight';
 
 export interface Profile {
@@ -431,6 +514,8 @@ export interface AppContent {
   welcome: Welcome;
   lists: OurList[];
   us: UsContent;
+  her: HerSpace;
+  hunt: StarHunt;
 }
 
 /** Per-device preferences. These never travel with exported content. */
@@ -444,6 +529,8 @@ export interface Preferences {
   worldLight: 'auto' | 'day' | 'dusk' | 'night';
   /** Show the little Coco who hops along on every page. */
   companion: boolean;
+  /** Soft sound effects when we tap things. */
+  sfx: boolean;
   /** While she stays home: the page (and edge) where her hutch is hidden. */
   cocoHome?: { path: string; spot: number };
 }

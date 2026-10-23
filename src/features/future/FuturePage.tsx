@@ -18,6 +18,8 @@ import { Capsules } from './Capsules';
 import './future.css';
 import { getAuthor } from '../../data/people';
 import { ByTag } from '../../components/common/ByTag';
+import { SampleNotice } from '../../components/common/SampleNotice';
+import { HuntStar } from '../hunt/HuntStar';
 
 type StatusFilter = 'all' | DreamStatus;
 
@@ -81,6 +83,7 @@ export function FuturePage() {
           </button>
         }
       />
+      <SampleNotice kind="dreams" />
 
       <section aria-labelledby="board-title">
         <div className="board-head">
@@ -326,7 +329,9 @@ function OneDay({
     <section className="oneday" aria-labelledby="oneday-title">
       <Starfield count={40} seed="oneday" />
       <div className="oneday__inner">
-        <p className="hand oneday__eyebrow">no pressure, no deadlines</p>
+        <p className="hand oneday__eyebrow">
+          no pressure, no deadlines <HuntStar id="future" className="hunt-star--inline" />
+        </p>
         <h2 id="oneday-title" className="oneday__title">
           One day…
         </h2>

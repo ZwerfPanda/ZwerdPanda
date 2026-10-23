@@ -589,6 +589,11 @@ function SoundSection() {
             aria-valuetext={`${Math.round(prefs.volume * 100)}%`}
           />
         </div>
+        <Checkbox
+          label="Little sounds: zachte geluidjes als je ergens op tikt"
+          checked={prefs.sfx}
+          onChange={(on) => updatePrefs({ sfx: on })}
+        />
       </div>
     </Section>
   );
