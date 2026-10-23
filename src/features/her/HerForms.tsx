@@ -69,7 +69,10 @@ export function JournalForm({
     setPrivate(entry ? Boolean(entry.private) : true);
     setPrompt(JOURNAL_PROMPTS[Math.floor(Math.random() * JOURNAL_PROMPTS.length)]);
     setError(null);
-  }, [open, entry]);
+    // Only when it opens (or opens on something else): a sync or an update
+    // arriving while you edit must never wipe what you've typed or the photos
+    // you've just added.
+  }, [open, entry?.id]);
 
   const save = (event: React.FormEvent) => {
     event.preventDefault();
@@ -191,7 +194,10 @@ export function BucketForm({
     setMedia(item?.media ? [item.media] : []);
     setPrivate(Boolean(item?.private));
     setErrors({});
-  }, [open, item]);
+    // Only when it opens (or opens on something else): a sync or an update
+    // arriving while you edit must never wipe what you've typed or the photos
+    // you've just added.
+  }, [open, item?.id]);
 
   const save = (event: React.FormEvent) => {
     event.preventDefault();
@@ -296,7 +302,10 @@ export function GoalForm({
     setTarget(goal?.target ?? '');
     setPrivate(Boolean(goal?.private));
     setErrors({});
-  }, [open, goal]);
+    // Only when it opens (or opens on something else): a sync or an update
+    // arriving while you edit must never wipe what you've typed or the photos
+    // you've just added.
+  }, [open, goal?.id]);
 
   const save = (event: React.FormEvent) => {
     event.preventDefault();

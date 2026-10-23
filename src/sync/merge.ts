@@ -1,4 +1,5 @@
 import { CHAT_LIMIT, PET_LOG_LIMIT } from '../data/normalize';
+import { createDefaultContent } from '../data/defaults';
 import type { AppContent, CocoPet, HerSpace, OurList, StarHunt, UsContent } from '../data/types';
 
 /**
@@ -7,8 +8,10 @@ import type { AppContent, CocoPet, HerSpace, OurList, StarHunt, UsContent } from
  * `base` is the last copy both devices agreed on, `local` is this device now,
  * `remote` is what the other device saved meanwhile. Items are matched by id,
  * so both of you can add, edit and delete different things at the same time
- * and nothing is lost. If you both edited the very same item, this device's
- * version wins (it's the one being saved right now).
+ * and nothing is lost. If you both edited the very same item, it is merged
+ * field by field: each of your changes stays, photos added on either phone
+ * are kept, and only where you both changed the same field does this
+ * device's version win (it's the one being saved right now).
  */
 
 type WithId = { id: string };
@@ -39,7 +42,8 @@ function resolveItem<T>(
   if (local !== undefined && remote !== undefined) {
     if (stableEqual(local, remote)) return local;
     if (base !== undefined && stableEqual(local, base)) return remote; // only they changed it
-    return local; // only we changed it, or both did (we win)
+    if (base !== undefined && stableEqual(remote, base)) return local; // only we changed it
+    return mergeItem(base, local, remote); // both did: keep both sets of changes
   }
   if (local !== undefined) {
     if (base === undefined) return local; // we added it
@@ -50,6 +54,55 @@ function resolveItem<T>(
     return stableEqual(remote, base) ? undefined : remote; // we deleted it (keep it if they edited it)
   }
   return undefined;
+}
+
+const isObject = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null && !Array.isArray(v);
+
+/**
+ * A list of photos changed on both phones: keep what either added, drop what
+ * either removed (a three-way set merge, in this device's order).
+ */
+function mergeMedia(base: unknown[], local: unknown[], remote: unknown[]): unknown[] {
+  const key = stableStringify;
+  const b = new Set(base.map(key));
+  const l = new Set(local.map(key));
+  const r = new Set(remote.map(key));
+  const keep = (k: string) => (b.has(k) ? l.has(k) && r.has(k) : l.has(k) || r.has(k));
+  const out: unknown[] = [];
+  const seen = new Set<string>();
+  for (const m of [...local, ...remote]) {
+    const k = key(m);
+    if (!seen.has(k) && keep(k)) {
+      out.push(m);
+      seen.add(k);
+    }
+  }
+  return out;
+}
+
+/**
+ * The same item edited on both phones: take each side's changes field by
+ * field, keep photos from both, and let this device win only where both
+ * changed the same field.
+ */
+function mergeItem<T>(base: T | undefined, local: T, remote: T): T {
+  if (!isObject(local) || !isObject(remote)) return local;
+  const b: Record<string, unknown> = isObject(base) ? base : {};
+  const out: Record<string, unknown> = { ...remote };
+  for (const k of new Set([...Object.keys(local), ...Object.keys(remote), ...Object.keys(b)])) {
+    const lv = local[k];
+    const rv = remote[k];
+    const bv = b[k];
+    const weChanged = !stableEqual(lv, bv);
+    const theyChanged = !stableEqual(rv, bv);
+    if (k === 'media' && Array.isArray(lv) && Array.isArray(rv) && weChanged && theyChanged) {
+      out[k] = mergeMedia(Array.isArray(bv) ? bv : [], lv, rv);
+    } else if (weChanged || !theyChanged) {
+      out[k] = lv;
+    }
+  }
+  return out as T;
 }
 
 /** Did `next` keep the relative order of the items it shares with `prev`? */
@@ -253,7 +306,21 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
  * wins, and anything this device created itself (not starter samples) is
  * added on top so nothing written before connecting is lost.
  */
-export function mergeFirstJoin(local: AppContent, remote: AppContent): AppContent {
+export function mergeFirstJoin(
+  local: AppContent,
+  remote: AppContent,
+  starter: AppContent = createDefaultContent(),
+): AppContent {
+  // An item both phones have (a starter stop, a starter chapter…): merge what
+  // each did to it since it was new, so photos added before connecting stay.
+  const both = <T extends WithId>(mine: T[], shared: T[], start: T[] = []): T[] => {
+    const L = byId(mine);
+    const S = byId(start);
+    return shared.map((item) => {
+      const l = L.get(item.id);
+      return l ? (resolveItem(S.get(item.id), l, item) ?? item) : item;
+    });
+  };
   const add = <T extends WithId & { isSample?: boolean }>(mine: T[], shared: T[]): T[] => {
     const ids = new Set(shared.map((i) => i.id));
     const extra = mine.filter((i) => !i.isSample && !ids.has(i.id));
@@ -269,7 +336,7 @@ export function mergeFirstJoin(local: AppContent, remote: AppContent): AppConten
       const ids = new Set(remote.milestones.map((m) => m.id));
       const extra = local.milestones.filter((m) => !m.isSample && !ids.has(m.id));
       const futureAt = remote.milestones.findIndex((m) => m.future);
-      const list = remote.milestones.slice();
+      const list = both(local.milestones, remote.milestones, starter.milestones);
       list.splice(futureAt >= 0 ? futureAt : list.length, 0, ...extra);
       return list;
     })(),
@@ -284,7 +351,10 @@ export function mergeFirstJoin(local: AppContent, remote: AppContent): AppConten
     countdowns: addPlain(local.countdowns, remote.countdowns),
     hunt: mergeHunt(remote.hunt, local.hunt, remote.hunt),
     museum: {
-      stops: addPlain(local.museum.stops, remote.museum.stops),
+      stops: addPlain(
+        local.museum.stops,
+        both(local.museum.stops, remote.museum.stops, starter.museum.stops),
+      ),
       foundAt: earliest(local.museum.foundAt, remote.museum.foundAt),
     },
     her: {

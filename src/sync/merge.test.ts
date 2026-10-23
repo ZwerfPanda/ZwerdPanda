@@ -260,3 +260,54 @@ describe('playlists', () => {
     ).toEqual(['A', 'B']);
   });
 });
+
+describe('photos on a stop edited on both phones', () => {
+  const photo = (id: string) => ({ type: 'local' as const, mediaId: id, kind: 'image' as const });
+
+  it('keeps photos added on one phone when the other changed the text', () => {
+    const base = createDefaultContent();
+    const pumpkin = base.museum.stops.find((s) => s.id === 'stop-pumpkin')!;
+    const local = createDefaultContent();
+    local.museum.stops = local.museum.stops.map((s) =>
+      s.id === pumpkin.id ? { ...s, story: 'Een nieuw verhaal' } : s,
+    );
+    const remote = createDefaultContent();
+    remote.museum.stops = remote.museum.stops.map((s) =>
+      s.id === pumpkin.id ? { ...s, media: [photo('p1'), photo('p2')] } : s,
+    );
+    const merged = mergeContent(base, local, remote).museum.stops.find((s) => s.id === pumpkin.id)!;
+    expect(merged.story).toBe('Een nieuw verhaal');
+    expect(merged.media.map((m) => (m.type === 'local' ? m.mediaId : ''))).toEqual(['p1', 'p2']);
+  });
+
+  it('keeps photos added on both phones, and a removal on either', () => {
+    const base = createDefaultContent();
+    const id = 'stop-pumpkin';
+    const withMedia = (c: AppContent, media: ReturnType<typeof photo>[]) => {
+      c.museum.stops = c.museum.stops.map((s) => (s.id === id ? { ...s, media } : s));
+      return c;
+    };
+    withMedia(base, [photo('old')]);
+    const local = withMedia(createDefaultContent(), [photo('old'), photo('mine')]);
+    const remote = withMedia(createDefaultContent(), [photo('theirs')]);
+    const merged = mergeContent(base, local, remote).museum.stops.find((s) => s.id === id)!;
+    expect(merged.media.map((m) => (m.type === 'local' ? m.mediaId : ''))).toEqual([
+      'mine',
+      'theirs',
+    ]);
+  });
+
+  it('keeps photos put on a starter stop before connecting', () => {
+    const mine = createDefaultContent();
+    mine.museum.stops = mine.museum.stops.map((s) =>
+      s.id === 'stop-pumpkin' ? { ...s, media: [photo('p1')] } : s,
+    );
+    const shared = createDefaultContent();
+    shared.museum.stops = shared.museum.stops.map((s) =>
+      s.id === 'stop-pumpkin' ? { ...s, favorite: 'Het doolhof' } : s,
+    );
+    const merged = mergeFirstJoin(mine, shared).museum.stops.find((s) => s.id === 'stop-pumpkin')!;
+    expect(merged.media).toHaveLength(1);
+    expect(merged.favorite).toBe('Het doolhof');
+  });
+});

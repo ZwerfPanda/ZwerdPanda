@@ -70,7 +70,10 @@ export function MemoryForm({
             favorite: false,
           },
     );
-  }, [open, memory, defaultAlbumId]);
+    // Only when it opens (or opens on something else): a sync or an update
+    // arriving while you edit must never wipe what you've typed or the photos
+    // you've just added.
+  }, [open, memory?.id, defaultAlbumId]);
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));

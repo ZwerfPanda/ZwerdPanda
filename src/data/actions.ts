@@ -158,16 +158,49 @@ export function referencedMediaIds(c: AppContent = getContent()): Set<string> {
   return ids;
 }
 
+const ORPHANS_KEY = 'olu:orphans:v1';
+/** How long a photo nothing uses is kept, so it can still be found again. */
+export const KEEP_UNUSED_DAYS = 30;
+
+function readOrphans(): Record<string, string> {
+  try {
+    const raw = JSON.parse(localStorage.getItem(ORPHANS_KEY) ?? '{}');
+    return raw && typeof raw === 'object' ? raw : {};
+  } catch {
+    return {};
+  }
+}
+
+/** Photos stored on this phone that nothing in our universe uses right now. */
+export async function unusedLocalMedia(): Promise<string[]> {
+  const used = referencedMediaIds();
+  return (await listMediaIds()).filter((mediaId) => !used.has(mediaId));
+}
+
 /**
- * Deletes stored files nothing points at any more (e.g. a photo picked in a
- * form that was then cancelled). Runs once at start-up, never mid-edit.
+ * Tidies up stored files nothing points at any more (e.g. a photo picked in
+ * a form that was then cancelled) — but only once they've been unused for a
+ * whole month, so a photo that went missing can always be found again in
+ * Instellingen first. Runs once at start-up.
  */
 export async function cleanupOrphanMedia(): Promise<number> {
-  const used = referencedMediaIds();
-  const stored = await listMediaIds();
-  const orphans = stored.filter((mediaId) => !used.has(mediaId));
-  await Promise.all(orphans.map((mediaId) => deleteMedia(mediaId)));
-  return orphans.length;
+  const unused = await unusedLocalMedia();
+  const since = readOrphans();
+  const now = Date.now();
+  const next: Record<string, string> = {};
+  const expired: string[] = [];
+  for (const mediaId of unused) {
+    const first = since[mediaId] ?? new Date(now).toISOString();
+    if (now - Date.parse(first) > KEEP_UNUSED_DAYS * 86_400_000) expired.push(mediaId);
+    else next[mediaId] = first;
+  }
+  await Promise.all(expired.map((mediaId) => deleteMedia(mediaId)));
+  try {
+    localStorage.setItem(ORPHANS_KEY, JSON.stringify(next));
+  } catch {
+    // Without storage we simply never delete anything.
+  }
+  return expired.length;
 }
 
 export function updateUs(recipe: (us: UsContent) => UsContent) {

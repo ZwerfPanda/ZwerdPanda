@@ -167,7 +167,10 @@ function PlaylistForm({
     setTitle(playlist?.title ?? '');
     setNote(playlist?.note ?? '');
     setError(null);
-  }, [open, playlist]);
+    // Only when it opens (or opens on something else): a sync or an update
+    // arriving while you edit must never wipe what you've typed or the photos
+    // you've just added.
+  }, [open, playlist?.id]);
 
   const spotify = spotifyCollection(url);
   const shortLink = /^https?:\/\/(spotify\.link|spotify\.app\.link)\//i.test(url.trim());

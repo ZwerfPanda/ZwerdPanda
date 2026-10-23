@@ -333,7 +333,10 @@ function ListForm({
       setIcon(list?.icon ?? 'heart');
       setError(null);
     }
-  }, [open, list]);
+    // Only when it opens (or opens on something else): a sync or an update
+    // arriving while you edit must never wipe what you've typed or the photos
+    // you've just added.
+  }, [open, list?.id]);
 
   const save = (event: React.FormEvent) => {
     event.preventDefault();

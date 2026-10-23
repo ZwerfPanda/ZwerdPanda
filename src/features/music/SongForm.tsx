@@ -34,7 +34,10 @@ export function SongForm({
     setMemory(song?.memory ?? '');
     setFavorite(song?.favorite ?? false);
     setErrors({});
-  }, [open, song]);
+    // Only when it opens (or opens on something else): a sync or an update
+    // arriving while you edit must never wipe what you've typed or the photos
+    // you've just added.
+  }, [open, song?.id]);
 
   const link = describeLink(url.trim());
 

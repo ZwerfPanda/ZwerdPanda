@@ -36,6 +36,8 @@ interface Meta {
   baseVersion: number;
   pending: boolean;
   lastCleanup?: string;
+  /** Cloud photos nothing uses: since when (they're kept a month after). */
+  unusedSince?: Record<string, string>;
 }
 
 const META_KEY = 'olu:sync:meta:v1';
@@ -417,19 +419,37 @@ export class SyncEngine {
     }
   }
 
-  /** Removes photos nothing uses any more (only long-unused ones, to be safe). */
+  /** Cloud photos nothing in our universe uses right now. */
+  async listUnusedMedia(): Promise<string[]> {
+    if (!this.state.spaceId) return [];
+    const used = new Set(contentMediaIds(this.deps.getContent()));
+    return (await this.backend.listMedia(this.state.spaceId))
+      .map((m) => m.id)
+      .filter((id) => !used.has(id));
+  }
+
+  /**
+   * Removes photos nothing uses any more — only once they've been unused for
+   * a whole month, so a photo that went missing can still be brought back.
+   */
   private async cleanupRemoteMedia() {
     const meta = this.meta;
     if (!meta || !this.state.spaceId) return;
     const day = new Date().toISOString().slice(0, 10);
     if (meta.lastCleanup === day) return;
     try {
-      const used = new Set(contentMediaIds(this.deps.getContent()));
-      const cutoff = Date.now() - CLEANUP_AFTER_DAYS * 86_400_000;
-      const stale = (await this.backend.listMedia(this.state.spaceId))
-        .filter((m) => !used.has(m.id) && m.createdAt && Date.parse(m.createdAt) < cutoff)
-        .map((m) => m.id);
+      const unused = await this.listUnusedMedia();
+      const since = meta.unusedSince ?? {};
+      const now = Date.now();
+      const next: Record<string, string> = {};
+      const stale: string[] = [];
+      for (const id of unused) {
+        const first = since[id] ?? new Date(now).toISOString();
+        if (now - Date.parse(first) > CLEANUP_AFTER_DAYS * 86_400_000) stale.push(id);
+        else next[id] = first;
+      }
       if (stale.length) await this.backend.deleteMedia(this.state.spaceId, stale);
+      meta.unusedSince = next;
       meta.lastCleanup = day;
       this.persistMeta();
     } catch {

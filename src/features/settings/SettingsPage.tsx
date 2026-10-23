@@ -24,6 +24,7 @@ import {
 import { countSamples, removeSampleContent, updateProfile } from '../../data/actions';
 import { applyBackup, createBackup, downloadBlob, readBackup } from '../../data/backup';
 import type { Profile, ThemeName } from '../../data/types';
+import { PhotoRescue } from './PhotoRescue';
 import { MAX_AUDIO_BYTES, clearMedia, deleteMedia, formatBytes, putMedia } from '../../lib/media';
 import { formatTimestamp, todayIso } from '../../lib/dates';
 import { previewWelcome } from '../welcome/Welcome';
@@ -784,6 +785,7 @@ function DataSection() {
         />
       </div>
 
+      <PhotoRescue />
       <div className="settings-danger">
         <div>
           <h3>Voorbeeldinhoud</h3>

@@ -68,7 +68,10 @@ export function DreamForm({
           },
     );
     // `defaults` is read when the form opens.
-  }, [open, dream]);
+    // Only when it opens (or opens on something else): a sync or an update
+    // arriving while you edit must never wipe what you've typed or the photos
+    // you've just added.
+  }, [open, dream?.id]);
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));

@@ -84,7 +84,10 @@ export function LetterForm({
             until: '',
           },
     );
-  }, [open, letter, profile.partnerName, profile.yourName]);
+    // Only when it opens (or opens on something else): a sync or an update
+    // arriving while you edit must never wipe what you've typed or the photos
+    // you've just added.
+  }, [open, letter?.id, profile.partnerName, profile.yourName]);
 
   if (!draft) return null;
 

@@ -151,7 +151,10 @@ function CountdownForm({
     setYearly(item?.yearly ?? false);
     setIcon(item?.icon ?? 'heart');
     setErrors({});
-  }, [open, item]);
+    // Only when it opens (or opens on something else): a sync or an update
+    // arriving while you edit must never wipe what you've typed or the photos
+    // you've just added.
+  }, [open, item?.id]);
 
   const save = (event: React.FormEvent) => {
     event.preventDefault();

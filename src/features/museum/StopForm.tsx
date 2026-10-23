@@ -64,7 +64,10 @@ export function StopForm({
     setMedia(stop?.media ?? []);
     setAhead(stop ? stop.upcoming : upcoming);
     setError(null);
-  }, [open, stop, upcoming]);
+    // Only when it opens (or opens on something else): a sync or an update
+    // arriving while you edit must never wipe what you've typed or the photos
+    // you've just added.
+  }, [open, stop?.id, upcoming]);
 
   const save = (event: React.FormEvent) => {
     event.preventDefault();
