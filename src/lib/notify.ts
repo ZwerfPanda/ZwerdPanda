@@ -2,6 +2,7 @@ import { getContent, getPrefs, onContentChanged, updatePrefs } from '../data/sto
 import { getMe, nameOf, otherPerson } from '../data/people';
 import { newSince } from '../features/home/WhatsNew';
 import { todayIso } from './dates';
+import { sealedFor } from '../features/letters/opened';
 
 /**
  * Little notifications on this phone: when the other one adds something
@@ -98,12 +99,12 @@ function checkNew() {
 function checkLetters() {
   const today = todayIso();
   const told = new Set((read(LETTERS_KEY) ?? '').split(',').filter(Boolean));
-  const opening = getContent().letters.filter(
+  const content = getContent();
+  const opening = content.letters.filter(
     (l) =>
-      l.status === 'shared' &&
+      sealedFor(l, getMe(), content.profile) &&
       l.lock.type === 'date' &&
       l.lock.until <= today &&
-      !l.readAt &&
       !told.has(l.id),
   );
   if (!opening.length) return;

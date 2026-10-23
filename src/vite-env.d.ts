@@ -10,3 +10,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/** When this version of the app was built (UTC, to the minute). */
+declare const __BUILD__: string;

@@ -12,7 +12,9 @@ describe('something small every day', () => {
       lock: { type: 'date', until: '2026-12-24' },
       readAt: undefined,
     };
-    expect(pickDailyThing(c, '2026-12-24')?.kind).toBe('letter');
+    expect(pickDailyThing(c, '2026-12-24', 'partner')?.kind).toBe('letter');
+    // His own letter is no surprise to him.
+    expect(pickDailyThing(c, '2026-12-24', 'you')?.kind).not.toBe('letter');
   });
 
   it('shows a memory from this day a year ago', () => {
@@ -28,7 +30,7 @@ describe('something small every day', () => {
         createdAt: '2025-10-23T10:00:00.000Z',
       },
     ];
-    const thing = pickDailyThing(c, '2026-10-23');
+    const thing = pickDailyThing(c, '2026-10-23', 'you');
     expect(thing?.kind).toBe('on-this-day');
     expect(thing?.eyebrow).toBe('vandaag een jaar geleden');
   });
@@ -37,14 +39,16 @@ describe('something small every day', () => {
     const c = createDefaultContent();
     c.surprises.reasons = [];
     c.memories = [];
-    expect(pickDailyThing(c, '2026-10-23')).toBeNull();
+    expect(pickDailyThing(c, '2026-10-23', 'you')).toBeNull();
     c.museum.foundAt = '2026-10-01T10:00:00.000Z';
-    expect(pickDailyThing(c, '2026-10-23')?.kind).toBe('stop');
+    expect(pickDailyThing(c, '2026-10-23', 'you')?.kind).toBe('stop');
   });
 
   it('is the same thing all day', () => {
     const c = createDefaultContent();
-    expect(pickDailyThing(c, '2026-10-23')?.text).toBe(pickDailyThing(c, '2026-10-23')?.text);
+    expect(pickDailyThing(c, '2026-10-23', 'you')?.text).toBe(
+      pickDailyThing(c, '2026-10-23', 'you')?.text,
+    );
   });
 });
 

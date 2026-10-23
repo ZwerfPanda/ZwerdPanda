@@ -148,6 +148,7 @@ export function LetterForm({
       status: draft.status,
       lock: draft.lock === 'date' ? { type: 'date', until: draft.until } : { type: draft.lock },
       voice: draft.voice,
+      openedBy: letter?.openedBy,
       readAt: letter?.readAt,
       isSample: false,
       by: letter?.by ?? getAuthor(),

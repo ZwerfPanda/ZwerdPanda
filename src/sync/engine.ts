@@ -1,4 +1,5 @@
 import type { AppContent } from '../data/types';
+import { fingerprint } from './fingerprint';
 import { contentMediaIds, mergeContent, mergeFirstJoin, stableEqual } from './merge';
 import { OfflineError, type Account, type SyncBackend, type SyncState } from './types';
 
@@ -420,6 +421,38 @@ export class SyncEngine {
       this.uploading = false;
       this.set({ uploading: 0 });
     }
+  }
+
+  /**
+   * Fetches the shared copy and compares it with this phone's: the same
+   * fingerprint means this phone sees exactly what's on the server.
+   */
+  async verify(): Promise<{ local: string; server: string } | null> {
+    const spaceId = this.state.spaceId;
+    if (!spaceId) return null;
+    const remote = await this.backend.fetchContent(spaceId);
+    if (!remote.version) return null;
+    return {
+      local: fingerprint(this.deps.getContent()),
+      server: fingerprint(this.deps.normalize(remote.content)),
+    };
+  }
+
+  /** Photos we use: how many are online, and which are missing there (and if this phone has them). */
+  async mediaStatus(): Promise<{ total: number; online: number; missing: number; here: number }> {
+    const spaceId = this.state.spaceId;
+    const used = contentMediaIds(this.deps.getContent());
+    if (!spaceId) return { total: used.length, online: 0, missing: used.length, here: 0 };
+    const remote = new Set((await this.backend.listMedia(spaceId)).map((m) => m.id));
+    const missing = used.filter((id) => !remote.has(id));
+    let here = 0;
+    for (const id of missing) if (await this.deps.getLocalMedia(id)) here++;
+    return {
+      total: used.length,
+      online: used.length - missing.length,
+      missing: missing.length,
+      here,
+    };
   }
 
   /** Earlier copies the server kept, newest first. */

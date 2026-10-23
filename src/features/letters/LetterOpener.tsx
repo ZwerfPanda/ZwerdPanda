@@ -6,6 +6,9 @@ import { playSfx } from '../../lib/audio/sfx';
 import { Lock, Mail, Pencil, Trash2, X } from 'lucide-react';
 import type { Letter } from '../../data/types';
 import { patchItem } from '../../data/actions';
+import { useContent } from '../../data/store';
+import { getMe, nameOf, otherPerson, useMe } from '../../data/people';
+import { openedAt, wroteIt } from './opened';
 import {
   daysUntil,
   formatDate,
@@ -45,9 +48,16 @@ export function LetterOpener(props: OpenerProps) {
 function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { letter: Letter }) {
   const reduce = useReducedMotion();
   const rootRef = useRef<HTMLDivElement>(null);
-  const dateLocked = isDateLocked(letter);
-  const needsHold = letter.lock.type === 'hold' && !letter.readAt;
-  const startReading = Boolean(letter.readAt) && !dateLocked;
+  const me = useMe();
+  const profile = useContent((c) => c.profile);
+  // The writer reads their own letter straight away and never breaks the seal for the other.
+  const mine = wroteIt(letter, me, profile);
+  const myOpen = openedAt(letter, me);
+  const theirName = nameOf(otherPerson(me), profile);
+  const theirOpen = openedAt(letter, otherPerson(me));
+  const dateLocked = !mine && isDateLocked(letter);
+  const needsHold = !mine && letter.lock.type === 'hold' && !myOpen;
+  const startReading = mine || (Boolean(myOpen) && !dateLocked);
   const [stage, setStage] = useState<Stage>(startReading ? 'reading' : 'closed');
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
@@ -71,7 +81,10 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
 
   const open = () => {
     if (stage !== 'closed' || dateLocked) return;
-    if (!letter.readAt) patchItem('letters', letter.id, { readAt: nowIso() });
+    if (!mine && !openedAt(letter, getMe()))
+      patchItem('letters', letter.id, {
+        openedBy: { ...letter.openedBy, [getMe()]: nowIso() },
+      });
     playSfx(needsHold ? 'seal' : 'paper', true);
     window.setTimeout(() => playSfx('paper', true), 380);
     if (reduce) {
@@ -151,13 +164,6 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
                       ? 'Nog maar één dagje.'
                       : `Nog ${plural(daysLeft, 'dag', 'dagen')}. Goede dingen zijn het wachten waard.`}
                   </p>
-                  <button
-                    type="button"
-                    className="btn btn--ghost btn--small opener__ghost"
-                    onClick={() => onEdit(letter)}
-                  >
-                    <Pencil aria-hidden="true" /> Bewerken (voor de schrijver)
-                  </button>
                 </>
               ) : needsHold && stage === 'closed' ? (
                 <p className="opener__hint">Houd het zegel ingedrukt om het te breken</p>
@@ -204,26 +210,42 @@ function OpenerInner({ letter, onClose, onEdit, onDelete }: OpenerProps & { lett
             </div>
             <footer className="letter-paper__foot">
               <span className="letter-paper__read">
-                {letter.readAt ? `Geopend ${formatTimestamp(letter.readAt)}` : ''}
+                {mine
+                  ? letter.status === 'draft'
+                    ? 'Concept — alleen jij ziet hem'
+                    : theirOpen
+                      ? `${theirName} opende hem ${formatTimestamp(theirOpen)} 💌`
+                      : `Voor ${theirName} nog verzegeld — ze opent hem zelf`
+                  : myOpen
+                    ? `Geopend ${formatTimestamp(myOpen)}`
+                    : ''}
               </span>
-              <button
-                type="button"
-                className="btn btn--quiet btn--small"
-                onClick={() => {
-                  patchItem('letters', letter.id, { readAt: undefined });
-                  onClose();
-                }}
-              >
-                <Mail aria-hidden="true" /> Opnieuw verzegelen
-              </button>
-              <button
-                type="button"
-                className="icon-btn"
-                aria-label="Brief bewerken"
-                onClick={() => onEdit(letter)}
-              >
-                <Pencil />
-              </button>
+              {!mine && myOpen && (
+                <button
+                  type="button"
+                  className="btn btn--quiet btn--small"
+                  onClick={() => {
+                    const rest = { ...letter.openedBy };
+                    delete rest[me];
+                    patchItem('letters', letter.id, {
+                      openedBy: Object.keys(rest).length ? rest : undefined,
+                    });
+                    onClose();
+                  }}
+                >
+                  <Mail aria-hidden="true" /> Opnieuw verzegelen
+                </button>
+              )}
+              {mine && (
+                <button
+                  type="button"
+                  className="icon-btn"
+                  aria-label="Brief bewerken"
+                  onClick={() => onEdit(letter)}
+                >
+                  <Pencil />
+                </button>
+              )}
               <button
                 type="button"
                 className="icon-btn"

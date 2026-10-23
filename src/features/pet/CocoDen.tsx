@@ -292,6 +292,12 @@ export function CocoDen() {
 
   /* --------------------------------------------------------- being herself */
 
+  // When you start something with her, her own wandering waits so it can't cut in.
+  const yoursUntil = useRef(0);
+  const yourTurn = () => {
+    yoursUntil.current = Date.now() + 4000;
+  };
+
   useEffect(() => {
     if (busy || mode || seek || training || ball || floorFood) return;
     if (sleeping) {
@@ -306,6 +312,7 @@ export function CocoDen() {
     if (reduce) return;
     const timer = window.setTimeout(
       () => {
+        if (Date.now() < yoursUntil.current) return;
         void scene(async (t) => {
           const roll = Math.random();
           if (mood === 'hungry') {
@@ -498,9 +505,10 @@ export function CocoDen() {
 
   /* --------------------------------------------------------- cuddle, brush */
 
-  const startMode = (next: Mode) =>
+  const startMode = (next: Mode) => {
+    wake();
+    yourTurn();
     void scene(async (t) => {
-      wake();
       setTray(null);
       if (Math.abs(hop.pct() - AT.middle) > 3 && !(await hop.hopTo(t, AT.middle))) return;
       hop.show('front');
@@ -510,6 +518,7 @@ export function CocoDen() {
       stroke.current = { total: 0, last: null, sinceFx: 0 };
       say(next === 'cuddle' ? 'Aai haar voorhoofd en wangetjes.' : 'Borstel langs haar rug.');
     }, false);
+  };
 
   const finishStroke = () => {
     const kind = mode;
@@ -688,6 +697,7 @@ export function CocoDen() {
   const startSeek = () =>
     void scene(async (t) => {
       wake();
+      yourTurn();
       setTray(null);
       const spots: HideSpot[] = ['tunnel', 'box', 'hay'];
       const hideIn = spots[Math.floor(Math.random() * spots.length)];

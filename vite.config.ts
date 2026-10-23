@@ -104,6 +104,8 @@ function refuseSecretKeys(): Plugin {
 // any folder (GitHub Pages, a sub-path, or opened from a static host).
 export default defineConfig({
   base: './',
+  // When this version was built: phones report it, so we can see both run the same app.
+  define: { __BUILD__: JSON.stringify(new Date().toISOString().slice(0, 16)) },
   plugins: [refuseSecretKeys(), react(), precacheManifest(), contentSecurityPolicy()],
   server: { host: true },
   preview: { host: true },

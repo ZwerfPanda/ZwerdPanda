@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search as SearchIcon } from 'lucide-react';
 import { useContent } from '../../data/store';
-import type { AppContent } from '../../data/types';
+import type { AppContent, Person } from '../../data/types';
+import { useMe } from '../../data/people';
+import { sealedFor } from '../letters/opened';
 import { href, navigate, type RoutePath } from '../../lib/router';
 import { Dialog } from '../../components/ui/Dialog';
 import './search.css';
@@ -29,7 +31,7 @@ function around(text: string, q: string): string {
 /** Everything in our universe that can be found, as plain text. */
 type Findable = Omit<Hit, 'snippet' | 'key'> & { text: string };
 
-function everything(c: AppContent): Findable[] {
+function everything(c: AppContent, me: Person): Findable[] {
   const items: Findable[] = [];
   const add = (
     kind: string,
@@ -48,10 +50,17 @@ function everything(c: AppContent): Findable[] {
       query,
     });
 
+  // A sealed letter can be found by its "open when", never by what's inside.
   c.letters
     .filter((l) => l.status === 'shared')
     .forEach((l) =>
-      add('Brief', '💌', `Open when ${l.occasion}`, [l.body, l.signature], '/letters'),
+      add(
+        'Brief',
+        '💌',
+        `Open when ${l.occasion}`,
+        sealedFor(l, me, c.profile) ? [] : [l.body, l.signature],
+        '/letters',
+      ),
     );
   c.memories.forEach((m) =>
     add(
@@ -97,8 +106,9 @@ export function SearchButton() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
   const content = useContent((c) => c);
+  const me = useMe();
   const input = useRef<HTMLInputElement>(null);
-  const all = useMemo(() => (open ? everything(content) : []), [open, content]);
+  const all = useMemo(() => (open ? everything(content, me) : []), [open, content, me]);
 
   useEffect(() => {
     if (open) window.setTimeout(() => input.current?.focus(), 50);

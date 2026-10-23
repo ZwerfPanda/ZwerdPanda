@@ -126,6 +126,9 @@ export interface Letter {
   lock: LetterLock;
   /** His or her voice, to listen to with the letter. */
   voice?: VoiceNote;
+  /** When each of us opened it on our own screen (the writer never needs to). */
+  openedBy?: Partial<Record<Person, string>>;
+  /** Older, shared "opened" mark — it couldn't tell who opened it, so it's no longer used. */
   readAt?: string;
   isSample?: boolean;
   by?: Person;
@@ -731,6 +734,16 @@ export interface AppContent {
   museum: Museum;
   quiz: Quiz;
   games: Games;
+  /** Each phone says, after syncing, whether it matched the shared copy (see the Samen-check). */
+  syncReports: Partial<Record<Person, SyncReport>>;
+}
+
+export interface SyncReport {
+  at: string;
+  /** This phone's copy was exactly the server's copy. */
+  ok: boolean;
+  /** Which version of the app the phone runs. */
+  build: string;
 }
 
 /** Per-device preferences. These never travel with exported content. */

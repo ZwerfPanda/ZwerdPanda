@@ -310,7 +310,18 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
       stops: mergeList(base.museum.stops, local.museum.stops, remote.museum.stops),
       foundAt: earliest(local.museum.foundAt, remote.museum.foundAt),
     },
+    syncReports: {
+      you: newest(local.syncReports.you, remote.syncReports.you),
+      partner: newest(local.syncReports.partner, remote.syncReports.partner),
+    },
   };
+}
+
+/** The more recent of two reports (each phone only writes its own). */
+function newest<T extends { at: string }>(a?: T, b?: T): T | undefined {
+  if (!a) return b;
+  if (!b) return a;
+  return a.at >= b.at ? a : b;
 }
 
 /**

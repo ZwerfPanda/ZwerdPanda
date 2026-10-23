@@ -19,11 +19,13 @@ import {
   forgetThisDevicesServer,
   getSyncConfig,
   getSyncEngine,
+  sameEmail,
   useSyncState,
   startSync,
   syncFailedToStart,
 } from '../../sync/sync';
 import { isValidConfig, looksLikeSecretKey } from '../../sync/config';
+import { SyncCheck } from './SyncCheck';
 import { timeAgo } from '../../lib/dates';
 import type { SyncState } from '../../sync/types';
 
@@ -499,7 +501,8 @@ function Connected({ sync }: { sync: SyncState }) {
           <li key={m}>
             <span className="together__dot is-in" aria-hidden="true" />
             <span className="together__who">
-              {m} {m === sync.account?.email && <span className="tag">you</span>}
+              {m}{' '}
+              {sync.account && sameEmail(m, sync.account.email) && <span className="tag">jij</span>}
             </span>
           </li>
         ))}
@@ -576,6 +579,8 @@ function Connected({ sync }: { sync: SyncState }) {
           </p>
         </>
       )}
+
+      <SyncCheck sync={sync} />
 
       <div className="settings-actions">
         <button

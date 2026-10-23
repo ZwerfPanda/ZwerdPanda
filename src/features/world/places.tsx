@@ -11,6 +11,8 @@ import { celebrateFrom } from '../../components/ui/feedback';
 import { useReducedMotion } from '../../hooks/useMotion';
 import { roman } from '../story/motifs';
 import type { PlaceId } from './PlaceArt';
+import { useMe } from '../../data/people';
+import { sealedFor } from '../letters/opened';
 
 export interface PlaceInfo {
   id: PlaceId;
@@ -560,7 +562,9 @@ function TreeBody() {
 
 function MoonPostBody() {
   const letters = useContent((c) => c.letters);
-  const waiting = letters.filter((l) => l.status === 'shared' && !l.readAt).slice(0, 3);
+  const profile = useContent((c) => c.profile);
+  const me = useMe();
+  const waiting = letters.filter((l) => sealedFor(l, me, profile)).slice(0, 3);
   if (waiting.length === 0) {
     return <p className="muted">Alle brieven zijn open. Misschien tijd voor een nieuwe?</p>;
   }

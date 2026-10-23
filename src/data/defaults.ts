@@ -589,7 +589,7 @@ export function createDefaultContent(): AppContent {
       stars: defaultSurprises.stars.map((s) => ({ ...s })),
     },
     coco: { facts: defaultCoco.facts.map((f) => ({ ...f })), notes: [] },
-    pet: { ...defaultPet, treats: { ...defaultPet.treats }, tricks: {}, log: [] },
+    pet: { ...defaultPet, treats: { ...defaultPet.treats }, tricks: {}, log: [], handled: [] },
     countdowns: [],
     welcome: { ...defaultWelcome },
     lists: defaultLists.map((l) => ({ ...l, items: [] })),
@@ -599,6 +599,7 @@ export function createDefaultContent(): AppContent {
     quiz: { custom: [], answers: [] },
     games: { matches: [], scores: [], results: [] },
     museum: defaultMuseum(),
+    syncReports: {},
   };
 }
 

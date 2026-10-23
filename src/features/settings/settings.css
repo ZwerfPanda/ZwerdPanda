@@ -478,3 +478,123 @@
   display: grid;
   gap: 10px;
 }
+
+/* ------------------------------------------------------------ samen-check */
+
+.sync-check {
+  display: grid;
+  gap: 12px;
+  margin: 8px 0 4px;
+  padding: 16px;
+  border-radius: 20px;
+  background: var(--accent-wash);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.sync-check h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.sync-check h3 svg {
+  width: 20px;
+  height: 20px;
+  color: var(--accent-strong);
+}
+
+.sync-check > .field__hint {
+  margin: 0;
+}
+
+.sync-check__print {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--surface-raised);
+  box-shadow: inset 0 0 0 1px var(--line);
+  text-align: center;
+}
+
+.sync-check__print span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.sync-check__print strong {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 1.9rem;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+}
+
+.sync-check__print small {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.sync-check__rows {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sync-check__rows li {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 8px;
+  align-items: start;
+  font-size: 0.92rem;
+}
+
+.sync-check__rows svg {
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+}
+
+.sync-check__rows .is-ok svg {
+  color: var(--sage-600, #4f7d4a);
+}
+
+.sync-check__rows .is-warn svg {
+  color: #c2702a;
+}
+
+.sync-check__rows small {
+  display: block;
+  color: var(--ink-soft);
+}
+
+.sync-check .btn {
+  justify-self: start;
+}
+
+.sync-check__counts summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.sync-check__counts ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 6px 14px;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sync-check__counts li {
+  display: flex;
+  justify-content: space-between;
+  text-transform: capitalize;
+}

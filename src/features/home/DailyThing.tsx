@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useContent } from '../../data/store';
-import type { AppContent } from '../../data/types';
+import type { AppContent, Person } from '../../data/types';
+import { useMe } from '../../data/people';
+import { sealedFor } from '../letters/opened';
 import { href, type RoutePath } from '../../lib/router';
 import { useToday } from '../../hooks/useToday';
 import { formatDate } from '../../lib/dates';
@@ -26,10 +28,10 @@ const yearsAgo = (date: string, today: string) =>
  * a photo, a stop on our line, or a reason I love you. A letter that opened
  * today always comes first.
  */
-export function pickDailyThing(c: AppContent, today: string): Thing | null {
-  // A sealed letter whose day is today.
+export function pickDailyThing(c: AppContent, today: string, me: Person): Thing | null {
+  // A sealed letter for me whose day is today.
   const opened = c.letters.find(
-    (l) => l.status === 'shared' && l.lock.type === 'date' && l.lock.until === today && !l.readAt,
+    (l) => sealedFor(l, me, c.profile) && l.lock.type === 'date' && l.lock.until === today,
   );
   if (opened) {
     return {
@@ -108,7 +110,8 @@ export function pickDailyThing(c: AppContent, today: string): Thing | null {
 export function DailyThing() {
   const content = useContent((c) => c);
   const today = useToday();
-  const thing = pickDailyThing(content, today);
+  const me = useMe();
+  const thing = pickDailyThing(content, today, me);
   if (!thing) return null;
   return (
     <aside className={`today today--${thing.kind}`} aria-labelledby="today-title">

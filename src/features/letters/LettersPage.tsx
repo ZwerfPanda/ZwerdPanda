@@ -11,7 +11,9 @@ import { confirm, toast } from '../../components/ui/feedback';
 import { SiteFooter } from '../../components/common/SiteFooter';
 import { useReducedMotion } from '../../hooks/useMotion';
 import { useToday } from '../../hooks/useToday';
+import { nameOf, otherPerson, useMe } from '../../data/people';
 import { Envelope } from './Envelope';
+import { openedAt, sealedFor, wroteIt } from './opened';
 import { LetterOpener, isDateLocked } from './LetterOpener';
 import { LetterForm } from './LetterForm';
 import './letters.css';
@@ -23,6 +25,8 @@ type Filter = 'shelf' | 'unopened' | 'drafts';
 
 export function LettersPage() {
   const letters = useContent((c) => c.letters);
+  const profile = useContent((c) => c.profile);
+  const me = useMe();
   const today = useToday();
   const { params } = useRoute();
   const [filter, setFilter] = useState<Filter>('shelf');
@@ -40,8 +44,9 @@ export function LettersPage() {
   }, [linked]);
 
   const shelf = letters.filter((l) => l.status === 'shared');
-  const unopened = shelf.filter((l) => !l.readAt);
-  const drafts = letters.filter((l) => l.status === 'draft');
+  const unopened = shelf.filter((l) => sealedFor(l, me, profile));
+  // Drafts are the writer's own: the other doesn't see them until they're shared.
+  const drafts = letters.filter((l) => l.status === 'draft' && wroteIt(l, me, profile));
   const visible = filter === 'drafts' ? drafts : filter === 'unopened' ? unopened : shelf;
   const openLetter = openId ? (letters.find((l) => l.id === openId) ?? null) : null;
 
@@ -180,6 +185,12 @@ function ShelfEnvelope({
   onOpen: () => void;
 }) {
   const reduce = useReducedMotion();
+  const me = useMe();
+  const profile = useContent((c) => c.profile);
+  const mine = wroteIt(letter, me, profile);
+  const theirName = nameOf(otherPerson(me), profile);
+  // My own letters show whether the other has opened them; the rest, whether I have.
+  const opened = openedAt(letter, mine ? otherPerson(me) : me);
   const locked = isDateLocked(letter, today);
   const tilt = [-2.2, 1.6, -1, 2.4, -1.8, 1][index % 6];
   const until = letter.lock.type === 'date' ? letter.lock.until : '';
@@ -189,15 +200,21 @@ function ShelfEnvelope({
   const status =
     letter.status === 'draft'
       ? 'Concept'
-      : locked
-        ? `Verzegeld tot ${formatDate(until, 'short')} · nog ${daysLeft === 1 ? '1 dag' : `${daysLeft} dagen`}`
-        : until && until === today && !letter.readAt
-          ? 'Vandaag opengegaan ✨'
-          : letter.readAt
-            ? `Geopend ${formatTimestamp(letter.readAt)}`
-            : letter.lock.type === 'hold'
-              ? 'Houd het zegel vast om te openen'
-              : 'Ongeopend';
+      : mine
+        ? opened
+          ? `${theirName} opende hem ${formatTimestamp(opened)} 💌`
+          : locked
+            ? `Voor ${theirName} · verzegeld tot ${formatDate(until, 'short')}`
+            : `Voor ${theirName} · nog niet geopend`
+        : locked
+          ? `Verzegeld tot ${formatDate(until, 'short')} · nog ${daysLeft === 1 ? '1 dag' : `${daysLeft} dagen`}`
+          : until && until === today && !opened
+            ? 'Vandaag opengegaan ✨'
+            : opened
+              ? `Geopend ${formatTimestamp(opened)}`
+              : letter.lock.type === 'hold'
+                ? 'Houd het zegel vast om te openen'
+                : 'Ongeopend';
 
   return (
     <motion.li
@@ -209,19 +226,15 @@ function ShelfEnvelope({
     >
       <button
         type="button"
-        className={`shelf__button ${letter.status === 'draft' ? 'is-draft' : ''} ${until === today && !letter.readAt && !locked ? 'is-fresh' : ''}`}
+        className={`shelf__button ${letter.status === 'draft' ? 'is-draft' : ''} ${!mine && until === today && !opened && !locked ? 'is-fresh' : ''}`}
         onClick={onOpen}
         style={{ '--tilt': `${tilt}deg` } as React.CSSProperties}
         aria-label={`Open when ${letter.occasion} — ${status}`}
       >
-        <Envelope letter={letter} stage={letter.readAt && !locked ? 'open' : 'closed'} />
+        <Envelope letter={letter} stage={opened && (mine || !locked) ? 'open' : 'closed'} />
       </button>
       <p className="shelf__status">
-        {locked ? (
-          <Lock aria-hidden="true" />
-        ) : letter.readAt ? (
-          <MailOpen aria-hidden="true" />
-        ) : null}
+        {opened ? <MailOpen aria-hidden="true" /> : locked ? <Lock aria-hidden="true" /> : null}
         {status}
         {letter.isSample && <span className="tag tag--sample">Voorbeeld</span>}
         <ByTag by={letter.by} />

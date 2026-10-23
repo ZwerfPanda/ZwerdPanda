@@ -5,6 +5,7 @@ import { normalizeContent } from '../data/normalize';
 import { setMe } from '../data/people';
 import { getMedia, retryMissingMedia, setRemoteMediaSource } from '../lib/media';
 import { SyncEngine, type EngineDeps } from './engine';
+import { reportAfterSync } from './report';
 import { clearDeviceConfig, resolveSyncConfig, saveDeviceConfig, type SyncConfig } from './config';
 import type { SyncState } from './types';
 
@@ -36,8 +37,15 @@ const listeners = new Set<() => void>();
 function setState(next: SyncState) {
   state = next;
   // Whoever created the universe is `you`; the other signed-in person is `partner`.
-  if (next.account && next.owner) setMe(next.account.email === next.owner ? 'you' : 'partner');
+  if (next.account && next.owner)
+    setMe(sameEmail(next.account.email, next.owner) ? 'you' : 'partner');
   listeners.forEach((listener) => listener());
+  if (engine && next.phase === 'synced' && !next.pendingChanges) void reportAfterSync(engine);
+}
+
+/** Email addresses don't care about capitals or stray spaces. */
+export function sameEmail(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
 
 function safeStorage(): EngineDeps['storage'] {

@@ -7,6 +7,8 @@ import { useReducedMotion } from '../../hooks/useMotion';
 import { playSfx } from '../../lib/audio/sfx';
 import { href } from '../../lib/router';
 import { useContent } from '../../data/store';
+import { useMe } from '../../data/people';
+import { sealedFor } from '../letters/opened';
 import { plural } from '../../lib/dates';
 import { MediaView } from '../../components/media/MediaView';
 import { CocoFigure } from '../../components/art/SampleArt';
@@ -108,9 +110,11 @@ function useCards(): Partial<Record<RoutePath, ReactNode>> {
   const dreams = useContent((c) => c.dreams);
   const her = useContent((c) => c.her);
   const partnerName = useContent((c) => c.profile.partnerName);
+  const profile = useContent((c) => c.profile);
+  const me = useMe();
   const stops = useContent((c) => c.museum.stops.length);
 
-  const unread = letters.filter((l) => l.status === 'shared' && !l.readAt).length;
+  const unread = letters.filter((l) => sealedFor(l, me, profile)).length;
   const somedays = dreams.filter((d) => d.someday).length;
   const plans = dreams.length - somedays;
   const stack = memories.slice(0, 3);

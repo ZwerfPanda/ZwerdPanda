@@ -279,11 +279,22 @@ function normalizeLetter(v: unknown, i: number): Letter | null {
           ? { type: 'date', until: lock.until as string }
           : { type: 'none' },
     voice: normalizeVoice(v.voice),
+    openedBy: openedBy(v.openedBy),
     readAt: optStr(v.readAt, 40),
     isSample: bool(v.isSample) || undefined,
     by: person(v.by),
     createdAt: stamp(v.createdAt),
   };
+}
+
+function openedBy(v: unknown): Letter['openedBy'] {
+  if (!isObj(v)) return undefined;
+  const out: Partial<Record<Person, string>> = {};
+  for (const who of ['you', 'partner'] as const) {
+    const at = optStamp(v[who]);
+    if (at) out[who] = at;
+  }
+  return Object.keys(out).length ? out : undefined;
 }
 
 function normalizeDream(v: unknown, i: number): Dream | null {
@@ -948,6 +959,17 @@ const PLAYERS: readonly Player[] = ['you', 'partner', 'coco'];
 
 const JUDGEMENTS = ['right', 'close', 'wrong'] as const;
 
+function normalizeSyncReports(v: unknown): AppContent['syncReports'] {
+  if (!isObj(v)) return {};
+  const out: AppContent['syncReports'] = {};
+  for (const who of ['you', 'partner'] as const) {
+    const r = v[who];
+    if (!isObj(r) || !optStamp(r.at)) continue;
+    out[who] = { at: r.at as string, ok: r.ok === true, build: str(r.build, '', 40) };
+  }
+  return out;
+}
+
 function normalizeQuiz(v: unknown): Quiz {
   if (!isObj(v)) return { custom: [], answers: [] };
   return {
@@ -1011,6 +1033,7 @@ export function normalizeContent(raw: unknown): AppContent {
     museum: normalizeMuseum(raw.museum),
     quiz: normalizeQuiz(raw.quiz),
     games: normalizeGames(raw.games),
+    syncReports: normalizeSyncReports(raw.syncReports),
   });
 }
 
