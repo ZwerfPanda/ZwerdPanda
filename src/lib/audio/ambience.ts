@@ -642,31 +642,53 @@ const SCENES: Record<Ambience, (k: Kit) => void> = {
       [440, 554.4, 659.3, 880, 659.3, 554.4],
       [392, 493.9, 587.3, 784, 587.3, 493.9],
     ];
-    k.every(5, 10, (t) => {
-      const dest = place(k, rand(-0.9, 0.9), 0.8);
-      const tune = pickOne(tunes);
-      const step = rand(0.1, 0.14);
-      for (let r = 0; r < 2; r++)
-        tune.forEach((f, i) =>
-          tone(k, dest, t + (r * tune.length + i) * step, f, step * 0.9, 0.025, { type: 'square' }),
+    k.every(
+      5,
+      10,
+      (t) => {
+        const dest = place(k, rand(-0.9, 0.9), 0.8);
+        const tune = pickOne(tunes);
+        const step = rand(0.1, 0.14);
+        for (let r = 0; r < 2; r++)
+          tune.forEach((f, i) =>
+            tone(k, dest, t + (r * tune.length + i) * step, f, step * 0.9, 0.025, {
+              type: 'square',
+            }),
+          );
+      },
+      0.5,
+    );
+    k.every(
+      1.5,
+      4,
+      (t) => {
+        const dest = place(k, rand(-1, 1), 0.6);
+        const f = rand(600, 1400);
+        tone(k, dest, t, f, 0.09, 0.03, { type: 'square', to: f * rand(0.5, 2) });
+      },
+      1,
+    );
+    k.every(
+      6,
+      14,
+      (t) => {
+        const dest = place(k, rand(-0.8, 0.8), 0.5);
+        tone(k, dest, t, 988, 0.06, 0.04, { type: 'square', decay: true });
+        tone(k, dest, t + 0.07, 1319, 0.2, 0.04, { type: 'square', decay: true });
+      },
+      3,
+    );
+    k.every(
+      20,
+      40,
+      (t) => {
+        const dest = place(k, rand(-0.7, 0.7), 0.9);
+        [523.3, 659.3, 784, 1046.5, 1318.5].forEach((f, i) =>
+          tone(k, dest, t + i * 0.08, f, 0.16, 0.03, { type: 'triangle', decay: true }),
         );
-    }, 0.5);
-    k.every(1.5, 4, (t) => {
-      const dest = place(k, rand(-1, 1), 0.6);
-      const f = rand(600, 1400);
-      tone(k, dest, t, f, 0.09, 0.03, { type: 'square', to: f * rand(0.5, 2) });
-    }, 1);
-    k.every(6, 14, (t) => {
-      const dest = place(k, rand(-0.8, 0.8), 0.5);
-      tone(k, dest, t, 988, 0.06, 0.04, { type: 'square', decay: true });
-      tone(k, dest, t + 0.07, 1319, 0.2, 0.04, { type: 'square', decay: true });
-    }, 3);
-    k.every(20, 40, (t) => {
-      const dest = place(k, rand(-0.7, 0.7), 0.9);
-      [523.3, 659.3, 784, 1046.5, 1318.5].forEach((f, i) =>
-        tone(k, dest, t + i * 0.08, f, 0.16, 0.03, { type: 'triangle', decay: true }),
-      );
-    }, 8);
+      },
+      8,
+    );
   },
 };
 
