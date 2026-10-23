@@ -24,7 +24,7 @@ import {
 import { countSamples, removeSampleContent, updateProfile } from '../../data/actions';
 import { applyBackup, createBackup, downloadBlob, readBackup } from '../../data/backup';
 import type { Profile, ThemeName } from '../../data/types';
-import { PhotoRescue } from './PhotoRescue';
+import { LAST_BACKUP_KEY, SafetySection } from './SafetySection';
 import { MAX_AUDIO_BYTES, clearMedia, deleteMedia, formatBytes, putMedia } from '../../lib/media';
 import { formatTimestamp, todayIso } from '../../lib/dates';
 import { previewWelcome } from '../welcome/Welcome';
@@ -670,6 +670,13 @@ function DataSection() {
     try {
       const { blob, filename, mediaCount } = await createBackup(withMedia);
       downloadBlob(blob, filename);
+      if (withMedia) {
+        try {
+          localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString());
+        } catch {
+          // Only used to remind us.
+        }
+      }
       toast(
         withMedia
           ? `Backup opgeslagen met ${mediaCount} foto’s/clips (${formatBytes(blob.size)})`
@@ -738,6 +745,7 @@ function DataSection() {
 
   return (
     <Section id="data" title="Onze data & backups" kicker="keep it safe">
+      <SafetySection />
       {!storageAvailable && (
         <p className="notice" role="alert">
           <HardDrive aria-hidden="true" />
@@ -785,7 +793,6 @@ function DataSection() {
         />
       </div>
 
-      <PhotoRescue />
       <div className="settings-danger">
         <div>
           <h3>Voorbeeldinhoud</h3>

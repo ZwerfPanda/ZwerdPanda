@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { getContent, onContentChanged, replaceContent } from '../data/store';
+import { restorePointMediaIds } from '../data/restorePoints';
 import { normalizeContent } from '../data/normalize';
 import { setMe } from '../data/people';
 import { getMedia, retryMissingMedia, setRemoteMediaSource } from '../lib/media';
@@ -61,6 +62,7 @@ const deps: EngineDeps = {
   getLocalMedia: async (id) => (await getMedia(id).catch(() => undefined))?.blob ?? null,
   setRemoteMediaSource,
   retryMissingMedia,
+  keepMedia: restorePointMediaIds,
   storage: safeStorage(),
   watchConnectivity: (wake) => {
     const onVisible = () => document.visibilityState === 'visible' && wake();

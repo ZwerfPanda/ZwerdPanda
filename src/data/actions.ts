@@ -11,6 +11,7 @@ import type {
   UsContent,
 } from './types';
 import { deleteMedia, listMediaIds } from '../lib/media';
+import { restorePointMediaIds } from './restorePoints';
 import { getHerPrivate } from './herPrivate';
 
 /** Collections that hold a list of items with ids. */
@@ -174,6 +175,8 @@ function readOrphans(): Record<string, string> {
 /** Photos stored on this phone that nothing in our universe uses right now. */
 export async function unusedLocalMedia(): Promise<string[]> {
   const used = referencedMediaIds();
+  // Photos a restore point still points at are kept too.
+  (await restorePointMediaIds().catch(() => new Set<string>())).forEach((id) => used.add(id));
   return (await listMediaIds()).filter((mediaId) => !used.has(mediaId));
 }
 

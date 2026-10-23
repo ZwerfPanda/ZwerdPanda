@@ -87,7 +87,7 @@ export function PhotoRescue() {
         museum: {
           ...c.museum,
           stops: c.museum.stops.map((s) =>
-            s.id === target ? { ...s, media: [...s.media, ...chosen].slice(0, 24) } : s,
+            s.id === target ? { ...s, media: [...s.media, ...chosen].slice(0, 500) } : s,
           ),
         },
       }));

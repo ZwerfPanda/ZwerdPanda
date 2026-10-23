@@ -41,6 +41,13 @@ export const localContentAdapter: ContentAdapter = {
     try {
       return JSON.parse(raw);
     } catch {
+      // Never overwrite something we can't read: keep it aside first, so it
+      // can still be rescued (the restore points have a copy too).
+      try {
+        storage?.setItem(`${CONTENT_KEY}:unreadable:${Date.now()}`, raw);
+      } catch {
+        // No room to keep it aside; the restore points still have a copy.
+      }
       return null;
     }
   },
@@ -59,9 +66,14 @@ export const storageAvailable = storage !== null;
 
 const adapter: ContentAdapter = localContentAdapter;
 
-function loadInitialContent(): AppContent {
-  const raw = adapter.load();
-  return raw ? normalizeContent(raw) : createDefaultContent();
+const initialRaw = adapter.load();
+
+function loadInitialContent(raw: unknown = initialRaw): AppContent {
+  try {
+    return raw ? normalizeContent(raw) : createDefaultContent();
+  } catch {
+    return createDefaultContent();
+  }
 }
 
 let content: AppContent = loadInitialContent();
@@ -124,7 +136,22 @@ export function updateContent(recipe: (current: AppContent) => AppContent) {
   persistSoon();
 }
 
+const beforeReplaceListeners = new Set<
+  (current: AppContent, next: AppContent, source: ChangeSource) => void
+>();
+
+/** Called right before everything is swapped at once (a sync, a backup). */
+export function onBeforeReplace(
+  listener: (current: AppContent, next: AppContent, source: ChangeSource) => void,
+): () => void {
+  beforeReplaceListeners.add(listener);
+  return () => {
+    beforeReplaceListeners.delete(listener);
+  };
+}
+
 export function replaceContent(next: AppContent, source: ChangeSource = 'local') {
+  beforeReplaceListeners.forEach((listener) => listener(content, next, source));
   content = next;
   contentListeners.forEach((listener) => listener());
   changeListeners.forEach((listener) => listener(source));

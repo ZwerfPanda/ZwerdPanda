@@ -3,6 +3,7 @@ import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { useRoute, type RoutePath } from '../lib/router';
 import { onPersistError, useContent, usePrefs } from '../data/store';
 import { cleanupOrphanMedia } from '../data/actions';
+import { installRestorePoints } from '../data/restorePoints';
 import { useReducedMotion } from '../hooks/useMotion';
 import { MenuSheet, MiniPlayer, TabBar, TopBar } from './Shell';
 import { sectionFor } from './sections';
@@ -125,6 +126,11 @@ export function App() {
 
   // Connect to our shared universe, if one is configured.
   useEffect(() => {
+    // Restore points first, so even the very first sync has a copy before it.
+    installRestorePoints();
+    // Ask the browser not to tidy our storage away (granted quietly when the
+    // app is on the home screen; otherwise Instellingen shows how).
+    void navigator.storage?.persist?.().catch(() => false);
     void startSync();
   }, []);
 

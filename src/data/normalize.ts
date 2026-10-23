@@ -186,7 +186,7 @@ function normalizeProfile(v: unknown): Profile {
     siteTitle: str(p.siteTitle, defaultProfile.siteTitle, 80) || defaultProfile.siteTitle,
     subtitle: str(p.subtitle, defaultProfile.subtitle, 160),
     homeGreeting: str(p.homeGreeting, defaultProfile.homeGreeting, 80),
-    homeMessage: str(p.homeMessage, defaultProfile.homeMessage, 4000),
+    homeMessage: str(p.homeMessage, defaultProfile.homeMessage, 20_000),
     signature: str(p.signature, defaultProfile.signature, 120),
     startDate: optDate(p.startDate) ?? null,
     counterMode: oneOf(p.counterMode, ['ymd', 'days'] as const, 'ymd'),
@@ -211,7 +211,7 @@ function normalizeMilestone(v: unknown, i: number): Milestone | null {
     media: arr(v.media)
       .map(normalizeMedia)
       .filter((m): m is MediaSource => m !== null)
-      .slice(0, 24),
+      .slice(0, 500),
     song: normalizeSong(v.song),
     favorite: bool(v.favorite),
     future: bool(v.future) || undefined,
@@ -233,7 +233,7 @@ function normalizeMemory(v: unknown, i: number): Memory | null {
   return {
     id: id(v.id, 'mem', i),
     caption: str(v.caption, '', 200),
-    note: optStr(v.note, 2000),
+    note: optStr(v.note, 20_000),
     date: optDate(v.date),
     location: optStr(v.location, 120),
     albumIds: arr(v.albumIds).filter((a): a is string => typeof a === 'string'),
@@ -276,7 +276,7 @@ function normalizeDream(v: unknown, i: number): Dream | null {
   return {
     id: id(v.id, 'dream', i),
     title: str(v.title, '', 200),
-    description: optStr(v.description, 2000),
+    description: optStr(v.description, 20_000),
     category: oneOf(v.category, CATEGORIES, 'bucket'),
     status: oneOf(v.status, ['planned', 'progress', 'done'] as const, 'planned'),
     targetDate: optDate(v.targetDate),
@@ -310,8 +310,8 @@ function normalizeSongItem(v: unknown, i: number): Song | null {
     title: str(v.title, '', 200),
     artist: str(v.artist, '', 200),
     url: optStr(v.url, 2000),
-    why: optStr(v.why, 2000),
-    memory: optStr(v.memory, 2000),
+    why: optStr(v.why, 20_000),
+    memory: optStr(v.memory, 20_000),
     favorite: bool(v.favorite),
     by: person(v.by),
     createdAt: stamp(v.createdAt),
@@ -326,7 +326,7 @@ function normalizePlaylist(v: unknown, i: number): Playlist | null {
     id: id(v.id, 'playlist', i),
     title: str(v.title, '', 120),
     url: spotify.url,
-    note: optStr(v.note, 600),
+    note: optStr(v.note, 20_000),
     by: person(v.by),
     createdAt: stamp(v.createdAt),
   };
@@ -342,10 +342,10 @@ function normalizeSurprises(v: unknown, fallback: SurpriseContent): SurpriseCont
     .filter((s): s is { id: string; text: string } => s !== null);
   return {
     reasons: reasons.length ? reasons.map((r) => r.slice(0, 300)) : fallback.reasons,
-    giftMessage: str(v.giftMessage, fallback.giftMessage, 1000),
+    giftMessage: str(v.giftMessage, fallback.giftMessage, 20_000),
     stars: stars.length ? stars.slice(0, 16) : fallback.stars,
-    secretNote: str(v.secretNote, fallback.secretNote, 1000),
-    hiddenHeartNote: str(v.hiddenHeartNote, fallback.hiddenHeartNote, 1000),
+    secretNote: str(v.secretNote, fallback.secretNote, 20_000),
+    hiddenHeartNote: str(v.hiddenHeartNote, fallback.hiddenHeartNote, 20_000),
   };
 }
 
@@ -463,7 +463,7 @@ function normalizeWelcome(v: unknown): Welcome {
   return {
     enabled: bool(v.enabled, defaultWelcome.enabled),
     title: str(v.title, '', 120),
-    message: str(v.message, defaultWelcome.message, 4000),
+    message: str(v.message, defaultWelcome.message, 20_000),
     signature: str(v.signature, '', 80),
     seenAt: optStamp(v.seenAt),
   };
@@ -491,7 +491,7 @@ function normalizeListItem(v: unknown, i: number): ListItem | null {
   return {
     id: id(v.id, 'item', i),
     text: str(v.text, '', 200),
-    note: optStr(v.note, 500),
+    note: optStr(v.note, 20_000),
     hearts: [...new Set(hearts)],
     done: bool(v.done),
     by: person(v.by),
@@ -625,7 +625,7 @@ export function normalizeBucketItem(v: unknown, i: number): BucketItem | null {
   return {
     id: id(v.id, 'bucket', i),
     title: str(v.title, '', 200),
-    note: optStr(v.note, 2000),
+    note: optStr(v.note, 20_000),
     link: optLink(v.link),
     media: normalizeMedia(v.media) ?? undefined,
     done: bool(v.done),
@@ -645,7 +645,7 @@ export function normalizeGoal(v: unknown, i: number): Goal | null {
   return {
     id: id(v.id, 'goal', i),
     title: str(v.title, '', 200),
-    why: optStr(v.why, 2000),
+    why: optStr(v.why, 20_000),
     steps: list(v.steps, normalizeGoalStep).slice(0, 40),
     target: optDate(v.target),
     done: bool(v.done),
@@ -719,7 +719,7 @@ function normalizeNote(v: unknown, i: number): LoveNote | null {
   if (!isObj(v) || !optStr(v.text)) return null;
   return {
     id: id(v.id, 'note', i),
-    text: str(v.text, '', 4000),
+    text: str(v.text, '', 20_000),
     createdAt: stamp(v.createdAt),
     openedAt: optStamp(v.openedAt),
     hearted: bool(v.hearted) || undefined,
@@ -758,7 +758,7 @@ export function normalizeHer(v: unknown): HerSpace {
           ]
         : songs;
     })(),
-    notes: list(v.notes, normalizeNote).slice(0, 500),
+    notes: list(v.notes, normalizeNote).slice(0, 5000),
     nails: {
       current: normalizeNailSet(isObj(v.nails) ? v.nails.current : undefined, 0) ?? {
         ...defaultHer.nails.current,
@@ -824,10 +824,10 @@ function normalizeStop(v: unknown, i: number): MuseumStop | null {
     name: str(v.name, '', 80),
     place: optStr(v.place, 80),
     theme: oneOf(v.theme, STOP_THEMES, 'date'),
-    story: str(v.story, '', 6000),
+    story: str(v.story, '', 20_000),
     details: lines(v.details, 30, []),
-    favorite: optStr(v.favorite, 4000),
-    media: list(v.media, (m) => normalizeMedia(m)).slice(0, 24),
+    favorite: optStr(v.favorite, 20_000),
+    media: list(v.media, (m) => normalizeMedia(m)).slice(0, 500),
     when: optStr(v.when, 60),
     upcoming: bool(v.upcoming),
     by: person(v.by),

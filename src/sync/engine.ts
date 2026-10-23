@@ -23,6 +23,8 @@ export interface EngineDeps {
   getLocalMedia(id: string): Promise<Blob | null>;
   setRemoteMediaSource(fetcher: ((id: string) => Promise<Blob | null>) | null): void;
   retryMissingMedia(): void;
+  /** Photos to keep in the cloud even if nothing uses them now (restore points). */
+  keepMedia?(): Promise<Set<string>>;
   storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
   /** Hook for window focus/online events; returns a cleanup function. */
   watchConnectivity?(onWake: () => void): () => void;
@@ -423,6 +425,7 @@ export class SyncEngine {
   async listUnusedMedia(): Promise<string[]> {
     if (!this.state.spaceId) return [];
     const used = new Set(contentMediaIds(this.deps.getContent()));
+    (await this.deps.keepMedia?.().catch(() => new Set<string>()))?.forEach((id) => used.add(id));
     return (await this.backend.listMedia(this.state.spaceId))
       .map((m) => m.id)
       .filter((id) => !used.has(id));
