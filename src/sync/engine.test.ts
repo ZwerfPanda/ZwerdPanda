@@ -169,6 +169,14 @@ class FakeBackend implements SyncBackend {
   async deleteMedia(spaceId: string, ids: string[]) {
     ids.forEach((id) => this.server.media.delete(`${spaceId}/${id}`));
   }
+
+  async listHistory() {
+    return [];
+  }
+
+  async fetchHistory() {
+    return null;
+  }
 }
 
 function memoryStorage() {

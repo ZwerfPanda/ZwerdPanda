@@ -45,7 +45,8 @@ interface Meta {
 const META_KEY = 'olu:sync:meta:v1';
 const BASE_KEY = 'olu:sync:base:v1';
 const UPLOADED_KEY = 'olu:sync:uploaded:v1';
-const CLEANUP_AFTER_DAYS = 30;
+/** As long as the oldest copy in the cloud history, plus a little. */
+const CLEANUP_AFTER_DAYS = 100;
 
 const INITIAL: SyncState = {
   phase: 'starting',
@@ -419,6 +420,18 @@ export class SyncEngine {
       this.uploading = false;
       this.set({ uploading: 0 });
     }
+  }
+
+  /** Earlier copies the server kept, newest first. */
+  async cloudHistory() {
+    if (!this.state.spaceId) return [];
+    return this.backend.listHistory(this.state.spaceId);
+  }
+
+  async readCloudHistory(id: string): Promise<AppContent | null> {
+    if (!this.state.spaceId) return null;
+    const raw = await this.backend.fetchHistory(this.state.spaceId, id);
+    return raw ? this.deps.normalize(raw) : null;
   }
 
   /** Cloud photos nothing in our universe uses right now. */

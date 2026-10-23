@@ -256,5 +256,26 @@ export function createSupabaseBackend(config: SyncConfig): SyncBackend {
       if (mediaIds.length === 0) return;
       await call(client.storage.from(BUCKET).remove(mediaIds.map((id) => `${spaceId}/${id}`)));
     },
+
+    async listHistory(spaceId) {
+      const rows = (await call(
+        client.from('space_history').select('id, version, saved_at').eq('space_id', spaceId),
+      )) as { id: number | string; version: number | string; saved_at: string }[];
+      return rows
+        .map((r) => ({ id: String(r.id), version: Number(r.version), savedAt: r.saved_at }))
+        .sort((a, b) => b.version - a.version);
+    },
+
+    async fetchHistory(spaceId, id) {
+      const row = (await call(
+        client
+          .from('space_history')
+          .select('content')
+          .eq('space_id', spaceId)
+          .eq('id', id)
+          .maybeSingle(),
+      )) as { content: unknown } | null;
+      return row?.content ?? null;
+    },
   };
 }

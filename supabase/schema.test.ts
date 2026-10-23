@@ -253,4 +253,66 @@ describe('supabase/schema.sql', () => {
     ).rows[0];
     expect(bucket?.public).toBe(false);
   });
+
+  it('keeps earlier copies in the history, readable only by the two of us', async () => {
+    const before = Number(
+      first(await as(people.valencio, `select count(*)::int as n from public.space_history`)).n,
+    );
+    expect(before).toBeGreaterThan(0);
+    const version = Number(
+      first(await as(people.valencio, `select version from public.space_content`)).version,
+    );
+    // A big removal is always kept, even within the hour.
+    const big = { letters: 'x'.repeat(5000) };
+    await as(people.valencio, `select * from public.save_content($1, $2, $3)`, [
+      space,
+      version,
+      big,
+    ]);
+    await as(people.valencio, `select * from public.save_content($1, $2, $3)`, [
+      space,
+      version + 1,
+      { letters: '' },
+    ]);
+    const rows = (
+      await as(people.shenaya, `select version, content from public.space_history order by id`)
+    ).rows!;
+    expect(rows.length).toBe(before + 1);
+    expect((rows.at(-1)!.content as Row).letters).toBe(big.letters);
+    expect(
+      first(await as(people.stranger, `select count(*)::int as n from public.space_history`)).n,
+    ).toBe(0);
+    const tamper = await as(people.valencio, `delete from public.space_history`);
+    expect(tamper.error).toBeTruthy();
+  });
+
+  it('thins the history out: everything recent, one a day, 90 days', async () => {
+    await db.exec('reset role');
+    await db.query(
+      `insert into public.space_history (space_id, version, content, saved_at, kept_at)
+       values ($1, 1, '{}', now(), date_trunc('day', now()) - interval '5 days' + interval '1 hour'),
+              ($1, 2, '{}', now(), date_trunc('day', now()) - interval '5 days' + interval '3 hours'),
+              ($1, 3, '{}', now(), now() - interval '120 days')`,
+      [space],
+    );
+    // Make the next save keep a copy (and tidy up) right away.
+    await db.query(`update public.space_history set kept_at = kept_at - interval '2 hours'
+                    where kept_at > now() - interval '1 hour'`);
+    const version = Number(
+      first(await as(people.valencio, `select version from public.space_content`)).version,
+    );
+    await as(people.valencio, `select * from public.save_content($1, $2, $3)`, [
+      space,
+      version,
+      { letters: 'tidy' },
+    ]);
+    const old = (
+      await db.query<{ version: number }>(
+        `select version from public.space_history
+         where space_id = $1 and kept_at < now() - interval '2 days' order by kept_at`,
+        [space],
+      )
+    ).rows.map((r) => Number(r.version));
+    expect(old).toEqual([2]);
+  });
 });

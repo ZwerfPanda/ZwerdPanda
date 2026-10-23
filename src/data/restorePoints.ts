@@ -2,6 +2,12 @@ import { useSyncExternalStore } from 'react';
 import type { AppContent, MediaSource } from './types';
 import { normalizeContent } from './normalize';
 import { getContent, onBeforeReplace, onContentChanged } from './store';
+import {
+  getHerPrivate,
+  normalizeHerPrivate,
+  onHerPrivateChanged,
+  type HerPrivate,
+} from './herPrivate';
 
 /**
  * Restore points: copies of all our words, lists and photo references that
@@ -22,9 +28,16 @@ export interface RestorePoint {
   /** How much it holds, to compare at a glance. */
   counts: Record<string, number>;
   content: string;
+  /**
+   * Her private things ("alleen voor mij"), only on her own phone. They stay
+   * on that phone: restore points never leave it.
+   */
+  herPrivate?: string;
 }
 
-export type RestorePointInfo = Omit<RestorePoint, 'content'>;
+export type RestorePointInfo = Omit<RestorePoint, 'content' | 'herPrivate'> & {
+  hasPrivate: boolean;
+};
 
 const DB_NAME = 'our-little-universe-history';
 const STORE = 'points';
@@ -133,9 +146,17 @@ const bump = () => {
 };
 
 /** Takes a restore point now (skipped when nothing changed since the last). */
+const privateJson = (): string | undefined => {
+  const mine = getHerPrivate();
+  return mine.journal.length || mine.bucket.length || mine.goals.length
+    ? JSON.stringify(mine)
+    : undefined;
+};
+
 export async function takeRestorePoint(reason: string, from: AppContent = getContent()) {
+  const herPrivate = privateJson();
   const json = JSON.stringify(from);
-  if (json === lastSaved) return;
+  if (json + (herPrivate ?? '') === lastSaved) return;
   const counts = countContent(from);
   const point: RestorePoint = {
     id: `rp-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -144,10 +165,11 @@ export async function takeRestorePoint(reason: string, from: AppContent = getCon
     summary: summarize(counts),
     counts,
     content: json,
+    herPrivate,
   };
   try {
     await run('readwrite', (s) => s.put(point));
-    lastSaved = json;
+    lastSaved = json + (herPrivate ?? '');
     lastAt = Date.now();
     bump();
     await prune();
@@ -181,7 +203,12 @@ async function prune() {
 
 export async function listRestorePoints(): Promise<RestorePointInfo[]> {
   const all = await run<RestorePoint[]>('readonly', (s) => s.getAll());
-  return all.map(({ content: _content, ...info }) => info).sort((a, b) => (a.at < b.at ? 1 : -1));
+  return all
+    .map(({ content: _content, herPrivate, ...info }) => ({
+      ...info,
+      hasPrivate: Boolean(herPrivate),
+    }))
+    .sort((a, b) => (a.at < b.at ? 1 : -1));
 }
 
 export async function readRestorePoint(id: string): Promise<AppContent | null> {
@@ -194,12 +221,31 @@ export async function readRestorePoint(id: string): Promise<AppContent | null> {
   }
 }
 
+export async function readRestorePointPrivate(id: string): Promise<HerPrivate | null> {
+  const point = await run<RestorePoint | undefined>('readonly', (s) => s.get(id));
+  if (!point?.herPrivate) return null;
+  try {
+    return normalizeHerPrivate(JSON.parse(point.herPrivate));
+  } catch {
+    return null;
+  }
+}
+
+/** How many of her private things are in `old` but not here now. */
+export function privateMissing(now: HerPrivate, old: HerPrivate): number {
+  return (['journal', 'bucket', 'goals'] as const).reduce(
+    (n, kind) => n + old[kind].filter((o) => !now[kind].some((c) => c.id === o.id)).length,
+    0,
+  );
+}
+
 /** Photos any restore point still points at: those are never tidied away. */
 export async function restorePointMediaIds(): Promise<Set<string>> {
   const ids = new Set<string>();
   const all = await run<RestorePoint[]>('readonly', (s) => s.getAll());
   for (const p of all) {
-    for (const match of p.content.matchAll(/"mediaId":"([^"]+)"/g)) ids.add(match[1]);
+    for (const match of `${p.content}${p.herPrivate ?? ''}`.matchAll(/"mediaId":"([^"]+)"/g))
+      ids.add(match[1]);
   }
   return ids;
 }
@@ -286,12 +332,29 @@ export function installRestorePoints() {
   if (installed || typeof window === 'undefined') return;
   installed = true;
   void takeRestorePoint('Bij het openen');
-  onContentChanged(() => {
+  const hourly = () => {
     if (Date.now() - lastAt > HOUR) void takeRestorePoint('Automatisch (elk uur)');
+  };
+  // Whenever something disappears here (a letter deleted, samples removed…),
+  // keep the copy from just before — even if it was written a minute ago.
+  let previous = getContent();
+  let previousCounts = countContent(previous);
+  onContentChanged((source) => {
+    const now = getContent();
+    const counts = countContent(now);
+    const lost = Object.keys(counts).some((k) => counts[k] < previousCounts[k]);
+    if (lost && source === 'local') {
+      void takeRestorePoint('Vlak voordat er iets werd weggehaald', previous);
+    } else {
+      hourly();
+    }
+    previous = now;
+    previousCounts = counts;
   });
+  onHerPrivateChanged(hourly);
   onBeforeReplace((current, next, source) => {
     if (source !== 'remote') {
-      void takeRestorePoint('Vlak voor het terugzetten van een backup', current);
+      void takeRestorePoint('Vlak voor het terugzetten', current);
       return;
     }
     // From the other phone: keep a copy whenever something would disappear.

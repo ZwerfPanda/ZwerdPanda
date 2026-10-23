@@ -50,6 +50,14 @@ export function getHerPrivate(): HerPrivate {
   return state;
 }
 
+/** Calls back whenever her private things change on this phone. */
+export function onHerPrivateChanged(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
 export function updateHerPrivate(recipe: (current: HerPrivate) => HerPrivate) {
   state = recipe(state);
   listeners.forEach((l) => l());

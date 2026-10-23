@@ -28,6 +28,14 @@ export interface RemoteMediaInfo {
   createdAt: string | null;
 }
 
+/** An earlier copy the server kept (see space_history in schema.sql). */
+export interface RemoteHistoryEntry {
+  id: string;
+  version: number;
+  /** When this copy was saved by one of us. */
+  savedAt: string;
+}
+
 export interface SyncBackend {
   getAccount(): Promise<Account | null>;
   onAccountChange(listener: (account: Account | null) => void): () => void;
@@ -53,6 +61,10 @@ export interface SyncBackend {
   downloadMedia(spaceId: string, mediaId: string): Promise<Blob | null>;
   listMedia(spaceId: string): Promise<RemoteMediaInfo[]>;
   deleteMedia(spaceId: string, mediaIds: string[]): Promise<void>;
+
+  /** Earlier copies kept online, newest first. */
+  listHistory(spaceId: string): Promise<RemoteHistoryEntry[]>;
+  fetchHistory(spaceId: string, id: string): Promise<unknown>;
 }
 
 export type SyncPhase =

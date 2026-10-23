@@ -40,8 +40,12 @@ Daarmee zijn de tabellen, de beveiligingsregels en een **privé**-map voor foto'
 een update van het bestand: er gaat niets verloren.
 
 *Controle (mag je overslaan):*
-- Onder **Table Editor** staan `spaces`, `space_members`, `space_invites` en
-  `space_content`.
+- Onder **Table Editor** staan `spaces`, `space_members`, `space_invites`,
+  `space_content` en `space_history`.
+
+> **Al eerder gedaan?** Draai het bestand dan na een update gewoon nog een keer. De
+> nieuwste versie voegt `space_history` toe: online geschiedenis van jullie universe
+> (zie *Zo raak je niets kwijt* hieronder).
 - Onder **Storage** staat `universe-media`, gemarkeerd als *Private*.
 
 ## Stap 3: maak jullie twee accounts aan
@@ -217,8 +221,29 @@ of Play Store is niet nodig.
   e-maildienst in, bijvoorbeeld het gratis plan van Resend of Brevo. In Supabase gaat
   dat via **Authentication → Emails → SMTP Settings**. Dat is optioneel.
 
-**Back-ups blijven handig.** In **Settings → Our data & backups → Export with photos**
-download je alles in één bestand. Doe dat af en toe.
+**Zo raak je niets kwijt**
+
+In de app staat onder **Instellingen → Onze data & backups** een veiligheidsoverzicht met
+groene vinkjes of gele waarschuwingen. Er zijn vier vangnetten:
+
+1. **Herstelpunten op elke telefoon.** De app maakt zelf kopieën: bij het openen, elk uur
+   als er iets verandert, één per dag (90 dagen lang), en altijd vlak voordat de andere
+   telefoon iets zou weghalen. Met **Haal terug wat ontbreekt** komen verwijderde brieven,
+   foto's en haltes terug, zonder dat iets nieuwers verdwijnt. Haar privé-dingen zitten in
+   de herstelpunten op háár telefoon, en blijven daar.
+2. **Geschiedenis in de cloud.** Supabase bewaart eerdere versies (elk uur, één per dag tot
+   90 dagen terug). Daarmee kun je terug, zelfs als allebei jullie telefoons kwijt zijn.
+3. **Losse foto's worden niet meteen gewist.** Een foto die nergens meer bij staat, blijft
+   nog 30 dagen op de telefoon en 100 dagen online staan. Met **Foto's terugzoeken** zet je
+   hem weer op zijn plek.
+4. **Een backupbestand.** Met **Exporteren met foto's** download je alles in één bestand.
+   Doe dat af en toe (bijvoorbeeld eens per maand) en bewaar het ergens anders, zoals in
+   iCloud Drive of Google Drive.
+
+Twee dingen helpen extra: zet de app op je **beginscherm** (dan ruimt je telefoon de
+opslag niet zomaar op) en open de app minstens eens per week (dan zet Supabase jullie
+gratis project niet op pauze; mocht dat toch gebeuren, klik dan **Restore project** in
+het dashboard — er gaat niets verloren).
 
 **Uitloggen** op een apparaat laat de kopie op dat apparaat staan, maar het krijgt geen
 nieuwe dingen meer tot je weer inlogt.

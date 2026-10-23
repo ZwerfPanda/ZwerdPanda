@@ -11,6 +11,9 @@
 --     The invite is accepted automatically when that email signs in.
 --   * All words live in one JSON document per space (space_content) with a
 --     version number, so two phones editing at once never overwrite each other.
+--   * Earlier copies are kept in space_history (every hour while things
+--     change, one a day for 90 days, and always before a big removal), so
+--     we can always go back — even if both phones are lost.
 --   * Photos/clips live in a private storage bucket, in a folder per space.
 --   * Row-level security: only members can read anything. Every change goes
 --     through the functions below, which check membership themselves.
@@ -51,15 +54,28 @@ create table if not exists public.space_content (
   updated_by uuid references auth.users (id) on delete set null
 );
 
+-- Earlier copies of our content, to go back to if something goes wrong.
+create table if not exists public.space_history (
+  id bigint generated always as identity primary key,
+  space_id uuid not null references public.spaces (id) on delete cascade,
+  version bigint not null,
+  content jsonb not null,
+  saved_at timestamptz not null,
+  saved_by uuid references auth.users (id) on delete set null,
+  kept_at timestamptz not null default now()
+);
+create index if not exists space_history_space_idx on public.space_history (space_id, kept_at desc);
+
 alter table public.spaces enable row level security;
 alter table public.space_members enable row level security;
 alter table public.space_invites enable row level security;
 alter table public.space_content enable row level security;
+alter table public.space_history enable row level security;
 
 -- Nobody writes to these tables directly; the functions below do it.
-revoke all on public.spaces, public.space_members, public.space_invites, public.space_content from anon;
-revoke insert, update, delete on public.spaces, public.space_members, public.space_invites, public.space_content from authenticated;
-grant select on public.spaces, public.space_members, public.space_invites, public.space_content to authenticated;
+revoke all on public.spaces, public.space_members, public.space_invites, public.space_content, public.space_history from anon;
+revoke insert, update, delete on public.spaces, public.space_members, public.space_invites, public.space_content, public.space_history from authenticated;
+grant select on public.spaces, public.space_members, public.space_invites, public.space_content, public.space_history to authenticated;
 
 -- --------------------------------------------------------------- Helpers
 
@@ -120,6 +136,10 @@ create policy "members read invites" on public.space_invites
 
 drop policy if exists "members read content" on public.space_content;
 create policy "members read content" on public.space_content
+  for select to authenticated using (public.is_member(space_id));
+
+drop policy if exists "members read history" on public.space_history;
+create policy "members read history" on public.space_history
   for select to authenticated using (public.is_member(space_id));
 
 -- ------------------------------------------------------------- Functions
@@ -269,6 +289,34 @@ begin
   if v_row.version <> p_expected_version then
     return query select false, v_row.version, v_row.content;
     return;
+  end if;
+
+  -- Keep the copy we're about to replace: once an hour while things change,
+  -- and always when a good part of it is about to disappear.
+  if not exists (
+       select 1 from public.space_history
+       where space_id = p_space and kept_at > now() - interval '1 hour'
+     )
+     or octet_length(p_content::text) < octet_length(v_row.content::text) * 0.9 then
+    insert into public.space_history (space_id, version, content, saved_at, saved_by)
+    values (p_space, v_row.version, v_row.content, v_row.updated_at, v_row.updated_by);
+    -- Everything from the last two days, then the newest copy of each day,
+    -- for 90 days.
+    delete from public.space_history h
+    where h.space_id = p_space
+      and (
+        h.kept_at < now() - interval '90 days'
+        or (
+          h.kept_at < now() - interval '2 days'
+          and h.id <> (
+            select h2.id from public.space_history h2
+            where h2.space_id = p_space
+              and date_trunc('day', h2.kept_at) = date_trunc('day', h.kept_at)
+            order by h2.kept_at desc
+            limit 1
+          )
+        )
+      );
   end if;
 
   update public.space_content
