@@ -35,6 +35,7 @@ const pages = {
   us: () => import('../features/us/MiniUsPage').then((m) => ({ default: m.MiniUsPage })),
   lists: () => import('../features/lists/ListsPage').then((m) => ({ default: m.ListsPage })),
   her: () => import('../features/her/HerPage').then((m) => ({ default: m.HerPage })),
+  museum: () => import('../features/museum/MuseumPage').then((m) => ({ default: m.MuseumPage })),
   settings: () =>
     import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 };
@@ -49,6 +50,7 @@ const CocoPage = lazy(pages.coco);
 const MiniUsPage = lazy(pages.us);
 const ListsPage = lazy(pages.lists);
 const HerPage = lazy(pages.her);
+const MuseumPage = lazy(pages.museum);
 const SettingsPage = lazy(pages.settings);
 
 const PAGES: Record<RoutePath, () => React.ReactNode> = {
@@ -64,6 +66,7 @@ const PAGES: Record<RoutePath, () => React.ReactNode> = {
   '/us': () => <MiniUsPage />,
   '/lists': () => <ListsPage />,
   '/her': () => <HerPage />,
+  '/museum': () => <MuseumPage />,
   '/settings': () => <SettingsPage />,
 };
 

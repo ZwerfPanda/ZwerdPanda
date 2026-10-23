@@ -11,6 +11,7 @@ import './hunt.css';
 export function HuntBoard() {
   const hunt = useContent((c) => c.hunt);
   const profile = useContent((c) => c.profile);
+  const museumFound = useContent((c) => Boolean(c.museum.foundAt));
   const route = useRoute();
   const ref = useRef<HTMLElement>(null);
   const [hint, setHint] = useState<string | null>(null);
@@ -55,6 +56,8 @@ export function HuntBoard() {
               <span className="hunt-slot__place">
                 {find ? (
                   s.place
+                ) : s.path === '/museum' && !museumFound ? (
+                  '???'
                 ) : (
                   <a href={href(s.path)} className="hunt-slot__go">
                     {s.place}

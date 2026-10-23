@@ -471,6 +471,58 @@ export interface HerSpace {
   goals: Goal[];
 }
 
+/* ---------------------------------------------------------- museum of us */
+
+/** Which little world a stop's scene is drawn in. */
+export type StopTheme =
+  | 'home'
+  | 'station'
+  | 'platform'
+  | 'bubbletea'
+  | 'mall'
+  | 'birds'
+  | 'pasta'
+  | 'hotel'
+  | 'themepark'
+  | 'roadtrip'
+  | 'cinema'
+  | 'chicken'
+  | 'ikea'
+  | 'amsterdam'
+  | 'miniature'
+  | 'pumpkin'
+  | 'spa'
+  | 'holiday'
+  | 'christmas'
+  | 'date';
+
+/** One stop on our line: a place that's ours. */
+export interface MuseumStop {
+  id: ID;
+  name: string;
+  /** Town or a few words under the name. */
+  place?: string;
+  theme: StopTheme;
+  story: string;
+  /** Little things we did or always do there. */
+  details: string[];
+  /** Our favourite memory of this stop. */
+  favorite?: string;
+  media: MediaSource[];
+  /** Loose "when", e.g. "december" or "onze eerste date". */
+  when?: string;
+  /** A stop we haven't been to yet. */
+  upcoming: boolean;
+  by?: Person;
+  createdAt: string;
+}
+
+export interface Museum {
+  stops: MuseumStop[];
+  /** When one of us first found the way in. */
+  foundAt?: string;
+}
+
 /* -------------------------------------------------------------- star hunt */
 
 /** Stars hidden around the universe, found together: id → when it was found. */
@@ -516,6 +568,7 @@ export interface AppContent {
   us: UsContent;
   her: HerSpace;
   hunt: StarHunt;
+  museum: Museum;
 }
 
 /** Per-device preferences. These never travel with exported content. */

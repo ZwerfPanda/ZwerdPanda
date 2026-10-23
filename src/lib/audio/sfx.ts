@@ -23,7 +23,9 @@ export type Sfx =
   | 'munch'
   | 'squeak'
   | 'coin'
-  | 'write';
+  | 'write'
+  | 'train'
+  | 'chime';
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -176,6 +178,18 @@ const SOUNDS: Record<Sfx, (ac: AudioContext, t: number) => void> = {
     tone(ac, 1319, t + 0.07, 0.22, { type: 'square', gain: 0.08 });
   },
   write: (ac, t) => noise(ac, t, 0.1, { freq: 4000, gain: 0.05, q: 3 }),
+  // A train rolling past: a low rumble with the clack of the rails.
+  train: (ac, t) => {
+    noise(ac, t, 1.6, { filter: 'lowpass', freq: 260, to: 520, gain: 0.22 });
+    [0.15, 0.32, 0.75, 0.92, 1.35].forEach((d) =>
+      noise(ac, t + d, 0.06, { filter: 'bandpass', freq: 900, gain: 0.18, q: 2 }),
+    );
+  },
+  // "Ding-dong": the platform announcement.
+  chime: (ac, t) => {
+    tone(ac, 784, t, 0.9, { type: 'triangle', gain: 0.24 });
+    tone(ac, 622, t + 0.42, 1.1, { type: 'triangle', gain: 0.22 });
+  },
 };
 
 /**

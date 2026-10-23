@@ -57,7 +57,7 @@ export function StartDateDialog({ open, onClose }: { open: boolean; onClose: () 
       <form id="start-date-form" className="form" onSubmit={save} noValidate>
         <p style={{ color: 'var(--ink-soft)' }}>
           De eerste date, de dag dat het officieel werd — welke dag voor ons ook als het begin
-          voelt. Je kunt het altijd aanpassen bij Instellingen.
+          voelt. Aanpassen kan altijd: met ✎ bij de teller op Home, of bij Instellingen.
         </p>
         <TextField
           label="Onze startdatum"

@@ -1277,3 +1277,287 @@
 .ex-her .ex-sub {
   color: #6d5065;
 }
+
+/* ---------- The heart of us ---------- */
+
+.counter.heart {
+  gap: 10px;
+  padding: 22px 18px 18px;
+  background:
+    radial-gradient(90% 60% at 50% 38%, rgba(239, 111, 143, 0.32), transparent 70%),
+    linear-gradient(170deg, #3d1d45 0%, #2a1530 55%, #1d0f22 100%);
+  color: #fff3e6;
+  box-shadow: var(--shadow-3);
+}
+
+.counter.heart::before {
+  border-color: rgba(248, 230, 187, 0.18);
+}
+
+.heart__sky {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 18%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 28% 62%, #fff 50%, transparent 51%),
+    radial-gradient(1.6px 1.6px at 72% 12%, #f8e6bb 50%, transparent 51%),
+    radial-gradient(1px 1px at 86% 48%, #fff 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 56% 30%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 8% 82%, #f8e6bb 50%, transparent 51%),
+    radial-gradient(1.3px 1.3px at 92% 86%, #fff 50%, transparent 51%);
+  opacity: 0.7;
+}
+
+.counter.heart .counter__eyebrow {
+  color: #f8e6bb;
+}
+
+.counter.heart .counter__toggle {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff3e6;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.counter.heart .counter__toggle:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.heart__stage {
+  position: relative;
+  margin: -6px -8px 0;
+}
+
+.heart__svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+/* The heart beats, about like a resting heart (two beats a breath). */
+.heart-scene__beat {
+  transform-box: fill-box;
+  transform-origin: 50% 60%;
+  animation: heart-beat 1.4s ease-in-out infinite;
+}
+
+@keyframes heart-beat {
+  0%,
+  40%,
+  100% {
+    transform: scale(1);
+  }
+  12% {
+    transform: scale(1.09);
+  }
+  24% {
+    transform: scale(0.98);
+  }
+  32% {
+    transform: scale(1.05);
+  }
+}
+
+.heart__tapped .heart-scene__beat {
+  animation:
+    heart-pop 0.45s var(--ease-spring),
+    heart-beat 1.4s 0.45s ease-in-out infinite;
+}
+
+@keyframes heart-pop {
+  40% {
+    transform: scale(1.22);
+  }
+}
+
+.heart-scene__ring {
+  transition: stroke-dasharray 1.2s var(--ease-out);
+  filter: drop-shadow(0 0 6px rgba(232, 189, 106, 0.7));
+}
+
+.heart__tap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -64%);
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.heart__tap:focus-visible {
+  outline: 2px solid #f8e6bb;
+  outline-offset: 2px;
+}
+
+.heart__floater {
+  position: absolute;
+  top: 32%;
+  color: #ff9fb7;
+  font-size: 1.6rem;
+  pointer-events: none;
+  text-shadow: 0 0 10px rgba(255, 159, 183, 0.8);
+}
+
+.counter.heart .counter__unit {
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+.counter.heart .counter__num {
+  color: #fff3e6;
+}
+
+.counter.heart .counter__label {
+  color: #f8e6bb;
+}
+
+.heart__clock {
+  margin: -2px 0 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 243, 230, 0.85);
+}
+
+.heart__clock span {
+  color: #ff9fb7;
+}
+
+.heart__clock small {
+  margin: 0 4px 0 1px;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  color: rgba(255, 243, 230, 0.55);
+}
+
+.heart__facts {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.heart__facts li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.9rem;
+  color: rgba(255, 243, 230, 0.9);
+}
+
+.heart__fact-icon {
+  flex: none;
+  width: 18px;
+  text-align: center;
+  color: #e8bd6a;
+}
+
+.counter.heart .heart__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin: 2px 0 0;
+  color: rgba(255, 243, 230, 0.7);
+}
+
+.heart__edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff3e6;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.heart__edit svg {
+  width: 15px;
+  height: 15px;
+}
+
+.heart__edit:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* What the heart keeps deep inside */
+.heart__ticket {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 0 50%, transparent 9px, #ffd75e 10px) left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% 50%, transparent 9px, #ffd75e 10px) right / 51% 100% no-repeat;
+  color: #1e2a5a;
+  box-shadow: 0 12px 30px -10px rgba(255, 215, 94, 0.6);
+}
+
+.heart__ticket > svg {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  margin-left: 6px;
+}
+
+.heart__ticket > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.heart__ticket p {
+  margin: 0;
+}
+
+.heart__ticket-kicker {
+  font-family: var(--font-hand);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.heart__ticket-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.heart__ticket .btn--primary {
+  background: #003082;
+  color: #fff;
+}
+
+.heart__secret-link {
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: #ffd75e;
+}
+
+.heart__secret-link svg {
+  width: 15px;
+  height: 15px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heart-scene__beat,
+  .heart__tapped .heart-scene__beat {
+    animation: none;
+  }
+}

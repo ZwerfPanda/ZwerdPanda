@@ -210,6 +210,7 @@ function WorldOrb() {
 
 export function MenuSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { path } = useRoute();
+  const museumFound = useContent((c) => Boolean(c.museum.foundAt));
   // Close the menu as soon as a destination is chosen.
   useEffect(() => {
     onClose();
@@ -226,7 +227,7 @@ export function MenuSheet({ open, onClose }: { open: boolean; onClose: () => voi
     >
       <nav aria-label="Alle onderdelen">
         <ul className="menu-grid">
-          {SECTIONS.map((s) => {
+          {SECTIONS.filter((s) => !s.secret || museumFound).map((s) => {
             const Icon = s.icon;
             return (
               <li key={s.path}>

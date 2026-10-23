@@ -16,6 +16,7 @@ import type {
   Profile,
   SurpriseContent,
 } from './types';
+import { defaultMuseum } from './museumStops';
 
 /**
  * Starter content.
@@ -565,6 +566,7 @@ export function createDefaultContent(): AppContent {
     us: cloneUs(defaultUs),
     her: cloneHer(defaultHer),
     hunt: { found: {}, reward: defaultHunt.reward },
+    museum: defaultMuseum(),
   };
 }
 

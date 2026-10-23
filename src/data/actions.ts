@@ -150,6 +150,7 @@ export function referencedMediaIds(c: AppContent = getContent()): Set<string> {
   c.dreams.forEach((d) => addSource(ids, d.media));
   addSource(ids, c.coco.portrait);
   c.her.bucket.forEach((b) => addSource(ids, b.media));
+  c.museum.stops.forEach((s) => s.media.forEach((m) => addSource(ids, m)));
   // Her private wishes keep their photos too, even though they're not shared.
   getHerPrivate().bucket.forEach((b) => addSource(ids, b.media));
   const soundtrack = getPrefs().customSoundtrackId;

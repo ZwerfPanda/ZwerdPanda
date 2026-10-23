@@ -1,5 +1,6 @@
 import {
   BookHeart,
+  TrainFront,
   Flower2,
   Gift,
   House,
@@ -24,6 +25,8 @@ export interface Section {
   icon: LucideIcon;
   /** Tint used for the section's little badge in menus. */
   tint: string;
+  /** A secret place: only in the menu once one of us has found it. */
+  secret?: boolean;
 }
 
 export const SECTIONS: Section[] = [
@@ -122,6 +125,15 @@ export const SECTIONS: Section[] = [
     blurb: 'Namen, films, eetplekjes',
     icon: ListChecks,
     tint: '#dbe6f2',
+  },
+  {
+    path: '/museum',
+    label: 'The Love Line',
+    short: 'Love Line',
+    blurb: 'Het museum van ons',
+    icon: TrainFront,
+    tint: '#ffd75e',
+    secret: true,
   },
   {
     path: '/settings',

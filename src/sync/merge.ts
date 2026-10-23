@@ -112,6 +112,9 @@ function mergeFields<T extends object>(base: T, local: T, remote: T): T {
   return out as T;
 }
 
+const earliest = (a: string | undefined, b: string | undefined) =>
+  !a ? b : !b ? a : a < b ? a : b;
+
 const later = (a: string | undefined, b: string | undefined) => (!a ? b : !b ? a : a > b ? a : b);
 
 /** Both sides' increments count (two people feeding Coco both earn love). */
@@ -236,6 +239,10 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
     us: mergeUs(base.us, local.us, remote.us),
     her: mergeHer(base.her, local.her, remote.her),
     hunt: mergeHunt(base.hunt, local.hunt, remote.hunt),
+    museum: {
+      stops: mergeList(base.museum.stops, local.museum.stops, remote.museum.stops),
+      foundAt: earliest(local.museum.foundAt, remote.museum.foundAt),
+    },
   };
 }
 
@@ -274,6 +281,10 @@ export function mergeFirstJoin(local: AppContent, remote: AppContent): AppConten
     coco: { ...remote.coco, notes: addPlain(local.coco.notes, remote.coco.notes) },
     countdowns: addPlain(local.countdowns, remote.countdowns),
     hunt: mergeHunt(remote.hunt, local.hunt, remote.hunt),
+    museum: {
+      stops: addPlain(local.museum.stops, remote.museum.stops),
+      foundAt: earliest(local.museum.foundAt, remote.museum.foundAt),
+    },
     her: {
       ...remote.her,
       journal: addPlain(local.her.journal, remote.her.journal),
@@ -298,5 +309,6 @@ export function contentMediaIds(content: AppContent): string[] {
   content.dreams.forEach((d) => add(d.media));
   add(content.coco.portrait);
   content.her.bucket.forEach((b) => add(b.media));
+  content.museum.stops.forEach((s) => s.media.forEach(add));
   return [...ids];
 }

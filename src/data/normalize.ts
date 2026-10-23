@@ -59,7 +59,11 @@ import type {
   HerTheme,
   JournalEntry,
   StarHunt,
+  Museum,
+  MuseumStop,
+  StopTheme,
 } from './types';
+import { defaultMuseum } from './museumStops';
 import { isValidIsoDate } from '../lib/dates';
 import { isHttpUrl, spotifyCollection } from '../lib/embeds';
 
@@ -690,6 +694,54 @@ function normalizeHunt(v: unknown): StarHunt {
   return { found, reward: str(h.reward, defaultHunt.reward, 4000) };
 }
 
+/* ------------------------------------------------------------ museum of us */
+
+export const STOP_THEMES: readonly StopTheme[] = [
+  'home',
+  'station',
+  'platform',
+  'bubbletea',
+  'mall',
+  'birds',
+  'pasta',
+  'hotel',
+  'themepark',
+  'roadtrip',
+  'cinema',
+  'chicken',
+  'ikea',
+  'amsterdam',
+  'miniature',
+  'pumpkin',
+  'spa',
+  'holiday',
+  'christmas',
+  'date',
+];
+
+function normalizeStop(v: unknown, i: number): MuseumStop | null {
+  if (!isObj(v) || !optStr(v.name)) return null;
+  return {
+    id: id(v.id, 'stop', i),
+    name: str(v.name, '', 80),
+    place: optStr(v.place, 80),
+    theme: oneOf(v.theme, STOP_THEMES, 'date'),
+    story: str(v.story, '', 6000),
+    details: lines(v.details, 30, []),
+    favorite: optStr(v.favorite, 4000),
+    media: list(v.media, (m) => normalizeMedia(m)).slice(0, 24),
+    when: optStr(v.when, 60),
+    upcoming: bool(v.upcoming),
+    by: person(v.by),
+    createdAt: stamp(v.createdAt),
+  };
+}
+
+function normalizeMuseum(v: unknown): Museum {
+  if (!isObj(v) || !Array.isArray(v.stops)) return defaultMuseum();
+  return { stops: list(v.stops, normalizeStop).slice(0, 120), foundAt: optStamp(v.foundAt) };
+}
+
 export function normalizeContent(raw: unknown): AppContent {
   const defaults = createDefaultContent();
   if (!isObj(raw)) return defaults;
@@ -718,6 +770,7 @@ export function normalizeContent(raw: unknown): AppContent {
     us: normalizeUs(raw.us),
     her: normalizeHer(raw.her),
     hunt: normalizeHunt(raw.hunt),
+    museum: normalizeMuseum(raw.museum),
   });
 }
 

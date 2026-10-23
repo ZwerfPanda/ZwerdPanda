@@ -59,6 +59,12 @@ export const HIDDEN_STARS: HiddenStar[] = [
     place: 'Her Little World',
     hint: 'Bij haar sticker, op haar eigen plekje.',
   },
+  {
+    id: 'museum',
+    path: '/museum',
+    place: 'The Love Line',
+    hint: 'Het diepste plekje van ons universe. Luister naar het hart op Home… en blijf tikken.',
+  },
 ];
 
 export const STAR_COUNT = HIDDEN_STARS.length;
