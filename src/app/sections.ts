@@ -2,6 +2,7 @@ import {
   BookHeart,
   TrainFront,
   Flower2,
+  Gamepad2,
   Gift,
   House,
   ListChecks,
@@ -178,6 +179,15 @@ export const SECTIONS: Section[] = [
     blurb: 'Wij tweetjes, maar dan mini',
     icon: UsersRound,
     tint: '#f8d3dc',
+  },
+  {
+    path: '/games',
+    group: 'together',
+    label: 'Spelletjes',
+    short: 'Spelletjes',
+    blurb: 'UNO, bowlen, 4 op een rij…',
+    icon: Gamepad2,
+    tint: '#c9e4f5',
   },
   {
     path: '/quiz',

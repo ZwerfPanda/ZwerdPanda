@@ -294,3 +294,9 @@ body:has(.wrapped) .hidden-hutch {
   opacity: 0;
   visibility: hidden;
 }
+
+/* In the arcade she'd sit on the games; she waits outside. */
+body:has(.game) .companion,
+body:has(.game) .hidden-hutch {
+  display: none;
+}

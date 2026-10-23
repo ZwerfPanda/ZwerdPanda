@@ -595,6 +595,7 @@ export function createDefaultContent(): AppContent {
     her: cloneHer(defaultHer),
     hunt: { found: {}, reward: defaultHunt.reward },
     quiz: { custom: [], answers: [] },
+    games: { matches: [], scores: [] },
     museum: defaultMuseum(),
   };
 }

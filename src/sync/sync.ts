@@ -77,6 +77,21 @@ const deps: EngineDeps = {
   },
 };
 
+/** The server code, tried twice (a flaky connection, or a just-updated app). */
+async function loadBackend() {
+  try {
+    return await import('./supabaseBackend');
+  } catch {
+    await new Promise((r) => setTimeout(r, 800));
+    return import('./supabaseBackend');
+  }
+}
+
+/** True when the sync engine couldn't start at all (not just signed out). */
+export function syncFailedToStart(): boolean {
+  return !engine && state.phase === 'error';
+}
+
 export async function startSync() {
   stopSync();
   config = await resolveSyncConfig();
@@ -85,7 +100,7 @@ export async function startSync() {
     return;
   }
   try {
-    const { createSupabaseBackend } = await import('./supabaseBackend');
+    const { createSupabaseBackend } = await loadBackend();
     engine = new SyncEngine(createSupabaseBackend(config), deps);
     unsubscribeEngine = engine.subscribe(() => setState(engine!.getState()));
     setState(engine.getState());

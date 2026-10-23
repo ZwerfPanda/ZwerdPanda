@@ -40,6 +40,7 @@ const pages = {
   her: () => import('../features/her/HerPage').then((m) => ({ default: m.HerPage })),
   museum: () => import('../features/museum/MuseumPage').then((m) => ({ default: m.MuseumPage })),
   quiz: () => import('../features/quiz/QuizPage').then((m) => ({ default: m.QuizPage })),
+  games: () => import('../features/games/GamesPage').then((m) => ({ default: m.GamesPage })),
   settings: () =>
     import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 };
@@ -56,6 +57,7 @@ const ListsPage = lazy(pages.lists);
 const HerPage = lazy(pages.her);
 const MuseumPage = lazy(pages.museum);
 const QuizPage = lazy(pages.quiz);
+const GamesPage = lazy(pages.games);
 const SettingsPage = lazy(pages.settings);
 
 const PAGES: Record<RoutePath, () => React.ReactNode> = {
@@ -73,6 +75,7 @@ const PAGES: Record<RoutePath, () => React.ReactNode> = {
   '/her': () => <HerPage />,
   '/museum': () => <MuseumPage />,
   '/quiz': () => <QuizPage />,
+  '/games': () => <GamesPage />,
   '/settings': () => <SettingsPage />,
 };
 

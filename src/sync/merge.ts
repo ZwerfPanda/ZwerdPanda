@@ -294,6 +294,10 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
     us: mergeUs(base.us, local.us, remote.us),
     her: mergeHer(base.her, local.her, remote.her),
     hunt: mergeHunt(base.hunt, local.hunt, remote.hunt),
+    games: {
+      matches: mergeList(base.games.matches, local.games.matches, remote.games.matches),
+      scores: mergeList(base.games.scores, local.games.scores, remote.games.scores),
+    },
     quiz: {
       custom: mergeList(base.quiz.custom, local.quiz.custom, remote.quiz.custom),
       answers: mergeList(base.quiz.answers, local.quiz.answers, remote.quiz.answers),
@@ -354,6 +358,10 @@ export function mergeFirstJoin(
     coco: { ...remote.coco, notes: addPlain(local.coco.notes, remote.coco.notes) },
     countdowns: addPlain(local.countdowns, remote.countdowns),
     hunt: mergeHunt(remote.hunt, local.hunt, remote.hunt),
+    games: {
+      matches: addPlain(local.games.matches, remote.games.matches),
+      scores: addPlain(local.games.scores, remote.games.scores),
+    },
     quiz: {
       custom: addPlain(local.quiz.custom, remote.quiz.custom),
       answers: addPlain(local.quiz.answers, remote.quiz.answers),

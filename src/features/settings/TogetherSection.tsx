@@ -20,6 +20,8 @@ import {
   getSyncConfig,
   getSyncEngine,
   useSyncState,
+  startSync,
+  syncFailedToStart,
 } from '../../sync/sync';
 import { isValidConfig, looksLikeSecretKey } from '../../sync/config';
 import { timeAgo } from '../../lib/dates';
@@ -70,6 +72,8 @@ export function TogetherSection() {
         <p className="together__status">
           <LoaderCircle className="spin" aria-hidden="true" /> Verbinden…
         </p>
+      ) : syncFailedToStart() ? (
+        <ServerProblem error={sync.error} />
       ) : sync.phase === 'signed-out' || (!sync.account && sync.phase === 'error') ? (
         <SignIn error={sync.error} />
       ) : sync.phase === 'needs-space' ? (
@@ -78,6 +82,44 @@ export function TogetherSection() {
         <Connected sync={sync} />
       )}
     </section>
+  );
+}
+
+/* ------------------------------------------------------- could not start */
+
+function ServerProblem({ error }: { error: string | null }) {
+  const action = useAction();
+  return (
+    <div className="together__body">
+      <p className="notice" role="alert">
+        <span>
+          <strong>De verbinding met jullie server kon niet starten.</strong> Meestal komt dat
+          doordat de app net is bijgewerkt of het internet even wegviel. Probeer het opnieuw — je
+          gegevens op deze telefoon blijven gewoon staan.
+        </span>
+      </p>
+      {error && <p className="field__hint">Technisch: {error}</p>}
+      <div className="settings-actions">
+        <button
+          type="button"
+          className="btn btn--primary"
+          disabled={action.busy}
+          onClick={() =>
+            void action.run(async () => {
+              await startSync();
+              // A browser remembers a code file that failed to load; a fresh
+              // start of the app fetches it again.
+              if (syncFailedToStart()) window.location.reload();
+            })
+          }
+        >
+          {action.busy ? 'Verbinden…' : 'Opnieuw verbinden'}
+        </button>
+        <button type="button" className="btn btn--ghost" onClick={() => window.location.reload()}>
+          App vernieuwen
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -179,7 +221,13 @@ function SignIn({ error }: { error: string | null }) {
     if (mode === 'up' && password !== repeat)
       return action.setError('De twee wachtwoorden zijn niet hetzelfde.');
     void action.run(async () => {
-      if (!engine) throw new Error('Niet verbonden met een server.');
+      if (!getSyncEngine()) await startSync();
+      const live = getSyncEngine();
+      if (!live)
+        throw new Error(
+          'De verbinding met de server kon niet starten. Controleer je internet en tik op “Opnieuw verbinden”.',
+        );
+      const engine = live;
       if (mode === 'in') {
         await engine.signIn(email, password);
         toast('Ingelogd ♡');

@@ -63,6 +63,9 @@ import type {
   LoveNote,
   NailArt,
   NailFinish,
+  Games,
+  MatchKind,
+  ScoreGame,
   Quiz,
   QuizAnswer,
   VoiceNote,
@@ -865,6 +868,44 @@ function normalizeMuseum(v: unknown): Museum {
   return { stops: list(v.stops, normalizeStop).slice(0, 120), foundAt: optStamp(v.foundAt) };
 }
 
+const MATCH_KINDS: readonly MatchKind[] = ['c4', 'hangman', 'uno'];
+const SCORE_GAMES: readonly ScoreGame[] = ['bowling', 'skeeball'];
+
+function normalizeGames(v: unknown): Games {
+  if (!isObj(v)) return { matches: [], scores: [] };
+  return {
+    matches: list(v.matches, (m, i) => {
+      if (!isObj(m) || !MATCH_KINDS.includes(m.kind as MatchKind) || !isObj(m.state)) return null;
+      const startedBy = person(m.startedBy);
+      // A game's state is small; anything huge is not ours.
+      if (!startedBy || JSON.stringify(m.state).length > 60_000) return null;
+      return {
+        id: id(m.id, 'match', i),
+        kind: m.kind as MatchKind,
+        state: m.state,
+        turn: person(m.turn),
+        winner: m.winner === 'draw' ? ('draw' as const) : person(m.winner),
+        startedBy,
+        createdAt: stamp(m.createdAt),
+        updatedAt: stamp(m.updatedAt),
+      };
+    }).slice(-100),
+    scores: list(v.scores, (s, i) => {
+      const who = isObj(s) ? person(s.who) : undefined;
+      if (!isObj(s) || !who || !SCORE_GAMES.includes(s.game as ScoreGame)) return null;
+      const score = Number(s.score);
+      if (!Number.isFinite(score) || score < 0 || score > 100_000) return null;
+      return {
+        id: id(s.id, 'score', i),
+        game: s.game as ScoreGame,
+        who,
+        score: Math.round(score),
+        at: stamp(s.at),
+      };
+    }).slice(-500),
+  };
+}
+
 const JUDGEMENTS = ['right', 'close', 'wrong'] as const;
 
 function normalizeQuiz(v: unknown): Quiz {
@@ -929,6 +970,7 @@ export function normalizeContent(raw: unknown): AppContent {
     hunt: normalizeHunt(raw.hunt),
     museum: normalizeMuseum(raw.museum),
     quiz: normalizeQuiz(raw.quiz),
+    games: normalizeGames(raw.games),
   });
 }
 

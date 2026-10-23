@@ -56,6 +56,10 @@ export function newSince(content: AppContent, from: Person, since: string): NewT
       .map((a) => a.question),
   );
   add(answered.size, 'antwoord in het spelletje', '/quiz', 'antwoorden in het spelletje');
+  const GAME_NAMES = { uno: 'UNO', c4: '4 op een rij', hangman: 'galgje' } as const;
+  content.games.matches
+    .filter((m) => !m.winner && m.turn && m.turn !== from && m.updatedAt > since)
+    .forEach((m) => things.push({ label: `jouw beurt bij ${GAME_NAMES[m.kind]}`, path: '/games' }));
   const care = content.pet.log.filter((e) => e.by === from && e.at > since).length;
   if (care > 0) things.push({ label: 'heeft voor Coco gezorgd', path: '/coco' });
   return things;

@@ -626,6 +626,38 @@ export interface Quiz {
   answers: QuizAnswer[];
 }
 
+/* ---------------------------------------------------------------- games */
+
+export type MatchKind = 'c4' | 'hangman' | 'uno';
+
+/** A game we play together, turn by turn, each on our own phone. */
+export interface GameMatch {
+  id: ID;
+  kind: MatchKind;
+  /** The board, the cards… (shape depends on the kind of game). */
+  state: Record<string, unknown>;
+  turn?: Person;
+  winner?: Person | 'draw';
+  startedBy: Person;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ScoreGame = 'bowling' | 'skeeball';
+
+export interface GameScore {
+  id: ID;
+  game: ScoreGame;
+  who: Person;
+  score: number;
+  at: string;
+}
+
+export interface Games {
+  matches: GameMatch[];
+  scores: GameScore[];
+}
+
 /* -------------------------------------------------------------- star hunt */
 
 /** Stars hidden around the universe, found together: id → when it was found. */
@@ -675,6 +707,7 @@ export interface AppContent {
   hunt: StarHunt;
   museum: Museum;
   quiz: Quiz;
+  games: Games;
 }
 
 /** Per-device preferences. These never travel with exported content. */
