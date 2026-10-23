@@ -24,11 +24,17 @@ const HOLES = [
 /** Where a ball with this push lands, and what it scores. */
 export function landing(power: number, aim: number): { x: number; y: number; value: number } {
   const y = 100 - power * 100;
-  const x = 50 + aim * 40;
+  const x = 50 + aim * 46;
   if (power < 0.18) return { x, y: 110, value: 0 };
   for (const h of HOLES) if (Math.hypot(x - h.x, y - h.y) <= h.r) return { ...h, value: h.v };
   return { x, y: Math.max(y, 86), value: 10 };
 }
+
+/**
+ * How far a swipe goes, from its upward speed in px/ms: a soft flick (~0.25)
+ * reaches the 20, ~0.4 the 30, ~0.75 the 40 and a firm one (~1.0) the top row.
+ */
+export const powerOf = (vy: number) => Math.min(1.02, Math.max(0, 0.12 + vy / 1.45));
 
 /** Coco's nine balls: she aims for the middle and mostly gets 20–40. */
 export function cocoRolls(random = Math.random): number[] {
@@ -59,6 +65,7 @@ export function Skeeball() {
   const [pops, setPops] = useState<{ id: number; v: number; x: number; y: number }[]>([]);
   const [tickets, setTickets] = useState<number | null>(null);
   const [cocoScore, setCocoScore] = useState<number | null>(null);
+  const [meter, setMeter] = useState(0);
   const shot = useRef<Shot | null>(null);
   const drag = useRef<{ x: number; y: number; t: number }[]>([]);
   const size = useRef({ w: 300, h: 480 });
@@ -343,8 +350,9 @@ export function Skeeball() {
       setLast('Veeg omhoog ↑');
       return;
     }
-    const power = Math.min(1.05, vy / 2.4);
-    const aim = Math.max(-1, Math.min(1, vx / Math.max(vy, 0.4)));
+    const power = powerOf(vy);
+    const aim = Math.max(-1, Math.min(1, (vx / Math.max(vy, 0.4)) * 1.4));
+    setMeter(0);
     shot.current = { t: performance.now(), power, aim, land: landing(power, aim) };
     setLeft((n) => n - 1);
     playSfx('whoosh', true);
@@ -412,13 +420,28 @@ export function Skeeball() {
             drag.current = [pos(e)];
           }}
           onPointerMove={(e) => {
-            if (drag.current.length) drag.current.push(pos(e));
+            const d = drag.current;
+            if (!d.length) return;
+            const p = pos(e);
+            d.push(p);
+            const from = d.find((q) => p.t - q.t < 160) ?? d[0];
+            setMeter(powerOf((from.y - p.y) / Math.max(16, p.t - from.t)));
           }}
           onPointerUp={onUp}
-          onPointerCancel={() => (drag.current = [])}
+          onPointerCancel={() => {
+            drag.current = [];
+            setMeter(0);
+          }}
           role="img"
           aria-label="Skeeball: veeg omhoog om de bal te rollen. Harder vegen is verder."
         />
+        <span className="skee-meter" aria-hidden="true">
+          <span className="skee-meter__fill" style={{ height: `${Math.min(100, meter * 98)}%` }} />
+          <i style={{ bottom: '28%' }}>20</i>
+          <i style={{ bottom: '48%' }}>30</i>
+          <i style={{ bottom: '68%' }}>40</i>
+          <i style={{ bottom: '86%' }}>★</i>
+        </span>
         <AnimatePresence>
           {pops.map((p) => (
             <motion.span

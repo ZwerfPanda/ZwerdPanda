@@ -99,6 +99,10 @@
   color: #e6728b;
 }
 
+.companion__need--care {
+  color: #7d68b5;
+}
+
 .companion__need svg {
   width: 16px;
   height: 16px;

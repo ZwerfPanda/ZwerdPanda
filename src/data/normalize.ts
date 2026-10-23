@@ -403,6 +403,9 @@ const PET_ACTIONS: readonly PetAction[] = [
   'trained',
   'learned',
   'outfit',
+  'cleaned',
+  'raised',
+  'activity',
 ];
 const COUNTDOWN_ICONS: readonly CountdownIcon[] = [
   'heart',
@@ -419,7 +422,8 @@ const COUNTDOWN_ICONS: readonly CountdownIcon[] = [
 export const PET_LOG_LIMIT = 40;
 
 function normalizePet(v: unknown): CocoPet {
-  if (!isObj(v)) return { ...defaultPet, treats: { ...defaultPet.treats }, tricks: {}, log: [] };
+  if (!isObj(v))
+    return { ...defaultPet, treats: { ...defaultPet.treats }, tricks: {}, log: [], handled: [] };
   const treats = isObj(v.treats) ? v.treats : {};
   const tricks: CocoPet['tricks'] = {};
   if (isObj(v.tricks)) {
@@ -449,6 +453,7 @@ function normalizePet(v: unknown): CocoPet {
     pettedAt: optStamp(v.pettedAt),
     playedAt: optStamp(v.playedAt),
     groomedAt: optStamp(v.groomedAt),
+    cleanedAt: optStamp(v.cleanedAt),
     treats: {
       date: optDate(treats.date) ?? '',
       count: Math.round(clampNumber(treats.count, 0, 99)),
@@ -457,6 +462,10 @@ function normalizePet(v: unknown): CocoPet {
     tricks,
     outfit: oneOf(v.outfit, OUTFITS, 'none'),
     log,
+    manners: Math.round(clampNumber(v.manners, 0, 100)),
+    handled: arr(v.handled)
+      .filter((h): h is string => typeof h === 'string' && h.length <= 40)
+      .slice(-40),
   };
 }
 
@@ -870,8 +879,8 @@ function normalizeMuseum(v: unknown): Museum {
   return { stops: list(v.stops, normalizeStop).slice(0, 120), foundAt: optStamp(v.foundAt) };
 }
 
-const MATCH_KINDS: readonly MatchKind[] = ['c4', 'hangman', 'uno'];
-const SCORE_GAMES: readonly ScoreGame[] = ['bowling', 'skeeball'];
+const MATCH_KINDS: readonly MatchKind[] = ['c4', 'hangman', 'uno', 'zeeslag'];
+const SCORE_GAMES: readonly ScoreGame[] = ['bowling', 'skeeball', 'darts'];
 
 function normalizeGames(v: unknown): Games {
   if (!isObj(v)) return { matches: [], scores: [], results: [] };
@@ -926,7 +935,15 @@ function normalizeGames(v: unknown): Games {
   };
 }
 
-const GAME_IDS: readonly GameId[] = ['uno', 'c4', 'hangman', 'bowling', 'skeeball'];
+const GAME_IDS: readonly GameId[] = [
+  'uno',
+  'c4',
+  'hangman',
+  'bowling',
+  'skeeball',
+  'darts',
+  'zeeslag',
+];
 const PLAYERS: readonly Player[] = ['you', 'partner', 'coco'];
 
 const JUDGEMENTS = ['right', 'close', 'wrong'] as const;

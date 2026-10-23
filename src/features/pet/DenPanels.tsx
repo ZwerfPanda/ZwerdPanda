@@ -1,5 +1,14 @@
 import { useEffect, useRef } from 'react';
-import { GraduationCap, Heart, Sparkles, Volleyball, Wheat, Salad } from 'lucide-react';
+import {
+  GraduationCap,
+  Heart,
+  Sparkles,
+  SprayCan,
+  Smile,
+  Volleyball,
+  Wheat,
+  Salad,
+} from 'lucide-react';
 import { useContent } from '../../data/store';
 import { nameOf } from '../../data/people';
 import type { PetFood, PetTrick } from '../../data/types';
@@ -14,16 +23,35 @@ export const TREATS: PetFood[] = ['carrot', 'apple', 'banana', 'strawberry'];
 
 export const bondNames = ['Verlegen', 'Nieuwsgierig', 'Vertrouwd', 'Best friends', 'Family'];
 
-export function Meters({ needs }: { needs: Needs }) {
+export function Meters({ needs, wellbeing }: { needs: Needs; wellbeing: number }) {
   const items: { key: keyof Needs; label: string; icon: React.ReactNode }[] = [
     { key: 'hay', label: 'Hooi & water', icon: <Wheat aria-hidden="true" /> },
     { key: 'tummy', label: 'Buikje', icon: <Salad aria-hidden="true" /> },
     { key: 'love', label: 'Knuffels', icon: <Heart aria-hidden="true" /> },
     { key: 'play', label: 'Speeltijd', icon: <Volleyball aria-hidden="true" /> },
     { key: 'fur', label: 'Vacht', icon: <Sparkles aria-hidden="true" /> },
+    { key: 'clean', label: 'Schoon hokje', icon: <SprayCan aria-hidden="true" /> },
   ];
   return (
     <ul className="den__meters">
+      <li
+        className={`den__meters-total ${wellbeing < 30 ? 'is-low' : wellbeing > 70 ? 'is-good' : ''}`}
+      >
+        <span className="den-meter__label">
+          <Smile aria-hidden="true" />
+          Hoe gaat het met Coco?
+        </span>
+        <span
+          className="den-meter__bar"
+          role="meter"
+          aria-label="Hoe gaat het met Coco"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={wellbeing}
+        >
+          <span style={{ width: `${wellbeing}%` }} />
+        </span>
+      </li>
       {items.map((item) => {
         const value = needs[item.key];
         return (

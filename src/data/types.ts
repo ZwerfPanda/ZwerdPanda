@@ -257,7 +257,10 @@ export type PetAction =
   | 'groomed'
   | 'trained'
   | 'learned'
-  | 'outfit';
+  | 'outfit'
+  | 'cleaned'
+  | 'raised'
+  | 'activity';
 
 export interface PetLogEntry {
   id: ID;
@@ -283,6 +286,8 @@ export interface CocoPet {
   pettedAt?: string;
   playedAt?: string;
   groomedAt?: string;
+  /** Her hutch: fresh bedding and a clean litter box. */
+  cleanedAt?: string;
   /** Treats are small and few: counted per calendar day. */
   treats: { date: string; count: number };
   /** Grows with every bit of care, from both of us. */
@@ -291,6 +296,10 @@ export interface CocoPet {
   tricks: Partial<Record<PetTrick, number>>;
   outfit: PetOutfit;
   log: PetLogEntry[];
+  /** How well brought up she is, 0–100: grows when we respond kindly to mischief. */
+  manners: number;
+  /** Mischief moments we already responded to (so the other phone doesn't get them again). */
+  handled: string[];
 }
 
 /* -------------------------------------------------------------- countdowns */
@@ -628,7 +637,7 @@ export interface Quiz {
 
 /* ---------------------------------------------------------------- games */
 
-export type MatchKind = 'c4' | 'hangman' | 'uno';
+export type MatchKind = 'c4' | 'hangman' | 'uno' | 'zeeslag';
 
 /** A game we play together, turn by turn, each on our own phone. */
 export interface GameMatch {
@@ -643,7 +652,7 @@ export interface GameMatch {
   updatedAt: string;
 }
 
-export type ScoreGame = 'bowling' | 'skeeball';
+export type ScoreGame = 'bowling' | 'skeeball' | 'darts';
 
 export interface GameScore {
   id: ID;
@@ -653,7 +662,7 @@ export interface GameScore {
   at: string;
 }
 
-export type GameId = 'uno' | 'c4' | 'hangman' | 'bowling' | 'skeeball';
+export type GameId = 'uno' | 'c4' | 'hangman' | 'bowling' | 'skeeball' | 'darts' | 'zeeslag';
 /** Who can play: the two of us, and Coco. */
 export type Player = Person | 'coco';
 

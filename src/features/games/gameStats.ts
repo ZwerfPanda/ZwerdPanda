@@ -1,5 +1,5 @@
 import { updateContent } from '../../data/store';
-import type { AppContent, GameId, GameResult, Person, Player } from '../../data/types';
+import type { AppContent, GameId, GameResult, Person, Player, ScoreGame } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
 
 export const GAME_NAMES: Record<GameId, string> = {
@@ -8,6 +8,8 @@ export const GAME_NAMES: Record<GameId, string> = {
   hangman: 'galgje',
   bowling: 'bowlen',
   skeeball: 'skeeball',
+  darts: 'darten',
+  zeeslag: 'zeeslag',
 };
 
 /** Writes down how a game ended (once per id, so a match counts once). */
@@ -41,12 +43,12 @@ export function headToHead(
   };
 }
 
-const bestScore = (c: AppContent, game: 'bowling' | 'skeeball', who: Person) => {
+const bestScore = (c: AppContent, game: ScoreGame, who: Person) => {
   const mine = c.games.scores.filter((s) => s.game === game && s.who === who).map((s) => s.score);
   return mine.length ? Math.max(...mine) : null;
 };
 
-export const cocoBest = (c: AppContent, game: 'bowling' | 'skeeball') => {
+export const cocoBest = (c: AppContent, game: ScoreGame) => {
   const hers = c.games.scores
     .filter((s) => s.game === game && s.who === 'coco')
     .map((s) => s.score);
@@ -70,7 +72,7 @@ export function gameBrag(
     'Oké oké… nog één potje?',
     'Pff. Volgende keer ben jij de sjaak.',
   ];
-  for (const game of ['uno', 'c4', 'hangman'] as GameId[]) {
+  for (const game of ['uno', 'c4', 'hangman', 'zeeslag', 'darts'] as GameId[]) {
     const h = headToHead(c.games.results, game, 'you', 'partner');
     if (h.a + h.b === 0) continue;
     if (h.a === h.b) {
@@ -97,12 +99,20 @@ export function gameBrag(
         `Jouw woorden raad ik toch wel, {pet} 🎈 Al ${wins} keer!`,
         `Galgje-kampioen hier. ${wins}–${losses}.`,
       ],
+      zeeslag: [
+        `Admiraal ${wins}–${losses}, {pet} ⚓ Jouw vloot ligt op de bodem.`,
+        `Zeeslag: ${wins} keer jouw schepen gezonken. Sorry niet sorry 🚢`,
+      ],
+      darts: [
+        `Darten: ${wins}–${losses} voor mij 🎯 Ik gooi gewoon raak.`,
+        `Ik ben de dart-${crown(leader)}, {pet}. ${wins} keer gewonnen!`,
+      ],
       bowling: [],
       skeeball: [],
     };
     options.push({ leader, text: pick(texts[game], rng), reply: pick(replies, rng) });
   }
-  for (const game of ['bowling', 'skeeball'] as const) {
+  for (const game of ['bowling', 'skeeball', 'darts'] as const) {
     const a = bestScore(c, game, 'you');
     const b = bestScore(c, game, 'partner');
     if (a === null || b === null || a === b) continue;
@@ -114,7 +124,9 @@ export function gameBrag(
       text:
         game === 'bowling'
           ? `Mijn bowlingrecord: ${mine}. Het jouwe: ${theirs}. Just saying 🎳`
-          : `${mine} punten bij skeeball, {pet}. Kom maar op 🎯`,
+          : game === 'darts'
+            ? `${mine} punten met darten, {pet}. Probeer dat maar eens te kloppen 🎯`
+            : `${mine} punten bij skeeball, {pet}. Kom maar op 🎟️`,
       reply: pick(replies, rng),
     });
   }
@@ -126,7 +138,7 @@ export function gameBrag(
 /** What Coco says about her games against `me`. */
 export function cocoGameTalk(c: AppContent, me: Person, name: string, rng: Rng): string | null {
   const lines: string[] = [];
-  for (const game of ['uno', 'c4', 'hangman'] as GameId[]) {
+  for (const game of ['uno', 'c4', 'hangman', 'zeeslag', 'darts'] as GameId[]) {
     const h = headToHead(c.games.results, game, me, 'coco');
     if (h.a + h.b === 0) continue;
     const g = GAME_NAMES[game];
@@ -134,7 +146,7 @@ export function cocoGameTalk(c: AppContent, me: Person, name: string, rng: Rng):
     else if (h.a > h.b) lines.push(`Jij won al ${h.a} keer van mij met ${g}… ik oefen stiekem 🥕`);
     else lines.push(`${h.a}–${h.b} met ${g}, ${name}. Revanche?`);
   }
-  for (const game of ['bowling', 'skeeball'] as const) {
+  for (const game of ['bowling', 'skeeball', 'darts'] as const) {
     const mine = cocoBest(c, game);
     if (mine !== null) lines.push(`Mijn ${game}record is ${mine}. Met mijn pootjes!`);
   }

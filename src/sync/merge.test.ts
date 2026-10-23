@@ -311,3 +311,21 @@ describe('photos on a stop edited on both phones', () => {
     expect(merged.favorite).toBe('Het doolhof');
   });
 });
+
+describe('Coco’s upbringing across two phones', () => {
+  it('adds up manners and keeps every handled moment', () => {
+    const base = createDefaultContent();
+    const local: AppContent = {
+      ...base,
+      pet: { ...base.pet, manners: 8, handled: ['m-1'], cleanedAt: '2026-10-23T08:00:00.000Z' },
+    };
+    const remote: AppContent = {
+      ...base,
+      pet: { ...base.pet, manners: 16, handled: ['m-2'], cleanedAt: '2026-10-23T09:00:00.000Z' },
+    };
+    const merged = mergeContent(base, local, remote).pet;
+    expect(merged.manners).toBe(24);
+    expect(merged.handled.sort()).toEqual(['m-1', 'm-2']);
+    expect(merged.cleanedAt).toBe('2026-10-23T09:00:00.000Z');
+  });
+});

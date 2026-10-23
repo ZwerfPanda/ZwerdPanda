@@ -1091,3 +1091,8 @@ html[data-world-light='day'] .topbar.is-dark .topnav {
   font-size: 0.86rem;
   color: var(--ink-soft);
 }
+
+.drink-bar {
+  display: grid;
+  gap: 14px;
+}

@@ -10,8 +10,10 @@ import {
   House,
   Lock,
   Package,
+  PartyPopper,
   Shirt,
   Sparkles,
+  SprayCan,
   Volleyball,
   X,
 } from 'lucide-react';
@@ -28,6 +30,7 @@ import { DenScene, timeOfDay } from './DenScene';
 import { BrushArt, FoodArt, WillowBall } from './Props';
 import { useHopper } from './useHopper';
 import { CareDiary, FeedTray, Meters, TrainTray, bondNames } from './DenPanels';
+import { FunTray, MischiefCard, MischiefOutcome, RequestCard } from './DenCare';
 import { sendCocoHome } from './home';
 import {
   BUNNY_FACTS,
@@ -35,9 +38,16 @@ import {
   MOOD_LINES,
   OUTFITS,
   TRICKS,
+  ACTIVITIES,
   ageOf,
   bondLevel,
   care,
+  mannersLevel,
+  mischiefOf,
+  requestOf,
+  wellbeing,
+  type ActivityId,
+  type Request,
   isNapTime,
   moodOf,
   needsOf,
@@ -56,9 +66,12 @@ const CARE_SOUND: Record<Care['type'], Sfx> = {
   groom: 'write',
   train: 'coin',
   outfit: 'sparkle',
+  clean: 'paper',
+  activity: 'success',
+  raise: 'sparkle',
 };
 
-type Tray = 'feed' | 'play' | 'train' | 'dress' | null;
+type Tray = 'feed' | 'play' | 'train' | 'dress' | 'fun' | null;
 type Mode = 'cuddle' | 'brush' | null;
 type Particle = {
   id: number;
@@ -100,6 +113,11 @@ export function CocoDen() {
   const reduce = useReducedMotion();
   const needs = needsOf(pet, now);
   const mood = moodOf(needs);
+  const request = requestOf(pet, now);
+  const mischief = mischiefOf(pet, now);
+  const [outcome, setOutcome] = useState<{ good: boolean; reply: string; fact: string } | null>(
+    null,
+  );
   const age = ageOf(pet.birthday, parseIsoDate(today) ?? undefined);
   const bond = bondLevel(pet.bond);
   const hop = useHopper(reduce);
@@ -783,6 +801,63 @@ export function CocoDen() {
         : 'center'
     : 'center';
 
+  const cleanHutch = () =>
+    void scene(async (t) => {
+      wake();
+      setTray(null);
+      setFact('Een schone bak met vers hooi erbij: konijnen poepen het liefst terwijl ze eten.');
+      doCare({ type: 'clean' });
+      burst('heart', 3);
+      if (!(await hop.hopTo(t, AT.hay))) return;
+      hop.show('front');
+      await hop.hopInPlace(t, 0.14);
+    });
+
+  const doActivity = (activity: ActivityId) =>
+    void scene(async (t) => {
+      wake();
+      setTray(null);
+      setFact(ACTIVITIES[activity].fact);
+      const result = doCare({ type: 'activity', activity });
+      if (!result.ok) return;
+      burst('heart', 5);
+      celebrateFrom(bunnyRef.current);
+      hop.show('front');
+      await hop.hopInPlace(t, 0.18);
+      await hop.hopInPlace(t, 0.12);
+    });
+
+  /** Answer what she asked for with the matching bit of care. */
+  const answer = (r: Request) => {
+    wake();
+    switch (r.ask) {
+      case 'hay':
+        return feed('hay');
+      case 'tummy':
+      case 'treat':
+        return setTray('feed');
+      case 'love':
+        return startMode('cuddle');
+      case 'fur':
+        return startMode('brush');
+      case 'clean':
+        return cleanHutch();
+      case 'play':
+        return setTray('play');
+      case 'trick':
+        return setTray('train');
+      case 'activity':
+        return setTray('fun');
+    }
+  };
+
+  const raise = (id: string, good: boolean, reply: string, fact: string) => {
+    wake();
+    doCare({ type: 'raise', id, good });
+    setOutcome({ good, reply, fact });
+    if (good) burst('heart', 3);
+  };
+
   const trayButton = (key: Exclude<Tray, null>, label: string, icon: React.ReactNode) => (
     <button
       type="button"
@@ -827,6 +902,9 @@ export function CocoDen() {
             <span style={{ width: `${Math.round(bond.progress * 100)}%` }} />
           </span>
           {bond.next && <span className="den__bond-next">volgende: {bond.next}</span>}
+          <span className="den__manners" title="Hoe goed opgevoed ze is">
+            🎓 {mannersLevel(pet.manners)} · {pet.manners}%
+          </span>
         </div>
       </header>
 
@@ -1127,6 +1205,19 @@ export function CocoDen() {
         </p>
       )}
 
+      <AnimatePresence>
+        {request && !sleeping && (
+          <RequestCard request={request} onAnswer={() => answer(request)} disabled={busy} />
+        )}
+      </AnimatePresence>
+      {mischief && !sleeping && !outcome && (
+        <MischiefCard
+          mischief={mischief.mischief}
+          onChoose={(good, reply) => raise(mischief.id, good, reply, mischief.mischief.fact)}
+        />
+      )}
+      <MischiefOutcome outcome={outcome} onClose={() => setOutcome(null)} />
+
       <div className="den__tools" role="group" aria-label="Zorg voor Coco">
         {trayButton('feed', 'Eten', <Carrot aria-hidden="true" />)}
         <button
@@ -1147,7 +1238,12 @@ export function CocoDen() {
           <Brush aria-hidden="true" />
           <span>Borstelen</span>
         </button>
+        <button type="button" className="den-tool" onClick={cleanHutch} disabled={busy}>
+          <SprayCan aria-hidden="true" />
+          <span>Hok schoonmaken</span>
+        </button>
         {trayButton('play', 'Spelen', <Volleyball aria-hidden="true" />)}
+        {trayButton('fun', 'Uitjes', <PartyPopper aria-hidden="true" />)}
         {trayButton('train', 'Trucjes', <GraduationCap aria-hidden="true" />)}
         {trayButton('dress', 'Aankleden', <Shirt aria-hidden="true" />)}
       </div>
@@ -1163,6 +1259,7 @@ export function CocoDen() {
             transition={{ duration: reduce ? 0 : 0.18 }}
           >
             {tray === 'feed' && <FeedTray today={today} onFeed={feed} />}
+            {tray === 'fun' && <FunTray onPick={doActivity} busy={busy} />}
             {tray === 'play' && (
               <div className="den-options">
                 <button type="button" className="den-option" onClick={playBall}>
@@ -1239,7 +1336,7 @@ export function CocoDen() {
         )}
       </AnimatePresence>
 
-      <Meters needs={needs} />
+      <Meters needs={needs} wellbeing={wellbeing(needs)} />
 
       <CareDiary />
 

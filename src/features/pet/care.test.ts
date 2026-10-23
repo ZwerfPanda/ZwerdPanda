@@ -21,9 +21,11 @@ describe('Coco’s needs', () => {
   });
 
   it('turn into a mood', () => {
-    expect(moodOf({ tummy: 50, hay: 10, love: 90, play: 90, fur: 90 })).toBe('hungry');
-    expect(moodOf({ tummy: 90, hay: 90, love: 10, play: 90, fur: 90 })).toBe('lonely');
-    expect(moodOf({ tummy: 90, hay: 90, love: 90, play: 90, fur: 90 })).toBe('happy');
+    expect(moodOf({ tummy: 50, hay: 10, love: 90, play: 90, fur: 90, clean: 90 })).toBe('hungry');
+    expect(moodOf({ tummy: 90, hay: 90, love: 10, play: 90, fur: 90, clean: 90 })).toBe('lonely');
+    expect(moodOf({ tummy: 90, hay: 90, love: 90, play: 90, fur: 90, clean: 10 })).toBe('messy');
+    expect(moodOf({ tummy: 90, hay: 90, love: 90, play: 90, fur: 90, clean: 90 })).toBe('happy');
+    expect(moodOf({ tummy: 0, hay: 10, love: 0, play: 20, fur: 40, clean: 30 })).toBe('sad');
   });
 
   it('naps in the middle of the day and night, like real rabbits', () => {
@@ -72,7 +74,10 @@ describe('looking after Coco', () => {
   });
 
   it('learns a trick once training reaches 100', () => {
-    let pet: CocoPet = { ...fresh(), tricks: { spin: 95 } };
+    // Only a fed, happy bunny feels like learning.
+    const now = new Date().toISOString();
+    const cared = { fedAt: now, hayAt: now, pettedAt: now, playedAt: now, groomedAt: now };
+    let pet: CocoPet = { ...fresh(), ...cared, cleanedAt: now, tricks: { spin: 95 } };
     const result = care(pet, { type: 'train', trick: 'spin', gain: 10 }, 'you');
     expect(result.learned).toBe('spin');
     expect(result.pet.tricks.spin).toBe(100);

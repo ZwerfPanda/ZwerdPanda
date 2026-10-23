@@ -214,8 +214,11 @@ export function mergePet(base: CocoPet, local: CocoPet, remote: CocoPet): CocoPe
     pettedAt: later(local.pettedAt, remote.pettedAt),
     playedAt: later(local.playedAt, remote.playedAt),
     groomedAt: later(local.groomedAt, remote.groomedAt),
+    cleanedAt: later(local.cleanedAt, remote.cleanedAt),
     treats,
     bond: addUp(base.bond, local.bond, remote.bond),
+    manners: Math.min(100, addUp(base.manners, local.manners, remote.manners)),
+    handled: [...new Set([...local.handled, ...remote.handled])].slice(-40),
     tricks,
     log: mergeList(base.log, local.log, remote.log)
       .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))

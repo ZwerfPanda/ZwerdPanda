@@ -135,6 +135,8 @@ export interface Needs {
   play: number;
   /** Brushing. */
   fur: number;
+  /** A clean hutch and litter box. */
+  clean: number;
 }
 
 /** 100 right after `at`, sliding to 0 over `hours`. Never done → 0. */
@@ -152,7 +154,16 @@ export function needsOf(pet: CocoPet, now: number): Needs {
     love: level(pet.pettedAt, now, 10),
     play: level(pet.playedAt, now, 14),
     fur: level(pet.groomedAt, now, 24 * 5),
+    clean: level(pet.cleanedAt, now, 48),
   };
+}
+
+/** How she's doing overall, 0–100. Every need that's all but forgotten weighs on it. */
+export function wellbeing(needs: Needs): number {
+  const values = Object.values(needs);
+  const average = values.reduce((a, b) => a + b, 0) / values.length;
+  const forgotten = values.filter((v) => v < 10).length;
+  return Math.max(0, Math.round(average - forgotten * 10));
 }
 
 /** Rabbits are most awake around dawn and dusk and doze in between. */
@@ -160,18 +171,29 @@ export function isNapTime(hour: number): boolean {
   return (hour >= 11 && hour < 16) || hour >= 23 || hour < 4;
 }
 
-export type Mood = 'hungry' | 'lonely' | 'bored' | 'scruffy' | 'happy' | 'content';
+export type Mood =
+  | 'sad'
+  | 'hungry'
+  | 'lonely'
+  | 'bored'
+  | 'scruffy'
+  | 'messy'
+  | 'happy'
+  | 'content';
 
 export function moodOf(needs: Needs): Mood {
+  if (wellbeing(needs) < 25) return 'sad';
   if (needs.hay < 20 || needs.tummy < 15) return 'hungry';
   if (needs.love < 20) return 'lonely';
   if (needs.play < 20) return 'bored';
+  if (needs.clean < 15) return 'messy';
   if (needs.fur < 15) return 'scruffy';
-  const average = (needs.tummy + needs.hay + needs.love + needs.play + needs.fur) / 5;
-  return average >= 65 ? 'happy' : 'content';
+  return wellbeing(needs) >= 65 ? 'happy' : 'content';
 }
 
 export const MOOD_LINES: Record<Mood, string> = {
+  sad: 'Coco zit stilletjes in een hoekje, met haar oortjes plat. Ze heeft jullie echt nodig.',
+  messy: 'Haar hokje ruikt niet zo fris meer. Ze wil een schoon plekje.',
   hungry: 'Coco knabbelt aan een leeg hooirekje. Wat hooi, alsjeblieft?',
   lonely: 'Coco blijft je hand aanstoten. Ze wil knuffels.',
   bored: 'Coco graaft in de vloer. Speeltijd?',
@@ -275,6 +297,316 @@ export function ageOf(birthday: string, today: Date = todayUtc()): Age | null {
   };
 }
 
+/* ------------------------------------------------------- what she asks */
+
+export type Ask = keyof Needs | 'treat' | 'trick' | 'activity';
+
+export interface Request {
+  /** Same on both phones for the same moment, so a wish is fulfilled once. */
+  id: string;
+  ask: Ask;
+  urgent: boolean;
+  text: string;
+  /** The button that answers her. */
+  cta: string;
+}
+
+const ASK_URGENT: Record<keyof Needs, { text: string; cta: string }> = {
+  hay: { text: 'Mijn hooirekje is leeg… en mijn waterbakje ook 🥺', cta: 'Hooi & water geven' },
+  tummy: { text: 'Ik heb zo’n honger! Mag ik wat groente? 🥬', cta: 'Eten geven' },
+  love: { text: 'Ik mis je… aai je me even? 🥺', cta: 'Knuffelen' },
+  play: { text: 'Ik verveel me zóóó. Spelen?', cta: 'Spelen' },
+  fur: { text: 'Ik zit vol losse haartjes. Borstel je me?', cta: 'Borstelen' },
+  clean: { text: 'Mijn hokje is vies… maak je het schoon? 🧹', cta: 'Hok schoonmaken' },
+};
+
+const WISHES: { ask: Ask; text: string; cta: string }[] = [
+  { ask: 'treat', text: 'Mag ik een snoepje? Eentje maar 🍓', cta: 'Snoepje geven' },
+  { ask: 'trick', text: 'Ik wil een nieuw trucje leren! 🎓', cta: 'Trucje oefenen' },
+  { ask: 'activity', text: 'Ik wil iets leuks doen vandaag! 🎪', cta: 'Iets leuks doen' },
+  { ask: 'love', text: 'Kom je even bij me zitten? ♡', cta: 'Knuffelen' },
+  { ask: 'play', text: 'Gooi je mijn balletje? 🎾', cta: 'Spelen' },
+];
+
+/** A small, stable number from a string — both phones get the same one. */
+function hash(text: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) / 4294967296;
+}
+
+const ASK_ACTIONS: Record<Ask, PetAction[]> = {
+  hay: ['hay'],
+  tummy: ['fed'],
+  love: ['petted'],
+  play: ['played', 'activity'],
+  fur: ['groomed'],
+  clean: ['cleaned'],
+  treat: ['treat'],
+  trick: ['trained', 'learned'],
+  activity: ['activity'],
+};
+
+/**
+ * What Coco asks for right now. A need that runs low comes first; when she's
+ * well, she has a little wish every few hours — until one of us grants it.
+ */
+export function requestOf(pet: CocoPet, now: number): Request | null {
+  const needs = needsOf(pet, now);
+  const lowest = (Object.keys(ASK_URGENT) as (keyof Needs)[])
+    .map((k) => [k, needs[k]] as const)
+    .sort((a, b) => a[1] - b[1])[0];
+  if (lowest[1] < 30) {
+    const [ask] = lowest;
+    return { id: `need-${ask}`, ask, urgent: true, ...ASK_URGENT[ask] };
+  }
+  const window = Math.floor(now / (3 * HOUR));
+  const wish = WISHES[Math.floor(hash(`wish-${window}`) * WISHES.length)];
+  const since = new Date(window * 3 * HOUR).toISOString();
+  const granted = pet.log.some((e) => e.at >= since && ASK_ACTIONS[wish.ask].includes(e.action));
+  if (granted) return null;
+  if (wish.ask === 'treat') {
+    const today = todayIso(new Date(now));
+    if (pet.treats.date === today && pet.treats.count >= TREATS_PER_DAY) return null;
+  }
+  if (wish.ask === 'trick' && TRICK_ORDER.every((t) => (pet.tricks[t] ?? 0) >= 100)) return null;
+  return { id: `wish-${window}`, ask: wish.ask, urgent: false, text: wish.text, cta: wish.cta };
+}
+
+/** Which care answers which ask. */
+export function answers(action: Care, ask: Ask): boolean {
+  switch (action.type) {
+    case 'feed': {
+      const kind = FOODS[action.food].kind;
+      return (
+        (ask === 'hay' && kind === 'hay') ||
+        (ask === 'tummy' && (kind === 'greens' || kind === 'pellets')) ||
+        (ask === 'treat' && kind === 'treat')
+      );
+    }
+    case 'pet':
+      return ask === 'love';
+    case 'play':
+      return ask === 'play';
+    case 'groom':
+      return ask === 'fur';
+    case 'clean':
+      return ask === 'clean';
+    case 'train':
+      return ask === 'trick';
+    case 'activity':
+      return ask === 'activity' || ask === 'play';
+    default:
+      return false;
+  }
+}
+
+/* ------------------------------------------------------------ upbringing */
+
+export interface Mischief {
+  text: string;
+  options: { label: string; good: boolean; reply: string }[];
+  /** What actually works with rabbits, and why. */
+  fact: string;
+}
+
+export const MISCHIEF: Mischief[] = [
+  {
+    text: 'Coco knaagt aan een oplaadkabel! 🔌',
+    options: [
+      {
+        label: 'Kabel weg, knaaghoutje geven',
+        good: true,
+        reply: 'Ze snuffelt aan het hout… en knaagt daar verder. Goed zo!',
+      },
+      {
+        label: 'Boos “NEE!” roepen',
+        good: false,
+        reply: 'Ze schrikt en rent weg. Begrijpen doet ze het niet.',
+      },
+      { label: 'Laten gaan', good: false, reply: 'Krak. Die kabel is stuk… en dat is gevaarlijk.' },
+    ],
+    fact: 'Knagen is normaal voor konijnen. Kabels wegwerken en iets veiligs aanbieden werkt het best.',
+  },
+  {
+    text: 'Coco graaft een gat in het tapijt.',
+    options: [
+      {
+        label: 'Een graafbak met papiersnippers geven',
+        good: true,
+        reply: 'Ze duikt erin en graaft als een kampioen. Tapijt gered!',
+      },
+      {
+        label: 'Op haar billen tikken',
+        good: false,
+        reply: 'Au. Ze vertrouwt je even wat minder.',
+      },
+      {
+        label: 'Tapijt opgeven',
+        good: false,
+        reply: 'Het gat wordt groter. Ze leert dat het mag.',
+      },
+    ],
+    fact: 'Graven zit in hun natuur. Geef haar een eigen plek waar het wél mag.',
+  },
+  {
+    text: 'Coco plast naast haar bakje 💧',
+    options: [
+      {
+        label: 'Opruimen en wat keutels in de bak leggen',
+        good: true,
+        reply: 'Ze ruikt het en snapt het: dáár is de wc.',
+      },
+      {
+        label: 'Haar neus erin duwen',
+        good: false,
+        reply: 'Dat werkt bij konijnen echt niet — ze wordt er alleen bang van.',
+      },
+      { label: 'Niks doen', good: false, reply: 'De plek blijft ruiken… dus ze doet het weer.' },
+    ],
+    fact: 'Konijnen zijn makkelijk zindelijk te maken: zet de bak waar ze zelf graag gaat, met hooi erbij.',
+  },
+  {
+    text: 'Coco bijt zachtjes in je sok en trekt eraan 🧦',
+    options: [
+      {
+        label: 'Rustig wegstappen en haar later aaien',
+        good: true,
+        reply: 'Ze leert: trekken = aandacht weg, rustig = knuffels.',
+      },
+      {
+        label: 'Gillen en springen',
+        good: false,
+        reply: 'Wow, dat was een spannend spelletje! Nog eens?',
+      },
+      { label: 'Terugtrekken aan haar', good: false, reply: 'Ze vindt het een wedstrijdje. Oei.' },
+    ],
+    fact: 'Een zacht beetje is vaak “let op mij!”. Reageer rustig en beloon kalm gedrag.',
+  },
+  {
+    text: 'Coco springt op de bank en wil niet meer weg 🛋️',
+    options: [
+      {
+        label: 'Met een snoepje naar beneden lokken',
+        good: true,
+        reply: 'Hop, ze springt er netjes af. Wat een slimmerd.',
+      },
+      {
+        label: 'Haar aan haar oren pakken',
+        good: false,
+        reply: 'Nooit doen! Oren zijn heel gevoelig — til haar altijd met steun onder haar billen.',
+      },
+      { label: 'Wegduwen', good: false, reply: 'Ze bonkt boos met haar achterpoot. Thump!' },
+    ],
+    fact: 'Lokken en belonen werkt veel beter dan duwen of trekken.',
+  },
+  {
+    text: 'Coco bonkt hard met haar achterpoot — THUMP!',
+    options: [
+      {
+        label: 'Zacht praten en kijken wat haar liet schrikken',
+        good: true,
+        reply: 'Het was de stofzuiger. Ze ontspant weer naast je.',
+      },
+      { label: 'Terug-thumpen', good: false, reply: 'Nu denkt ze dat er écht gevaar is. Paniek!' },
+      { label: 'Negeren', good: false, reply: 'Ze blijft gespannen in haar hoekje zitten.' },
+    ],
+    fact: 'Een thump betekent “gevaar!”. Een rustige stem helpt haar te kalmeren.',
+  },
+];
+
+export const MANNERS_LEVELS = [
+  { min: 0, name: 'Wildebras' },
+  { min: 25, name: 'Leert al' },
+  { min: 60, name: 'Braaf' },
+  { min: 90, name: 'Voorbeeldig' },
+] as const;
+
+export function mannersLevel(manners: number) {
+  let current: (typeof MANNERS_LEVELS)[number] = MANNERS_LEVELS[0];
+  for (const l of MANNERS_LEVELS) if (manners >= l.min) current = l;
+  return current.name;
+}
+
+/**
+ * Now and then (a few times a day for a young wildebras, rarely once she's
+ * well brought up) she gets into mischief. Same moment on both phones.
+ */
+export function mischiefOf(pet: CocoPet, now: number): { id: string; mischief: Mischief } | null {
+  const window = Math.floor(now / (5 * HOUR));
+  const chance = 0.75 - (pet.manners / 100) * 0.5;
+  if (hash(`mischief-${window}`) >= chance) return null;
+  const id = `m-${window}`;
+  if (pet.handled.includes(id)) return null;
+  return { id, mischief: MISCHIEF[Math.floor(hash(`which-${window}`) * MISCHIEF.length)] };
+}
+
+/* ------------------------------------------------------------ activities */
+
+export type ActivityId = 'digbox' | 'castle' | 'forage' | 'garden' | 'photo' | 'movie';
+
+export const ACTIVITIES: Record<
+  ActivityId,
+  { label: string; emoji: string; done: string; fact: string }
+> = {
+  digbox: {
+    label: 'Graafbak met papiersnippers',
+    emoji: '🪣',
+    done: 'Ze graaft tot alleen haar staartje nog zichtbaar is. Pure blijdschap.',
+    fact: 'Graven is natuurlijk gedrag. Een eigen graafbak houdt haar blij (en je tapijt heel).',
+  },
+  castle: {
+    label: 'Kartonnen kasteel bouwen',
+    emoji: '🏰',
+    done: 'Ze knaagt een eigen raampje en kijkt trots naar buiten. Koningin Coco.',
+    fact: 'Onbedrukt karton is veilig om op te knagen en een topspeeltje.',
+  },
+  forage: {
+    label: 'Snoepjes verstoppen in hooi',
+    emoji: '🌾',
+    done: 'Snuffel snuffel… gevonden! Ze is heel trots op zichzelf.',
+    fact: 'Zoeken naar eten (foerageren) houdt konijnen slim en actief.',
+  },
+  garden: {
+    label: 'Rennen in de tuin (met hekje)',
+    emoji: '🌷',
+    done: 'Zoomies over het gras en drie binky’s op rij!',
+    fact: 'Buiten spelen is heerlijk, maar altijd met een hekje en onder toezicht.',
+  },
+  photo: {
+    label: 'Fotoshoot',
+    emoji: '📸',
+    done: 'Ze poseert als een echt model. Iconic.',
+    fact: 'Zonder flits fotograferen — dat is fijner voor haar oogjes.',
+  },
+  movie: {
+    label: 'Samen film kijken op de bank',
+    emoji: '🎬',
+    done: 'Ze flopt naast je neer en valt halverwege in slaap. Cozy.',
+    fact: 'Een flop — opeens op haar zij vallen — betekent dat ze zich helemaal veilig voelt.',
+  },
+};
+
+export const ACTIVITY_ORDER: ActivityId[] = [
+  'digbox',
+  'castle',
+  'forage',
+  'garden',
+  'photo',
+  'movie',
+];
+
+/** Each outing is special: once a day. */
+export function activityDoneToday(pet: CocoPet, activity: ActivityId, now: Date): boolean {
+  const today = todayIso(now);
+  return pet.log.some(
+    (e) => e.action === 'activity' && e.detail === activity && todayIso(new Date(e.at)) === today,
+  );
+}
+
 /* ------------------------------------------------------------------ care */
 
 export type Care =
@@ -283,7 +615,10 @@ export type Care =
   | { type: 'play'; toy: string }
   | { type: 'groom' }
   | { type: 'train'; trick: PetTrick; gain: number }
-  | { type: 'outfit'; outfit: PetOutfit };
+  | { type: 'outfit'; outfit: PetOutfit }
+  | { type: 'clean' }
+  | { type: 'activity'; activity: ActivityId }
+  | { type: 'raise'; id: string; good: boolean };
 
 export interface CareResult {
   pet: CocoPet;
@@ -293,6 +628,8 @@ export interface CareResult {
   /** Love earned. */
   bond: number;
   learned?: PetTrick;
+  /** She had asked for exactly this. */
+  granted?: boolean;
 }
 
 function addLog(
@@ -317,6 +654,23 @@ function addLog(
 }
 
 export function care(pet: CocoPet, action: Care, by: Person, now: Date = new Date()): CareResult {
+  const request = requestOf(pet, now.getTime());
+  const result = careOnly(pet, action, by, now);
+  // Doing exactly what she asked for makes her extra happy.
+  if (result.ok && request && answers(action, request.ask)) {
+    const extra = request.urgent ? 3 : 4;
+    return {
+      ...result,
+      pet: { ...result.pet, bond: result.pet.bond + extra },
+      bond: result.bond + extra,
+      granted: true,
+      message: `${result.message} Ze is zo blij dat je naar haar luisterde ♡`,
+    };
+  }
+  return result;
+}
+
+function careOnly(pet: CocoPet, action: Care, by: Person, now: Date): CareResult {
   const at = now.toISOString();
   const t = now.getTime();
   const needs = needsOf(pet, t);
@@ -396,6 +750,13 @@ export function care(pet: CocoPet, action: Care, by: Person, now: Date = new Dat
         'Weer helemaal zacht en glanzend.',
       );
     case 'train': {
+      // A hungry or sad bunny doesn't learn tricks; care comes first.
+      if (needs.hay < 20 || needs.tummy < 15)
+        return decline('Coco heeft honger — eerst eten, dan pas trucjes.');
+      if (wellbeing(needs) < 30)
+        return decline(
+          'Coco heeft nu geen zin in trucjes. Ze heeft eerst wat liefde en zorg nodig.',
+        );
       if (action.gain <= 0) return decline('Bijna — probeer te klikken precies als ze het doet.');
       const before = pet.tricks[action.trick] ?? 0;
       if (before >= 100) {
@@ -413,6 +774,48 @@ export function care(pet: CocoPet, action: Care, by: Person, now: Date = new Dat
           : 'Klik — snoepje! Ze begint het te snappen.',
         learned ? action.trick : undefined,
       );
+    }
+    case 'clean':
+      return done(
+        { cleanedAt: at },
+        'cleaned',
+        undefined,
+        needs.clean < 70 ? 3 : 1,
+        'Vers stro, een schone bak. Ze rolt meteen door haar schone hokje.',
+      );
+    case 'activity': {
+      if (activityDoneToday(pet, action.activity, now))
+        return decline('Dat hebben jullie vandaag al gedaan — morgen weer!');
+      return done(
+        { playedAt: at, pettedAt: at },
+        'activity',
+        action.activity,
+        6,
+        ACTIVITIES[action.activity].done,
+      );
+    }
+    case 'raise': {
+      if (pet.handled.includes(action.id)) return decline('Dat is al opgelost ♡');
+      const handled = [...pet.handled, action.id].slice(-40);
+      return action.good
+        ? done(
+            { handled, manners: Math.min(100, pet.manners + 8) },
+            'raised',
+            'good',
+            3,
+            'Goed opgevoed! Ze leert er echt van.',
+          )
+        : {
+            pet: {
+              ...pet,
+              handled,
+              bond: Math.max(0, pet.bond - 2),
+              log: addLog(pet, 'raised', 'oops', by, at),
+            },
+            ok: true,
+            message: 'Oei. Daar schrok ze van — ze vertrouwt je even wat minder.',
+            bond: 0,
+          };
     }
     case 'outfit':
       return done(
@@ -447,6 +850,14 @@ export function describeCare(entry: CocoPet['log'][number]): string {
       return `oefende “${entry.detail && entry.detail in TRICKS ? TRICKS[entry.detail as PetTrick].label : 'een trucje'}”`;
     case 'learned':
       return `leerde haar “${entry.detail && entry.detail in TRICKS ? TRICKS[entry.detail as PetTrick].label : 'een trucje'}”`;
+    case 'cleaned':
+      return 'maakte haar hokje schoon';
+    case 'raised':
+      return entry.detail === 'good' ? 'voedde haar lief en goed op' : 'schrok haar een beetje af';
+    case 'activity':
+      return entry.detail && entry.detail in ACTIVITIES
+        ? `deed iets leuks: ${ACTIVITIES[entry.detail as ActivityId].label.toLowerCase()}`
+        : 'deed iets leuks met haar';
     case 'outfit':
       return entry.detail === 'none'
         ? 'deed haar outfit uit'

@@ -5,7 +5,7 @@ import { gameBrag } from '../games/gameStats';
  * What our minis say. Built only from things that are really ours: the names
  * we call each other, our own memories, chapters and dreams, the lines we
  * teach them, and the little facts we wrote down (matcha with extra syrup,
- * bubble tea, the arcade, karaoke, the train to The Hague, Coco, her laugh).
+ * jasmine bubble tea with tapioca, lots of sugar and little ice, the arcade, karaoke, the train to The Hague, Coco, her laugh).
  */
 
 export type Rng = () => number;
@@ -32,6 +32,7 @@ const SWEET: Record<Person, string[]> = {
     'Hey {pet}. Wilde gewoon even hoi zeggen.',
     '{Pet}, heb ik al gezegd dat ik je lach zo mooi vind?',
     'Matcha binnenkort, {pet}? Vanilla, extra siroop — I know.',
+    'Jasmijn bubble tea met tapioca, {pet}? Veel suiker, weinig ijs — ik weet het 🧋',
     'Ik zou die trein en metro zo weer voor je pakken, {pet}.',
     '{Pet}, Coco zegt hoi. (Oké, ík zeg hoi.)',
     'Je ziet er zo mooi uit vandaag, {pet}.',
@@ -44,7 +45,7 @@ const SWEET: Record<Person, string[]> = {
     'Je bent zó lang, {pet}. Ik heb een trapje nodig om je te kussen.',
     'Arcade rematch, {pet}? Deze keer win ik.',
     'Karaoke vanavond, {pet}?',
-    'Bubble tea halen, {pet}?',
+    'Bubble tea halen, {pet}? Jasmijn, veel suiker, weinig ijs 🧋',
     '{Pet}, je bent van mij. Just so you know.',
     'Ik mis je nu al, {pet}.',
   ],
@@ -65,7 +66,7 @@ const REPLIES: Record<Person, string[]> = {
   ],
 };
 
-const DATE_IDEAS = [
+export const DATE_IDEAS = [
   'een matcha- en bubble tea-tour',
   'een arcade battle — de verliezer trakteert op snacks',
   'een karaoke-duet, keihard',
@@ -74,6 +75,13 @@ const DATE_IDEAS = [
   'een movie night met Coco op de bank',
   'een picknick met veel te veel snacks',
   'gekke hoedjes en zonnebrillen passen',
+  'samen pannenkoeken bakken (en ze proberen om te gooien)',
+  'een fotowandeling door de stad, alleen maar foto’s van elkaar',
+  'een avond bordspellen met veel te veel snacks',
+  'de zonsondergang kijken op het strand',
+  'samen een nieuw recept koken dat we nog nooit gemaakt hebben',
+  'een museumdate met een eigen audiotour van elkaar',
+  'jasmijn bubble tea halen — veel suiker, weinig ijs',
 ];
 
 function fill(template: string, pet: string) {

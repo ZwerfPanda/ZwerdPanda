@@ -408,51 +408,6 @@ function useCards(): Partial<Record<RoutePath, ReactNode>> {
         </span>
       </a>
     ),
-    '/quiz': (
-      <a className="ex-sticker ex-sticker--quiz" href={href('/quiz')}>
-        <svg viewBox="0 0 80 80" aria-hidden="true">
-          <circle cx="40" cy="40" r="34" fill="#ffe5c4" />
-          <rect
-            x="16"
-            y="22"
-            width="22"
-            height="30"
-            rx="4"
-            fill="#fffcf6"
-            stroke={INK}
-            strokeWidth="2"
-            transform="rotate(-10 27 37)"
-          />
-          <rect
-            x="42"
-            y="22"
-            width="22"
-            height="30"
-            rx="4"
-            fill="#fffcf6"
-            stroke={INK}
-            strokeWidth="2"
-            transform="rotate(10 53 37)"
-          />
-          <text
-            x="27"
-            y="44"
-            textAnchor="middle"
-            fontSize="16"
-            fontWeight="700"
-            fill="#b9646f"
-            transform="rotate(-10 27 37)"
-          >
-            ?
-          </text>
-          <HeartShape x={53} y={38} size={11} fill="#e6889b" />
-        </svg>
-        <span>
-          <h3 className="ex-label">Wie kent wie?</h3>
-          <span className="ex-sub">het spelletje voor ons twee</span>
-        </span>
-      </a>
-    ),
     '/lists': (
       <a className="ex-sticker ex-sticker--lists" href={href('/lists')}>
         <svg viewBox="0 0 80 80" aria-hidden="true">

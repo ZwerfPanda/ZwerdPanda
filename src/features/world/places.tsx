@@ -38,9 +38,9 @@ export const PLACES: Record<PlaceId, PlaceInfo> = {
     id: 'cafe',
     name: 'The Matcha Corner',
     sign: 'Matcha Corner',
-    tagline: 'vanilla matcha, extra siroop',
+    tagline: 'vanilla matcha, extra siroop · jasmijn bubble tea',
     blurb:
-      'Jouw bestelling, geperfectioneerd. Plus bubble tea voor als we avontuurlijk zijn — en alle dates die met een drankje begonnen.',
+      'Jouw bestellingen, geperfectioneerd: vanilla matcha met extra siroop, of jasmijn bubble tea met tapioca — veel suiker, weinig ijs. En alle dates die met een drankje begonnen.',
     cta: {
       label: 'Bekijk onze date-herinneringen',
       path: '/memories',
@@ -172,7 +172,159 @@ const SYRUP_LINES = [
   'Oké… dit is misschien wel genoeg siroop.',
 ];
 
+/** Her bubble tea: jasmine, tapioca pearls, lots of sugar, a little ice. */
+export function bobaLine(b: { pearls: number; sugar: number; ice: number }): {
+  text: string;
+  perfect: boolean;
+} {
+  if (!b.pearls && !b.sugar && !b.ice)
+    return { text: 'Jasmijnthee… en nu de rest.', perfect: false };
+  if (b.ice > 1) return { text: 'Ho ho — weinig ijs, weet je nog? 🧊', perfect: false };
+  if (b.sugar > 0 && b.sugar < 3)
+    return { text: 'Meer suiker! Jij wilt hem lekker zoet 🍬', perfect: false };
+  if (b.sugar > 4) return { text: 'Oké… dit is misschien wel genoeg suiker 😅', perfect: false };
+  if (!b.pearls) return { text: 'Waar zijn de tapiocaballetjes?', perfect: false };
+  if (!b.sugar) return { text: 'Zonder suiker? Dat is niks voor jou.', perfect: false };
+  if (!b.ice) return { text: 'Eén klein beetje ijs nog…', perfect: false };
+  return {
+    text: 'Jasmijn, tapioca, veel suiker, weinig ijs. Precies zoals jij hem wilt ♡',
+    perfect: true,
+  };
+}
+
+function BobaMaker() {
+  const [b, setB] = useState({ pearls: 0, sugar: 0, ice: 0 });
+  const cupRef = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const line = bobaLine(b);
+  const add = (key: 'pearls' | 'sugar' | 'ice') => {
+    const next = { ...b, [key]: b[key] + 1 };
+    setB(next);
+    if (bobaLine(next).perfect && !line.perfect) celebrateFrom(cupRef.current);
+  };
+  const sweet = Math.min(b.sugar, 5);
+  return (
+    <div className="matcha-game">
+      <div className="matcha-game__cup" ref={cupRef} aria-hidden="true">
+        <svg viewBox="0 0 120 150">
+          <defs>
+            <clipPath id="boba-cup">
+              <path d="M26 34h68l-8 104H34z" />
+            </clipPath>
+          </defs>
+          <g clipPath="url(#boba-cup)">
+            <rect x="0" y="30" width="120" height="120" fill="#fffaf0" />
+            <rect
+              x="0"
+              y="52"
+              width="120"
+              height="100"
+              fill={`hsl(${52 - sweet * 4} ${55 + sweet * 6}% ${84 - sweet * 3}%)`}
+            />
+            {Array.from({ length: Math.min(b.pearls * 6, 18) }, (_, i) => (
+              <motion.circle
+                key={`p${i}`}
+                cx={38 + ((i * 17) % 46)}
+                cy={130 - Math.floor(i / 5) * 8 - ((i * 7) % 4)}
+                r="4.6"
+                fill="#3a2418"
+                initial={reduce ? false : { cy: 40, opacity: 0 }}
+                animate={{ cy: 130 - Math.floor(i / 5) * 8 - ((i * 7) % 4), opacity: 1 }}
+                transition={{ type: 'spring', damping: 12, delay: (i % 6) * 0.05 }}
+              />
+            ))}
+            {Array.from({ length: Math.min(b.ice, 4) }, (_, i) => (
+              <motion.rect
+                key={`i${i}`}
+                x={36 + i * 13}
+                y={56 + (i % 2) * 6}
+                width="14"
+                height="13"
+                rx="3"
+                fill="#e9f7ff"
+                stroke="#b8dff2"
+                opacity="0.9"
+                initial={reduce ? false : { y: 20, opacity: 0 }}
+                animate={{ y: 56 + (i % 2) * 6, opacity: 0.9 }}
+                transition={{ type: 'spring', damping: 10 }}
+              />
+            ))}
+          </g>
+          <path
+            d="M26 34h68l-8 104H34z"
+            fill="none"
+            stroke={INK}
+            strokeWidth="3.5"
+            strokeLinejoin="round"
+          />
+          <ellipse cx="60" cy="34" rx="36" ry="7" fill="#fffcf6" stroke={INK} strokeWidth="3" />
+          <path d="M66 4l-6 120" stroke="#e6889b" strokeWidth="9" strokeLinecap="round" />
+          <text x="60" y="104" textAnchor="middle" fontSize="11" fill={INK} opacity="0.55">
+            jasmijn
+          </text>
+        </svg>
+      </div>
+      <div className="matcha-game__side">
+        <p className="matcha-game__line" aria-live="polite">
+          {line.text}
+        </p>
+        <div className="matcha-game__actions">
+          <button
+            type="button"
+            className="btn btn--primary btn--small"
+            onClick={() => add('pearls')}
+          >
+            Tapioca erbij
+          </button>
+          <button type="button" className="btn btn--soft btn--small" onClick={() => add('sugar')}>
+            Suiker +
+          </button>
+          <button type="button" className="btn btn--soft btn--small" onClick={() => add('ice')}>
+            IJs +
+          </button>
+          {(b.pearls || b.sugar || b.ice) > 0 && (
+            <button
+              type="button"
+              className="btn btn--quiet btn--small"
+              onClick={() => setB({ pearls: 0, sugar: 0, ice: 0 })}
+            >
+              <RotateCcw aria-hidden="true" /> Nieuwe beker
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MatchaBody() {
+  const [drink, setDrink] = useState<'matcha' | 'boba'>('matcha');
+  return (
+    <div className="drink-bar">
+      <div className="chip-row" role="group" aria-label="Wat drinken we?">
+        <button
+          type="button"
+          className="chip"
+          aria-pressed={drink === 'matcha'}
+          onClick={() => setDrink('matcha')}
+        >
+          🍵 Vanilla matcha
+        </button>
+        <button
+          type="button"
+          className="chip"
+          aria-pressed={drink === 'boba'}
+          onClick={() => setDrink('boba')}
+        >
+          🧋 Jasmijn bubble tea
+        </button>
+      </div>
+      {drink === 'matcha' ? <MatchaMaker /> : <BobaMaker />}
+    </div>
+  );
+}
+
+function MatchaMaker() {
   const [pumps, setPumps] = useState(0);
   const cupRef = useRef<HTMLDivElement>(null);
   const level = Math.min(pumps, 4);

@@ -5,7 +5,7 @@ import { navigate, useRoute } from '../../lib/router';
 import { playSfx } from '../../lib/audio/sfx';
 import { useAmbience } from '../../lib/audio/ambience';
 import { PageLoading } from '../../app/PageLoading';
-import type { Player } from '../../data/types';
+import type { Player, ScoreGame } from '../../data/types';
 import { headToHead } from './gameStats';
 import './arcade.css';
 
@@ -14,6 +14,9 @@ const Uno = lazy(() => import('./Uno').then((m) => ({ default: m.Uno })));
 const Hangman = lazy(() => import('./Hangman').then((m) => ({ default: m.Hangman })));
 const Bowling = lazy(() => import('./Bowling').then((m) => ({ default: m.Bowling })));
 const Skeeball = lazy(() => import('./Skeeball').then((m) => ({ default: m.Skeeball })));
+const Darts = lazy(() => import('./Darts').then((m) => ({ default: m.Darts })));
+const Zeeslag = lazy(() => import('./Zeeslag').then((m) => ({ default: m.Zeeslag })));
+const Claw = lazy(() => import('./Claw').then((m) => ({ default: m.Claw })));
 
 const GAMES = [
   {
@@ -42,6 +45,22 @@ const GAMES = [
   },
   { id: 'bowling', emoji: '🎳', title: 'Bowlen', blurb: 'Veeg voor een strike', tint: '#f9d0e0' },
   { id: 'skeeball', emoji: '🎯', title: 'Skeeball', blurb: 'Mik op de 100', tint: '#e0ebd4' },
+  {
+    id: 'zeeslag',
+    emoji: '🚢',
+    title: 'Zeeslag',
+    blurb: 'Zoek elkaars vloot',
+    tint: '#c9e4f5',
+    kind: 'zeeslag',
+  },
+  { id: 'darts', emoji: '🎯', title: 'Darten', blurb: 'Drie pijlen, vijf rondes', tint: '#f9d0e0' },
+  {
+    id: 'claw',
+    emoji: '🧸',
+    title: 'Grijpmachine',
+    blurb: 'Herinneringen & date-ideetjes',
+    tint: '#ffd8a8',
+  },
 ] as const;
 
 /** Our arcade: a few games for the two of us. */
@@ -60,7 +79,13 @@ export function GamesPage() {
               ? Bowling
               : game === 'skeeball'
                 ? Skeeball
-                : null;
+                : game === 'darts'
+                  ? Darts
+                  : game === 'zeeslag'
+                    ? Zeeslag
+                    : game === 'claw'
+                      ? Claw
+                      : null;
     if (Game)
       return (
         <Suspense fallback={<PageLoading />}>
@@ -81,7 +106,7 @@ function Arcade() {
   useAmbience('arcade');
 
   // What scrolls along the LED ticker: records and wins (Coco's too).
-  const best = (game: 'bowling' | 'skeeball', who: Player) => {
+  const best = (game: ScoreGame, who: Player) => {
     const all = scores.filter((s) => s.game === game && s.who === who).map((s) => s.score);
     return all.length ? Math.max(...all) : '---';
   };
@@ -92,6 +117,7 @@ function Arcade() {
   const ticker = [
     `★ GEWONNEN  ${you} ${us.a}  ·  ${partner} ${us.b}`,
     `★ HIGHSCORE BOWLEN  ${you} ${best('bowling', 'you')}  ·  ${partner} ${best('bowling', 'partner')}  ·  COCO ${best('bowling', 'coco')}`,
+    `★ HIGHSCORE DARTEN  ${you} ${best('darts', 'you')}  ·  ${partner} ${best('darts', 'partner')}  ·  COCO ${best('darts', 'coco')}`,
     `★ HIGHSCORE SKEEBALL  ${you} ${best('skeeball', 'you')}  ·  ${partner} ${best('skeeball', 'partner')}  ·  COCO ${best('skeeball', 'coco')}`,
     `★ JIJ TEGEN COCO  ${cocoMe.a}–${cocoMe.b}`,
     '★ 1 MUNTJE = 1 KUSJE ♥',
@@ -178,7 +204,7 @@ function Arcade() {
           <Cabinet
             id="quiz"
             title="Wie kent wie?"
-            blurb="Hoe goed ken je de ander?"
+            blurb="De gameshow, gepresenteerd door Coco"
             led=""
             inserting={inserting === 'quiz'}
             onPlay={() => insert('quiz', () => navigate('/quiz'))}
@@ -199,6 +225,9 @@ const MARQUEE: Record<string, string> = {
   hangman: 'linear-gradient(90deg,#b07bff,#ff8cc0)',
   bowling: 'linear-gradient(90deg,#ff5fa2,#ffd75e)',
   skeeball: 'linear-gradient(90deg,#2bd6c1,#7bff8a)',
+  zeeslag: 'linear-gradient(90deg,#1f6fd6,#2bd6c1)',
+  darts: 'linear-gradient(90deg,#d8323c,#2fa64f)',
+  claw: 'linear-gradient(90deg,#ff8cc0,#b07bff,#7fc8ff)',
   quiz: 'linear-gradient(90deg,#ffd75e,#ff9a5c)',
 };
 
@@ -353,6 +382,78 @@ function Preview({ id }: { id: string }) {
             />
           ))}
           <circle className="pv-skee" cx="60" cy="72" r="5" fill="#ffd3e1" />
+        </svg>
+      );
+    case 'zeeslag':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--sea">
+          <rect x="0" y="0" width="120" height="80" fill="#0b2a55" />
+          {Array.from({ length: 6 }, (_, i) => (
+            <path
+              key={i}
+              className="pv-wave"
+              d={`M${-20 + (i % 2) * 10} ${16 + i * 11}q10 -5 20 0t20 0t20 0t20 0t20 0t20 0t20 0`}
+              stroke="#2bd6c1"
+              strokeOpacity="0.35"
+              fill="none"
+              style={{ animationDelay: `${i * -0.4}s` }}
+            />
+          ))}
+          <g className="pv-ship">
+            <path d="M34 50h44l-6 9H40z" fill="#c9c3d6" />
+            <rect x="48" y="42" width="16" height="8" rx="2" fill="#e8e4f0" />
+            <rect x="54" y="34" width="3" height="8" fill="#e8e4f0" />
+          </g>
+          <circle className="pv-blip" cx="88" cy="26" r="3" fill="#ff5fa2" />
+          <circle className="pv-ping" cx="88" cy="26" r="3" fill="none" stroke="#ff5fa2" />
+        </svg>
+      );
+    case 'darts':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--darts">
+          {[30, 24, 18, 12, 6].map((r, i) => (
+            <circle
+              key={r}
+              cx="60"
+              cy="40"
+              r={r}
+              fill={['#1d1a1f', '#d8323c', '#f3e6c8', '#2fa64f', '#d8323c'][i]}
+            />
+          ))}
+          <g className="pv-dart">
+            <path d="M60 40l22 -18" stroke="#c9c3b5" strokeWidth="2" />
+            <path d="M82 22l6 -2 -3 6z" fill="#5ff3ff" />
+          </g>
+        </svg>
+      );
+    case 'claw':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--claw">
+          <rect x="18" y="4" width="84" height="3" fill="#b07bff" />
+          <g className="pv-claw">
+            <rect x="58.5" y="6" width="3" height="22" fill="#c9c3d6" />
+            <path d="M52 28h16l-3 9M52 28l3 9" stroke="#c9c3d6" strokeWidth="2.5" fill="none" />
+          </g>
+          {[
+            [30, '#ff8cc0'],
+            [46, '#ffd75e'],
+            [62, '#7fc8ff'],
+            [78, '#b07bff'],
+            [92, '#5dff9a'],
+          ].map(([x, c], i) => (
+            <circle
+              key={i}
+              cx={x as number}
+              cy={66 - (i % 2) * 6}
+              r="8"
+              fill={c as string}
+              stroke="#fff"
+              strokeOpacity="0.6"
+            />
+          ))}
+          <text x="62" y="64" fontSize="8" textAnchor="middle">
+            ♥
+          </text>
         </svg>
       );
     default:

@@ -31,6 +31,8 @@ export interface Section {
   secret?: boolean;
   /** Which planet of our universe it belongs to. */
   group?: GroupId;
+  /** Lives inside another place (like the quiz in the arcade), not in the menus. */
+  inside?: RoutePath;
 }
 
 export type GroupId = 'story' | 'together' | 'you' | 'home';
@@ -193,7 +195,8 @@ export const SECTIONS: Section[] = [
     path: '/quiz',
     group: 'together',
     label: 'Wie kent wie?',
-    short: 'Spelletje',
+    short: 'Quiz',
+    inside: '/games',
     blurb: 'Hoe goed ken je de ander?',
     icon: Puzzle,
     tint: '#ffd8a8',
@@ -243,4 +246,5 @@ export const DESKTOP_PATHS: RoutePath[] = [
 ];
 
 /** The places on one planet, in menu order. */
-export const sectionsIn = (group: GroupId) => SECTIONS.filter((s) => s.group === group);
+export const sectionsIn = (group: GroupId) =>
+  SECTIONS.filter((s) => s.group === group && !s.inside);

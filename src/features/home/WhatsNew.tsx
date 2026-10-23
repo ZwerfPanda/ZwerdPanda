@@ -1,3 +1,4 @@
+import { GAME_NAMES } from '../games/gameStats';
 import { Sparkles, X } from 'lucide-react';
 import { useContent } from '../../data/store';
 import { nameOf, otherPerson, useMe } from '../../data/people';
@@ -56,7 +57,6 @@ export function newSince(content: AppContent, from: Person, since: string): NewT
       .map((a) => a.question),
   );
   add(answered.size, 'antwoord in het spelletje', '/quiz', 'antwoorden in het spelletje');
-  const GAME_NAMES = { uno: 'UNO', c4: '4 op een rij', hangman: 'galgje' } as const;
   content.games.matches
     .filter((m) => !m.winner && m.turn && m.turn !== from && m.updatedAt > since)
     .forEach((m) => things.push({ label: `jouw beurt bij ${GAME_NAMES[m.kind]}`, path: '/games' }));

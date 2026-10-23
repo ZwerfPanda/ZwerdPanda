@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Carrot, HandHeart, Heart, House } from 'lucide-react';
+import { Carrot, HandHeart, Heart, House, Sparkles } from 'lucide-react';
 import { getContent, updateContent, usePrefs, useContent } from '../../data/store';
 import { getMe, nameOf } from '../../data/people';
 import { navigate, useRoute, type RoutePath } from '../../lib/router';
@@ -10,7 +10,7 @@ import { Bunny } from './Bunny';
 import { BunnySide } from './BunnySide';
 import { useHopper } from './useHopper';
 import { sendCocoHome } from './home';
-import { care, isNapTime, moodOf, needsOf } from './care';
+import { care, isNapTime, requestOf } from './care';
 import { cocoGameTalk } from '../games/gameStats';
 import './companion.css';
 
@@ -57,10 +57,16 @@ function Companion({ path }: { path: RoutePath }) {
   const lastPath = useRef(path);
   const rootRef = useRef<HTMLElement>(null);
 
-  const needs = needsOf(pet, now);
-  const mood = moodOf(needs);
+  const request = requestOf(pet, now);
   const napping = isNapTime(new Date(now).getHours()) && !open && !leaving;
-  const wants = mood === 'hungry' ? 'food' : mood === 'lonely' ? 'love' : null;
+  // She only nags (a little badge) when she really needs something.
+  const wants = request?.urgent
+    ? request.ask === 'hay' || request.ask === 'tummy'
+      ? 'food'
+      : request.ask === 'love'
+        ? 'love'
+        : 'care'
+    : null;
 
   const speak = (text: string, ms = 3200) => {
     setLine(text);
@@ -95,6 +101,12 @@ function Companion({ path }: { path: RoutePath }) {
     hop.opacity.set(1);
     hop.show('front');
     void hop.hopInPlace(t, 0.08);
+    // When she really needs something, she says so — wherever you are.
+    const asking = requestOf(getContent().pet, Date.now());
+    if (asking?.urgent && Math.random() < 0.6) {
+      speak(asking.text, 4200);
+      return;
+    }
     // In the arcade (and now and then elsewhere) she talks about our games.
     const me = getMe();
     const talk =
@@ -188,11 +200,7 @@ function Companion({ path }: { path: RoutePath }) {
             transition={{ duration: reduce ? 0 : 0.16 }}
           >
             <p className="companion__menu-title">
-              {wants === 'food'
-                ? 'Coco heeft een beetje honger.'
-                : wants === 'love'
-                  ? 'Coco mist je.'
-                  : `Hoi ${nameOf(getMe(), profile)}!`}
+              {request?.urgent ? request.text : `Hoi ${nameOf(getMe(), profile)}!`}
             </p>
             <button type="button" role="menuitem" data-sfx="heart" onClick={() => void cuddle()}>
               <HandHeart aria-hidden="true" /> Geef haar een knuffel
@@ -206,7 +214,9 @@ function Companion({ path }: { path: RoutePath }) {
               }}
             >
               {wants === 'food' ? <Carrot aria-hidden="true" /> : <House aria-hidden="true" />}
-              {wants === 'food' ? 'Geef haar eten in haar holletje' : 'Naar haar holletje'}
+              {request?.urgent && wants !== 'love'
+                ? `${request.cta} in haar holletje`
+                : 'Naar haar holletje'}
             </button>
             <button type="button" role="menuitem" onClick={() => void goHome()}>
               <House aria-hidden="true" /> Laat haar thuis
@@ -240,11 +250,9 @@ function Companion({ path }: { path: RoutePath }) {
               aria-expanded={open}
               disabled={leaving}
               aria-label={
-                wants === 'food'
-                  ? 'Coco heeft honger. Open Coco’s menu'
-                  : wants === 'love'
-                    ? 'Coco wil een knuffel. Open Coco’s menu'
-                    : 'Coco. Open Coco’s menu'
+                request?.urgent
+                  ? `Coco vraagt: ${request.text} Open Coco’s menu`
+                  : 'Coco. Open Coco’s menu'
               }
               onClick={() => {
                 const t = hop.begin();
@@ -265,7 +273,7 @@ function Companion({ path }: { path: RoutePath }) {
           </motion.div>
           {wants && !open && !leaving && (
             <span className={`companion__need companion__need--${wants}`} aria-hidden="true">
-              {wants === 'food' ? <Carrot /> : <Heart />}
+              {wants === 'food' ? <Carrot /> : wants === 'love' ? <Heart /> : <Sparkles />}
             </span>
           )}
           {napping && !wants && (

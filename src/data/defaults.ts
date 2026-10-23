@@ -426,6 +426,8 @@ export const defaultPet: CocoPet = {
   tricks: {},
   outfit: 'none',
   log: [],
+  manners: 0,
+  handled: [],
 };
 
 /** Starter words for the welcome — meant to be rewritten in Settings. */

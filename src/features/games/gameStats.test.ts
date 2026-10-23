@@ -3,7 +3,7 @@ import { normalizeContent } from '../../data/normalize';
 import type { AppContent, GameResult } from '../../data/types';
 import { cocoGameTalk, gameBrag, headToHead } from './gameStats';
 import { cocoColumn, drop, emptyBoard, type Cell } from './c4';
-import { cocoRolls, landing } from './Skeeball';
+import { cocoRolls, landing, powerOf } from './Skeeball';
 import { cocoGame } from './Bowling';
 import { totalScore } from './bowlingScore';
 
@@ -92,5 +92,13 @@ describe('Coco plays', () => {
     for (const r of rolls) expect([0, 10, 20, 30, 40, 50, 100]).toContain(r);
     expect(landing(0.1, 0).value).toBe(0);
     expect(landing(0.28, 0).value).toBe(20);
+  });
+
+  it('lets a normal firm swipe reach the top holes', () => {
+    expect(landing(powerOf(0.25), 0).value).toBe(20);
+    expect(landing(powerOf(0.4), 0).value).toBe(30);
+    expect(landing(powerOf(0.75), 0).value).toBe(40);
+    expect(landing(powerOf(1.05), 0).value).toBe(50);
+    expect(landing(powerOf(1.15), -0.85).value).toBe(100);
   });
 });

@@ -256,7 +256,7 @@ const COCO_LINES = [
   'Dit is het fijnste plekje van het hele universe.',
   'Al een vanilla matcha met extra siroop gehad vandaag?',
   'Ik heb je nagels gezien. Iconic. 💅',
-  'Jasmine bubble tea met tapioca? Ik wil ook. 🧋',
+  'Jasmijn bubble tea met tapioca, veel suiker, weinig ijs? Ik wil ook. 🧋',
   'Valencio zegt dat je mooi bent. Ik ben het met hem eens.',
   'Jij bent geen bang konijntje. Ik wel. 🐰',
 ];

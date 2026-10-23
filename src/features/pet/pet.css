@@ -1054,3 +1054,171 @@
   color: var(--ink-soft);
   font-size: 0.8rem;
 }
+
+/* ---------------------------------------------------- what Coco asks for */
+
+.den-ask {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: 20px;
+  background: var(--surface-raised);
+  box-shadow:
+    inset 0 0 0 2px var(--accent-soft),
+    var(--shadow-1);
+}
+
+.den-ask.is-urgent {
+  box-shadow:
+    inset 0 0 0 2px var(--accent),
+    var(--shadow-1);
+  animation: ask-nudge 2.4s ease-in-out infinite;
+}
+
+@keyframes ask-nudge {
+  0%,
+  88%,
+  100% {
+    transform: none;
+  }
+  92% {
+    transform: rotate(-1deg);
+  }
+  96% {
+    transform: rotate(1deg);
+  }
+}
+
+.den-ask__who {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.den-ask__text {
+  margin: 0;
+  font-weight: 600;
+}
+
+.den-ask__text small {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.den-ask .btn {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+@media (min-width: 560px) {
+  .den-ask {
+    grid-template-columns: auto 1fr auto;
+  }
+  .den-ask .btn {
+    grid-column: auto;
+  }
+}
+
+/* ------------------------------------------------------------ upbringing */
+
+.den-mischief {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 14px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--peach-200, #ffd8a8) 45%, var(--surface-raised));
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.den-mischief p {
+  margin: 0;
+}
+
+.den-mischief__title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.den-mischief__text {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.den-mischief__ask {
+  font-weight: 600;
+}
+
+.den-mischief__options {
+  display: grid;
+  gap: 6px;
+}
+
+.den-mischief__options .den-option {
+  justify-content: flex-start;
+  min-height: 44px;
+  border-radius: 14px;
+  text-align: left;
+  line-height: 1.3;
+  padding: 8px 14px;
+}
+
+.den-mischief--done.is-good {
+  background: color-mix(in srgb, var(--sage-200, #cfe3c4) 55%, var(--surface-raised));
+}
+
+.den-mischief--done.is-oops {
+  background: color-mix(in srgb, var(--blush-200, #f6c9d2) 45%, var(--surface-raised));
+}
+
+.den-mischief__fact {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.den-mischief .btn {
+  justify-self: start;
+}
+
+.den__manners {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.den-options--fun .den-option {
+  border-radius: 16px;
+}
+
+.den-option__emoji {
+  font-size: 1.15rem;
+}
+
+.den-option.is-done {
+  opacity: 0.6;
+}
+
+.den__meters-total {
+  grid-column: 1 / -1;
+}
+
+.den__meters-total .den-meter__bar {
+  height: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .den-ask.is-urgent {
+    animation: none;
+  }
+}
