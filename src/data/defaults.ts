@@ -512,6 +512,9 @@ export const defaultHer: HerSpace = {
     current: {
       id: 'nails-current',
       shape: 'almond',
+      finish: 'gloss',
+      length: 'medium',
+      accent: '#fbf8f4',
       colors: ['#f2b8c6', '#f2b8c6', '#f2b8c6', '#f2b8c6', '#f2b8c6'],
       art: ['none', 'none', 'heart', 'none', 'none'],
     },
@@ -601,4 +604,5 @@ export const defaultPreferences: Preferences = {
   worldLight: 'auto',
   companion: true,
   sfx: true,
+  ambience: true,
 };

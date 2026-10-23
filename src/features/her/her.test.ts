@@ -82,3 +82,37 @@ describe('star hunt', () => {
     expect(c.hunt.reward).toBe('Yay');
   });
 });
+
+describe('nail studio', () => {
+  it('gives an older saved set the new options without losing it', () => {
+    const raw = copy(createDefaultContent()) as unknown as {
+      her: { nails: { current: Record<string, unknown> } };
+    };
+    raw.her.nails.current = {
+      id: 'nails-current',
+      shape: 'coffin',
+      colors: ['#111111', '#111111', '#111111', '#111111', '#111111'],
+      art: ['none', 'none', 'heart', 'none', 'none'],
+    };
+    const c = normalizeContent(raw);
+    expect(c.her.nails.current.shape).toBe('coffin');
+    expect(c.her.nails.current.finish).toBe('gloss');
+    expect(c.her.nails.current.length).toBe('medium');
+    expect(c.her.nails.current.accent).toMatch(/^#[0-9a-f]{6}$/i);
+  });
+
+  it('keeps new art, finish and length', () => {
+    const raw = copy(createDefaultContent());
+    raw.her.nails.current = {
+      ...raw.her.nails.current,
+      finish: 'chrome',
+      length: 'long',
+      accent: '#c7a6e8',
+      art: ['ombre', 'leopard', 'cherry', 'gem', 'swirl'],
+    };
+    const c = normalizeContent(raw);
+    expect(c.her.nails.current.finish).toBe('chrome');
+    expect(c.her.nails.current.length).toBe('long');
+    expect(c.her.nails.current.art).toEqual(['ombre', 'leopard', 'cherry', 'gem', 'swirl']);
+  });
+});

@@ -18,6 +18,7 @@ import { CocoCompanion } from '../features/pet/Companion';
 import { WelcomeHost } from '../features/welcome/Welcome';
 import { HiddenHutch } from '../features/pet/HiddenHutch';
 import { installTapSounds, setSfxEnabled } from '../lib/audio/sfx';
+import { setAmbienceEnabled } from '../lib/audio/ambience';
 
 // Home ships with the first load; every other page is loaded on demand.
 const pages = {
@@ -119,6 +120,7 @@ export function App() {
   useEffect(() => onPersistError((message) => toast(message, { tone: 'error' })), []);
 
   useEffect(() => setSfxEnabled(prefs.sfx), [prefs.sfx]);
+  useEffect(() => setAmbienceEnabled(prefs.ambience), [prefs.ambience]);
   useEffect(() => installTapSounds(), []);
 
   // Connect to our shared universe, if one is configured.

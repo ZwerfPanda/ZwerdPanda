@@ -12,7 +12,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { getContent, updateContent, useContent } from '../../data/store';
-import type { MuseumStop } from '../../data/types';
+import type { MuseumStop, StopTheme } from '../../data/types';
 import { Dialog } from '../../components/ui/Dialog';
 import { confirm, toast } from '../../components/ui/feedback';
 import { MediaView } from '../../components/media/MediaView';
@@ -24,7 +24,22 @@ import { StopScene } from './scenes';
 import { StopForm } from './StopForm';
 import { TrainRide } from './TrainRide';
 import { STOP_THEMES } from './themes';
+import { useAmbience, type Ambience } from '../../lib/audio/ambience';
 import './museum.css';
+
+/** The sound of some stops, quietly in the background. */
+const AMBIENCE: Partial<Record<StopTheme, Ambience>> = {
+  spa: 'spa',
+  platform: 'night-platform',
+  pumpkin: 'halloween',
+  roadtrip: 'road',
+  cinema: 'cinema',
+  amsterdam: 'canal',
+  birds: 'birds',
+  christmas: 'winter',
+  themepark: 'park',
+  hotel: 'hotel',
+};
 
 /**
  * The Love Line: the museum of us, hidden deep in our universe. Every stop is
@@ -55,6 +70,9 @@ export function MuseumPage() {
       delete root.dataset.stop;
     };
   }, [current]);
+
+  // While the train rides, the train is the sound; then the stop's own.
+  useAmbience(ride ? null : current ? (AMBIENCE[current.theme] ?? null) : 'line');
 
   const travel = (to: MuseumStop | null, kicker = 'Volgende station') => setRide({ to, kicker });
 

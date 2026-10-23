@@ -1295,22 +1295,213 @@ a.her-wish__main:hover .her-wish__title {
   gap: 8px;
 }
 
-.nail-swatch {
-  width: 38px;
-  height: 38px;
+.nail-swatches--mini {
+  gap: 6px;
+}
+
+/* little polish bottles: a cap on a round, glassy bottle */
+.nail-bottle {
+  position: relative;
+  width: 34px;
+  height: 44px;
   padding: 0;
   border: 0;
-  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  border-radius: 10px 10px 14px 14px / 8px 8px 16px 16px;
+  margin-top: 12px;
+  background:
+    linear-gradient(105deg, rgba(255, 255, 255, 0.55) 0 18%, transparent 30%),
+    var(--polish, #ccc);
   box-shadow:
-    inset 0 0 0 2px rgba(0, 0, 0, 0.18),
-    inset 6px 6px 0 -3px rgba(255, 255, 255, 0.45);
+    inset 0 0 0 2px rgba(0, 0, 0, 0.16),
+    0 2px 0 rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: transform 0.2s var(--ease-spring);
 }
 
-.nail-swatch:hover,
-.nail-swatch:focus-visible {
-  transform: translateY(-3px) scale(1.08);
+.nail-bottle::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  width: 14px;
+  height: 13px;
+  border-radius: 3px 3px 1px 1px;
+  background: #2b2430;
+  transform: translateX(-50%);
+}
+
+.nail-bottle:hover,
+.nail-bottle:focus-visible,
+.nail-bottle:focus-within {
+  transform: translateY(-4px) rotate(-6deg);
+}
+
+.nail-bottle:active {
+  transform: translateY(-2px) rotate(-14deg) scale(0.96);
+}
+
+.nail-bottle--custom {
+  display: grid;
+  place-items: center;
+  overflow: visible;
+  background:
+    linear-gradient(105deg, rgba(255, 255, 255, 0.55) 0 18%, transparent 30%),
+    conic-gradient(#e0457b, #ffd75e, #a7c191, #a9d2f2, #c7a6e8, #e0457b);
+}
+
+.nail-bottle--custom input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.nail-dot {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+}
+
+.nail-dot[aria-pressed='true'] {
+  box-shadow:
+    inset 0 0 0 2px rgba(0, 0, 0, 0.16),
+    0 0 0 3px var(--surface),
+    0 0 0 5px var(--accent-strong);
+}
+
+.nail-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--accent-wash);
+}
+
+.nail-tab {
+  flex: 1;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.nail-tab[aria-selected='true'] {
+  background: var(--surface);
+  color: var(--accent-strong);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.nail-panel {
+  display: grid;
+  gap: 12px;
+  min-height: 112px;
+  animation: nail-panel 0.25s ease-out;
+}
+
+@keyframes nail-panel {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.nail-accent {
+  display: grid;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.nail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.nail-studio__stage {
+  position: relative;
+}
+
+.nail-studio__drying {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent-strong);
+  font-family: var(--font-hand);
+  font-size: 1.05rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateX(-50%);
+  animation: nail-dry 1.4s ease-out both;
+}
+
+@keyframes nail-dry {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  15%,
+  80% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.nail-studio__drop {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.1em;
+}
+
+/* a fresh coat: brushed on from the cuticle up */
+.nail-coat {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: nail-coat 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes nail-coat {
+  from {
+    transform: scaleY(0.05);
+    opacity: 0.4;
+  }
+}
+
+.nail-hand__picked {
+  animation: nail-picked 1.2s linear infinite;
+}
+
+@keyframes nail-picked {
+  to {
+    stroke-dashoffset: -14;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nail-coat,
+  .nail-hand__picked,
+  .nail-panel,
+  .nail-studio__drying {
+    animation: none;
+  }
 }
 
 .nail-saved {
@@ -1340,4 +1531,39 @@ a.her-wish__main:hover .her-wish__title {
   top: -10px;
   right: -10px;
   transform: scale(0.75);
+}
+
+/* ------------------------------------------------- his test mode (his phone) */
+
+.her-test {
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  border: 2px dashed var(--focus);
+  border-radius: var(--radius-m);
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-size: 0.88rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.her-test > svg {
+  flex: none;
+  color: var(--focus);
+}
+
+.her-test p {
+  flex: 1 1 200px;
+  margin: 0;
+}
+
+.her-test__actions {
+  display: flex;
+  gap: 6px;
 }

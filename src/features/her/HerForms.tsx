@@ -17,7 +17,7 @@ import type {
 import { createId, nowIso } from '../../lib/id';
 import { isValidIsoDate, todayIso } from '../../lib/dates';
 import { isHttpUrl } from '../../lib/embeds';
-import { JOURNAL_PROMPTS, MOODS, saveHerItem, updateHer } from './herData';
+import { JOURNAL_PROMPTS, MOODS, saveHerItem, updateHer, useHer } from './herData';
 
 /** The honest version of "private": what it does, and what it doesn't. */
 function PrivateToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
@@ -410,7 +410,7 @@ export const HER_PATTERNS: { id: HerPattern; label: string }[] = [
 export const STICKERS = ['🎀', '🌸', '🍓', '🦋', '✨', '🧸', '🐰', '💌', '🍵', '🌷', '💅', '🫧'];
 
 export function DecorateDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const her = useContent((c) => c.her);
+  const her = useHer((h) => h);
   const partnerName = useContent((c) => c.profile.partnerName);
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');

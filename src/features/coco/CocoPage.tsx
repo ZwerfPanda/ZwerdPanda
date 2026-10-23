@@ -21,10 +21,13 @@ import './coco.css';
 import { getAuthor } from '../../data/people';
 import { ByTag } from '../../components/common/ByTag';
 import { HuntStar } from '../hunt/HuntStar';
+import { useAmbience } from '../../lib/audio/ambience';
 
 const COCO_ALBUM = 'album-coco';
 
 export function CocoPage() {
+  // Birds in the garden around her hutch.
+  useAmbience('birds');
   return (
     <div className="page coco-page">
       <PageHeader

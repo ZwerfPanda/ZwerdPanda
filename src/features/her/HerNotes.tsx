@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Heart, Pencil, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getContent, useContent } from '../../data/store';
+import { useContent } from '../../data/store';
 import { useMe } from '../../data/people';
 import type { LoveNote } from '../../data/types';
 import { Dialog } from '../../components/ui/Dialog';
@@ -11,7 +11,8 @@ import { createId, nowIso } from '../../lib/id';
 import { formatTimestamp } from '../../lib/dates';
 import { playSfx } from '../../lib/audio/sfx';
 import { Figure } from '../us/Figure';
-import { updateHer } from './herData';
+import { getHer, updateHer, useHer } from './herData';
+import { useHerTest } from './herStore';
 
 /** One of the names he calls her, different each day. */
 export function usePetName(): string {
@@ -23,7 +24,7 @@ export function usePetName(): string {
 }
 
 function setNotes(recipe: (notes: LoveNote[]) => LoveNote[]) {
-  updateHer({ notes: recipe(getContent().her.notes) });
+  updateHer({ notes: recipe(getHer().notes) });
 }
 
 /**
@@ -31,7 +32,7 @@ function setNotes(recipe: (notes: LoveNote[]) => LoveNote[]) {
  * known to be hers); she finds them in her corner as little envelopes.
  */
 export function HerNotes() {
-  const notes = useContent((c) => c.her.notes);
+  const notes = useHer((h) => h.notes);
   const me = useMe();
   const yourName = useContent((c) => c.profile.yourName);
   const partnerName = useContent((c) => c.profile.partnerName);
@@ -43,8 +44,10 @@ export function HerNotes() {
     open: false,
     note: null,
   });
-  // On her phone she reads them; anywhere else they can be written.
-  const writer = me !== 'partner';
+  // On her phone she reads them; anywhere else they can be written —
+  // except while he is trying her corner as her.
+  const testing = useHerTest();
+  const writer = me !== 'partner' && !testing;
   const sorted = [...notes].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   const unopened = sorted.filter((n) => !n.openedAt);
   const latest = sorted[0];

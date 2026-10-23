@@ -596,6 +596,11 @@ function SoundSection() {
           checked={prefs.sfx}
           onChange={(on) => updatePrefs({ sfx: on })}
         />
+        <Checkbox
+          label="Sfeergeluiden: bubbels in de spa, wind op het perron, een uil bij de pompoenen…"
+          checked={prefs.ambience}
+          onChange={(on) => updatePrefs({ ambience: on })}
+        />
       </div>
     </Section>
   );

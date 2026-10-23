@@ -13,6 +13,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useContent } from '../../data/store';
+import { useMe } from '../../data/people';
 import type { BucketItem, Goal, JournalEntry } from '../../data/types';
 import { EmptyState } from '../../components/ui/Fields';
 import { Dialog } from '../../components/ui/Dialog';
@@ -31,6 +32,7 @@ import {
   removeHerItem,
   saveHerItem,
   updateHer,
+  useHer,
   useHerItems,
   useIsHerVisitor,
 } from './herData';
@@ -38,6 +40,7 @@ import { HuntStar } from '../hunt/HuntStar';
 import { HerNotes, usePetName } from './HerNotes';
 import { HerMusic } from './HerMusic';
 import { NailStudio } from './NailStudio';
+import { TestBanner, useTestTaps } from './HerTest';
 import './her.css';
 
 type Tab = 'journal' | 'bucket' | 'goals';
@@ -47,11 +50,14 @@ type Tab = 'journal' | 'bucket' | 'goals';
  * theme, her journal, bucket list and goals, her music, and Coco for company.
  */
 export function HerPage() {
-  const her = useContent((c) => c.her);
+  const her = useHer((h) => h);
   const partnerName = useContent((c) => c.profile.partnerName);
   const visitor = useIsHerVisitor();
   const [tab, setTab] = useState<Tab>('journal');
   const [decorating, setDecorating] = useState(false);
+  const me = useMe();
+  // Seven taps on her sticker, on his phone only, opens "try it as her".
+  const testTap = useTestTaps(me !== 'partner');
 
   // Her theme dresses the whole screen while she's here.
   useEffect(() => {
@@ -66,7 +72,7 @@ export function HerPage() {
     <div className={`page her her--${her.pattern}`}>
       <div className="her__pattern" aria-hidden="true" />
       <header className="her-cover">
-        <span className="her-cover__sticker" aria-hidden="true">
+        <span className="her-cover__sticker" aria-hidden="true" onClick={testTap}>
           {her.sticker}
         </span>
         <p className="her-cover__eyebrow">welcome to</p>
@@ -83,6 +89,8 @@ export function HerPage() {
         )}
         <HuntStar id="her" className="her-cover__star" />
       </header>
+
+      <TestBanner />
 
       {visitor && (
         <p className="notice notice--plain her-visitor">
@@ -136,7 +144,7 @@ export function HerPage() {
 
 function Today({ visitor }: { visitor: boolean }) {
   const today = useToday();
-  const her = useContent((c) => c.her);
+  const her = useHer((h) => h);
   const day = Math.floor(Date.parse(today) / 86_400_000);
   const [offset, setOffset] = useState(0);
   const words = her.affirmations.length

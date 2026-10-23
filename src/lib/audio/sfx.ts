@@ -25,7 +25,8 @@ export type Sfx =
   | 'coin'
   | 'write'
   | 'train'
-  | 'chime';
+  | 'chime'
+  | 'polish';
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -35,6 +36,11 @@ let lastName: Sfx | null = null;
 
 export function setSfxEnabled(on: boolean) {
   enabled = on;
+}
+
+/** The one AudioContext the site shares (sound effects and ambience). */
+export function sharedAudio(): AudioContext | null {
+  return audio();
 }
 
 function audio(): AudioContext | null {
@@ -184,6 +190,12 @@ const SOUNDS: Record<Sfx, (ac: AudioContext, t: number) => void> = {
     [0.15, 0.32, 0.75, 0.92, 1.35].forEach((d) =>
       noise(ac, t + d, 0.06, { filter: 'bandpass', freq: 900, gain: 0.18, q: 2 }),
     );
+  },
+  // Two strokes of a nail polish brush, and the bottle tapped shut.
+  polish: (ac, t) => {
+    noise(ac, t, 0.14, { freq: 2600, to: 3600, gain: 0.07, q: 2 });
+    noise(ac, t + 0.17, 0.14, { freq: 2800, to: 3900, gain: 0.06, q: 2 });
+    tone(ac, 1900, t + 0.36, 0.05, { type: 'triangle', gain: 0.06 });
   },
   // "Ding-dong": the platform announcement.
   chime: (ac, t) => {

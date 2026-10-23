@@ -62,6 +62,8 @@ import type {
   HerSong,
   LoveNote,
   NailArt,
+  NailFinish,
+  NailLength,
   NailSet,
   NailShape,
   Museum,
@@ -662,7 +664,24 @@ const lines = (v: unknown, max: number, fallback: string[]) =>
     : [...fallback];
 
 const NAIL_SHAPES: readonly NailShape[] = ['almond', 'square', 'coffin', 'stiletto'];
-const NAIL_ART: readonly NailArt[] = ['none', 'french', 'heart', 'glitter', 'star', 'flower'];
+const NAIL_ART: readonly NailArt[] = [
+  'none',
+  'french',
+  'heart',
+  'glitter',
+  'star',
+  'flower',
+  'dots',
+  'ombre',
+  'cherry',
+  'bow',
+  'gem',
+  'leopard',
+  'smiley',
+  'swirl',
+];
+const NAIL_FINISHES: readonly NailFinish[] = ['gloss', 'matte', 'chrome', 'jelly'];
+const NAIL_LENGTHS: readonly NailLength[] = ['short', 'medium', 'long'];
 const isColor = (v: unknown): v is string => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
 
 function normalizeNailSet(v: unknown, i: number): NailSet | null {
@@ -675,6 +694,9 @@ function normalizeNailSet(v: unknown, i: number): NailSet | null {
   return {
     id: id(v.id, 'nails', i),
     shape: oneOf(v.shape, NAIL_SHAPES, fallback.shape),
+    finish: oneOf(v.finish, NAIL_FINISHES, fallback.finish),
+    length: oneOf(v.length, NAIL_LENGTHS, fallback.length),
+    accent: isColor(v.accent) ? v.accent : fallback.accent,
     colors: colors.length === 5 ? colors : [...fallback.colors],
     art: art.length === 5 ? art : [...fallback.art],
     savedAt: optStamp(v.savedAt),
@@ -874,6 +896,7 @@ export function normalizePreferences(raw: unknown): Preferences {
     ),
     companion: bool(p.companion, defaultPreferences.companion),
     sfx: bool(p.sfx, defaultPreferences.sfx),
+    ambience: bool(p.ambience, defaultPreferences.ambience),
     cocoHome:
       isObj(p.cocoHome) &&
       typeof p.cocoHome.path === 'string' &&

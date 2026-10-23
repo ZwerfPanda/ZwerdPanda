@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { Pause, Play, Plus, Trash2 } from 'lucide-react';
-import { getContent, useContent } from '../../data/store';
 import { useSpotify } from '../../components/music/SpotifyProvider';
 import { confirm, toast } from '../../components/ui/feedback';
 import { spotifyItem } from '../../lib/embeds';
 import { createId, nowIso } from '../../lib/id';
-import { updateHer } from './herData';
+import { getHer, updateHer, useHer } from './herData';
 
 const KIND_LABEL = { track: 'nummer', album: 'album', playlist: 'playlist' } as const;
 const KIND_ICON = { track: '♪', album: '💿', playlist: '🎧' } as const;
@@ -16,7 +15,7 @@ const KIND_ICON = { track: '♪', album: '💿', playlist: '🎧' } as const;
  * wanders round the universe).
  */
 export function HerMusic({ visitor }: { visitor: boolean }) {
-  const music = useContent((c) => c.her.music);
+  const music = useHer((h) => h.music);
   const spotify = useSpotify();
   const [link, setLink] = useState('');
   const [title, setTitle] = useState('');
@@ -38,7 +37,7 @@ export function HerMusic({ visitor }: { visitor: boolean }) {
     }
     updateHer({
       music: [
-        ...getContent().her.music,
+        ...getHer().music,
         {
           id: createId('song'),
           url: item.url,
@@ -60,7 +59,7 @@ export function HerMusic({ visitor }: { visitor: boolean }) {
       confirmLabel: 'Weghalen',
       tone: 'danger',
     });
-    if (ok) updateHer({ music: getContent().her.music.filter((m) => m.id !== id) });
+    if (ok) updateHer({ music: getHer().music.filter((m) => m.id !== id) });
   };
 
   return (

@@ -469,11 +469,31 @@ export interface HerSong {
 }
 
 export type NailShape = 'almond' | 'square' | 'coffin' | 'stiletto';
-export type NailArt = 'none' | 'french' | 'heart' | 'glitter' | 'star' | 'flower';
+export type NailArt =
+  | 'none'
+  | 'french'
+  | 'heart'
+  | 'glitter'
+  | 'star'
+  | 'flower'
+  | 'dots'
+  | 'ombre'
+  | 'cherry'
+  | 'bow'
+  | 'gem'
+  | 'leopard'
+  | 'smiley'
+  | 'swirl';
+export type NailFinish = 'gloss' | 'matte' | 'chrome' | 'jelly';
+export type NailLength = 'short' | 'medium' | 'long';
 
 export interface NailSet {
   id: ID;
   shape: NailShape;
+  finish: NailFinish;
+  length: NailLength;
+  /** The second colour: french tips, dots, ombré. */
+  accent: string;
   /** Thumb to pinky. */
   colors: string[];
   art: NailArt[];
@@ -621,6 +641,8 @@ export interface Preferences {
   companion: boolean;
   /** Soft sound effects when we tap things. */
   sfx: boolean;
+  /** Quiet background ambience in some places (bubbles in the spa…). */
+  ambience: boolean;
   /** While she stays home: the page (and edge) where her hutch is hidden. */
   cocoHome?: { path: string; spot: number };
 }

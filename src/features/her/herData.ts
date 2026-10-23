@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import { updateContent, useContent } from '../../data/store';
-import { updateHerPrivate, useHerPrivate } from '../../data/herPrivate';
+import { getHer, updateHerPrivateItems, updateHerSpace, useHer, useHerPrivateItems, useHerTest } from './herStore';
 import { getAuthor, useMe } from '../../data/people';
 import type { BucketItem, Goal, HerMood, HerSpace, JournalEntry } from '../../data/types';
 
@@ -26,8 +25,8 @@ const ORDER: { [K in HerKind]: (a: HerItems[K], b: HerItems[K]) => number } = {
 };
 
 export function useHerItems<K extends HerKind>(kind: K): HerItems[K][] {
-  const shared = useContent((c) => c.her[kind]) as HerItems[K][];
-  const mine = useHerPrivate()[kind] as HerItems[K][];
+  const shared = useHer((h) => h[kind]) as HerItems[K][];
+  const mine = useHerPrivateItems()[kind] as HerItems[K][];
   return useMemo(() => [...shared, ...mine].sort(ORDER[kind]), [shared, mine, kind]);
 }
 
@@ -41,12 +40,12 @@ const upsert = <T extends Item>(items: T[], item: T): T[] =>
 export function saveHerItem<K extends HerKind>(kind: K, item: HerItems[K]) {
   const isPrivate = Boolean(item.private);
   const sharedCopy = { ...item, private: undefined };
-  updateContent((c) => {
-    const list = c.her[kind] as Item[];
+  updateHerSpace((h) => {
+    const list = h[kind] as Item[];
     const next = isPrivate ? list.filter((i) => i.id !== item.id) : upsert(list, sharedCopy);
-    return next === list ? c : { ...c, her: { ...c.her, [kind]: next } };
+    return next === list ? h : { ...h, [kind]: next };
   });
-  updateHerPrivate((p) => {
+  updateHerPrivateItems((p) => {
     const list = p[kind] as Item[];
     return {
       ...p,
@@ -58,15 +57,14 @@ export function saveHerItem<K extends HerKind>(kind: K, item: HerItems[K]) {
 }
 
 export function removeHerItem(kind: HerKind, id: string) {
-  updateContent((c) => ({
-    ...c,
-    her: { ...c.her, [kind]: (c.her[kind] as Item[]).filter((i) => i.id !== id) },
-  }));
-  updateHerPrivate((p) => ({ ...p, [kind]: (p[kind] as Item[]).filter((i) => i.id !== id) }));
+  updateHerSpace((h) => ({ ...h, [kind]: (h[kind] as Item[]).filter((i) => i.id !== id) }));
+  updateHerPrivateItems((p) => ({ ...p, [kind]: (p[kind] as Item[]).filter((i) => i.id !== id) }));
 }
 
+export { getHer, useHer };
+
 export function updateHer(patch: Partial<Omit<HerSpace, HerKind>>) {
-  updateContent((c) => ({ ...c, her: { ...c.her, ...patch } }));
+  updateHerSpace((h) => ({ ...h, ...patch }));
 }
 
 /**
@@ -75,7 +73,8 @@ export function updateHer(patch: Partial<Omit<HerSpace, HerKind>>) {
  */
 export function useIsHerVisitor(): boolean {
   const me = useMe();
-  return me === 'you' && getAuthor() !== undefined;
+  const testing = useHerTest();
+  return !testing && me === 'you' && getAuthor() !== undefined;
 }
 
 export const MOODS: Record<HerMood, { emoji: string; label: string }> = {
