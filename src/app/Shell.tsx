@@ -16,7 +16,14 @@ import {
 import { openInstallSheet } from '../pwa/InstallSheet';
 import { useSyncState } from '../sync/sync';
 import { href, useRoute, type RoutePath } from '../lib/router';
-import { DESKTOP_PATHS, SECTIONS, TAB_PATHS, sectionFor } from './sections';
+import {
+  DESKTOP_PATHS,
+  GROUPS,
+  TAB_PATHS,
+  sectionFor,
+  sectionsIn,
+  type Section,
+} from './sections';
 import { LogoMark } from '../components/art/LogoMark';
 import { Dialog } from '../components/ui/Dialog';
 import { useMusic } from '../components/music/MusicProvider';
@@ -208,6 +215,21 @@ function WorldOrb() {
   );
 }
 
+function MenuTile({ section: s, current }: { section: Section; current: boolean }) {
+  const Icon = s.icon;
+  return (
+    <a className="menu-tile" href={href(s.path)} aria-current={current ? 'page' : undefined}>
+      <span className="menu-tile__icon" style={{ background: s.tint }} aria-hidden="true">
+        <Icon />
+      </span>
+      <span className="menu-tile__text">
+        <span className="menu-tile__label">{s.label}</span>
+        <span className="menu-tile__blurb">{s.blurb}</span>
+      </span>
+    </a>
+  );
+}
+
 export function MenuSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { path } = useRoute();
   const museumFound = useContent((c) => Boolean(c.museum.foundAt));
@@ -225,33 +247,42 @@ export function MenuSheet({ open, onClose }: { open: boolean; onClose: () => voi
       eyebrow="a little map"
       size="md"
     >
-      <nav aria-label="Alle onderdelen">
-        <ul className="menu-grid">
-          {SECTIONS.filter((s) => !s.secret || museumFound).map((s) => {
-            const Icon = s.icon;
-            return (
-              <li key={s.path}>
-                <a
-                  className="menu-tile"
-                  href={href(s.path)}
-                  aria-current={path === s.path ? 'page' : undefined}
-                >
-                  <span
-                    className="menu-tile__icon"
-                    style={{ background: s.tint }}
-                    aria-hidden="true"
-                  >
-                    <Icon />
-                  </span>
-                  <span className="menu-tile__text">
-                    <span className="menu-tile__label">{s.label}</span>
-                    <span className="menu-tile__blurb">{s.blurb}</span>
-                  </span>
-                </a>
-              </li>
-            );
-          })}
+      <nav aria-label="Alle onderdelen" className="menu-planets">
+        <ul className="menu-quick">
+          {[sectionFor('/'), sectionFor('/settings')].map((s) => (
+            <li key={s.path}>
+              <MenuTile section={s} current={path === s.path} />
+            </li>
+          ))}
         </ul>
+        {GROUPS.map((g) => {
+          const items = sectionsIn(g.id).filter((s) => !s.secret || museumFound);
+          return (
+            <section
+              key={g.id}
+              className="menu-planet"
+              aria-labelledby={`planet-${g.id}`}
+              style={{ '--planet': g.color, '--ring': g.ring } as React.CSSProperties}
+            >
+              <h3 id={`planet-${g.id}`} className="menu-planet__head">
+                <span className="menu-planet__orb" aria-hidden="true">
+                  {g.emoji}
+                </span>
+                <span>
+                  <strong>{g.label}</strong>
+                  <small>{g.blurb}</small>
+                </span>
+              </h3>
+              <ul className="menu-grid">
+                {items.map((s) => (
+                  <li key={s.path}>
+                    <MenuTile section={s} current={path === s.path} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
       </nav>
       <div className="menu-app">
         <button

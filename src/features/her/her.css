@@ -219,7 +219,18 @@
 }
 
 .her-visitor {
+  flex-wrap: wrap;
+  align-items: center;
   margin-bottom: 22px;
+}
+
+.her-visitor > svg {
+  flex: none;
+}
+
+.her-visitor p {
+  flex: 1 1 220px;
+  margin: 0;
 }
 
 /* ------------------------------------------------------------------ cards */
@@ -472,44 +483,60 @@
 
 /* ------------------------------------------------------------------ tabs */
 
-.her-tabs {
-  display: flex;
-  gap: 6px;
+/* ------------------------------------------------------------------ rooms */
+
+/* Her corner in little rooms: one tap to go to music, nails, journal… */
+.her-rooms {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
   margin: 0 0 18px;
-  padding: 5px;
-  border-radius: var(--radius-pill);
+}
+
+@media (min-width: 760px) {
+  .her-rooms {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.her-room {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-height: 64px;
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 18px;
   background: var(--surface);
   box-shadow: inset 0 0 0 1.5px var(--accent-soft);
-  overflow-x: auto;
-}
-
-.her-tab {
-  display: inline-flex;
-  flex: 1 0 auto;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: none;
   color: var(--ink-soft);
-  font-size: 0.95rem;
   font: inherit;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
+  transition:
+    transform 0.25s var(--ease-spring),
+    background 0.2s ease;
 }
 
-.her-tab svg {
-  width: 18px;
-  height: 18px;
+.her-room__emoji {
+  font-size: 1.35rem;
+  line-height: 1.2;
+  transition: transform 0.35s var(--ease-spring);
 }
 
-.her-tab[aria-pressed='true'] {
+.her-room:active {
+  transform: scale(0.95);
+}
+
+.her-room[aria-pressed='true'] {
   background: var(--btn-bg);
   color: var(--btn-ink);
   box-shadow: var(--shadow-1);
+}
+
+.her-room[aria-pressed='true'] .her-room__emoji {
+  transform: scale(1.18) rotate(-6deg);
 }
 
 .her-section__head {

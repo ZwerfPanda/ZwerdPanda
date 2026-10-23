@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useContent } from '../../data/store';
 import { href } from '../../lib/router';
@@ -43,12 +44,12 @@ export function HomePage() {
           <Counter />
           <HomeNote />
         </div>
+        <Explore />
         <Countdowns />
         <div className="home__hunt">
           <HuntChip />
         </div>
         <InstallBanner />
-        <Explore />
         <TodayNote />
         <SiteFooter />
       </div>
@@ -58,7 +59,10 @@ export function HomePage() {
 
 function HomeNote() {
   const { homeGreeting, homeMessage, yourName } = useContent((c) => c.profile);
+  const [open, setOpen] = useState(false);
   if (!homeMessage.trim()) return null;
+  const paragraphs = homeMessage.split(/\n{2,}/);
+  const shown = open ? paragraphs : paragraphs.slice(0, 1);
   return (
     <article className="home-note paper" aria-label="Een briefje van degene die dit maakte">
       <span
@@ -67,12 +71,23 @@ function HomeNote() {
         aria-hidden="true"
       />
       {homeGreeting && <p className="home-note__greeting">{homeGreeting}</p>}
-      {homeMessage.split(/\n{2,}/).map((paragraph, i) => (
+      {shown.map((paragraph, i) => (
         <p className="home-note__p" key={i}>
           {paragraph}
         </p>
       ))}
-      <p className="home-note__sign">— {yourName}</p>
+      {paragraphs.length > 1 && (
+        <button
+          type="button"
+          className="home-note__more"
+          aria-expanded={open}
+          data-sfx="paper"
+          onClick={() => setOpen((o) => !o)}
+        >
+          {open ? 'Weer opvouwen' : 'Lees verder…'}
+        </button>
+      )}
+      {(open || paragraphs.length === 1) && <p className="home-note__sign">— {yourName}</p>}
     </article>
   );
 }

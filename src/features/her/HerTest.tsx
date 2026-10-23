@@ -19,18 +19,23 @@ export function useTestTaps(allowed: boolean): () => void {
     taps.current = [...taps.current.filter((t) => now - t < 2500), now];
     if (taps.current.length < TAPS) return;
     taps.current = [];
-    void confirm({
-      title: 'Testen als haar?',
-      message:
-        'Je ziet en gebruikt haar plekje zoals zij het ziet — op een kopie die alleen op deze telefoon staat. Niets wordt gesynct en zij merkt er niets van.',
-      confirmLabel: 'Start test',
-    }).then((ok) => {
-      if (!ok) return;
-      playSfx('sparkle', true);
-      startHerTest();
-      toast('Testmodus aan — alleen op deze telefoon 🧪');
-    });
+    askHerTest('haar');
   };
+}
+
+/** Asks first, then opens her corner as her, on a copy on this phone. */
+export function askHerTest(name: string) {
+  void confirm({
+    title: `Testen als ${name}?`,
+    message:
+      'Je ziet en gebruikt haar plekje precies zoals zij: briefjes, muziek, nagels, journal, alles. Het gebeurt op een kopie die alleen op deze telefoon staat — niets wordt gesynct en zij merkt er niets van.',
+    confirmLabel: 'Start test',
+  }).then((ok) => {
+    if (!ok) return;
+    playSfx('sparkle', true);
+    startHerTest();
+    toast('Testmodus aan — alleen op deze telefoon 🧪');
+  });
 }
 
 /** Shows only while testing, so he always knows he's in the copy. */

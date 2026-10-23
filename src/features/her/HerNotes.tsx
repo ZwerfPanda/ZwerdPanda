@@ -44,17 +44,18 @@ export function HerNotes() {
     open: false,
     note: null,
   });
-  // On her phone she reads them; anywhere else they can be written —
-  // except while he is trying her corner as her.
+  // On her phone she reads them; anywhere else they can be written. While
+  // he tries her corner as her, he can do both.
   const testing = useHerTest();
-  const writer = me !== 'partner' && !testing;
+  const writer = me !== 'partner';
+  const reader = !writer || testing;
   const sorted = [...notes].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   const unopened = sorted.filter((n) => !n.openedAt);
   const latest = sorted[0];
 
   const open = (note: LoveNote) => {
     playSfx('paper', true);
-    if (!note.openedAt && !writer) {
+    if (!note.openedAt && reader) {
       setNotes((list) => list.map((n) => (n.id === note.id ? { ...n, openedAt: nowIso() } : n)));
     }
     setReading(note);
@@ -77,7 +78,7 @@ export function HerNotes() {
         <h2 id="her-notes-title" className="her-card__title">
           Love notes
         </h2>
-        {unopened.length > 0 && !writer ? (
+        {unopened.length > 0 && reader ? (
           <button
             type="button"
             className="her-envelope"
@@ -140,7 +141,7 @@ export function HerNotes() {
         eyebrow={reading ? formatTimestamp(reading.createdAt) : ''}
         size="sm"
         footer={
-          reading && !writer ? (
+          reading && reader ? (
             <button
               type="button"
               className={`btn ${reading.hearted ? 'btn--primary' : 'btn--soft'}`}

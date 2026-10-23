@@ -27,7 +27,57 @@ export interface Section {
   tint: string;
   /** A secret place: only in the menu once one of us has found it. */
   secret?: boolean;
+  /** Which planet of our universe it belongs to. */
+  group?: GroupId;
 }
+
+export type GroupId = 'story' | 'together' | 'you' | 'home';
+
+export interface Group {
+  id: GroupId;
+  label: string;
+  emoji: string;
+  blurb: string;
+  /** The planet's colours: body and ring. */
+  color: string;
+  ring: string;
+}
+
+/** Our universe in four little planets, so everything has a place. */
+export const GROUPS: Group[] = [
+  {
+    id: 'story',
+    label: 'Ons verhaal',
+    emoji: '📖',
+    blurb: 'Alles wat we al samen beleefd hebben',
+    color: '#ebbfba',
+    ring: '#b9646f',
+  },
+  {
+    id: 'together',
+    label: 'Samen',
+    emoji: '💞',
+    blurb: 'Wat we samen doen, luisteren en dromen',
+    color: '#cbbfe9',
+    ring: '#7d68b5',
+  },
+  {
+    id: 'you',
+    label: 'Voor jou',
+    emoji: '🎀',
+    blurb: 'Jouw eigen plekje en kleine verrassingen',
+    color: '#f9d0e0',
+    ring: '#d0668f',
+  },
+  {
+    id: 'home',
+    label: 'Ons wereldje',
+    emoji: '🏡',
+    blurb: 'Ons kaartje en ons kleine konijntje',
+    color: '#e0ebd4',
+    ring: '#6f9160',
+  },
+];
 
 export const SECTIONS: Section[] = [
   {
@@ -40,6 +90,7 @@ export const SECTIONS: Section[] = [
   },
   {
     path: '/her',
+    group: 'you',
     label: 'Your Little World',
     short: 'Jouw plekje',
     blurb: 'Helemaal van jou',
@@ -48,6 +99,7 @@ export const SECTIONS: Section[] = [
   },
   {
     path: '/story',
+    group: 'story',
     label: 'Ons Verhaal',
     short: 'Verhaal',
     blurb: 'De hoofdstukken tot nu toe',
@@ -56,6 +108,7 @@ export const SECTIONS: Section[] = [
   },
   {
     path: '/memories',
+    group: 'story',
     label: 'Herinneringen',
     short: 'Momenten',
     blurb: 'Ons plakboek',
@@ -64,6 +117,7 @@ export const SECTIONS: Section[] = [
   },
   {
     path: '/world',
+    group: 'home',
     label: 'Onze Kleine Wereld',
     short: 'Wereld',
     blurb: 'Een klein kaartje van ons',
@@ -72,6 +126,7 @@ export const SECTIONS: Section[] = [
   },
   {
     path: '/letters',
+    group: 'story',
     label: 'Love Letters',
     short: 'Brieven',
     blurb: 'Open when…',
@@ -80,6 +135,7 @@ export const SECTIONS: Section[] = [
   },
   {
     path: '/future',
+    group: 'together',
     label: 'Onze Toekomst',
     short: 'Toekomst',
     blurb: 'Dromen & ooit-plannen',
@@ -88,6 +144,7 @@ export const SECTIONS: Section[] = [
   },
   {
     path: '/surprises',
+    group: 'you',
     label: 'Little Surprises',
     short: 'Surprises',
     blurb: 'Expres verstopt',
@@ -96,6 +153,7 @@ export const SECTIONS: Section[] = [
   },
   {
     path: '/music',
+    group: 'together',
     label: 'Music Corner',
     short: 'Muziek',
     blurb: 'Liedjes die naar ons klinken',
@@ -104,6 +162,7 @@ export const SECTIONS: Section[] = [
   },
   {
     path: '/coco',
+    group: 'home',
     label: 'Coco’s Hoekje',
     short: 'Coco',
     blurb: 'Ons kleine konijntje',
@@ -112,6 +171,7 @@ export const SECTIONS: Section[] = [
   },
   {
     path: '/us',
+    group: 'together',
     label: 'Mini Us',
     short: 'Mini us',
     blurb: 'Wij tweetjes, maar dan mini',
@@ -120,6 +180,7 @@ export const SECTIONS: Section[] = [
   },
   {
     path: '/lists',
+    group: 'together',
     label: 'Onze Lijstjes',
     short: 'Lijstjes',
     blurb: 'Namen, films, eetplekjes',
@@ -128,6 +189,7 @@ export const SECTIONS: Section[] = [
   },
   {
     path: '/museum',
+    group: 'story',
     label: 'The Love Line',
     short: 'Love Line',
     blurb: 'Het museum van ons',
@@ -159,3 +221,6 @@ export const DESKTOP_PATHS: RoutePath[] = [
   '/future',
   '/surprises',
 ];
+
+/** The places on one planet, in menu order. */
+export const sectionsIn = (group: GroupId) => SECTIONS.filter((s) => s.group === group);

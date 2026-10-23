@@ -2,14 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import {
   ArrowUpRight,
   Check,
+  FlaskConical,
   Lock,
-  NotebookPen,
   Paintbrush,
   Pencil,
   Plus,
   RefreshCw,
-  Sparkles,
-  Target,
   Trash2,
 } from 'lucide-react';
 import { useContent } from '../../data/store';
@@ -40,10 +38,19 @@ import { HuntStar } from '../hunt/HuntStar';
 import { HerNotes, usePetName } from './HerNotes';
 import { HerMusic } from './HerMusic';
 import { NailStudio } from './NailStudio';
-import { TestBanner, useTestTaps } from './HerTest';
+import { TestBanner, askHerTest, useTestTaps } from './HerTest';
 import './her.css';
 
-type Tab = 'journal' | 'bucket' | 'goals';
+type Tab = 'today' | 'music' | 'nails' | 'journal' | 'bucket' | 'goals';
+
+const ROOMS: { id: Tab; label: string; emoji: string }[] = [
+  { id: 'today', label: 'Vandaag', emoji: '☀️' },
+  { id: 'music', label: 'Muziek', emoji: '🎧' },
+  { id: 'nails', label: 'Nagels', emoji: '💅' },
+  { id: 'journal', label: 'Journal', emoji: '📓' },
+  { id: 'bucket', label: 'Bucket list', emoji: '✨' },
+  { id: 'goals', label: 'Goals', emoji: '🎯' },
+];
 
 /**
  * Her little world: a corner of the universe that's entirely hers — her own
@@ -53,7 +60,7 @@ export function HerPage() {
   const her = useHer((h) => h);
   const partnerName = useContent((c) => c.profile.partnerName);
   const visitor = useIsHerVisitor();
-  const [tab, setTab] = useState<Tab>('journal');
+  const [tab, setTab] = useState<Tab>('today');
   const [decorating, setDecorating] = useState(false);
   const me = useMe();
   // Seven taps on her sticker, on his phone only, opens "try it as her".
@@ -72,7 +79,13 @@ export function HerPage() {
     <div className={`page her her--${her.pattern}`}>
       <div className="her__pattern" aria-hidden="true" />
       <header className="her-cover">
-        <span className="her-cover__sticker" aria-hidden="true" onClick={testTap}>
+        <span
+          className="her-cover__sticker"
+          aria-hidden="true"
+          onClick={testTap}
+          // iOS only sends taps on things that look tappable.
+          style={me !== 'partner' ? { cursor: 'pointer' } : undefined}
+        >
           {her.sticker}
         </span>
         <p className="her-cover__eyebrow">welcome to</p>
@@ -93,42 +106,50 @@ export function HerPage() {
       <TestBanner />
 
       {visitor && (
-        <p className="notice notice--plain her-visitor">
+        <div className="notice notice--plain her-visitor">
           <Lock aria-hidden="true" />
-          Dit is het plekje van {partnerName}. Je kijkt mee naar wat ze deelt — wat ze privé houdt,
-          staat alleen op haar telefoon.
-        </p>
+          <p>
+            Dit is het plekje van {partnerName}. Je kijkt mee naar wat ze deelt — wat ze privé
+            houdt, staat alleen op haar telefoon.
+          </p>
+          <button
+            type="button"
+            className="btn btn--soft btn--small her-visitor__test"
+            onClick={() => askHerTest(partnerName)}
+          >
+            <FlaskConical aria-hidden="true" /> Alles testen als {partnerName}
+          </button>
+        </div>
       )}
 
       <HerNotes />
 
-      <div className="her-grid">
-        <Today visitor={visitor} />
-        <HerMusic visitor={visitor} />
-        {her.coco && <CocoNook />}
-      </div>
-
-      <NailStudio visitor={visitor} />
-
-      <nav className="her-tabs" aria-label="Mijn dingen">
-        {(
-          [
-            ['journal', 'Journal', NotebookPen],
-            ['bucket', 'Bucket list', Sparkles],
-            ['goals', 'Goals', Target],
-          ] as const
-        ).map(([id, label, Icon]) => (
+      <nav className="her-rooms" aria-label="Mijn kamers">
+        {ROOMS.map((r) => (
           <button
-            key={id}
+            key={r.id}
             type="button"
-            className="her-tab"
-            aria-pressed={tab === id}
-            onClick={() => setTab(id)}
+            className="her-room"
+            aria-pressed={tab === r.id}
+            data-sfx="pop"
+            onClick={() => setTab(r.id)}
           >
-            <Icon aria-hidden="true" /> {label}
+            <span className="her-room__emoji" aria-hidden="true">
+              {r.emoji}
+            </span>
+            {r.label}
           </button>
         ))}
       </nav>
+
+      {tab === 'today' && (
+        <div className="her-grid">
+          <Today visitor={visitor} />
+          {her.coco && <CocoNook />}
+        </div>
+      )}
+      {tab === 'music' && <HerMusic visitor={visitor} />}
+      {tab === 'nails' && <NailStudio visitor={visitor} />}
 
       {tab === 'journal' && <Journal visitor={visitor} />}
       {tab === 'bucket' && <Bucket visitor={visitor} />}
