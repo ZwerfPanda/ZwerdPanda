@@ -40,9 +40,9 @@ export const SECTIONS: Section[] = [
   },
   {
     path: '/her',
-    label: 'Her Little World',
-    short: 'Haar plekje',
-    blurb: 'Helemaal van haar',
+    label: 'Your Little World',
+    short: 'Jouw plekje',
+    blurb: 'Helemaal van jou',
     icon: Flower2,
     tint: '#f9d0e0',
   },

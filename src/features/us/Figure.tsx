@@ -1240,6 +1240,33 @@ function Bust({ B, shY }: { B: Build; shY: number }) {
   );
 }
 
+/** A little triangle bikini top with thin straps. */
+function BikiniTop({ B, shY, color }: { B: Build; shY: number; color: string }) {
+  const cup = (d: 1 | -1) =>
+    `M${d * 3} ${shY + 14}L${d * (B.shoulder + 4)} ${shY + 32}Q${d * (B.shoulder * 0.5)} ${shY + 38} ${d * 2} ${shY + 33}Z`;
+  return (
+    <g>
+      <path
+        d={`M-4 ${shY + 15}L-10 ${shY - 2}M4 ${shY + 15}L10 ${shY - 2}M${-B.shoulder - 2} ${shY + 31}H${B.shoulder + 2}`}
+        stroke={color}
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      {([-1, 1] as const).map((d) => (
+        <path
+          key={d}
+          d={cup(d)}
+          fill={color}
+          stroke={INK}
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+      ))}
+      <circle cx="0" cy={shY + 32} r="2.2" fill="#e2b65a" />
+    </g>
+  );
+}
+
 function Top({
   outfit,
   torso,
@@ -1359,6 +1386,24 @@ function Top({
           </>
         )}
         {layer && <LayerArt layer={layer} B={B} shY={shY} hipY={hipY} uid={uid} />}
+      </g>
+    );
+  }
+  if (top.kind === 'bare' || top.kind === 'bikini') {
+    return (
+      <g>
+        {her && <Bust B={B} shY={shY} />}
+        {top.kind === 'bikini' && <BikiniTop B={B} shY={shY} color={top.color} />}
+        {top.kind === 'bare' && !her && (
+          // chest and abs
+          <g fill="none" stroke="#000" strokeWidth="1.6" strokeLinecap="round" opacity="0.26">
+            <path
+              d={`M${-B.shoulder * 0.7} ${shY + 18}q${B.shoulder * 0.35} 14 ${B.shoulder * 0.66} 6M${B.shoulder * 0.7} ${shY + 18}q${-B.shoulder * 0.35} 14 ${-B.shoulder * 0.66} 6`}
+            />
+            <path d={`M0 ${shY + 30}V${hipY - 6}`} />
+            <path d={`M-9 ${shY + 44}h18M-8 ${shY + 58}h16M-7 ${waistY + 2}h14`} opacity="0.8" />
+          </g>
+        )}
       </g>
     );
   }

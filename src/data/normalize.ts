@@ -59,13 +59,18 @@ import type {
   HerTheme,
   JournalEntry,
   StarHunt,
+  HerSong,
+  LoveNote,
+  NailArt,
+  NailSet,
+  NailShape,
   Museum,
   MuseumStop,
   StopTheme,
 } from './types';
 import { defaultMuseum } from './museumStops';
 import { isValidIsoDate } from '../lib/dates';
-import { isHttpUrl, spotifyCollection } from '../lib/embeds';
+import { isHttpUrl, spotifyCollection, spotifyItem } from '../lib/embeds';
 
 /**
  * Defensive parsing for anything read from storage or an imported backup.
@@ -184,6 +189,10 @@ function normalizeProfile(v: unknown): Profile {
     startDate: optDate(p.startDate) ?? null,
     counterMode: oneOf(p.counterMode, ['ymd', 'days'] as const, 'ymd'),
     theme: oneOf(p.theme, THEMES, 'blush'),
+    openingSong:
+      typeof p.openingSong === 'string'
+        ? (spotifyItem(p.openingSong)?.url ?? '')
+        : defaultProfile.openingSong,
   };
 }
 
@@ -652,6 +661,49 @@ const lines = (v: unknown, max: number, fallback: string[]) =>
         .slice(0, max)
     : [...fallback];
 
+const NAIL_SHAPES: readonly NailShape[] = ['almond', 'square', 'coffin', 'stiletto'];
+const NAIL_ART: readonly NailArt[] = ['none', 'french', 'heart', 'glitter', 'star', 'flower'];
+const isColor = (v: unknown): v is string => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
+
+function normalizeNailSet(v: unknown, i: number): NailSet | null {
+  if (!isObj(v)) return null;
+  const fallback = defaultHer.nails.current;
+  const colors = arr(v.colors).filter(isColor).slice(0, 5);
+  const art = arr(v.art)
+    .map((a) => oneOf(a, NAIL_ART, 'none'))
+    .slice(0, 5);
+  return {
+    id: id(v.id, 'nails', i),
+    shape: oneOf(v.shape, NAIL_SHAPES, fallback.shape),
+    colors: colors.length === 5 ? colors : [...fallback.colors],
+    art: art.length === 5 ? art : [...fallback.art],
+    savedAt: optStamp(v.savedAt),
+  };
+}
+
+function normalizeHerSong(v: unknown, i: number): HerSong | null {
+  if (!isObj(v) || typeof v.url !== 'string') return null;
+  const item = spotifyItem(v.url);
+  if (!item) return null;
+  return {
+    id: id(v.id, 'song', i),
+    url: item.url,
+    title: optStr(v.title, 120),
+    createdAt: stamp(v.createdAt),
+  };
+}
+
+function normalizeNote(v: unknown, i: number): LoveNote | null {
+  if (!isObj(v) || !optStr(v.text)) return null;
+  return {
+    id: id(v.id, 'note', i),
+    text: str(v.text, '', 4000),
+    createdAt: stamp(v.createdAt),
+    openedAt: optStamp(v.openedAt),
+    hearted: bool(v.hearted) || undefined,
+  };
+}
+
 export function normalizeHer(v: unknown): HerSpace {
   if (!isObj(v)) return cloneHer(defaultHer);
   const done = isObj(v.selfCareDone) ? v.selfCareDone : {};
@@ -669,6 +721,30 @@ export function normalizeHer(v: unknown): HerSpace {
     },
     playlistUrl: spotifyCollection(str(v.playlistUrl))?.url,
     coco: bool(v.coco, defaultHer.coco),
+    music: (() => {
+      const songs = list(v.music, normalizeHerSong).slice(0, 60);
+      // Her first playlist (from before the music box held more) comes along.
+      const old = spotifyCollection(str(v.playlistUrl));
+      return songs.length === 0 && old
+        ? [
+            {
+              id: 'her-playlist',
+              url: old.url,
+              title: 'Mijn playlist',
+              createdAt: stamp(undefined),
+            },
+          ]
+        : songs;
+    })(),
+    notes: list(v.notes, normalizeNote).slice(0, 500),
+    nails: {
+      current: normalizeNailSet(isObj(v.nails) ? v.nails.current : undefined, 0) ?? {
+        ...defaultHer.nails.current,
+        colors: [...defaultHer.nails.current.colors],
+        art: [...defaultHer.nails.current.art],
+      },
+      saved: isObj(v.nails) ? list(v.nails.saved, normalizeNailSet).slice(0, 24) : [],
+    },
     // Private things never belong in the shared copy.
     journal: list(v.journal, normalizeJournalEntry)
       .filter((j) => !j.private)

@@ -175,8 +175,17 @@ export function SpaScene() {
         <path d="M120-190q-10-20 0-40" />
       </g>
       {/* us, in the warm water */}
-      <Mini who="partner" x={-26} y={44} face="happy" tilt={16} lean={4} />
-      <Mini who="you" x={46} y={54} face="happy" tilt={-6} />
+      <Mini
+        who="partner"
+        x={-26}
+        y={12}
+        face="happy"
+        tilt={16}
+        lean={4}
+        outfit="swim"
+        accessories={['necklace']}
+      />
+      <Mini who="you" x={46} y={22} face="happy" tilt={-6} outfit="swim" accessories={['chain']} />
       <rect x="-210" y="-118" width="420" height="40" fill="#7fc7c9" opacity="0.88" />
       <path
         d="M-210-118q26-8 52 0t52 0 52 0 52 0 52 0 52 0 52 0 52 0"
@@ -379,7 +388,6 @@ export function DateScene() {
       ))}
       <Floor color="#f3d3dc" />
       <Moment kind="heart" />
-      <RisingHearts x={0} y={-300} />
     </g>
   );
 }

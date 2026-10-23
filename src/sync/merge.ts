@@ -199,6 +199,8 @@ export function mergeHer(base: HerSpace, local: HerSpace, remote: HerSpace): Her
     journal: mergeList(base.journal, local.journal, remote.journal),
     bucket: mergeList(base.bucket, local.bucket, remote.bucket),
     goals: mergeList(base.goals, local.goals, remote.goals),
+    music: mergeList(base.music, local.music, remote.music),
+    notes: mergeList(base.notes, local.notes, remote.notes),
   };
 }
 
@@ -290,6 +292,8 @@ export function mergeFirstJoin(local: AppContent, remote: AppContent): AppConten
       journal: addPlain(local.her.journal, remote.her.journal),
       bucket: addPlain(local.her.bucket, remote.her.bucket),
       goals: addPlain(local.her.goals, remote.her.goals),
+      music: addPlain(local.her.music, remote.her.music),
+      notes: addPlain(local.her.notes, remote.her.notes),
     },
     lists: addPlain(
       local.lists.filter((l) => l.items.length > 0 || !remote.lists.some((r) => r.id === l.id)),

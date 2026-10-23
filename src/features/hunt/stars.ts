@@ -56,8 +56,8 @@ export const HIDDEN_STARS: HiddenStar[] = [
   {
     id: 'her',
     path: '/her',
-    place: 'Her Little World',
-    hint: 'Bij haar sticker, op haar eigen plekje.',
+    place: 'Your Little World',
+    hint: 'Bij je sticker, op je eigen plekje.',
   },
   {
     id: 'museum',

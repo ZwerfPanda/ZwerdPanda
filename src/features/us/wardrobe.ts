@@ -7,7 +7,10 @@ export type Top =
   | { kind: 'tee'; color: string }
   | { kind: 'longsleeve'; color: string; ribbed?: boolean }
   | { kind: 'polo'; color: string }
-  | { kind: 'cami'; color: string };
+  | { kind: 'cami'; color: string }
+  /** Nothing on top: swimming. */
+  | { kind: 'bare' }
+  | { kind: 'bikini'; color: string };
 
 export type Layer =
   | { kind: 'puffer'; color: string; shine: string }
@@ -185,14 +188,33 @@ export const HIS_ACCESSORIES: Accessory[] = [
 export const HER_ACCESSORIES: Accessory[] = [
   { id: 'necklace', label: 'Gouden ketting' },
   { id: 'ring', label: 'Ring' },
-  { id: 'stanley', label: 'Haar Stanley cup' },
+  { id: 'stanley', label: 'Stanley cup' },
   { id: 'pink-bag', label: 'Roze handtasje' },
   { id: 'black-bag', label: 'Zwarte schoudertas' },
   { id: 'bucket-hat', label: 'Bucket hat' },
   { id: 'teddy', label: 'Grote teddybeer' },
 ];
 
+/** For the spa and the pool only; not in the wardrobe. */
+export const SWIMWEAR: Record<'you' | 'partner', Outfit> = {
+  you: {
+    id: 'swim',
+    label: 'Zwarte zwembroek',
+    top: { kind: 'bare' },
+    bottom: { kind: 'shorts', color: '#1b1a1d' },
+    shoes: { kind: 'slides', color: '#1d1b1f', socks: '#bb855e' },
+  },
+  partner: {
+    id: 'swim',
+    label: 'Zwarte bikini',
+    top: { kind: 'bikini', color: '#1b1a1d' },
+    bottom: { kind: 'shorts', color: '#1b1a1d' },
+    shoes: { kind: 'slides', color: '#1d1b1f', socks: '#946040' },
+  },
+};
+
 export function outfitFor(person: 'you' | 'partner', id: string): Outfit {
+  if (id === 'swim') return SWIMWEAR[person];
   const list = person === 'you' ? HIS_OUTFITS : HER_OUTFITS;
   return list.find((o) => o.id === id) ?? list[0];
 }

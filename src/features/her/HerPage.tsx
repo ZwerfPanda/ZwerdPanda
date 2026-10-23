@@ -3,12 +3,9 @@ import {
   ArrowUpRight,
   Check,
   Lock,
-  Music2,
   NotebookPen,
   Paintbrush,
-  Pause,
   Pencil,
-  Play,
   Plus,
   RefreshCw,
   Sparkles,
@@ -23,11 +20,8 @@ import { celebrateFrom, confirm, toast } from '../../components/ui/feedback';
 import { MediaView } from '../../components/media/MediaView';
 import { CocoFigure } from '../../components/art/SampleArt';
 import { SiteFooter } from '../../components/common/SiteFooter';
-import { useMusic } from '../../components/music/MusicProvider';
-import { useSpotify } from '../../components/music/SpotifyProvider';
 import { useToday } from '../../hooks/useToday';
 import { formatDate, plural } from '../../lib/dates';
-import { spotifyCollection } from '../../lib/embeds';
 import { createId, hashUnit, nowIso } from '../../lib/id';
 import { playSfx } from '../../lib/audio/sfx';
 import { BucketForm, DecorateDialog, GoalForm, JournalForm } from './HerForms';
@@ -41,6 +35,9 @@ import {
   useIsHerVisitor,
 } from './herData';
 import { HuntStar } from '../hunt/HuntStar';
+import { HerNotes, usePetName } from './HerNotes';
+import { HerMusic } from './HerMusic';
+import { NailStudio } from './NailStudio';
 import './her.css';
 
 type Tab = 'journal' | 'bucket' | 'goals';
@@ -95,11 +92,15 @@ export function HerPage() {
         </p>
       )}
 
+      <HerNotes />
+
       <div className="her-grid">
         <Today visitor={visitor} />
-        <MusicBox />
+        <HerMusic visitor={visitor} />
         {her.coco && <CocoNook />}
       </div>
+
+      <NailStudio visitor={visitor} />
 
       <nav className="her-tabs" aria-label="Mijn dingen">
         {(
@@ -144,6 +145,16 @@ function Today({ visitor }: { visitor: boolean }) {
   const done = her.selfCareDone.date === today ? her.selfCareDone.items : [];
   const allDone = her.selfCare.length > 0 && her.selfCare.every((s) => done.includes(s));
   const listRef = useRef<HTMLUListElement>(null);
+  const petName = usePetName();
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 6
+      ? `Nog wakker, ${petName}? 🌙`
+      : hour < 12
+        ? `Goeiemorgen, ${petName} ☀️`
+        : hour < 18
+          ? `Hey ${petName} ♡`
+          : `Goedenavond, ${petName} 🌙`;
 
   const tick = (item: string) => {
     const next = done.includes(item) ? done.filter((d) => d !== item) : [...done, item];
@@ -158,7 +169,7 @@ function Today({ visitor }: { visitor: boolean }) {
     <section className="her-card her-today" aria-labelledby="her-today-title">
       <p className="her-card__eyebrow">{formatDate(today)}</p>
       <h2 id="her-today-title" className="her-card__title">
-        Today
+        {greeting}
       </h2>
       {words && (
         <figure className="her-words">
@@ -203,89 +214,6 @@ function Today({ visitor }: { visitor: boolean }) {
   );
 }
 
-/* -------------------------------------------------------------- music box */
-
-function MusicBox() {
-  const playlistUrl = useContent((c) => c.her.playlistUrl);
-  const music = useMusic();
-  const spotify = useSpotify();
-  const collection = playlistUrl ? spotifyCollection(playlistUrl) : null;
-  const uri = collection ? `spotify:${collection.kind}:${collection.id}` : '';
-  const isOn = Boolean(uri) && spotify.current?.uri === uri;
-
-  return (
-    <section className="her-card her-music" aria-labelledby="her-music-title">
-      <div className={`her-music__box ${music.playing ? 'is-playing' : ''}`} aria-hidden="true">
-        <svg viewBox="0 0 120 100">
-          <rect
-            x="14"
-            y="44"
-            width="92"
-            height="46"
-            rx="10"
-            fill="var(--accent-soft)"
-            stroke="var(--ink)"
-            strokeWidth="3"
-          />
-          <path
-            d="M14 48 L24 26 H96 L106 48"
-            fill="var(--accent-wash)"
-            stroke="var(--ink)"
-            strokeWidth="3"
-            strokeLinejoin="round"
-          />
-          <circle
-            cx="60"
-            cy="67"
-            r="9"
-            fill="var(--accent)"
-            stroke="var(--ink)"
-            strokeWidth="2.5"
-          />
-          <g className="her-music__dancer">
-            <circle cx="60" cy="16" r="5" fill="var(--accent)" />
-            <path d="M60 21 L52 32 H68 Z" fill="var(--accent)" />
-          </g>
-          <g className="her-music__notes" fill="var(--accent-strong)">
-            <text x="8" y="22" fontSize="14">
-              ♪
-            </text>
-            <text x="98" y="18" fontSize="16">
-              ♫
-            </text>
-          </g>
-        </svg>
-      </div>
-      <div className="her-music__text">
-        <h2 id="her-music-title" className="her-card__title">
-          My music box
-        </h2>
-        <div className="her-music__actions">
-          <button type="button" className="btn btn--primary btn--small" onClick={music.toggle}>
-            {music.playing ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
-            {music.playing ? 'Pauze' : 'Muziekdoosje'}
-          </button>
-          {collection ? (
-            <button
-              type="button"
-              className="btn btn--soft btn--small"
-              onClick={() =>
-                isOn
-                  ? spotify.setExpanded(true)
-                  : spotify.open({ title: 'Mijn playlist', uri, url: collection.url })
-              }
-            >
-              <Music2 aria-hidden="true" /> {isOn ? 'Toon de speler' : 'Mijn playlist'}
-            </button>
-          ) : (
-            <p className="her-music__hint">Zet je eigen playlist erbij via Decorate.</p>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 /* -------------------------------------------------------------- coco nook */
 
 const COCO_LINES = [
@@ -297,6 +225,11 @@ const COCO_LINES = [
   'Tijd voor een snackje? 🥕',
   '*binky van blijdschap*',
   'Dit is het fijnste plekje van het hele universe.',
+  'Al een vanilla matcha met extra siroop gehad vandaag?',
+  'Ik heb je nagels gezien. Iconic. 💅',
+  'Jasmine bubble tea met tapioca? Ik wil ook. 🧋',
+  'Valencio zegt dat je mooi bent. Ik ben het met hem eens.',
+  'Jij bent geen bang konijntje. Ik wel. 🐰',
 ];
 
 function CocoNook() {

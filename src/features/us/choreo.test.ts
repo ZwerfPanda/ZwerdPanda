@@ -15,11 +15,23 @@ describe('mini us choreography', () => {
     expect(Math.abs(mouth.y - (hearts!.y - 3))).toBeLessThan(1.5);
   });
 
-  it('wraps his front arm round her in a hug, in front of her', () => {
+  it('hugs her from behind: his arms round her waist, in front of her', () => {
     const { step } = choreograph('hug', heights)[1];
     const layers = step.order.map(([who, pieces]) => `${who}:${pieces?.join('+') ?? 'all'}`);
-    expect(layers).toEqual(['you:body+head+armL', 'partner:all', 'you:armR']);
-    expect(step.fig.partner.tilt).toBeGreaterThan(0);
+    expect(layers).toEqual(['you:body+head', 'partner:all', 'you:armL+armR']);
+    // his hands meet in front of her, at her waist
+    const her = bodyFrame('partner', heights.partner);
+    const { you, partner } = step.fig;
+    const l = you.x + you.hands!.left!.x;
+    const r = you.x + you.hands!.right!.x;
+    expect(Math.abs((l + r) / 2 - partner.x)).toBeLessThan(4);
+    expect(Math.abs(you.hands!.left!.y + you.dip - her.waistY)).toBeLessThan(16);
+    // and they're within his reach
+    const him = bodyFrame('you', heights.you);
+    const shoulder = { x: -him.shoulder + 6, y: him.shY + 7 };
+    expect(
+      Math.hypot(you.hands!.left!.x - shoulder.x, you.hands!.left!.y - shoulder.y),
+    ).toBeLessThan(100);
     expect(step.sway).toBe(true);
   });
 

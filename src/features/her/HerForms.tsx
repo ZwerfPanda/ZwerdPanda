@@ -16,7 +16,7 @@ import type {
 } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
 import { isValidIsoDate, todayIso } from '../../lib/dates';
-import { isHttpUrl, spotifyCollection } from '../../lib/embeds';
+import { isHttpUrl } from '../../lib/embeds';
 import { JOURNAL_PROMPTS, MOODS, saveHerItem, updateHer } from './herData';
 
 /** The honest version of "private": what it does, and what it doesn't. */
@@ -416,8 +416,6 @@ export function DecorateDialog({ open, onClose }: { open: boolean; onClose: () =
   const [subtitle, setSubtitle] = useState('');
   const [affirmations, setAffirmations] = useState('');
   const [selfCare, setSelfCare] = useState('');
-  const [playlist, setPlaylist] = useState('');
-  const [playlistError, setPlaylistError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -425,8 +423,6 @@ export function DecorateDialog({ open, onClose }: { open: boolean; onClose: () =
     setSubtitle(her.subtitle);
     setAffirmations(her.affirmations.join('\n'));
     setSelfCare(her.selfCare.join('\n'));
-    setPlaylist(her.playlistUrl ?? '');
-    setPlaylistError(null);
     // Read once when it opens; theme and sticker apply right away below.
   }, [open]);
 
@@ -438,17 +434,11 @@ export function DecorateDialog({ open, onClose }: { open: boolean; onClose: () =
 
   const save = (event: React.FormEvent) => {
     event.preventDefault();
-    const spotify = playlist.trim() ? spotifyCollection(playlist) : null;
-    if (playlist.trim() && !spotify) {
-      setPlaylistError('Plak een Spotify-playlist-link, zoals https://open.spotify.com/playlist/…');
-      return;
-    }
     updateHer({
       title: title.trim(),
       subtitle: subtitle.trim(),
       affirmations: lines(affirmations).slice(0, 60),
       selfCare: lines(selfCare).slice(0, 12),
-      playlistUrl: spotify?.url,
     });
     toast('Helemaal jouw vibe ✨');
     onClose();
@@ -548,20 +538,6 @@ export function DecorateDialog({ open, onClose }: { open: boolean; onClose: () =
           value={subtitle}
           onChange={setSubtitle}
           maxLength={200}
-        />
-        <TextField
-          label="Mijn playlist"
-          optional
-          value={playlist}
-          onChange={(v) => {
-            setPlaylist(v);
-            setPlaylistError(null);
-          }}
-          inputMode="url"
-          autoComplete="off"
-          placeholder="https://open.spotify.com/playlist/…"
-          error={playlistError}
-          hint="Voor je eigen music box. In Spotify: ⋯ → Delen → Link kopiëren."
         />
         <TextArea
           label="Mijn lieve woorden"

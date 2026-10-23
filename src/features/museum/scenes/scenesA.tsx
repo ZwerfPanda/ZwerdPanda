@@ -200,7 +200,6 @@ export function PlatformScene() {
       <Floor color="#7d7a86" line="#2d2a33" y={-60} />
       <path d="M-240-56H240" stroke={NS_YELLOW} strokeWidth="5" strokeDasharray="22 10" />
       <Moment kind="hug" dx={6} />
-      <RisingHearts x={4} y={-320} color="#ff9fb7" />
     </g>
   );
 }
@@ -311,7 +310,7 @@ export function MallScene() {
       <rect x="106" y="-30" width="58" height="30" rx="3" fill="#fffdf8" {...S} strokeWidth={2} />
       <path d="M106-20h58" stroke={INK} strokeWidth="1.6" />
       <Moment kind="kiss" dx={-10} />
-      <RisingHearts x={-20} y={-300} />
+
       <Sign
         x={-14}
         y={-358}

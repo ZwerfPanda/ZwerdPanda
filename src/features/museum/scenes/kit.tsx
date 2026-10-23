@@ -46,16 +46,24 @@ export interface MiniProps {
   tiptoe?: number;
   hands?: { left?: P; right?: P };
   pieces?: Piece[];
+  /** Wear something else here (e.g. 'swim'), with just these accessories. */
+  outfit?: string;
+  accessories?: string[];
 }
 
 /** One of us, somewhere in a scene. */
-export function Mini({ who, x, y = 0, s = 1, toward, ...rest }: MiniProps) {
+export function Mini({ who, x, y = 0, s = 1, toward, outfit, accessories, ...rest }: MiniProps) {
   const us = useUs();
+  const look = {
+    ...us[who].look,
+    ...(outfit ? { outfit } : {}),
+    ...(accessories ? { accessories } : {}),
+  };
   return (
     <g transform={`translate(${x} ${y}) scale(${s})`}>
       <Figure
         who={who}
-        look={us[who].look}
+        look={look}
         heightCm={us[who].heightCm}
         toward={toward ?? (who === 'partner' ? 1 : -1)}
         {...rest}
@@ -123,6 +131,33 @@ export function Moment({
           </g>
         );
       })}
+      {kind === 'kiss' && step.hearts && <KissMark x={step.hearts.x} y={step.hearts.y} />}
+      {step.hearts && <RisingHearts x={step.hearts.x} y={step.hearts.y - 30} />}
+    </g>
+  );
+}
+
+/** His kiss, left on her forehead: a little lipstick mark and a "mwah". */
+export function KissMark({ x, y }: { x: number; y: number }) {
+  return (
+    <g transform={`translate(${x} ${y + 2})`} className="scene-kiss">
+      <path
+        d="M-9 0Q-6-6-2-4Q0-6 2-4Q6-6 9 0Q4 6 0 6Q-4 6-9 0Z"
+        fill="#d9363e"
+        stroke="#8a1a22"
+        strokeWidth="1"
+      />
+      <path d="M-8 0Q0 2 8 0" stroke="#8a1a22" strokeWidth="1" fill="none" />
+      <text
+        x="20"
+        y="-14"
+        fontFamily="var(--font-hand)"
+        fontSize="17"
+        fontWeight="700"
+        fill="#e6627f"
+      >
+        mwah
+      </text>
     </g>
   );
 }

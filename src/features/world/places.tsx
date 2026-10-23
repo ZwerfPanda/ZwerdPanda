@@ -40,7 +40,7 @@ export const PLACES: Record<PlaceId, PlaceInfo> = {
     sign: 'Matcha Corner',
     tagline: 'vanilla matcha, extra siroop',
     blurb:
-      'Haar bestelling, geperfectioneerd. Plus bubble tea voor als we avontuurlijk zijn — en alle dates die met een drankje begonnen.',
+      'Jouw bestelling, geperfectioneerd. Plus bubble tea voor als we avontuurlijk zijn — en alle dates die met een drankje begonnen.',
     cta: {
       label: 'Bekijk onze date-herinneringen',
       path: '/memories',
@@ -166,9 +166,9 @@ function StationBody() {
 
 const SYRUP_LINES = [
   'Een vanilla matcha… maar er mist iets.',
-  'Eén pompje. Ze zei wel extra.',
+  'Eén pompje? Jij zei wel extra.',
   'Twee pompjes. Bijna…',
-  'Extra siroop. Precies zoals zij het lekker vindt ♡',
+  'Extra siroop. Precies zoals jij het lekker vindt ♡',
   'Oké… dit is misschien wel genoeg siroop.',
 ];
 

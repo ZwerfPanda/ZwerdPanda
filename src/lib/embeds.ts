@@ -52,6 +52,34 @@ export function spotifyCollection(
   };
 }
 
+/** Any Spotify song, album or playlist, from a share link or a spotify: URI. */
+export function spotifyItem(
+  value: string,
+): { kind: 'track' | 'playlist' | 'album'; id: string; url: string; uri: string } | null {
+  const text = value.trim();
+  const uri = /^spotify:(track|playlist|album):([A-Za-z0-9]{10,40})$/.exec(text);
+  let kind: string | undefined;
+  let idPart: string | undefined;
+  if (uri) {
+    [, kind, idPart] = uri;
+  } else if (isHttpUrl(text)) {
+    const url = new URL(text);
+    if (url.hostname !== 'open.spotify.com') return null;
+    const match = /^\/(?:intl-[a-z-]+\/)?(track|playlist|album)\/([A-Za-z0-9]{10,40})\/?$/.exec(
+      url.pathname,
+    );
+    if (!match) return null;
+    [, kind, idPart] = match;
+  }
+  if ((kind !== 'track' && kind !== 'playlist' && kind !== 'album') || !idPart) return null;
+  return {
+    kind,
+    id: idPart,
+    url: `https://open.spotify.com/${kind}/${idPart}`,
+    uri: `spotify:${kind}:${idPart}`,
+  };
+}
+
 export function describeLink(value: string | undefined): LinkInfo | null {
   if (!value || !isHttpUrl(value)) return null;
   const url = new URL(value);

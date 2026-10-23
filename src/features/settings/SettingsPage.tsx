@@ -28,6 +28,7 @@ import { MAX_AUDIO_BYTES, clearMedia, deleteMedia, formatBytes, putMedia } from 
 import { formatTimestamp, todayIso } from '../../lib/dates';
 import { previewWelcome } from '../welcome/Welcome';
 import { Checkbox, PageHeader, Segmented, TextArea, TextField } from '../../components/ui/Fields';
+import { spotifyItem } from '../../lib/embeds';
 import { confirm, toast } from '../../components/ui/feedback';
 import { useMusic } from '../../components/music/MusicProvider';
 import { SiteFooter } from '../../components/common/SiteFooter';
@@ -509,7 +510,8 @@ function SoundSection() {
   };
 
   return (
-    <Section id="sound" title="Geluid" kicker="nothing ever autoplays">
+    <Section id="sound" title="Geluid" kicker="music on the first tap">
+      <OpeningSong />
       <div className="form">
         <Segmented
           legend="Onze soundtrack"
@@ -596,6 +598,45 @@ function SoundSection() {
         />
       </div>
     </Section>
+  );
+}
+
+/** The song that starts with our opening, on the first tap. */
+function OpeningSong() {
+  const saved = useContent((c) => c.profile.openingSong);
+  const [value, setValue] = useState(saved);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => setValue(saved), [saved]);
+  const save = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (value.trim() && !spotifyItem(value)) {
+      setError('Plak een Spotify-link van een nummer, album of playlist.');
+      return;
+    }
+    updateProfile({ openingSong: value.trim() ? spotifyItem(value)!.url : '' });
+    toast(value.trim() ? 'Openingsliedje opgeslagen ♪' : 'Geen openingsliedje meer');
+  };
+  return (
+    <form className="form settings-opening" onSubmit={save} noValidate>
+      <TextField
+        label="Openingsliedje"
+        value={value}
+        onChange={(v) => {
+          setValue(v);
+          setError(null);
+        }}
+        inputMode="url"
+        autoComplete="off"
+        placeholder="https://open.spotify.com/track/…"
+        error={error}
+        hint="Begint zodra je op “Start ons verhaal” tikt, via Spotify. Wie in deze browser bij Spotify is ingelogd hoort het hele nummer, anders een fragment van 30 seconden. Hebben jullie het nummer zelf als bestand? Upload het hieronder als ‘ons eigen liedje’ — dan speelt dat bij de opening."
+      />
+      <div className="settings-actions">
+        <button type="submit" className="btn btn--soft">
+          Opslaan
+        </button>
+      </div>
+    </form>
   );
 }
 

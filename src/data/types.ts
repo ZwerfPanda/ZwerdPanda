@@ -451,6 +451,35 @@ export interface Goal {
   createdAt: string;
 }
 
+/** A little note from him, waiting in her corner. */
+export interface LoveNote {
+  id: ID;
+  text: string;
+  createdAt: string;
+  openedAt?: string;
+  hearted?: boolean;
+}
+
+/** A song, album or playlist on Spotify, in her music box. */
+export interface HerSong {
+  id: ID;
+  url: string;
+  title?: string;
+  createdAt: string;
+}
+
+export type NailShape = 'almond' | 'square' | 'coffin' | 'stiletto';
+export type NailArt = 'none' | 'french' | 'heart' | 'glitter' | 'star' | 'flower';
+
+export interface NailSet {
+  id: ID;
+  shape: NailShape;
+  /** Thumb to pinky. */
+  colors: string[];
+  art: NailArt[];
+  savedAt?: string;
+}
+
 export interface HerSpace {
   /** Empty means "<her name>’s Little World". */
   title: string;
@@ -466,6 +495,12 @@ export interface HerSpace {
   playlistUrl?: string;
   /** Coco keeps her company in her corner. */
   coco: boolean;
+  /** Her music box: her own songs and playlists. */
+  music: HerSong[];
+  /** Notes he leaves for her. */
+  notes: LoveNote[];
+  /** Her nail studio: the set she's designing, and the ones she saved. */
+  nails: { current: NailSet; saved: NailSet[] };
   journal: JournalEntry[];
   bucket: BucketItem[];
   goals: Goal[];
@@ -546,6 +581,8 @@ export interface Profile {
   startDate: string | null;
   counterMode: 'ymd' | 'days';
   theme: ThemeName;
+  /** The Spotify song that starts when we open the universe (empty: none). */
+  openingSong: string;
 }
 
 export interface AppContent {

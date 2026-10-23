@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { spotifyCollection } from './embeds';
+import { spotifyCollection, spotifyItem } from './embeds';
 
 describe('spotifyCollection', () => {
   it('reads playlist share links, with tracking bits and intl paths', () => {
@@ -50,5 +50,21 @@ describe('saved playlists', () => {
     expect(c.playlists.map((p) => p.url)).toEqual([
       'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M',
     ]);
+  });
+});
+
+describe('spotifyItem', () => {
+  it('knows songs, albums and playlists, with or without the share bits', () => {
+    expect(spotifyItem('https://open.spotify.com/track/5y2ijHECwFYWqcAHKTZgzD?si=abc')?.uri).toBe(
+      'spotify:track:5y2ijHECwFYWqcAHKTZgzD',
+    );
+    expect(
+      spotifyItem('https://open.spotify.com/intl-nl/playlist/37i9dQZF1DXcBWIGoYBM5M')?.kind,
+    ).toBe('playlist');
+    expect(spotifyItem('spotify:album:1A2GTWGtFfWp7KSQTwWOyo')?.url).toBe(
+      'https://open.spotify.com/album/1A2GTWGtFfWp7KSQTwWOyo',
+    );
+    expect(spotifyItem('https://example.com/track/5y2ijHECwFYWqcAHKTZgzD')).toBeNull();
+    expect(spotifyItem('https://open.spotify.com/episode/5y2ijHECwFYWqcAHKTZgzD')).toBeNull();
   });
 });

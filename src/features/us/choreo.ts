@@ -85,43 +85,43 @@ export function choreograph(kind: MomentKind, h: Heights): { at: number; step: S
   const him = bodyFrame('you', h.you);
   switch (kind) {
     case 'hug': {
-      // She tucks in front of him with her head on his chest; his arms go round her.
-      const xh = 22;
-      const xs = xh - 34;
-      // His near arm goes behind her to her far shoulder, the other round her waist.
-      const order: Layer[] = [['you', ['body', 'head', 'armL']], ['partner'], ['you', ['armR']]];
+      // A back hug: he stands right behind her and wraps both arms round her
+      // waist, his chin resting on top of her head; her hands rest on his arms.
+      const xs = -4;
+      const xh = xs + 6;
+      const dip = 4;
+      // Body and head behind her, both arms in front of her.
+      const order: Layer[] = [['you', ['body', 'head']], ['partner'], ['you', ['armL', 'armR']]];
+      const waist = her.waistY + 10;
       const open: Step = {
-        order,
+        order: DEFAULT_ORDER,
         close: true,
         fig: {
-          partner: {
-            ...still(xs + 6, 'idle', 'grin'),
-            hands: { right: { x: 50, y: her.shY - 6 } },
-          },
-          you: { ...still(xh + 8, 'shrug', 'grin') },
+          partner: { ...still(xs, 'idle', 'grin'), tilt: -4 },
+          you: { ...still(xh + 60, 'shrug', 'grin') },
         },
       };
       const hug: Step = {
         order,
         close: true,
         sway: true,
-        hearts: { x: (xs + xh) / 2, y: him.cy - him.headR - 10 },
+        hearts: { x: xs - 34, y: him.cy - him.headR - 6 },
         fig: {
           partner: {
             ...still(xs, 'idle', 'happy'),
-            lean: 7,
-            tilt: 16,
+            tilt: -5,
             hands: {
-              right: { x: xh + 30 - xs, y: him.waistY },
-              left: { x: xh - 30 - xs, y: him.waistY + 10 },
+              left: { x: -15, y: waist - 6 },
+              right: { x: 15, y: waist - 6 },
             },
           },
           you: {
             ...still(xh, 'idle', 'happy'),
-            tilt: -10,
+            tilt: 7,
+            dip,
             hands: {
-              left: { x: xs - 22 - xh, y: her.shY + 12 },
-              right: { x: xs + 6 - xh, y: her.waistY },
+              left: { x: xs + 9 - xh, y: waist - dip },
+              right: { x: xs - 9 - xh, y: waist + 4 - dip },
             },
           },
         },

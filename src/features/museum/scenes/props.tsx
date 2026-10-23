@@ -67,16 +67,17 @@ export function RingBox(p: At) {
 
 /** The biggest plushie in the park. */
 export function Plush({ color = '#c98b5e', ...p }: At & { color?: string }) {
+  const inner = color === '#f7f3ee' ? '#fde3ea' : '#f2d2b6';
   return (
     <g transform={place(p)}>
       <circle cx="-30" cy="-112" r="16" fill={color} {...S} />
       <circle cx="30" cy="-112" r="16" fill={color} {...S} />
-      <circle cx="-30" cy="-112" r="8" fill="#f2d2b6" />
-      <circle cx="30" cy="-112" r="8" fill="#f2d2b6" />
+      <circle cx="-30" cy="-112" r="8" fill={inner} />
+      <circle cx="30" cy="-112" r="8" fill={inner} />
       <ellipse cx="0" cy="-36" rx="46" ry="44" fill={color} {...S} />
-      <ellipse cx="0" cy="-30" rx="26" ry="26" fill="#f2d2b6" />
+      <ellipse cx="0" cy="-30" rx="26" ry="26" fill={inner} />
       <circle cx="0" cy="-90" r="38" fill={color} {...S} />
-      <ellipse cx="0" cy="-80" rx="16" ry="12" fill="#f2d2b6" />
+      <ellipse cx="0" cy="-80" rx="16" ry="12" fill={inner} />
       <circle cx="-13" cy="-98" r="4" fill={INK} />
       <circle cx="13" cy="-98" r="4" fill={INK} />
       <path d="M-4-86h8l-4 4z" fill={INK} />

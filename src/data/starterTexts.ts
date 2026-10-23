@@ -64,6 +64,103 @@ const ENGLISH = {
   },
 };
 
+/**
+ * Museum stops as they first read, about her rather than to her. Unchanged
+ * ones get the new words; anything we rewrote ourselves stays.
+ */
+const STOPS_V1: Record<string, { story: string; place?: string; details: string[] }> = {
+  'stop-home': {
+    story:
+      'Waar elke reis naar haar begon. Hier stapte ik de deur uit om naar Den Haag te gaan — en hier kwam ik pas diep in de nacht weer thuis.',
+    place: 'Amsterdam',
+    details: ['Vertrekpunt van elke reis naar haar'],
+  },
+  'stop-den-haag-cs': {
+    story:
+      'Hier vergaten we per ongeluk de dodenherdenking. Het hele station viel stil… en wij bleven gewoon doorpraten. Iedereen keek ons aan. Awkwarddd — maar eerlijk? Ook wel romantisch.',
+    place: 'Den Haag',
+    details: ['Twee minuten stilte, behalve bij ons', 'Iedereen keek ons aan 🙈'],
+  },
+  'stop-moerwijk': {
+    story:
+      'Haar thuisstation. Hier kwam ik haar altijd ophalen. Ik was er vroeg, ging pas laat in de avond weer weg, en kwam zelf pas in de nacht thuis.',
+    place: 'Haar thuisstation',
+    details: ['Vroeg aankomen', 'Laat in de avond weer weg', 'Pas in de nacht thuis'],
+  },
+  'stop-sisi': {
+    story: 'Onze bubble tea-plek. Zij neemt altijd hetzelfde.',
+    place: 'Bubble tea',
+    details: ['Haar order: jasmine bubble tea met tapioca-balletjes'],
+  },
+  'stop-westfield': {
+    story: 'Onze eerste date — en daarna kwamen we er nog heel vaak terug.',
+    place: 'Leidschendam',
+    details: [
+      'Een mooie Pandora-ring voor haar gekocht',
+      'New Balance-schoenen',
+      'Kleren shoppen',
+      'Karaoke met mijn moeder en zus',
+      'Twee keer naar de arcadehal',
+      'Mijn eerste cadeautje van haar uitgepakt',
+      'Onze eerste kus, bij de matchawinkel',
+      'Altijd even naar de matchawinkel',
+      'Kippie: zij een broodje kipkroket, ik gehaktballen of kippenbouten en -vleugels',
+      'Kruidvat voor make-up, Action voor random spulletjes',
+    ],
+  },
+  'stop-juicy': {
+    story: 'Zij wil hier altijd hetzelfde: de creamy pasta pesto.',
+    place: 'Onze eetplek',
+    details: ['Haar vaste keuze: creamy pasta pesto'],
+  },
+  'stop-walibi-holland': {
+    story:
+      'Een romantisch, gezellig dagje samen. De zon was heel fel en op het laatst voelde ze zich niet zo lekker — maar het is goed gekomen.',
+    place: 'Biddinghuizen',
+    details: [
+      'De grootste knuffel van het park voor haar gewonnen, met basketbal',
+      'Romantisch samen in het reuzenrad',
+      'Veel enge achtbanen, waar zij bang voor was',
+    ],
+  },
+  'stop-walibi-belgium': {
+    story:
+      'Met haar broertje en haar moeder — een superleuke dag vol unieke attracties en achtbanen. Op de terugweg lag iedereen te slapen, terwijl ik ze veilig naar huis reed.',
+    place: 'Waver, België',
+    details: [
+      'Unieke attracties en achtbanen',
+      'Iedereen sliep, ik reed ons veilig naar huis',
+      'Ooit gaan we hier met z’n tweetjes heen',
+    ],
+  },
+  'stop-pathe': {
+    story: 'We zagen de Michael Jackson-film en Resident Evil… maar ik keek toch vooral naar haar.',
+    place: 'Bioscoop',
+    details: ['Michael Jackson', 'Resident Evil'],
+  },
+  'stop-amsterdam': {
+    story:
+      'Scootertoeren, een theehuisje, de Wallen ontdekken, mijn familie ontmoeten — en Coco zien.',
+    place: 'Mijn stad',
+    details: [
+      'Scootertoeren door de stad',
+      'Een theehuisje',
+      'De Wallen ontdekken (en zij ging flirten met iemand achter een raam 👀)',
+      'Mijn moeder, zus en oma ontmoeten',
+      'Coco zien',
+    ],
+  },
+  'stop-pumpkin': {
+    story:
+      'Allemaal enge Halloween-dingen. We zochten allebei de perfecte pompoen om te carven, en gingen door een eng doolhof — maar het engste daar was ik, want ik ging haar bang maken.',
+    place: 'Almere',
+    details: ['Op zoek naar de perfecte pompoen 🎃', 'Pompoenen carven', 'Het enge doolhof'],
+  },
+};
+
+const sameList = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((x, i) => x === b[i]);
+
 const swap = (value: string, old: string | undefined, next: string) =>
   old !== undefined && value === old ? next : value;
 
@@ -79,6 +176,7 @@ export function refreshStarterTexts(c: AppContent): AppContent {
   const stars = byId(d.surprises.stars);
   const facts = byId(d.coco.facts);
   const lists = byId(d.lists);
+  const stops = byId(d.museum.stops);
   const reasons = ENGLISH.reasons as readonly string[];
 
   return {
@@ -106,14 +204,26 @@ export function refreshStarterTexts(c: AppContent): AppContent {
       const s = x.isSample && dr.get(x.id);
       return s ? { ...x, title: s.title, description: s.description } : x;
     }),
+    museum: {
+      ...c.museum,
+      stops: c.museum.stops.map((s) => {
+        const old = STOPS_V1[s.id];
+        const next = stops.get(s.id);
+        if (!old || !next) return s;
+        return {
+          ...s,
+          story: swap(s.story, old.story, next.story),
+          place: old.place && s.place === old.place ? next.place : s.place,
+          details: sameList(s.details, old.details) ? [...next.details] : s.details,
+        };
+      }),
+    },
     albums: c.albums.map((a) => {
       const next = albums.get(a.id);
-      return next
-        ? {
-            ...a,
-            name: swap(a.name, ENGLISH.albums[a.id as keyof typeof ENGLISH.albums], next.name),
-          }
-        : a;
+      if (!next) return a;
+      const name = swap(a.name, ENGLISH.albums[a.id as keyof typeof ENGLISH.albums], next.name);
+      // "Zij" was her album's first Dutch name.
+      return { ...a, name: a.id === 'album-her' ? swap(name, 'Zij', next.name) : name };
     }),
     surprises: {
       ...c.surprises,

@@ -121,23 +121,18 @@ export function HotelScene() {
       </g>
       <Floor color="#5c2d5e" line="#1b1236" />
       <path d="M-240 6H240" stroke="#ff8fb8" strokeWidth="2" strokeDasharray="4 10" />
-      {/* she pulls him along by the hand */}
+      {/* she pulls him along by the hand: our hands meet at exactly the same spot */}
       <Mini
         who="you"
         x={34}
         face="grin"
         tilt={-6}
-        hands={{ left: { x: -50, y: -150 }, right: { x: 46, y: -150 } }}
+        hands={{ left: { x: -52, y: -150 }, right: { x: 46, y: -150 } }}
       />
       <path d="M78-152l14-4 2 8-14 4z" fill="#e8bd6a" stroke={INK} strokeWidth="1.4" />
-      <Mini
-        who="partner"
-        x={-66}
-        face="wink"
-        tilt={-8}
-        lean={-4}
-        hands={{ right: { x: 50, y: -148 } }}
-      />
+      <Mini who="partner" x={-66} face="wink" tilt={-8} hands={{ right: { x: 48, y: -150 } }} />
+      <circle cx="-18" cy="-150" r="7" fill="#a8734e" stroke={INK} strokeWidth="1.6" />
+      <path d="M-24-152q6 4 12 0" fill="none" stroke={INK} strokeWidth="1.4" />
       <RisingHearts x={-14} y={-260} color="#ff8fb8" />
       <Say x={-130} y={-212} text="kom 😏" tx={-80} ty={-180} w={80} />
     </g>
@@ -214,7 +209,7 @@ export function ThemeparkScene() {
       <path d="M-216-150h20" stroke="#e9772b" strokeWidth="3" />
       <Floor color="#e8d6b8" />
       <Mini who="you" x={124} face="grin" tilt={-6} hands={{ left: { x: -80, y: -170 } }} />
-      <Plush x={-2} y={-6} s={1.45} />
+      <Plush x={-2} y={-6} s={1.45} color="#f7f3ee" />
       <Mini who="partner" x={-134} face="happy" tilt={8} hands={{ right: { x: 70, y: -150 } }} />
       <Say x={60} y={-352} text="de grootste van het park!!" tx={-110} ty={-266} w={210} />
     </g>
@@ -492,7 +487,6 @@ export function AmsterdamScene() {
       </g>
       <CocoFigure x={-172} y={-96} scale={0.32} blink />
       <Moment kind="heart" dx={0} y={-98} s={0.86} />
-      <RisingHearts x={0} y={-320} color="#ff6b7f" />
     </g>
   );
 }

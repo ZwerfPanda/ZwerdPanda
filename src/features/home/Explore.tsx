@@ -323,7 +323,7 @@ export function Explore() {
           </span>
           <span>
             <h3 className="ex-label">{her.title || `${partnerName}’s Little World`}</h3>
-            <span className="ex-sub">haar eigen plekje — journal, bucket list & goals</span>
+            <span className="ex-sub">jouw eigen plekje — journal, bucket list & goals</span>
           </span>
         </a>
       </div>

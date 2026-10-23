@@ -30,6 +30,13 @@ export interface SpotifyItem {
   url: string;
 }
 
+export interface OpenOptions {
+  /** Start playing as soon as it's loaded (right after a tap, so browsers allow it). */
+  play?: boolean;
+  /** Keep the big player tucked away; only the mini bar shows. */
+  quiet?: boolean;
+}
+
 interface SpotifyApi {
   current: SpotifyItem | null;
   /** null until Spotify tells us (or when it can't). */
@@ -37,7 +44,7 @@ interface SpotifyApi {
   expanded: boolean;
   /** Spotify's controls are available (not just the plain player). */
   controllable: boolean;
-  open: (item: SpotifyItem) => void;
+  open: (item: SpotifyItem, options?: OpenOptions) => void;
   togglePlay: () => void;
   setExpanded: (expanded: boolean) => void;
   close: () => void;
@@ -55,6 +62,7 @@ export function useSpotify(): SpotifyApi {
 
 interface Controller {
   loadUri: (uri: string) => void;
+  play: () => void;
   togglePlay: () => void;
   pause: () => void;
   destroy: () => void;
@@ -100,6 +108,13 @@ function loadIframeApi(): Promise<IFrameApi> {
   return apiPromise;
 }
 
+/** Start fetching Spotify's player script early, so the first tap plays sooner. */
+export function preloadSpotify() {
+  loadIframeApi().catch(() => {
+    // It'll be tried again when something is played.
+  });
+}
+
 /** spotify:… URI → the embed address for the plain player. */
 export function embedUrlFor(uri: string): string {
   const [, kind, id] = uri.split(':');
@@ -119,10 +134,13 @@ export function SpotifyProvider({ children }: { children: ReactNode }) {
   const musicRef = useRef(music);
   musicRef.current = music;
 
-  const open = useCallback((item: SpotifyItem) => {
+  const playWhenReady = useRef(false);
+
+  const open = useCallback((item: SpotifyItem, options: OpenOptions = {}) => {
     musicRef.current.pause(); // never two songs at once
+    playWhenReady.current = Boolean(options.play);
     setCurrent(item);
-    setExpanded(true);
+    setExpanded(!options.quiet);
   }, []);
 
   const close = useCallback(() => {
@@ -144,6 +162,10 @@ export function SpotifyProvider({ children }: { children: ReactNode }) {
     if (!current) return;
     if (controllerRef.current) {
       controllerRef.current.loadUri(current.uri);
+      if (playWhenReady.current) {
+        playWhenReady.current = false;
+        controllerRef.current.play();
+      }
       return;
     }
     let cancelled = false;
@@ -168,6 +190,10 @@ export function SpotifyProvider({ children }: { children: ReactNode }) {
               if (!isPaused) musicRef.current.pause();
             });
             setMode('api');
+            if (playWhenReady.current) {
+              playWhenReady.current = false;
+              controller.play();
+            }
           },
         );
       })

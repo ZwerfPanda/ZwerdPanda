@@ -45,12 +45,14 @@ export const defaultProfile: Profile = {
   startDate: null,
   counterMode: 'ymd',
   theme: 'blush',
+  // Bruno Mars — Risk It All
+  openingSong: 'https://open.spotify.com/track/5y2ijHECwFYWqcAHKTZgzD',
 };
 
 export const defaultAlbums: Album[] = [
   { id: 'album-dates', name: 'Onze dates' },
   { id: 'album-silly', name: 'Gekke momentjes' },
-  { id: 'album-her', name: 'Zij' },
+  { id: 'album-her', name: 'Jij ♡' },
   { id: 'album-us', name: 'Wij' },
   { id: 'album-adventures', name: 'Onze avonturen' },
   { id: 'album-everyday', name: 'Kleine alledaagse momentjes' },
@@ -172,7 +174,7 @@ const memories: Memory[] = (
     {
       id: 'mem-matcha',
       caption: 'Vanilla matcha, extra siroop',
-      note: 'Haar bestelling. Non-negotiable.',
+      note: 'Jouw bestelling. Non-negotiable.',
       albumIds: ['album-dates', 'album-her'],
       media: { type: 'sample', art: 'matcha' },
       favorite: true,
@@ -504,6 +506,17 @@ export const defaultHer: HerSpace = {
   ],
   selfCareDone: { date: '', items: [] },
   coco: true,
+  music: [],
+  notes: [],
+  nails: {
+    current: {
+      id: 'nails-current',
+      shape: 'almond',
+      colors: ['#f2b8c6', '#f2b8c6', '#f2b8c6', '#f2b8c6', '#f2b8c6'],
+      art: ['none', 'none', 'heart', 'none', 'none'],
+    },
+    saved: [],
+  },
   journal: [],
   bucket: [],
   goals: [],
@@ -521,6 +534,16 @@ export function cloneHer(her: HerSpace): HerSpace {
     affirmations: [...her.affirmations],
     selfCare: [...her.selfCare],
     selfCareDone: { ...her.selfCareDone, items: [...her.selfCareDone.items] },
+    music: her.music.map((m) => ({ ...m })),
+    notes: her.notes.map((n) => ({ ...n })),
+    nails: {
+      current: {
+        ...her.nails.current,
+        colors: [...her.nails.current.colors],
+        art: [...her.nails.current.art],
+      },
+      saved: her.nails.saved.map((n) => ({ ...n, colors: [...n.colors], art: [...n.art] })),
+    },
     journal: her.journal.map((j) => ({ ...j })),
     bucket: her.bucket.map((b) => ({ ...b })),
     goals: her.goals.map((g) => ({ ...g, steps: g.steps.map((s) => ({ ...s })) })),

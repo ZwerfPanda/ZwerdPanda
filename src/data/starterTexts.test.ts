@@ -40,3 +40,27 @@ describe('starter texts', () => {
     expect(c.surprises.reasons.at(-1)).toBe('Gewoon omdat.');
   });
 });
+
+describe('talking to her', () => {
+  it('turns untouched museum texts from “haar” into “jij”', () => {
+    const raw = createDefaultContent();
+    raw.museum.stops = raw.museum.stops.map((s) =>
+      s.id === 'stop-sisi'
+        ? {
+            ...s,
+            story: 'Onze bubble tea-plek. Zij neemt altijd hetzelfde.',
+            details: ['Haar order: jasmine bubble tea met tapioca-balletjes'],
+          }
+        : s.id === 'stop-pathe'
+          ? { ...s, story: 'Ik schreef dit zelf.' }
+          : s,
+    );
+    raw.albums = raw.albums.map((a) => (a.id === 'album-her' ? { ...a, name: 'Zij' } : a));
+    const c = normalizeContent(raw);
+    const sisi = c.museum.stops.find((s) => s.id === 'stop-sisi')!;
+    expect(sisi.story).toContain('Jij neemt altijd hetzelfde');
+    expect(sisi.details[0]).toBe('Jouw order: jasmine bubble tea met tapioca-balletjes');
+    expect(c.museum.stops.find((s) => s.id === 'stop-pathe')!.story).toBe('Ik schreef dit zelf.');
+    expect(c.albums.find((a) => a.id === 'album-her')!.name).toBe('Jij ♡');
+  });
+});

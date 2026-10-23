@@ -137,3 +137,160 @@
   font-size: 1.3rem;
   color: rgba(255, 236, 220, 0.66);
 }
+
+.intro__quiet {
+  display: block;
+  margin: 12px auto 0;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: rgba(255, 244, 234, 0.7);
+  font: inherit;
+  font-size: 0.88rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ---------------------------------------------------------- time travel */
+
+.tt {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 14px;
+  width: min(100%, 560px);
+  min-height: 100%;
+  cursor: pointer;
+}
+
+.tt__tunnel {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.tt__tunnel span {
+  position: absolute;
+  width: 40vmin;
+  height: 40vmin;
+  border-radius: 50%;
+  border: 2px solid rgba(248, 230, 187, 0.4);
+  box-shadow:
+    0 0 30px rgba(212, 141, 150, 0.35),
+    inset 0 0 30px rgba(142, 124, 195, 0.3);
+  opacity: 0;
+  animation: tt-ring 1.6s ease-out forwards;
+}
+
+@keyframes tt-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+.tt__eyebrow {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: 1.35rem;
+  color: #f8e6bb;
+  letter-spacing: 0.02em;
+}
+
+.tt__chapter {
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+  margin: 0;
+  width: 100%;
+}
+
+.tt__frame {
+  width: min(100%, 440px);
+  aspect-ratio: 480 / 400;
+  overflow: hidden;
+  border-radius: 26px;
+  background: #fffaf3;
+  box-shadow:
+    0 0 0 4px rgba(255, 244, 234, 0.9),
+    0 30px 80px -20px rgba(0, 0, 0, 0.6),
+    0 0 60px rgba(212, 141, 150, 0.35);
+}
+
+.tt__frame > svg,
+.tt__frame .tt-art,
+.tt__frame .tt-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tt__frame .tt-art svg {
+  object-fit: cover;
+}
+
+.tt__caption {
+  max-width: 30ch;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 4.6vw, 1.5rem);
+  font-style: italic;
+  line-height: 1.4;
+  color: #fff4ea;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+}
+
+.tt__dots {
+  display: flex;
+  gap: 6px;
+}
+
+.tt__dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 244, 234, 0.25);
+  transition: background-color 0.4s ease;
+}
+
+.tt__dots span.is-on {
+  background: #f8e6bb;
+}
+
+.tt__hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(255, 244, 234, 0.55);
+}
+
+.tt__end {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+}
+
+.tt__welcome {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 9vw, 3.4rem);
+  font-weight: 500;
+  font-style: italic;
+  line-height: 1.1;
+  color: #fff4ea;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt__tunnel span {
+    animation: none;
+  }
+}
