@@ -161,8 +161,55 @@ const STOPS_V1: Record<string, { story: string; place?: string; details: string[
 const sameList = (a: string[], b: string[]) =>
   a.length === b.length && a.every((x, i) => x === b[i]);
 
-const swap = (value: string, old: string | undefined, next: string) =>
-  old !== undefined && value === old ? next : value;
+const swap = (
+  value: string,
+  old: string | undefined | readonly (string | undefined)[],
+  next: string,
+) => {
+  const olds = Array.isArray(old) ? old : [old];
+  return olds.some((o) => o !== undefined && value === o) ? next : value;
+};
+
+/**
+ * The Dutch wording as it shipped before it was rewritten in his own voice.
+ * A device still holding one of these (unedited) gets the new, personal
+ * version — the same way the English originals were upgraded to Dutch.
+ */
+const DUTCH_V1 = {
+  subtitle: 'Een kleine wereld die van ons is.',
+  homeMessage:
+    'Ik heb dit plekje voor ons gemaakt. Voor de herinneringen die we al hebben, de dingen die we nog aan het uitvogelen zijn, en alles wat we nog niet gedaan hebben.\n\nHet is niet perfect — wij ook niet — maar het is van ons. Kijk rond, neem je tijd, en open wat je nieuwsgierig maakt.',
+  signature: 'Made with love door Valencio',
+  welcome:
+    'Ik heb dit kleine universe voor ons gemaakt. Alles hierin is van ons — ons verhaal, onze plekjes, onze brieven en onze plannen. Kijk rond, voeg dingen toe, en voel je thuis.',
+  giftMessage:
+    'Er zit niks in behalve een reminder: er wordt heel, heel veel van je gehouden. Op de goede dagen, de moeilijke dagen, en alle dagen daartussen.',
+  secretNote:
+    'Psst. Je hebt de achterkant van de foto gevonden. Ik hoop dat je weet hoe leuk ik je vind.',
+  hiddenHeartNote:
+    'Je hebt een verstopt hartje gevonden. Er zijn er een paar in ons universe — geen haast, geen score. Gewoon kleine hellos.',
+  reasons: [
+    'Je lach. Eerlijk, misschien mijn favoriete geluid.',
+    'Hoe helemaal, unapologetically jezelf je bent.',
+    'Dat je vanilla matcha met extra siroop bestelt alsof het een karaktertrek is.',
+    'Hoe grappig je bent zonder dat je het probeert.',
+    'Hoe je voor Coco zorgt.',
+    'Je nagels. Elke set is een klein kunstwerkje.',
+    'Dat we ruzie kunnen hebben en toch altijd weer bij elkaar terugkomen.',
+    'Dat je nog steeds groeit — en dat je mij met je mee laat groeien.',
+    'Hoe je over de toekomst droomt — het huis, het gezin, alles.',
+    'Alle kleine dingen aan jou die niemand anders heeft.',
+  ],
+  stars: {
+    'star-1': 'De eerste keer dat ik je hoorde lachen.',
+    'star-2': 'Treinritjes die eindigden bij jou.',
+    'star-3': 'Vanilla matcha, extra siroop.',
+    'star-4': 'Karaoke, keihard.',
+    'star-5': 'Jou ophalen in mijn eigen auto.',
+    'star-6': 'Coco, onze kleine chaos.',
+    'star-7': 'Alles wat we nog niet gedaan hebben.',
+  },
+} as const;
 
 /** Untouched English starter texts → their Dutch versions. */
 export function refreshStarterTexts(c: AppContent): AppContent {
@@ -178,14 +225,27 @@ export function refreshStarterTexts(c: AppContent): AppContent {
   const lists = byId(d.lists);
   const stops = byId(d.museum.stops);
   const reasons = ENGLISH.reasons as readonly string[];
+  const reasonsV1 = DUTCH_V1.reasons as readonly string[];
 
   return {
     ...c,
     profile: {
       ...c.profile,
-      subtitle: swap(c.profile.subtitle, ENGLISH.profile.subtitle, d.profile.subtitle),
-      homeMessage: swap(c.profile.homeMessage, ENGLISH.profile.homeMessage, d.profile.homeMessage),
-      signature: swap(c.profile.signature, ENGLISH.profile.signature, d.profile.signature),
+      subtitle: swap(
+        c.profile.subtitle,
+        [ENGLISH.profile.subtitle, DUTCH_V1.subtitle],
+        d.profile.subtitle,
+      ),
+      homeMessage: swap(
+        c.profile.homeMessage,
+        [ENGLISH.profile.homeMessage, DUTCH_V1.homeMessage],
+        d.profile.homeMessage,
+      ),
+      signature: swap(
+        c.profile.signature,
+        [ENGLISH.profile.signature, DUTCH_V1.signature],
+        d.profile.signature,
+      ),
     },
     // Starter items stay samples until they're edited, so their text is still ours to update.
     milestones: c.milestones.map((m) => {
@@ -229,22 +289,39 @@ export function refreshStarterTexts(c: AppContent): AppContent {
       ...c.surprises,
       reasons: c.surprises.reasons.map((r) => {
         const i = reasons.indexOf(r);
-        return i >= 0 ? (d.surprises.reasons[i] ?? r) : r;
+        if (i >= 0) return d.surprises.reasons[i] ?? r;
+        const j = reasonsV1.indexOf(r);
+        return j >= 0 ? (d.surprises.reasons[j] ?? r) : r;
       }),
-      giftMessage: swap(c.surprises.giftMessage, ENGLISH.giftMessage, d.surprises.giftMessage),
+      giftMessage: swap(
+        c.surprises.giftMessage,
+        [ENGLISH.giftMessage, DUTCH_V1.giftMessage],
+        d.surprises.giftMessage,
+      ),
       stars: c.surprises.stars.map((s) => {
         const next = stars.get(s.id);
         return next
           ? {
               ...s,
-              text: swap(s.text, ENGLISH.stars[s.id as keyof typeof ENGLISH.stars], next.text),
+              text: swap(
+                s.text,
+                [
+                  ENGLISH.stars[s.id as keyof typeof ENGLISH.stars],
+                  DUTCH_V1.stars[s.id as keyof typeof DUTCH_V1.stars],
+                ],
+                next.text,
+              ),
             }
           : s;
       }),
-      secretNote: swap(c.surprises.secretNote, ENGLISH.secretNote, d.surprises.secretNote),
+      secretNote: swap(
+        c.surprises.secretNote,
+        [ENGLISH.secretNote, DUTCH_V1.secretNote],
+        d.surprises.secretNote,
+      ),
       hiddenHeartNote: swap(
         c.surprises.hiddenHeartNote,
-        ENGLISH.hiddenHeartNote,
+        [ENGLISH.hiddenHeartNote, DUTCH_V1.hiddenHeartNote],
         d.surprises.hiddenHeartNote,
       ),
     },
@@ -262,7 +339,10 @@ export function refreshStarterTexts(c: AppContent): AppContent {
       }),
     },
     pet: { ...c.pet, coat: swap(c.pet.coat, ENGLISH.coat, d.pet.coat) },
-    welcome: { ...c.welcome, message: swap(c.welcome.message, ENGLISH.welcome, d.welcome.message) },
+    welcome: {
+      ...c.welcome,
+      message: swap(c.welcome.message, [ENGLISH.welcome, DUTCH_V1.welcome], d.welcome.message),
+    },
     lists: c.lists.map((l) => {
       const next = lists.get(l.id);
       return next

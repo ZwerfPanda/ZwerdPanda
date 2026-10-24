@@ -37,11 +37,11 @@ export const defaultProfile: Profile = {
   yourName: 'Valencio',
   partnerName: 'Shenaya',
   siteTitle: 'Our Little Universe',
-  subtitle: 'Een kleine wereld die van ons is.',
-  homeGreeting: 'Hey Shenaya,',
+  subtitle: 'ons eigen kleine wereldje.. alleen voor ons twee ♡',
+  homeGreeting: 'hey liefje,',
   homeMessage:
-    'Ik heb dit plekje voor ons gemaakt. Voor de herinneringen die we al hebben, de dingen die we nog aan het uitvogelen zijn, en alles wat we nog niet gedaan hebben.\n\nHet is niet perfect — wij ook niet — maar het is van ons. Kijk rond, neem je tijd, en open wat je nieuwsgierig maakt.',
-  signature: 'Made with love door Valencio',
+    'ik heb dit kleine plekje helemaal voor ons gemaakt.. voor alle momentjes die we al samen hebben, de dingen die we nog aan t uitvogelen zijn, en alles wat we nog gaan doen.\n\nt is niet perfect.. wij ook niet haha.. maar t is wel van ons. kijk rustig rond schatje, neem je tijd, en open gewoon wat je leuk lijkt ♡',
+  signature: 'met heel veel liefde voor jou gemaakt.. - V',
   startDate: null,
   counterMode: 'ymd',
   theme: 'blush',
@@ -66,7 +66,7 @@ const milestones: Milestone[] = (
       id: 'ms-livestream',
       title: 'Twee vreemden in een livestream',
       story:
-        'Het begon ergens waar we het allebei niet verwachtten: een TikTok-livestream. Twee mensen op verschillende plekken, typend in hetzelfde kleine chatje. Geen van ons wist dat het het begin van iets was.',
+        't begon ergens waar we t allebei totaal niet verwachtten.. een TikTok live. twee mensen op hele verschillende plekken, typend in t zelfde kleine chatje. niemand van ons wist toen dat dit t begin van iets was ♡',
       prompt: 'Wat weet je nog van de allereerste keer dat jullie praatten?',
       motif: 'phone',
       media: [{ type: 'sample', art: 'phone' }],
@@ -76,7 +76,7 @@ const milestones: Milestone[] = (
       id: 'ms-meeting',
       title: 'Voor het eerst in het echt',
       story:
-        'Na al dat praten via een scherm stonden we eindelijk voor het eerst op dezelfde plek. Geen username meer — gewoon jij.',
+        'na al dat praten via een schermpje stonden we eindelijk voor t eerst op dezelfde plek. geen username meer.. gewoon jij.',
       prompt: 'Voeg de datum toe, de plek, en het eerste wat je opviel.',
       motif: 'sparkle',
       media: [{ type: 'sample', art: 'meet' }],
@@ -86,7 +86,7 @@ const milestones: Milestone[] = (
       id: 'ms-first-date',
       title: 'Onze eerste date in het winkelcentrum',
       story:
-        'Onze eerste date was in een winkelcentrum. Een gewone plek op een niet-zo-gewone dag.',
+        'onze eerste echte date was gewoon in een winkelcentrum. een hele normale plek, op een niet-zo-normale dag ♡',
       prompt: 'Wat deden we? Wat aten we? Wie was er zenuwachtiger?',
       motif: 'bag',
       media: [{ type: 'sample', art: 'mall' }],
@@ -96,7 +96,7 @@ const milestones: Milestone[] = (
       id: 'ms-our-things',
       title: 'Matcha, arcades & karaoke',
       story:
-        'Vanilla matcha met extra siroop — altijd extra. Bubble tea. Arcadekasten. Karaoke. Heel veel lachen. Ergens onderweg werden dit stilletjes onze dingen.',
+        'vanilla matcha met extra siroop — altijd extra. bubble tea. arcadekasten. karaoke. heel veel lachen. ergens onderweg werden dit stilletjes gewoon onze dingen ♡',
       prompt: 'Voeg een favoriete foto van een van deze dates toe.',
       motif: 'matcha',
       media: [
@@ -110,7 +110,7 @@ const milestones: Milestone[] = (
       id: 'ms-train',
       title: 'Het trein & metro-tijdperk',
       story:
-        'Een tijdje betekende jou zien: de trein en de metro naar Den Haag. Perrons, overstappen, oortjes in, haltes tellen. Elke reis eindigde bij jou.',
+        'een tijdje betekende jou zien: de trein en de metro naar Den Haag. perrons, overstappen, oortjes in, haltes tellen.. en elke reis eindigde bij jou.',
       prompt: 'Een liedje dat je onderweg luisterde? Een reis die je nog weet?',
       motif: 'train',
       media: [{ type: 'sample', art: 'train' }],
@@ -120,7 +120,7 @@ const milestones: Milestone[] = (
       id: 'ms-car',
       title: 'Jou zelf ophalen',
       story:
-        'Toen veranderde er iets: ik kreeg een auto. Geen dienstregelingen meer — gewoon ik die voor de deur stopt om jou op te halen. Iets kleins, en een groot gevoel.',
+        'en toen veranderde er iets.. ik kreeg een auto. geen dienstregelingen meer — gewoon ik die voor je deur stopt om je op te halen. iets kleins, en zo’n groot gevoel ♡',
       prompt: 'Wanneer was de eerste keer ophalen? Waar gingen we heen?',
       motif: 'car',
       media: [{ type: 'sample', art: 'car' }],
@@ -130,7 +130,7 @@ const milestones: Milestone[] = (
       id: 'ms-growing',
       title: 'Elkaar leren kennen',
       story:
-        'We hebben ups en downs gehad. Ruzies waar we doorheen moesten, fouten waar ik niet trots op ben, en dingen die we allebei nog leren. Dit hoofdstuk is niet het mooiste, maar het is echt — en we zijn er nog, en kiezen nog steeds voor elkaar.',
+        'we hebben ups en downs gehad. ruzies waar we doorheen moesten, fouten waar ik niet trots op ben, en dingen die we allebei nog aan t leren zijn. dit hoofdstukje is niet t mooiste.. maar t is wel echt. en we zijn er nog, en kiezen nog steeds elke dag voor elkaar ♡',
       prompt: 'Iets wat jullie van elkaar geleerd hebben (alleen wat jullie allebei hier willen).',
       motif: 'leaf',
       media: [{ type: 'sample', art: 'growth' }],
@@ -140,7 +140,7 @@ const milestones: Milestone[] = (
       id: 'ms-coco',
       title: 'Life with Coco',
       story:
-        'En toen was er Coco — ons kleine dwergkonijntje, en het nieuwste lid van ons mini-gezinnetje.',
+        'en toen was er Coco.. ons kleine dwergkonijntje, en t nieuwste lid van ons mini-gezinnetje 🐰',
       prompt: 'De dag dat Coco thuiskwam, en de eerste foto van Coco met ons.',
       motif: 'rabbit',
       media: [{ type: 'sample', art: 'coco' }],
@@ -150,7 +150,7 @@ const milestones: Milestone[] = (
       id: 'ms-home',
       title: 'Een thuis, en misschien een gezin',
       story:
-        'We zoeken samen een thuis, en dromen over het gezin dat we ooit misschien hebben. Geen haast — gewoon samen dromen.',
+        'we zoeken samen een thuis, en dromen over t gezin dat we ooit misschien hebben. geen haast.. gewoon samen dromen ♡',
       prompt: 'Hoe ziet thuis eruit voor ieder van ons?',
       motif: 'house',
       media: [{ type: 'sample', art: 'house' }],
@@ -160,7 +160,7 @@ const milestones: Milestone[] = (
       id: 'ms-unwritten',
       title: 'Hoofdstukken die we nog moeten schrijven',
       story:
-        'Deze pagina is expres leeg. De meeste herinneringen liggen waarschijnlijk nog voor ons.',
+        'dit pagina’tje is expres nog leeg. de meeste herinneringen liggen denk ik gewoon nog voor ons ♡',
       motif: 'star',
       media: [{ type: 'sample', art: 'future' }],
       favorite: false,
@@ -252,8 +252,8 @@ const letters: Letter[] = (
       occasion: 'you miss me',
       color: 'blush',
       seal: 'heart',
-      body: 'Hey you,\n\nAls je dit openmaakt, mis je me waarschijnlijk. Zodat je het weet — ik mis jou ook. Waarschijnlijk meer, maar deze laat ik je winnen.\n\nWeet je nog dat naar jou toe gaan betekende: een trein, dan de metro, dan haltes tellen? Elke van die reizen eindigde bij jou.\n\nDus bel me. Stuur me iets doms. Stuur een foto van Coco. Wat je ook nodig hebt — ik ben nooit echt ver weg.',
-      signature: 'Yours, Valencio',
+      body: 'hey jij..\n\nals je dit openmaakt mis je me waarschijnlijk. nou.. zodat je t weet, ik mis jou ook. waarschijnlijk zelfs meer, maar deze keer laat ik je gewoon winnen.\n\nweet je nog dat naar jou toe gaan betekende: een treintje, dan de metro, dan haltes tellen? elk van die reisjes eindigde bij jou.\n\ndus bel me gewoon. stuur me iets doms. stuur een fotootje van Coco. wat je ook nodig hebt.. ik ben nooit echt ver weg ♡',
+      signature: '- jouw V',
       lock: { type: 'none' },
     },
     {
@@ -261,8 +261,8 @@ const letters: Letter[] = (
       occasion: 'you need a reason to smile',
       color: 'peach',
       seal: 'star',
-      body: 'Oké, smile check.\n\nHier is een reden: je lach. Ik denk niet dat je beseft hoeveel ik ervan hou. Het is een van mijn favoriete geluiden, en ik maak mezelf graag belachelijk om hem te horen.\n\nNog eentje: stel je Coco voor die nu letterlijk wat dan ook doet.\n\nEn nog één: ergens is er een vanilla matcha met extra siroop waar jouw naam op staat.\n\nZie je? Told you.',
-      signature: '— V',
+      body: 'oke.. smile check 🙂\n\nhier is een reden: je lach. ik denk niet dat je echt doorhebt hoeveel ik ervan hou. t is een van mn favoriete geluiden, en ik maak mezelf met alle liefde belachelijk om m te horen.\n\nnog eentje: stel je Coco even voor die nu letterlijk wat dan ook aan t doen is.\n\nen nog één: ergens staat er een vanilla matcha met extra siroop met jouw naam erop.\n\nzie je wel? told you ♡',
+      signature: '- V',
       lock: { type: 'none' },
     },
     {
@@ -270,8 +270,8 @@ const letters: Letter[] = (
       occasion: 'we have argued',
       color: 'lavender',
       seal: 'moon',
-      body: 'Hey.\n\nAls je dit leest, hebben we waarschijnlijk net ruzie gehad. Misschien zei ik iets verkeerds. Misschien wij allebei.\n\nIk weet dat ik het niet altijd goed heb gedaan. Ik heb fouten gemaakt, en ik leer nog steeds hoe het beter kan — voor jou, en voor ons. Maar ik ga liever samen met jou door de moeilijke dingen dan dat ik makkelijke dingen heb met iemand anders.\n\nNeem de tijd die je nodig hebt. Als je er klaar voor bent, ben ik hier. Geen winnen, geen verliezen. Gewoon wij, die het weer samen uitzoeken.',
-      signature: 'Always, Valencio',
+      body: 'hey..\n\nals je dit leest hebben we waarschijnlijk net ruzie gehad. misschien zei ik iets verkeerds. misschien wij allebei.\n\nik weet dat ik t niet altijd goed doe. ik heb fouten gemaakt, en ik leer nog steeds hoe t beter kan.. voor jou, en voor ons. maar ik ga echt liever samen met jou door de moeilijke dingen heen dan dat ik makkelijke dingen heb met iemand anders.\n\nneem de tijd die je nodig hebt. als je er klaar voor bent, ben ik hier. geen winnen, geen verliezen. gewoon wij, die t weer samen uitzoeken ♡',
+      signature: '- altijd, V',
       lock: { type: 'none' },
     },
     {
@@ -279,8 +279,8 @@ const letters: Letter[] = (
       occasion: 'you need a hug',
       color: 'cream',
       seal: 'rabbit',
-      body: 'Zie dit als een knuffel in briefvorm.\n\nArmen om je heen. Zo’n lange knuffel, waarbij niemand van ons als eerste wil loslaten.\n\nKom me nu zoeken en haal de echte op.',
-      signature: 'Love, Valencio',
+      body: 'zie dit maar als een knuffel in briefvorm 🫂\n\narmen helemaal om je heen. zo’n lange knuffel waarbij niemand van ons als eerste wil loslaten.\n\nkom me nu gewoon zoeken en haal de echte even op ♡',
+      signature: '- V',
       lock: { type: 'hold' },
     },
     {
@@ -288,8 +288,8 @@ const letters: Letter[] = (
       occasion: "you're having a difficult day",
       color: 'sage',
       seal: 'flower',
-      body: 'Hey, love.\n\nVandaag klinkt zwaar. Je hoeft het niet uit te leggen, en je hoeft nu niet oké te zijn.\n\nDoe één klein ding voor jezelf: drink wat water, kruip onder een dekentje, zet iets fijns op. Vertel me dan wat je nodig hebt — praten, afleiding, of gewoon dat ik er ben.\n\nSlechte dagen gaan voorbij. Deze ook. En je hoeft er niet alleen doorheen.',
-      signature: 'Hier voor jou, Valencio',
+      body: 'hey liefje..\n\nvandaag klinkt zwaar. je hoeft t niet uit te leggen, en je hoeft nu even niet oké te zijn.\n\ndoe gewoon één klein dingetje voor jezelf: drink wat water, kruip onder een dekentje, zet iets fijns op. en vertel me dan wat je nodig hebt.. praten, afleiding, of gewoon dat ik er ben.\n\nslechte dagen gaan voorbij. deze ook. en je hoeft er echt niet alleen doorheen ♡',
+      signature: '- hier voor jou, V',
       lock: { type: 'none' },
     },
     {
@@ -297,8 +297,8 @@ const letters: Letter[] = (
       occasion: 'you want to dream about our future',
       color: 'plum',
       seal: 'star',
-      body: 'Doe je ogen even dicht.\n\nEen plek die van ons is. Onze namen op de deur. Coco die rondjes rent door de woonkamer. Jouw nagelspullen die een hele tafel overnemen (het is oké, ik heb het geaccepteerd).\n\nIk weet nog niet precies hoe het eruit gaat zien, of wanneer. Maar ik droom er zo graag over met jou — het huis, het gezin, alles.\n\nWe bouwen het stukje bij beetje. En ik ben echt blij dat het met jou is.',
-      signature: 'Yours, Valencio',
+      body: 'doe je oogjes even dicht..\n\neen plekje dat helemaal van ons is. onze namen op de deur. Coco die rondjes rent door de woonkamer. jouw nagelspullen die de hele tafel overnemen (t is oké, ik heb t geaccepteerd haha).\n\nik weet nog niet precies hoe t eruit gaat zien, of wanneer. maar ik droom er zo graag over met jou.. t huis, t gezin, alles.\n\nwe bouwen t gewoon stukje bij beetje. en ik ben echt zo blij dat t met jou is ♡',
+      signature: '- jouw V',
       lock: { type: 'none' },
     },
   ] satisfies Seed<Letter, 'recipient' | 'status'>[]
@@ -377,32 +377,32 @@ const dreams: Dream[] = (
 
 export const defaultSurprises: SurpriseContent = {
   reasons: [
-    'Je lach. Eerlijk, misschien mijn favoriete geluid.',
-    'Hoe helemaal, unapologetically jezelf je bent.',
-    'Dat je vanilla matcha met extra siroop bestelt alsof het een karaktertrek is.',
-    'Hoe grappig je bent zonder dat je het probeert.',
-    'Hoe je voor Coco zorgt.',
-    'Je nagels. Elke set is een klein kunstwerkje.',
-    'Dat we ruzie kunnen hebben en toch altijd weer bij elkaar terugkomen.',
-    'Dat je nog steeds groeit — en dat je mij met je mee laat groeien.',
-    'Hoe je over de toekomst droomt — het huis, het gezin, alles.',
-    'Alle kleine dingen aan jou die niemand anders heeft.',
+    'je lach echt.. tbh misschien wel mn favoriete geluid op aarde',
+    'hoe je gewoon helemaal jezelf bent, zonder sorry te zeggen',
+    'dat je vanilla matcha met extra siroop bestelt alsof t een karaktertrek is 🍵',
+    'hoe grappig je bent zonder dat je t eens probeert',
+    'hoe lief je voor Coco zorgt',
+    'je nageltjes.. elke set is echt een klein kunstwerkje',
+    'dat we ruzie kunnen hebben en toch altijd weer bij elkaar terugkomen',
+    'dat je nog steeds groeit.. en dat je mij met je mee laat groeien',
+    'hoe je over later droomt — t huis, t gezin, alles',
+    'alle kleine dingetjes aan jou die niemand anders heeft',
   ],
   giftMessage:
-    'Er zit niks in behalve een reminder: er wordt heel, heel veel van je gehouden. Op de goede dagen, de moeilijke dagen, en alle dagen daartussen.',
+    'er zit hier verder niks in behalve een klein remindertje.. er wordt echt heel heel veel van je gehouden. op de goeie dagen, de moeilijke dagen, en alle dagen daartussenin ♡',
   stars: [
-    { id: 'star-1', text: 'De eerste keer dat ik je hoorde lachen.' },
-    { id: 'star-2', text: 'Treinritjes die eindigden bij jou.' },
-    { id: 'star-3', text: 'Vanilla matcha, extra siroop.' },
-    { id: 'star-4', text: 'Karaoke, keihard.' },
-    { id: 'star-5', text: 'Jou ophalen in mijn eigen auto.' },
-    { id: 'star-6', text: 'Coco, onze kleine chaos.' },
-    { id: 'star-7', text: 'Alles wat we nog niet gedaan hebben.' },
+    { id: 'star-1', text: 'de eerste keer dat ik je hoorde lachen' },
+    { id: 'star-2', text: 'treinritjes die altijd bij jou eindigden' },
+    { id: 'star-3', text: 'vanilla matcha, extra siroop' },
+    { id: 'star-4', text: 'karaoke, keihard meezingen' },
+    { id: 'star-5', text: 'jou zelf ophalen in mn eigen auto' },
+    { id: 'star-6', text: 'Coco, onze kleine chaos' },
+    { id: 'star-7', text: 'alles wat we nog niet gedaan hebben' },
   ],
   secretNote:
-    'Psst. Je hebt de achterkant van de foto gevonden. Ik hoop dat je weet hoe leuk ik je vind.',
+    'psst.. je hebt de achterkant van de foto gevonden. ik hoop dat je gewoon weet hoe leuk ik je eigenlijk vind ♡',
   hiddenHeartNote:
-    'Je hebt een verstopt hartje gevonden. Er zijn er een paar in ons universe — geen haast, geen score. Gewoon kleine hellos.',
+    'je hebt een verstopt hartje gevonden 🫶 er zitten er een paar verstopt in ons universe.. geen haast, geen score. gewoon kleine hallootjes van mij.',
 };
 
 export const defaultCoco: CocoContent = {
@@ -436,7 +436,7 @@ export const defaultWelcome: Welcome = {
   enabled: true,
   title: '',
   message:
-    'Ik heb dit kleine universe voor ons gemaakt. Alles hierin is van ons — ons verhaal, onze plekjes, onze brieven en onze plannen. Kijk rond, voeg dingen toe, en voel je thuis.',
+    'welkom in ons kleine universe liefje.. ik heb dit helemaal voor ons twee gemaakt. alles hierin is van ons — ons verhaaltje, onze plekjes, de brieven en al onze plannetjes. kijk gewoon lekker rond, voeg van alles toe, en voel je helemaal thuis hier ♡',
   signature: '',
 };
 

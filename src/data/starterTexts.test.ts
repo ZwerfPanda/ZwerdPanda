@@ -18,13 +18,32 @@ function englishContent() {
 describe('starter texts', () => {
   it('turns untouched English starter texts into Dutch', () => {
     const c = normalizeContent(englishContent());
-    expect(c.profile.subtitle).toBe('Een kleine wereld die van ons is.');
+    expect(c.profile.subtitle).toBe('ons eigen kleine wereldje.. alleen voor ons twee ♡');
     expect(c.albums.find((a) => a.id === 'album-dates')?.name).toBe('Onze dates');
     expect(c.milestones.find((m) => m.id === 'ms-meeting')?.title).toBe(
       'Voor het eerst in het echt',
     );
-    expect(c.surprises.reasons[0]).toBe('Je lach. Eerlijk, misschien mijn favoriete geluid.');
+    expect(c.surprises.reasons[0]).toBe(
+      'je lach echt.. tbh misschien wel mn favoriete geluid op aarde',
+    );
     expect(c.lists[0].title).toBe('Babynamen die we mooi vinden');
+  });
+
+  it('upgrades the previous Dutch wording to his own voice', () => {
+    const c = createDefaultContent();
+    // What her phone held before the his-voice rewrite.
+    c.profile.subtitle = 'Een kleine wereld die van ons is.';
+    c.profile.signature = 'Made with love door Valencio';
+    c.surprises.reasons[0] = 'Je lach. Eerlijk, misschien mijn favoriete geluid.';
+    c.surprises.secretNote =
+      'Psst. Je hebt de achterkant van de foto gevonden. Ik hoop dat je weet hoe leuk ik je vind.';
+    const out = normalizeContent(c);
+    expect(out.profile.subtitle).toBe('ons eigen kleine wereldje.. alleen voor ons twee ♡');
+    expect(out.profile.signature).toBe('met heel veel liefde voor jou gemaakt.. - V');
+    expect(out.surprises.reasons[0]).toBe(
+      'je lach echt.. tbh misschien wel mn favoriete geluid op aarde',
+    );
+    expect(out.surprises.secretNote).toContain('hoe leuk ik je eigenlijk vind');
   });
 
   it('leaves what we wrote or edited alone', () => {
