@@ -254,6 +254,9 @@ $$;
 -- p_expected_version = 0 creates the first copy.
 -- Returns saved = false plus the current copy when someone else was faster,
 -- so the app can merge both sets of changes and try again.
+-- The site's own texts ("texts": his wording for titles and sentences) can
+-- only be changed by the person who created the universe: anyone else's save
+-- keeps them exactly as they were.
 create or replace function public.save_content(p_space uuid, p_expected_version bigint, p_content jsonb)
 returns table (saved boolean, new_version bigint, current_content jsonb)
 language plpgsql
@@ -262,6 +265,7 @@ set search_path = public
 as $$
 declare
   v_row public.space_content%rowtype;
+  v_owner boolean;
 begin
   if not public.is_member(p_space) then
     raise exception 'Not part of this universe.' using errcode = '42501';
@@ -273,12 +277,17 @@ begin
     raise exception 'Content is too large.' using errcode = '54000';
   end if;
 
+  select (s.created_by = auth.uid()) into v_owner from public.spaces s where s.id = p_space;
+
   select * into v_row from public.space_content where space_id = p_space for update;
 
   if not found then
     if p_expected_version <> 0 then
       return query select false, 0::bigint, null::jsonb;
       return;
+    end if;
+    if not coalesce(v_owner, false) then
+      p_content := p_content - 'texts';
     end if;
     insert into public.space_content (space_id, content, version, updated_by)
     values (p_space, p_content, 1, auth.uid());
@@ -289,6 +298,13 @@ begin
   if v_row.version <> p_expected_version then
     return query select false, v_row.version, v_row.content;
     return;
+  end if;
+
+  if not coalesce(v_owner, false) then
+    p_content := case
+      when v_row.content ? 'texts' then jsonb_set(p_content, '{texts}', v_row.content -> 'texts')
+      else p_content - 'texts'
+    end;
   end if;
 
   -- Keep the copy we're about to replace: once an hour while things change,

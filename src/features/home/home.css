@@ -957,6 +957,10 @@
   transform: rotate(160deg);
 }
 
+.ex-sticker--cinema:hover svg {
+  transform: translateY(-4px) rotate(-5deg) scale(1.05);
+}
+
 .ex-sticker--coco:hover svg {
   transform: translateY(-4px) rotate(-6deg);
 }

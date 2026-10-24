@@ -23,6 +23,31 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-4',
+    when: 'oktober 2026',
+    title: 'Onze eigen bioscoop',
+    items: [
+      {
+        emoji: '🍿',
+        title: 'Onze bioscoop',
+        text: 'Zet filmpjes van ons op het grote doek: met poster, kaartje, snacks, gordijn en aftiteling.',
+        path: '/cinema',
+      },
+      {
+        emoji: '⭐',
+        title: 'Sterren & recensies',
+        text: 'Geef elke film je sterren. De best beoordeelde wint De Gouden Popcorn.',
+        path: '/cinema',
+      },
+      {
+        emoji: '🧍',
+        title: 'Mini Us naar de film',
+        text: 'Mini Us kunnen nu ook voor de bioscoop staan.',
+        path: '/us',
+      },
+    ],
+  },
+  {
     id: '2026-10-3',
     when: 'oktober 2026',
     title: 'Onze agenda & warmere naampjes',

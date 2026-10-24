@@ -1,6 +1,7 @@
 import {
   BookHeart,
   CalendarDays,
+  Clapperboard,
   TrainFront,
   Flower,
   Flower2,
@@ -229,6 +230,15 @@ export const SECTIONS: Section[] = [
     blurb: 'Jubileums, verjaardagen, dates & afspraken',
     icon: CalendarDays,
     tint: '#d7e8ff',
+  },
+  {
+    path: '/cinema',
+    group: 'together',
+    label: 'Onze Bioscoop',
+    short: 'Bioscoop',
+    blurb: 'Filmpjes van ons op het grote doek, met popcorn',
+    icon: Clapperboard,
+    tint: '#ffd1dc',
   },
   {
     path: '/museum',

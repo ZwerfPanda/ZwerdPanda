@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createDefaultContent } from '../data/defaults';
 import { normalizeContent } from '../data/normalize';
+import { textId } from '../data/texts';
 import type { AppContent, Memory } from '../data/types';
 import { SyncEngine } from './engine';
 import { stableEqual } from './merge';
@@ -372,7 +373,17 @@ describe('an older app on the other phone', () => {
   /** What the app from before this update saves: only the parts it knows. */
   const asOldApp = (content: AppContent) => {
     const c = JSON.parse(JSON.stringify(content));
-    for (const key of ['schema', 'flowers', 'coupons', 'pings', 'daily', 'datePlans', 'agenda'])
+    for (const key of [
+      'schema',
+      'flowers',
+      'coupons',
+      'pings',
+      'daily',
+      'datePlans',
+      'agenda',
+      'cinema',
+      'texts',
+    ])
       delete c[key];
     delete c.her.ideas;
     delete c.pet.careDays;
@@ -411,6 +422,20 @@ describe('an older app on the other phone', () => {
           createdAt: now,
         },
       ],
+      cinema: {
+        films: [
+          {
+            id: 'f-1',
+            title: 'Onze eerste film',
+            video: { type: 'local', mediaId: 'media-f1', kind: 'video' },
+            genre: 'romcom',
+            createdAt: now,
+          },
+        ],
+        ratings: [{ id: 'f-1:you', film: 'f-1', who: 'you', stars: 5, at: now }],
+        nights: [],
+      },
+      texts: [{ id: textId('Mini Us'), from: 'Mini Us', to: 'Mini Wij', at: now }],
       her: {
         ...c.her,
         ideas: [{ id: 'i-1', text: 'Meer Coco', status: 'new', createdAt: now }],
@@ -438,13 +463,17 @@ describe('an older app on the other phone', () => {
     expect(c.coupons.map((x) => x.id)).toEqual(['cp-1']);
     expect(c.datePlans.map((x) => x.id)).toEqual(['d-1']);
     expect(c.agenda.map((x) => x.id)).toEqual(['ag-1']);
+    expect(c.cinema.films.map((x) => x.id)).toEqual(['f-1']);
+    expect(c.cinema.ratings.map((x) => x.id)).toEqual(['f-1:you']);
+    expect(c.texts.map((x) => x.to)).toEqual(['Mini Wij']);
     expect(c.her.ideas.map((x) => x.id)).toEqual(['i-1']);
     expect(c.her.nails.saved[0].loved).toBe(now);
     expect(c.pet.careDays).toEqual(['2026-10-24']);
     expect(c.games.results.map((r) => r.id)).toEqual(['r-1']);
     // …and the server has them again, saved by the new app.
     const stored = JSON.parse([...server.rows.values()][0].json);
-    expect(stored.schema).toBe(3);
+    expect(stored.schema).toBe(4);
+    expect(stored.cinema.films).toHaveLength(1);
     expect(stored.flowers).toHaveLength(1);
     expect(stored.profile.subtitle).toBe('From the old app');
 

@@ -776,6 +776,74 @@ export interface AppContent {
   datePlans: DatePlan[];
   /** Our shared agenda: our own events, with times, next to everything dated. */
   agenda: AgendaItem[];
+  /** Our own cinema: films of ourselves, how we rated them, our film nights. */
+  cinema: Cinema;
+  /** His own wording for texts on the site (only he can change these). */
+  texts: TextEdit[];
+}
+
+export type FilmGenre =
+  | 'romcom'
+  | 'avontuur'
+  | 'komedie'
+  | 'drama'
+  | 'griezel'
+  | 'docu'
+  | 'musical'
+  | 'sprookje';
+
+/** A video of ourselves, showing in our cinema. */
+export interface Film {
+  id: ID;
+  title: string;
+  video: MediaSource;
+  /** A photo for the poster (or a still taken from the film itself). */
+  poster?: MediaSource;
+  tagline?: string;
+  genre: FilmGenre;
+  /** When we filmed it, YYYY-MM-DD. */
+  date?: string;
+  by?: Person;
+  createdAt: string;
+}
+
+/** One person's stars for one film; the id is `${film}:${who}`, one each. */
+export interface FilmRating {
+  id: ID;
+  film: ID;
+  who: Person;
+  /** 1–5 */
+  stars: number;
+  review?: string;
+  at: string;
+}
+
+/** A film night: the ticket stub we keep afterwards. */
+export interface FilmNight {
+  id: ID;
+  film: ID;
+  /** Like "Rij C · stoel 7 & 8". */
+  seat: string;
+  zaal: number;
+  snacks: string[];
+  by?: Person;
+  at: string;
+}
+
+export interface Cinema {
+  films: Film[];
+  ratings: FilmRating[];
+  nights: FilmNight[];
+}
+
+/** A text on the site, in his own words. The id comes from the original text. */
+export interface TextEdit {
+  id: ID;
+  /** The text as the site has it. */
+  from: string;
+  /** What it says instead. */
+  to: string;
+  at: string;
 }
 
 export interface Bouquet {

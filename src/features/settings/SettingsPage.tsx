@@ -38,6 +38,8 @@ import { useMusic } from '../../components/music/MusicProvider';
 import { SiteFooter } from '../../components/common/SiteFooter';
 import { validateStartDate } from '../home/StartDateDialog';
 import { TogetherSection } from './TogetherSection';
+import { OwnTexts } from '../texts/OwnTexts';
+import { useIsOwner } from '../texts/TextEditor';
 import { disconnectBeforeReset, isSharing } from '../../sync/sync';
 import { useInstall } from '../../pwa/install';
 import { openInstallSheet } from '../../pwa/InstallSheet';
@@ -64,6 +66,7 @@ export function SettingsPage() {
       />
       <div className="settings-grid">
         <ProfileSection />
+        <TextsSection />
         <TogetherSection />
         <WelcomeSection />
         <AppSection />
@@ -96,6 +99,18 @@ function Section({
       </h2>
       {children}
     </section>
+  );
+}
+
+/* ------------------------------------------------------------ His texts */
+
+function TextsSection() {
+  const owner = useIsOwner();
+  if (!owner) return null;
+  return (
+    <Section id="texts" title="Jouw teksten" kicker="in your own words">
+      <OwnTexts />
+    </Section>
   );
 }
 

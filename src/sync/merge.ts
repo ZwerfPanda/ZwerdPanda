@@ -338,6 +338,12 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
     daily: mergeList(base.daily, local.daily, remote.daily),
     datePlans: mergeList(base.datePlans, local.datePlans, remote.datePlans),
     agenda: mergeList(base.agenda, local.agenda, remote.agenda),
+    cinema: {
+      films: mergeList(base.cinema.films, local.cinema.films, remote.cinema.films),
+      ratings: mergeList(base.cinema.ratings, local.cinema.ratings, remote.cinema.ratings),
+      nights: mergeList(base.cinema.nights, local.cinema.nights, remote.cinema.nights),
+    },
+    texts: mergeList(base.texts, local.texts, remote.texts),
   };
 }
 
@@ -427,6 +433,12 @@ export function mergeFirstJoin(
     daily: addPlain(local.daily, remote.daily),
     datePlans: addPlain(local.datePlans, remote.datePlans),
     agenda: addPlain(local.agenda, remote.agenda),
+    cinema: {
+      films: addPlain(local.cinema.films, remote.cinema.films),
+      ratings: addPlain(local.cinema.ratings, remote.cinema.ratings),
+      nights: addPlain(local.cinema.nights, remote.cinema.nights),
+    },
+    texts: addPlain(local.texts, remote.texts),
     lists: addPlain(
       local.lists.filter((l) => l.items.length > 0 || !remote.lists.some((r) => r.id === l.id)),
       remote.lists,
@@ -457,8 +469,10 @@ const GAMES_SINCE_2: readonly GameId[] = ['memory', 'hockey'];
  */
 export function carryForward(shared: AppContent, ours: AppContent, writer: number): AppContent {
   if (writer >= CONTENT_SCHEMA) return shared;
+  // Schema 4 added our cinema and his own wording for texts.
+  let out = writer < 4 ? { ...shared, cinema: ours.cinema, texts: ours.texts } : shared;
   // Schema 3 added our shared agenda; an older app saves without it.
-  let out = writer < 3 ? { ...shared, agenda: ours.agenda } : shared;
+  if (writer < 3) out = { ...out, agenda: ours.agenda };
   if (writer >= 2) return out;
   const base = out;
   const savedLove = new Map(ours.her.nails.saved.map((s) => [s.id, s.loved]));
@@ -517,5 +531,9 @@ export function contentMediaIds(content: AppContent): string[] {
   content.museum.stops.forEach((s) => voice(s.voice));
   content.her.notes.forEach((n) => voice(n.voice));
   content.flowers.forEach((b) => add(b.media));
+  content.cinema.films.forEach((f) => {
+    add(f.video);
+    add(f.poster);
+  });
   return [...ids];
 }

@@ -14,6 +14,7 @@ import {
   Gamepad2,
 } from 'lucide-react';
 import { getContent, useContent } from '../../data/store';
+import { href } from '../../lib/router';
 import { updateUs } from '../../data/actions';
 import { getMe, nameOf, otherPerson } from '../../data/people';
 import type { ChatLine, Person } from '../../data/types';
@@ -398,6 +399,11 @@ function Stage() {
             {s.label}
           </button>
         ))}
+        {scene === 'cinema' && (
+          <a className="chip" href={href('/cinema')}>
+            🎟️ Naar binnen: onze bioscoop
+          </a>
+        )}
       </div>
     </section>
   );

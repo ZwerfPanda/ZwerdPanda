@@ -24,6 +24,11 @@ const LINES: Partial<Record<RoutePath, string[]>> = {
     'Zo’n mooi thema!',
   ],
   '/': ['Home sweet home.', 'Hoi! Ik ben meegekomen.'],
+  '/cinema': [
+    'Mag ik ook popcorn? 🍿',
+    'Ik zit op de stoel naast jullie!',
+    'Ssst, de film begint.',
+  ],
   '/story': ['Is er een hoofdstuk over mij?', 'Ik vind dit verhaal zo leuk.'],
   '/memories': ['Zoveel foto’s… sta ik erop?', 'Ooh, foto’s!'],
   '/world': ['Ik weet de weg naar mijn huisje!', 'Gaan we naar de Matcha Corner?'],

@@ -3,6 +3,7 @@ import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { useRoute, type RoutePath } from '../lib/router';
 import { onPersistError, useContent, usePrefs } from '../data/store';
 import { cleanupOrphanMedia } from '../data/actions';
+import { TextsHost } from '../features/texts/TextEditor';
 import { installRestorePoints } from '../data/restorePoints';
 import { installNotifications } from '../lib/notify';
 import { useReducedMotion } from '../hooks/useMotion';
@@ -48,6 +49,7 @@ const pages = {
   flowers: () =>
     import('../features/flowers/FlowersPage').then((m) => ({ default: m.FlowersPage })),
   agenda: () => import('../features/agenda/AgendaPage').then((m) => ({ default: m.AgendaPage })),
+  cinema: () => import('../features/cinema/CinemaPage').then((m) => ({ default: m.CinemaPage })),
   settings: () =>
     import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 };
@@ -67,6 +69,7 @@ const QuizPage = lazy(pages.quiz);
 const GamesPage = lazy(pages.games);
 const FlowersPage = lazy(pages.flowers);
 const AgendaPage = lazy(pages.agenda);
+const CinemaPage = lazy(pages.cinema);
 const SettingsPage = lazy(pages.settings);
 
 const PAGES: Record<RoutePath, () => React.ReactNode> = {
@@ -87,6 +90,7 @@ const PAGES: Record<RoutePath, () => React.ReactNode> = {
   '/games': () => <GamesPage />,
   '/flowers': () => <FlowersPage />,
   '/agenda': () => <AgendaPage />,
+  '/cinema': () => <CinemaPage />,
   '/settings': () => <SettingsPage />,
 };
 
@@ -213,6 +217,7 @@ export function App() {
           <ConfirmHost />
           <DatePlannerHost />
           <CelebrationHost />
+          <TextsHost />
           <InstallSheetHost />
           {!introOpen && <WelcomeHost />}
           {!introOpen && <PingCatcher />}

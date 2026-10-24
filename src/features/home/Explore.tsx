@@ -115,6 +115,7 @@ function useCards(): Partial<Record<RoutePath, ReactNode>> {
   const me = useMe();
   const stops = useContent((c) => c.museum.stops.length);
   const flowerCount = useContent((c) => c.flowers.length);
+  const filmCount = useContent((c) => c.cinema.films.length);
   // The whole content (a stable reference), so the derived value can memoize —
   // computing it inside the selector would hand back a new object every render.
   const content = useContent((c) => c);
@@ -473,6 +474,33 @@ function useCards(): Partial<Record<RoutePath, ReactNode>> {
             {agendaNext
               ? `binnenkort: ${agendaNext.title.toLowerCase()}`
               : 'jubileums, verjaardagen & afspraken'}
+          </span>
+        </span>
+      </a>
+    ),
+    '/cinema': (
+      <a className="ex-sticker ex-sticker--cinema" href={href('/cinema')}>
+        <svg viewBox="0 0 80 80" aria-hidden="true">
+          <circle cx="40" cy="40" r="34" fill="#ffd1dc" />
+          <path d="M28 34h24l-3 26H31z" fill="#fffcf6" stroke={INK} strokeWidth="2" />
+          <path d="M34 34l1 26M40 34v26M46 34l-1 26" stroke="#d9363e" strokeWidth="3" />
+          {[
+            [30, 30],
+            [36, 26],
+            [42, 28],
+            [48, 30],
+            [39, 21],
+          ].map(([cx, cy], i) => (
+            <circle key={i} cx={cx} cy={cy} r="5" fill="#fff7d6" stroke={INK} strokeWidth="1.6" />
+          ))}
+          <HeartShape x={58} y={22} size={8} fill="#e6889b" />
+        </svg>
+        <span>
+          <h3 className="ex-label">Onze bioscoop</h3>
+          <span className="ex-sub">
+            {filmCount
+              ? `${filmCount} ${filmCount === 1 ? 'film' : 'films'} op het grote doek`
+              : 'filmpjes van ons, met popcorn'}
           </span>
         </span>
       </a>

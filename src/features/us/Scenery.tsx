@@ -1,12 +1,14 @@
 import { INK } from '../../components/art/shapes';
+import { CinemaBackdrop } from '../cinema/CinemaArt';
 
 /** Backdrops for mini us, from places in our photos. viewBox: -240 -380 480 400. */
-export type Scene = 'home' | 'tram' | 'mirror';
+export type Scene = 'home' | 'tram' | 'mirror' | 'cinema';
 
 export const SCENES: { id: Scene; label: string }[] = [
   { id: 'home', label: 'Thuis' },
   { id: 'tram', label: 'Tramhalte' },
   { id: 'mirror', label: 'Paskamer' },
+  { id: 'cinema', label: 'Bioscoop 🍿' },
 ];
 
 const S = {
@@ -17,6 +19,7 @@ const S = {
 } as const;
 
 export function Scenery({ scene }: { scene: Scene }) {
+  if (scene === 'cinema') return <CinemaBackdrop />;
   if (scene === 'tram') {
     return (
       <g>

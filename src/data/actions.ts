@@ -1,6 +1,7 @@
 import { getContent, getPrefs, updateContent } from './store';
 import type {
   AppContent,
+  Cinema,
   CocoContent,
   MediaSource,
   MiniMe,
@@ -14,6 +15,7 @@ import { deleteMedia, listMediaIds } from '../lib/media';
 import { restorePointMediaIds } from './restorePoints';
 import { getHerPrivate } from './herPrivate';
 import { contentMediaIds } from '../sync/merge';
+import { TEXT_FROM_MAX, TEXT_TO_MAX, TEXTS_LIMIT, textId, textKeyOf } from './texts';
 
 /** Collections that hold a list of items with ids. */
 export type CollectionKey =
@@ -222,4 +224,28 @@ export function updateMini(who: Person, patch: Partial<MiniMe>) {
 
 export function updateLists(recipe: (lists: OurList[]) => OurList[]) {
   updateContent((c) => ({ ...c, lists: recipe(c.lists) }));
+}
+
+export function updateCinema(recipe: (cinema: Cinema) => Cinema) {
+  updateContent((c) => ({ ...c, cinema: recipe(c.cinema) }));
+}
+
+/** His wording for a text on the site; the same text as the site has it resets it. */
+export function setTextEdit(from: string, to: string) {
+  const key = textKeyOf(from).slice(0, TEXT_FROM_MAX);
+  const id = textId(key);
+  const same = textKeyOf(to) === key || !to.trim();
+  updateContent((c) => ({
+    ...c,
+    texts: same
+      ? c.texts.filter((t) => t.id !== id)
+      : [
+          ...c.texts.filter((t) => t.id !== id),
+          { id, from: key, to: to.slice(0, TEXT_TO_MAX), at: new Date().toISOString() },
+        ].slice(-TEXTS_LIMIT),
+  }));
+}
+
+export function resetTextEdit(id: string) {
+  updateContent((c) => ({ ...c, texts: c.texts.filter((t) => t.id !== id) }));
 }

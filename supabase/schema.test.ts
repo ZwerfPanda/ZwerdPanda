@@ -315,4 +315,31 @@ describe('supabase/schema.sql', () => {
     ).rows.map((r) => Number(r.version));
     expect(old).toEqual([2]);
   });
+
+  it('only lets the creator change the site texts; her saves keep his wording', async () => {
+    const versionNow = async () =>
+      Number(first(await as(people.valencio, `select version from public.space_content`)).version);
+    const save = async (who: Person, content: Row) =>
+      first(
+        await as(who, `select * from public.save_content($1, $2, $3)`, [
+          space,
+          await versionNow(),
+          content,
+        ]),
+      ).saved;
+    const stored = async () =>
+      first(await as(people.shenaya, `select content from public.space_content`)).content as Row;
+
+    const his = [{ id: 'text-a', from: 'Mini Us', to: 'Mini Wij', at: '2026-10-24T10:00:00Z' }];
+    expect(await save(people.valencio, { hello: 'his', texts: his })).toBe(true);
+    // She saves something else with the texts changed, or left out: they stay his.
+    const hacked = [{ id: 'text-a', from: 'Mini Us', to: 'Hacked', at: '2026-10-24T11:00:00Z' }];
+    expect(await save(people.shenaya, { hello: 'hers', texts: hacked })).toBe(true);
+    expect(await stored()).toEqual({ hello: 'hers', texts: his });
+    expect(await save(people.shenaya, { hello: 'hers again' })).toBe(true);
+    expect(await stored()).toEqual({ hello: 'hers again', texts: his });
+    // He can still change them.
+    expect(await save(people.valencio, { hello: 'his', texts: [] })).toBe(true);
+    expect((await stored()).texts).toEqual([]);
+  });
 });

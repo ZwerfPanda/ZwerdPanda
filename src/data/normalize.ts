@@ -13,7 +13,14 @@ import {
   defaultHer,
   defaultHunt,
 } from './defaults';
+import { TEXT_FROM_MAX, TEXT_TO_MAX, TEXTS_LIMIT, textId, textKeyOf } from './texts';
 import type {
+  Cinema,
+  Film,
+  FilmGenre,
+  FilmNight,
+  FilmRating,
+  TextEdit,
   AgendaItem,
   DatePlan,
   DailyAnswer,
@@ -1093,6 +1100,82 @@ function normalizeAgendaItem(v: unknown, i: number): AgendaItem | null {
   };
 }
 
+const FILM_GENRES: readonly FilmGenre[] = [
+  'romcom',
+  'avontuur',
+  'komedie',
+  'drama',
+  'griezel',
+  'docu',
+  'musical',
+  'sprookje',
+];
+
+function normalizeFilm(v: unknown, i: number): Film | null {
+  const video = isObj(v) ? normalizeMedia(v.video) : null;
+  if (!isObj(v) || !video || video.type !== 'local') return null;
+  const poster = normalizeMedia(v.poster);
+  return {
+    id: id(v.id, 'film', i),
+    title: str(v.title, '', 80).trim() || 'Onze film',
+    video: { ...video, kind: 'video' },
+    poster: poster?.type === 'local' ? { ...poster, kind: 'image' } : undefined,
+    tagline: optStr(v.tagline, 140),
+    genre: oneOf(v.genre, FILM_GENRES, 'romcom'),
+    date: optDate(v.date),
+    by: person(v.by),
+    createdAt: stamp(v.createdAt),
+  };
+}
+
+function normalizeFilmRating(v: unknown): FilmRating | null {
+  const who = isObj(v) ? person(v.who) : undefined;
+  const film = isObj(v) ? optStr(v.film, 120) : undefined;
+  if (!isObj(v) || !who || !film || typeof v.stars !== 'number') return null;
+  return {
+    id: `${film}:${who}`,
+    film,
+    who,
+    stars: Math.round(clampNumber(v.stars, 1, 5, 5)),
+    review: optStr(v.review, 600),
+    at: stamp(v.at),
+  };
+}
+
+function normalizeFilmNight(v: unknown, i: number): FilmNight | null {
+  const film = isObj(v) ? optStr(v.film, 120) : undefined;
+  if (!isObj(v) || !film) return null;
+  return {
+    id: id(v.id, 'night', i),
+    film,
+    seat: str(v.seat, '', 40),
+    zaal: Math.round(clampNumber(v.zaal, 1, 9, 1)),
+    snacks: arr(v.snacks)
+      .filter((s): s is string => typeof s === 'string' && s.length > 0)
+      .map((s) => s.slice(0, 24))
+      .slice(0, 8),
+    by: person(v.by),
+    at: stamp(v.at),
+  };
+}
+
+function normalizeCinema(v: unknown): Cinema {
+  const c = isObj(v) ? v : {};
+  return {
+    films: list(c.films, normalizeFilm).slice(0, 500),
+    ratings: list(c.ratings, normalizeFilmRating).slice(-1000),
+    nights: list(c.nights, normalizeFilmNight).slice(-1000),
+  };
+}
+
+function normalizeTextEdit(v: unknown): TextEdit | null {
+  if (!isObj(v) || typeof v.from !== 'string' || typeof v.to !== 'string') return null;
+  const from = textKeyOf(v.from).slice(0, TEXT_FROM_MAX);
+  const to = v.to.slice(0, TEXT_TO_MAX);
+  if (!from || !to.trim()) return null;
+  return { id: textId(from), from, to, at: stamp(v.at) };
+}
+
 function normalizeSyncReports(v: unknown): AppContent['syncReports'] {
   if (!isObj(v)) return {};
   const out: AppContent['syncReports'] = {};
@@ -1175,6 +1258,8 @@ export function normalizeContent(raw: unknown): AppContent {
     daily: list(raw.daily, normalizeDailyAnswer).slice(-2000),
     datePlans: list(raw.datePlans, normalizeDatePlan).slice(-500),
     agenda: list(raw.agenda, normalizeAgendaItem).slice(-800),
+    cinema: normalizeCinema(raw.cinema),
+    texts: list(raw.texts, normalizeTextEdit).slice(-TEXTS_LIMIT),
   });
 }
 

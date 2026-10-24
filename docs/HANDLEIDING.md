@@ -43,9 +43,11 @@ een update van het bestand: er gaat niets verloren.
 - Onder **Table Editor** staan `spaces`, `space_members`, `space_invites`,
   `space_content` en `space_history`.
 
-> **Al eerder gedaan?** Draai het bestand dan na een update gewoon nog een keer. De
-> nieuwste versie voegt `space_history` toe: online geschiedenis van jullie universe
-> (zie *Zo raak je niets kwijt* hieronder).
+> **Al eerder gedaan?** Draai het bestand dan na een update gewoon nog een keer. Er gaat
+> niets verloren. Eerdere updates voegden `space_history` toe: online geschiedenis van
+> jullie universe (zie *Zo raak je niets kwijt* hieronder). De nieuwste versie zet de
+> **teksten van de site op slot**: alleen het account dat het universum heeft gemaakt kan
+> ze aanpassen (zie *Jouw eigen teksten* hieronder).
 - Onder **Storage** staat `universe-media`, gemarkeerd als *Private*.
 
 ## Stap 3: maak jullie twee accounts aan
@@ -253,6 +255,27 @@ Twee dingen helpen extra: zet de app op je **beginscherm** (dan ruimt je telefoo
 opslag niet zomaar op) en open de app minstens eens per week (dan zet Supabase jullie
 gratis project niet op pauze; mocht dat toch gebeuren, klik dan **Restore project** in
 het dashboard — er gaat niets verloren).
+
+**Jouw eigen teksten**
+
+Onder **Instellingen → Jouw teksten** kun jij elke tekst op de site in je eigen woorden
+zetten: titels, knoppen, zinnetjes. Tik op **Teksten aanpassen**, daarna op een tekst.
+Met **Rondkijken** werken knoppen en links weer gewoon, zodat je naar een andere pagina
+kunt; met **Bewerken** pas je weer aan. Shenaya ziet jouw versie op haar telefoon.
+
+- Dit onderdeel zie je alleen als je bent ingelogd met het account dat het universum heeft
+  gemaakt. Op haar telefoon staat het er niet.
+- Het slot zit ook op de server: als een ander account de teksten probeert te veranderen,
+  bewaart Supabase gewoon jouw versie. Dat werkt zodra je `supabase/schema.sql` na deze
+  update nog een keer hebt gedraaid (stap 2).
+- Een aanpassing geldt overal waar precies die tekst staat. In de lijst onder
+  **Jouw teksten** zet je een tekst terug naar het origineel.
+
+**Onze bioscoop**
+
+Filmpjes in de bioscoop mogen tot 60 MB zijn, ongeveer een minuut in HD. Ze gaan net als
+foto's naar de privé-map in Supabase en komen zo ook op de andere telefoon. Filmpjes
+nemen het snelst de gratis ruimte van ongeveer 1 GB in beslag.
 
 **Uitloggen** op een apparaat laat de kopie op dat apparaat staan, maar het krijgt geen
 nieuwe dingen meer tot je weer inlogt.

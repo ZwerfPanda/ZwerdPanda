@@ -1,0 +1,178 @@
+/* Edit mode: every text shows it can be tapped. */
+.is-retexting
+  body
+  :where(
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    p,
+    span,
+    a,
+    button,
+    li,
+    label,
+    em,
+    strong,
+    small,
+    dt,
+    dd,
+    legend,
+    summary,
+    figcaption,
+    blockquote,
+    text
+  ):not([data-no-retext], [data-no-retext] *):hover {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+  cursor: text;
+}
+
+.retext-bar {
+  position: fixed;
+  left: 50%;
+  /* just under the top bar, so the menu stays reachable */
+  top: calc(var(--safe-top, 0px) + var(--topbar-h, 56px) + 6px);
+  /* above dialogs, so it stays reachable while one is open */
+  z-index: 960;
+  translate: -50% 0;
+  display: grid;
+  gap: 6px;
+  width: min(calc(100% - 24px), 480px);
+  padding: 10px 12px;
+  border-radius: var(--radius-l);
+  background: #2b1236;
+  color: #fff4e0;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+.retext-bar__hint {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.retext-bar__actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.retext-bar__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff4e0;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retext-bar__btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.retext-bar__btn[aria-pressed='true'] {
+  background: #ffcf70;
+  color: #2b1236;
+}
+
+.retext-bar__done {
+  background: #ff8fb8;
+  color: #2b1236;
+}
+
+.retext-original {
+  display: grid;
+  gap: 4px;
+  padding: 10px 14px;
+  border-radius: var(--radius-m);
+  background: var(--accent-wash);
+}
+
+.retext-original__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.retext-original__text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.retext-input {
+  width: 100%;
+  resize: vertical;
+}
+
+.own-texts {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
+.own-texts p {
+  margin: 0;
+}
+
+.own-texts__count {
+  font-weight: 700;
+}
+
+.own-texts__list {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.own-texts__item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 10px;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: var(--radius-m);
+  background: var(--surface-raised);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.own-texts__from {
+  grid-column: 1;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+  text-decoration: line-through;
+  overflow-wrap: anywhere;
+}
+
+.own-texts__to {
+  grid-column: 1;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.own-texts__item .icon-btn {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.own-texts__note {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
