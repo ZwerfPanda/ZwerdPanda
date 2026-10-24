@@ -1974,3 +1974,11 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+
+.countdowns__agenda {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--accent-strong);
+  font-weight: 600;
+  font-size: 0.9rem;
+}

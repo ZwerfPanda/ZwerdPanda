@@ -23,6 +23,36 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-3',
+    when: 'oktober 2026',
+    title: 'Onze agenda & warmere naampjes',
+    items: [
+      {
+        emoji: '🗓️',
+        title: 'Onze agenda',
+        text: 'Alles op één plek: ons jubileum, onze verjaardagen, Coco, dates en onze eigen afspraken.',
+        path: '/agenda',
+      },
+      {
+        emoji: '🎂',
+        title: 'Onze verjaardagen',
+        text: 'Net als Coco staan onze verjaardagen nu in de app, met een aftelling in de agenda.',
+        path: '/agenda',
+      },
+      {
+        emoji: '💞',
+        title: 'Lievere naampjes',
+        text: 'Op steeds meer plekjes zie je een koosnaampje in plaats van een kille voornaam.',
+      },
+      {
+        emoji: '🎟️',
+        title: 'Tickets & prijzen',
+        text: 'Tickets verdien je door potjes tegen elkaar (niet tegen Coco); bonnen mogen tot 10.000.',
+        path: '/games',
+      },
+    ],
+  },
+  {
     id: '2026-10-2',
     when: 'oktober 2026',
     title: 'Bloemen, prijzen en een feestelijke Coco',

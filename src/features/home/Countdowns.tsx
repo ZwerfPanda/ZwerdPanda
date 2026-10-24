@@ -20,6 +20,7 @@ import type { Countdown, CountdownIcon } from '../../data/types';
 import { formatDate, isValidIsoDate, parseIsoDate } from '../../lib/dates';
 import { createId, nowIso } from '../../lib/id';
 import { useToday } from '../../hooks/useToday';
+import { href } from '../../lib/router';
 import { Dialog } from '../../components/ui/Dialog';
 import { Checkbox, TextField } from '../../components/ui/Fields';
 import { confirm, toast } from '../../components/ui/feedback';
@@ -127,6 +128,9 @@ export function Countdowns() {
           })}
         </ul>
       )}
+      <a className="countdowns__agenda" href={href('/agenda')}>
+        Alles in onze agenda →
+      </a>
       <CountdownForm
         open={form.open}
         item={form.item}

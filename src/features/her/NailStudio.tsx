@@ -23,7 +23,16 @@ import { celebrateFrom, toast } from '../../components/ui/feedback';
 import { createId, nowIso } from '../../lib/id';
 import { playSfx } from '../../lib/audio/sfx';
 import { getHer, updateHer, useHer } from './herData';
+import { sweetName, useMe } from '../../data/people';
 import { setOfTheMonth, toggleLove, type GallerySet } from './nailGallery';
+
+/** The warmest name the viewer has for `target` (a pet name, else first name). */
+function useSweet(target: 'you' | 'partner'): string {
+  const me = useMe();
+  const profile = useContent((c) => c.profile);
+  const petNames = useContent((c) => c.us.petNames);
+  return sweetName(target, me, petNames, profile);
+}
 
 const SKIN = '#946040';
 const SKIN_LIGHT = '#a8734e';
@@ -551,7 +560,7 @@ function LoveMark({
   visitor: boolean;
   crowned: boolean;
 }) {
-  const yourName = useContent((c) => c.profile.yourName);
+  const yourName = useSweet('you');
   const loved = Boolean(item.set.loved);
   if (visitor) {
     return (
@@ -588,7 +597,7 @@ function LoveMark({
 
 /** The set he loved most recently this month, in the spotlight. */
 function MonthSpotlight({ best, visitor }: { best: GallerySet | null; visitor: boolean }) {
-  const yourName = useContent((c) => c.profile.yourName);
+  const yourName = useSweet('you');
   const month = new Date().toLocaleDateString('nl-NL', { month: 'long' });
   if (!best) {
     return visitor ? (
@@ -610,7 +619,7 @@ function MonthSpotlight({ best, visitor }: { best: GallerySet | null; visitor: b
 
 /** On his phone: the sets she sent him. Seeing them marks them as seen. */
 function SentToYou({ sent, crown }: { sent: SentNails[]; crown?: string }) {
-  const partnerName = useContent((c) => c.profile.partnerName);
+  const partnerName = useSweet('partner');
   const unseen = sent.filter((s) => !s.seenAt).length;
   useEffect(() => {
     if (!unseen) return;
@@ -648,7 +657,7 @@ function SentToYou({ sent, crown }: { sent: SentNails[]; crown?: string }) {
 export function NailStudio({ visitor }: { visitor: boolean }) {
   const nails = useHer((h) => h.nails);
   const crown = setOfTheMonth(nails);
-  const yourName = useContent((c) => c.profile.yourName);
+  const yourName = useSweet('you');
   const set = nails.current;
   const stage = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<number | 'all'>('all');

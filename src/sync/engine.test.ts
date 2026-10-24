@@ -372,7 +372,7 @@ describe('an older app on the other phone', () => {
   /** What the app from before this update saves: only the parts it knows. */
   const asOldApp = (content: AppContent) => {
     const c = JSON.parse(JSON.stringify(content));
-    for (const key of ['schema', 'flowers', 'coupons', 'pings', 'daily', 'datePlans'])
+    for (const key of ['schema', 'flowers', 'coupons', 'pings', 'daily', 'datePlans', 'agenda'])
       delete c[key];
     delete c.her.ideas;
     delete c.pet.careDays;
@@ -401,6 +401,16 @@ describe('an older app on the other phone', () => {
         { id: 'cp-1', title: 'Ontbijt', emoji: '🥞', price: 20, from: 'you', createdAt: now },
       ],
       datePlans: [{ id: 'd-1', title: 'Schaatsen', date: '2026-11-01', createdAt: now }],
+      agenda: [
+        {
+          id: 'ag-1',
+          title: 'Tandarts',
+          date: '2026-11-03',
+          icon: 'star',
+          yearly: false,
+          createdAt: now,
+        },
+      ],
       her: {
         ...c.her,
         ideas: [{ id: 'i-1', text: 'Meer Coco', status: 'new', createdAt: now }],
@@ -427,13 +437,14 @@ describe('an older app on the other phone', () => {
     expect(c.flowers.map((b) => b.id)).toEqual(['b-1']);
     expect(c.coupons.map((x) => x.id)).toEqual(['cp-1']);
     expect(c.datePlans.map((x) => x.id)).toEqual(['d-1']);
+    expect(c.agenda.map((x) => x.id)).toEqual(['ag-1']);
     expect(c.her.ideas.map((x) => x.id)).toEqual(['i-1']);
     expect(c.her.nails.saved[0].loved).toBe(now);
     expect(c.pet.careDays).toEqual(['2026-10-24']);
     expect(c.games.results.map((r) => r.id)).toEqual(['r-1']);
     // …and the server has them again, saved by the new app.
     const stored = JSON.parse([...server.rows.values()][0].json);
-    expect(stored.schema).toBe(2);
+    expect(stored.schema).toBe(3);
     expect(stored.flowers).toHaveLength(1);
     expect(stored.profile.subtitle).toBe('From the old app');
 

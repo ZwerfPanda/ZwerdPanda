@@ -16,14 +16,23 @@ const r = (p: Partial<GameResult>): GameResult => ({
 const base = (): AppContent => normalizeContent({});
 
 describe('arcade tickets', () => {
-  it('pays for every game, more for a win, and for scores', () => {
+  it('pays for each potje we play against each other, more for a win', () => {
     const c = base();
     c.games.results = [r({ winner: 'you' }), r({ winner: 'partner' }), r({ winner: 'draw' })];
-    c.games.scores = [
-      { id: 's1', game: 'bowling', who: 'you', score: 150, at: '2026-10-05T10:00:00.000Z' },
-    ];
-    expect(ticketsEarned(c, 'you')).toBe(10 + 4 + 6 + 7);
+    expect(ticketsEarned(c, 'you')).toBe(10 + 4 + 6);
     expect(ticketsEarned(c, 'partner')).toBe(4 + 10 + 6);
+  });
+
+  it('does not pay for games against Coco', () => {
+    const c = base();
+    c.games.results = [
+      r({ game: 'memory', players: ['you', 'coco'], winner: 'you' }),
+      r({ game: 'hockey', players: ['partner', 'coco'], winner: 'coco' }),
+      r({ game: 'c4', players: ['you', 'partner'], winner: 'you' }),
+    ];
+    // Only the you-vs-partner game counts.
+    expect(ticketsEarned(c, 'you')).toBe(10);
+    expect(ticketsEarned(c, 'partner')).toBe(4);
   });
 
   it('spending a prize from the other comes off the balance', () => {

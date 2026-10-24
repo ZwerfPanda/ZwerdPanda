@@ -1,4 +1,4 @@
-import { Fragment, useState, type ReactNode } from 'react';
+import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { GROUPS, sectionsIn, type GroupId } from '../../app/sections';
@@ -9,7 +9,8 @@ import { href } from '../../lib/router';
 import { useContent } from '../../data/store';
 import { useMe } from '../../data/people';
 import { sealedFor } from '../letters/opened';
-import { plural } from '../../lib/dates';
+import { parseIsoDate, plural, todayIso } from '../../lib/dates';
+import { upcomingAgenda } from '../agenda/agenda';
 import { MediaView } from '../../components/media/MediaView';
 import { CocoFigure } from '../../components/art/SampleArt';
 import { Starfield } from '../../components/art/Starfield';
@@ -114,6 +115,13 @@ function useCards(): Partial<Record<RoutePath, ReactNode>> {
   const me = useMe();
   const stops = useContent((c) => c.museum.stops.length);
   const flowerCount = useContent((c) => c.flowers.length);
+  // The whole content (a stable reference), so the derived value can memoize —
+  // computing it inside the selector would hand back a new object every render.
+  const content = useContent((c) => c);
+  const agendaNext = useMemo(
+    () => upcomingAgenda(content, parseIsoDate(todayIso()) ?? new Date(), 1)[0],
+    [content],
+  );
 
   const unread = letters.filter((l) => sealedFor(l, me, profile)).length;
   const somedays = dreams.filter((d) => d.someday).length;
@@ -438,6 +446,34 @@ function useCards(): Partial<Record<RoutePath, ReactNode>> {
         <span>
           <h3 className="ex-label">Onze lijstjes</h3>
           <span className="ex-sub">babynamen & meer</span>
+        </span>
+      </a>
+    ),
+    '/agenda': (
+      <a className="ex-sticker ex-sticker--agenda" href={href('/agenda')}>
+        <svg viewBox="0 0 80 80" aria-hidden="true">
+          <circle cx="40" cy="40" r="34" fill="#dcebff" />
+          <rect
+            x="22"
+            y="22"
+            width="36"
+            height="34"
+            rx="4"
+            fill="#fffcf6"
+            stroke={INK}
+            strokeWidth="2"
+          />
+          <path d="M22 32h36" stroke={INK} strokeWidth="2" />
+          <path d="M30 18v8M50 18v8" stroke={INK} strokeWidth="3" strokeLinecap="round" />
+          <HeartShape x={40} y={45} size={9} fill="#e6889b" />
+        </svg>
+        <span>
+          <h3 className="ex-label">Onze agenda</h3>
+          <span className="ex-sub">
+            {agendaNext
+              ? `binnenkort: ${agendaNext.title.toLowerCase()}`
+              : 'jubileums, verjaardagen & afspraken'}
+          </span>
         </span>
       </a>
     ),

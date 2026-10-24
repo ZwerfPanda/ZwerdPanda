@@ -47,6 +47,7 @@ const pages = {
   games: () => import('../features/games/GamesPage').then((m) => ({ default: m.GamesPage })),
   flowers: () =>
     import('../features/flowers/FlowersPage').then((m) => ({ default: m.FlowersPage })),
+  agenda: () => import('../features/agenda/AgendaPage').then((m) => ({ default: m.AgendaPage })),
   settings: () =>
     import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 };
@@ -65,6 +66,7 @@ const MuseumPage = lazy(pages.museum);
 const QuizPage = lazy(pages.quiz);
 const GamesPage = lazy(pages.games);
 const FlowersPage = lazy(pages.flowers);
+const AgendaPage = lazy(pages.agenda);
 const SettingsPage = lazy(pages.settings);
 
 const PAGES: Record<RoutePath, () => React.ReactNode> = {
@@ -84,6 +86,7 @@ const PAGES: Record<RoutePath, () => React.ReactNode> = {
   '/quiz': () => <QuizPage />,
   '/games': () => <GamesPage />,
   '/flowers': () => <FlowersPage />,
+  '/agenda': () => <AgendaPage />,
   '/settings': () => <SettingsPage />,
 };
 

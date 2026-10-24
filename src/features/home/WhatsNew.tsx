@@ -2,7 +2,7 @@ import { GAME_NAMES } from '../games/gameStats';
 import { gallerySets } from '../her/nailGallery';
 import { Sparkles, X } from 'lucide-react';
 import { useContent } from '../../data/store';
-import { nameOf, otherPerson, useMe } from '../../data/people';
+import { otherPerson, sweetName, useMe } from '../../data/people';
 import type { AppContent, Person } from '../../data/types';
 import { markAllSeen, useSince } from '../../data/visits';
 import { href, type RoutePath } from '../../lib/router';
@@ -123,7 +123,7 @@ export function WhatsNew() {
       <Sparkles className="whats-new__icon" aria-hidden="true" />
       <div className="whats-new__text">
         <p id="whats-new-title" className="whats-new__title">
-          Nieuw van {nameOf(them, content.profile)}
+          Nieuw van {sweetName(them, me, content.us.petNames, content.profile)}
         </p>
         <ul className="whats-new__list">
           {things.map((thing) => (

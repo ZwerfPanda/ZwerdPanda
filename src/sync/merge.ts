@@ -337,6 +337,7 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
     pings: mergeList(base.pings, local.pings, remote.pings).slice(-60),
     daily: mergeList(base.daily, local.daily, remote.daily),
     datePlans: mergeList(base.datePlans, local.datePlans, remote.datePlans),
+    agenda: mergeList(base.agenda, local.agenda, remote.agenda),
   };
 }
 
@@ -425,6 +426,7 @@ export function mergeFirstJoin(
     coupons: addPlain(local.coupons, remote.coupons),
     daily: addPlain(local.daily, remote.daily),
     datePlans: addPlain(local.datePlans, remote.datePlans),
+    agenda: addPlain(local.agenda, remote.agenda),
     lists: addPlain(
       local.lists.filter((l) => l.items.length > 0 || !remote.lists.some((r) => r.id === l.id)),
       remote.lists,
@@ -454,39 +456,43 @@ const GAMES_SINCE_2: readonly GameId[] = ['memory', 'hockey'];
  * know about stays exactly as it saved it.
  */
 export function carryForward(shared: AppContent, ours: AppContent, writer: number): AppContent {
-  if (writer >= 2) return shared;
+  if (writer >= CONTENT_SCHEMA) return shared;
+  // Schema 3 added our shared agenda; an older app saves without it.
+  let out = writer < 3 ? { ...shared, agenda: ours.agenda } : shared;
+  if (writer >= 2) return out;
+  const base = out;
   const savedLove = new Map(ours.her.nails.saved.map((s) => [s.id, s.loved]));
   const sentLove = new Map((ours.her.nails.sent ?? []).map((s) => [s.id, s.set.loved]));
-  const results = new Set(shared.games.results.map((r) => r.id));
+  const results = new Set(base.games.results.map((r) => r.id));
   return {
-    ...shared,
+    ...base,
     flowers: ours.flowers,
     coupons: ours.coupons,
     pings: ours.pings,
     daily: ours.daily,
     datePlans: ours.datePlans,
     her: {
-      ...shared.her,
+      ...base.her,
       ideas: ours.her.ideas,
       nails: {
-        ...shared.her.nails,
-        saved: shared.her.nails.saved.map((s) => ({ ...s, loved: savedLove.get(s.id) })),
-        sent: shared.her.nails.sent?.map((s) => ({
+        ...base.her.nails,
+        saved: base.her.nails.saved.map((s) => ({ ...s, loved: savedLove.get(s.id) })),
+        sent: base.her.nails.sent?.map((s) => ({
           ...s,
           set: { ...s.set, loved: sentLove.get(s.id) },
         })),
       },
     },
     pet: {
-      ...shared.pet,
-      careDays: [...new Set([...shared.pet.careDays, ...ours.pet.careDays])]
+      ...base.pet,
+      careDays: [...new Set([...base.pet.careDays, ...ours.pet.careDays])]
         .sort()
         .slice(-CARE_DAYS_LIMIT),
     },
     games: {
-      ...shared.games,
+      ...base.games,
       results: [
-        ...shared.games.results,
+        ...base.games.results,
         ...ours.games.results.filter((r) => GAMES_SINCE_2.includes(r.game) && !results.has(r.id)),
       ],
     },

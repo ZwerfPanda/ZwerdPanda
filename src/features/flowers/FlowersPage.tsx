@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Droplets, Heart, Pencil, Plus, Trash2 } from 'lucide-react';
 import { getContent, useContent } from '../../data/store';
-import { getAuthor, nameOf, useMe } from '../../data/people';
+import { getAuthor, nameOf, sweetName, useMe } from '../../data/people';
 import type { Bouquet, MediaSource } from '../../data/types';
 import { patchItem, removeItem, restoreItem, upsertItem } from '../../data/actions';
 import { Dialog } from '../../components/ui/Dialog';
@@ -28,6 +28,7 @@ type View = 'shop' | 'book' | 'favorites';
 export function FlowersPage() {
   const flowers = useContent((c) => c.flowers);
   const profile = useContent((c) => c.profile);
+  const petNames = useContent((c) => c.us.petNames);
   const me = useMe();
   const hers = me === 'partner';
   const [view, setView] = useState<View>('shop');
@@ -62,7 +63,7 @@ export function FlowersPage() {
           <p className="shop-front__stats">
             {stats.count === 0
               ? `Nog geen boeketten op de plank`
-              : `${stats.count} ${stats.count === 1 ? 'boeket' : 'boeketten'} van ${profile.yourName}${stats.since ? ` · sinds ${formatDate(stats.since)}` : ''}${stats.topFlower ? ` · meestal ${stats.topFlower.toLowerCase()} ${emojiFor(stats.topFlower)}` : ''}`}
+              : `${stats.count} ${stats.count === 1 ? 'boeket' : 'boeketten'} van ${sweetName('you', me, petNames, profile)}${stats.since ? ` · sinds ${formatDate(stats.since)}` : ''}${stats.topFlower ? ` · meestal ${stats.topFlower.toLowerCase()} ${emojiFor(stats.topFlower)}` : ''}`}
           </p>
         </div>
       </header>
@@ -303,6 +304,7 @@ function BouquetCard({
   onEdit: (b: Bouquet, focusCard?: boolean) => void;
 }) {
   const profile = useContent((c) => c.profile);
+  const petNames = useContent((c) => c.us.petNames);
   const me = useMe();
   const [watered, setWatered] = useState(0);
   if (!bouquet) return null;
@@ -382,7 +384,7 @@ function BouquetCard({
           <div className="flower-card" aria-label="Het kaartje">
             <span className="flower-card__string" aria-hidden="true" />
             <p>{b.card}</p>
-            <small>— {profile.yourName}</small>
+            <small>— {sweetName('you', me, petNames, profile)}</small>
           </div>
         ) : (
           me === 'you' && (

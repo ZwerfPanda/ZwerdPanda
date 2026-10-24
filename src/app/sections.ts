@@ -1,5 +1,6 @@
 import {
   BookHeart,
+  CalendarDays,
   TrainFront,
   Flower,
   Flower2,
@@ -219,6 +220,15 @@ export const SECTIONS: Section[] = [
     blurb: 'Namen, films, eetplekjes',
     icon: ListChecks,
     tint: '#dbe6f2',
+  },
+  {
+    path: '/agenda',
+    group: 'together',
+    label: 'Onze Agenda',
+    short: 'Agenda',
+    blurb: 'Jubileums, verjaardagen, dates & afspraken',
+    icon: CalendarDays,
+    tint: '#d7e8ff',
   },
   {
     path: '/museum',

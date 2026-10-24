@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Trash2 } from 'lucide-react';
 import { useContent } from '../../data/store';
-import { getAuthor, nameOf, otherPerson, useMe } from '../../data/people';
+import { getAuthor, otherPerson, sweetName, useMe } from '../../data/people';
 import type { Coupon } from '../../data/types';
 import { patchItem, removeItem, upsertItem } from '../../data/actions';
 import { celebrateFrom, confirm, toast } from '../../components/ui/feedback';
@@ -41,7 +41,7 @@ function Counter() {
   const content = useContent((c) => c);
   const me = useMe();
   const them = otherPerson(me);
-  const theirName = nameOf(them, content.profile);
+  const theirName = sweetName(them, me, content.us.petNames, content.profile);
   const mine = ticketBalance(content, me);
   const theirs = ticketBalance(content, them);
   const coupons = content.coupons;
@@ -68,8 +68,8 @@ function Counter() {
         ]}
       />
       <p className="game-hint">
-        Je verdient tickets met elk spelletje in de Arcade Hall (winnen geeft meer). Totaal
-        verdiend: {ticketsEarned(content, me)} 🎟️
+        Je verdient tickets door potjes tegen elkaar te spelen in de Arcade Hall (winnen geeft
+        meer). Potjes tegen Coco tellen niet mee. Totaal verdiend: {ticketsEarned(content, me)} 🎟️
       </p>
 
       <section className="prize-section" aria-labelledby="prize-shelf">
@@ -267,16 +267,45 @@ function NewCoupon() {
           ))}
         </div>
         <label>
-          Prijs: 🎟️ {price} tickets
+          Prijs: 🎟️ {price.toLocaleString('nl-NL')} tickets
           <input
             type="range"
-            min={20}
-            max={400}
+            min={10}
+            max={10000}
             step={10}
             value={price}
             onChange={(e) => setPrice(Number(e.target.value))}
           />
         </label>
+        <div className="prize-form__price">
+          <div className="prize-form__quick" role="group" aria-label="Snel kiezen">
+            {[50, 100, 500, 1000, 5000, 10000].map((v) => (
+              <button
+                key={v}
+                type="button"
+                className="chip"
+                aria-pressed={price === v}
+                onClick={() => setPrice(v)}
+              >
+                {v.toLocaleString('nl-NL')}
+              </button>
+            ))}
+          </div>
+          <label className="prize-form__exact">
+            Precies
+            <input
+              type="number"
+              min={1}
+              max={10000}
+              step={1}
+              value={price}
+              onChange={(e) => {
+                const n = Math.round(Number(e.target.value));
+                setPrice(Math.max(1, Math.min(10000, Number.isFinite(n) ? n : 1)));
+              }}
+            />
+          </label>
+        </div>
         <div className="game-actions">
           <button type="button" className="neon-btn neon-btn--small" onClick={() => setOpen(false)}>
             Annuleren

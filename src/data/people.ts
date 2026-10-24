@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import type { Person, Profile } from './types';
+import type { PetName, Person, Profile } from './types';
 
 /**
  * Who is holding this device: `you` (who set the site up) or `partner`.
@@ -64,4 +64,25 @@ export function nameOf(person: Person, profile: Pick<Profile, 'yourName' | 'part
 
 export function otherPerson(person: Person): Person {
   return person === 'you' ? 'partner' : 'you';
+}
+
+const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/**
+ * A warm name instead of a bare first name — "Valencio" can feel cold. From
+ * `me`'s side: the other person becomes the sweet name `me` calls them (the
+ * one we use most, so it's stable), and `me` themself becomes "mij". Falls
+ * back to the first name when there are no pet names, and to "jij"/"jou" for
+ * the viewer when there's no name either.
+ */
+export function sweetName(
+  target: Person,
+  me: Person,
+  petNames: PetName[],
+  profile: Pick<Profile, 'yourName' | 'partnerName'>,
+  self: 'mij' | 'ik' = 'mij',
+): string {
+  if (target === me) return nameOf(me, profile) || (self === 'ik' ? 'ik' : 'jij');
+  const mine = petNames.find((p) => p.from === me || p.from === 'both');
+  return mine ? capital(mine.name) : nameOf(target, profile);
 }

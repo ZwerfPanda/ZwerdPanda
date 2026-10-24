@@ -25,7 +25,8 @@ export type CollectionKey =
   | 'songs'
   | 'flowers'
   | 'coupons'
-  | 'datePlans';
+  | 'datePlans'
+  | 'agenda';
 type ItemOf<K extends CollectionKey> = AppContent[K][number];
 
 export function upsertItem<K extends CollectionKey>(

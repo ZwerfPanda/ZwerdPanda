@@ -581,8 +581,9 @@ export function cloneUs(us: UsContent): UsContent {
  *   1 — up to the photo fixes (October 2026)
  *   2 — flower shop, prizes, pings, question of the day, dates, idea box,
  *       hearts on nail sets, care days, Memory and air hockey
+ *   3 — our shared agenda (our own events)
  */
-export const CONTENT_SCHEMA = 2;
+export const CONTENT_SCHEMA = 3;
 
 export function createDefaultContent(): AppContent {
   return {
@@ -626,6 +627,7 @@ export function createDefaultContent(): AppContent {
     pings: [],
     daily: [],
     datePlans: [],
+    agenda: [],
   };
 }
 

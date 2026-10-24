@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Lightbulb } from 'lucide-react';
 import { useContent } from '../../data/store';
+import { sweetName, useMe } from '../../data/people';
 import { href } from '../../lib/router';
 import type { IdeaNote } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
@@ -21,8 +22,11 @@ const setIdeas = (recipe: (ideas: IdeaNote[]) => IdeaNote[]) =>
 /** Her wishes for our app. He sees them and passes them on; they get built. */
 export function IdeaBox({ visitor }: { visitor: boolean }) {
   const ideas = useHer((h) => h.ideas);
-  const yourName = useContent((c) => c.profile.yourName);
-  const partnerName = useContent((c) => c.profile.partnerName);
+  const me = useMe();
+  const profile = useContent((c) => c.profile);
+  const petNames = useContent((c) => c.us.petNames);
+  const yourName = sweetName('you', me, petNames, profile);
+  const partnerName = sweetName('partner', me, petNames, profile);
   const [text, setText] = useState('');
   const sorted = [...ideas].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 

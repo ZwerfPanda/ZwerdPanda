@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { getContent, updateContent, useContent } from '../../data/store';
-import { getAuthor, nameOf, otherPerson, useMe } from '../../data/people';
+import { getAuthor, otherPerson, sweetName, useMe } from '../../data/people';
 import type { DailyAnswer, Ping } from '../../data/types';
 import { createId, hashUnit, nowIso } from '../../lib/id';
 import { todayIso } from '../../lib/dates';
@@ -35,11 +35,12 @@ export function sendPing(kind: Ping['kind']): boolean {
 export function SendLove() {
   const pings = useContent((c) => c.pings);
   const profile = useContent((c) => c.profile);
+  const petNames = useContent((c) => c.us.petNames);
   const me = useMe();
   const today = useToday();
   const reduce = useReducedMotion();
   const [flying, setFlying] = useState<{ id: number; emoji: string } | null>(null);
-  const theirName = nameOf(otherPerson(me), profile);
+  const theirName = sweetName(otherPerson(me), me, petNames, profile);
   const todayCount = pings.filter((p) => todayIso(new Date(p.at)) === today).length;
   if (!getAuthor()) return null;
 
@@ -113,6 +114,7 @@ const writeSeen = (at: string) => {
 export function PingCatcher() {
   const pings = useContent((c) => c.pings);
   const profile = useContent((c) => c.profile);
+  const petNames = useContent((c) => c.us.petNames);
   const me = useMe();
   const reduce = useReducedMotion();
   const [shown, setShown] = useState<{ kind: Ping['kind']; count: number; key: string } | null>(
@@ -159,7 +161,7 @@ export function PingCatcher() {
     return () => window.clearTimeout(t);
   }, [shown]);
 
-  const name = nameOf(otherPerson(me), profile);
+  const name = sweetName(otherPerson(me), me, petNames, profile);
   return (
     <AnimatePresence>
       {/* Outside the card: inside its moving box they couldn't fill the screen. */}
@@ -250,10 +252,11 @@ const answerOf = (daily: DailyAnswer[], date: string, who: 'you' | 'partner') =>
 export function DailyQuestion() {
   const daily = useContent((c) => c.daily);
   const profile = useContent((c) => c.profile);
+  const petNames = useContent((c) => c.us.petNames);
   const me = useMe();
   const today = useToday();
   const them = otherPerson(me);
-  const theirName = nameOf(them, profile);
+  const theirName = sweetName(them, me, petNames, profile);
   const [text, setText] = useState('');
   const [history, setHistory] = useState(false);
   const mine = answerOf(daily, today, me);
@@ -349,10 +352,10 @@ export function DailyQuestion() {
                 <li key={d}>
                   <strong>{questionFor(d)}</strong>
                   <span>
-                    {profile.yourName}: {answerOf(daily, d, 'you')?.text}
+                    {me === 'you' ? 'Jij' : theirName}: {answerOf(daily, d, 'you')?.text}
                   </span>
                   <span>
-                    {profile.partnerName}: {answerOf(daily, d, 'partner')?.text}
+                    {me === 'partner' ? 'Jij' : theirName}: {answerOf(daily, d, 'partner')?.text}
                   </span>
                 </li>
               ))}

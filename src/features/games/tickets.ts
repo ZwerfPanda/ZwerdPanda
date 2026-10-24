@@ -7,22 +7,18 @@ import type { AppContent, GameResult, Person } from '../../data/types';
  */
 export const TICKETS = { win: 10, draw: 6, played: 4 } as const;
 
+/** A game the two of us played against each other (not against Coco, not solo). */
+const headToHead = (r: GameResult) =>
+  r.players.includes('you') && r.players.includes('partner') && !r.players.includes('coco');
+
 export function ticketsEarned(c: AppContent, who: Person): number {
   let total = 0;
+  // Only potjes against each other earn tickets — playing Coco doesn't count.
   for (const r of c.games.results) {
-    if (!r.players.includes(who)) continue;
+    if (!headToHead(r) || !r.players.includes(who)) continue;
     total += r.winner === who ? TICKETS.win : r.winner === 'draw' ? TICKETS.draw : TICKETS.played;
   }
-  for (const s of c.games.scores) {
-    if (s.who !== who) continue;
-    total +=
-      s.game === 'bowling'
-        ? Math.floor(s.score / 20)
-        : s.game === 'skeeball'
-          ? Math.floor(s.score / 40)
-          : Math.floor(s.score / 30);
-  }
-  // Wie kent wie: every question you finished (answered and guessed) counts.
+  // Wie kent wie is a game show about each other, so it counts too.
   total += c.quiz.answers.filter((a) => a.who === who && a.self && a.guess).length * 2;
   return total;
 }

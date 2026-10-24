@@ -774,6 +774,8 @@ export interface AppContent {
   daily: DailyAnswer[];
   /** Dates we planned (from an idea), with a countdown and, after, a memory. */
   datePlans: DatePlan[];
+  /** Our shared agenda: our own events, with times, next to everything dated. */
+  agenda: AgendaItem[];
 }
 
 export interface Bouquet {
@@ -835,6 +837,22 @@ export interface DatePlan {
   memoryId?: ID;
   /** "Not now" on the after-the-date question. */
   skipped?: boolean;
+  by?: Person;
+  createdAt: string;
+}
+
+/** Something on our shared agenda that we added ourselves. */
+export interface AgendaItem {
+  id: ID;
+  title: string;
+  /** YYYY-MM-DD */
+  date: string;
+  /** HH:MM, when it has a time. */
+  time?: string;
+  note?: string;
+  icon: CountdownIcon;
+  /** Repeats every year (an anniversary of our own, a recurring plan). */
+  yearly: boolean;
   by?: Person;
   createdAt: string;
 }

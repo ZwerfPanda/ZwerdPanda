@@ -14,6 +14,7 @@ import {
   defaultHunt,
 } from './defaults';
 import type {
+  AgendaItem,
   DatePlan,
   DailyAnswer,
   Ping,
@@ -1072,6 +1073,26 @@ function normalizeDatePlan(v: unknown, i: number): DatePlan | null {
   };
 }
 
+/** A clock time like "09:05", or undefined. */
+const optTime = (v: unknown): string | undefined =>
+  typeof v === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(v) ? v : undefined;
+
+function normalizeAgendaItem(v: unknown, i: number): AgendaItem | null {
+  const date = isObj(v) ? optDate(v.date) : undefined;
+  if (!isObj(v) || !date || !optStr(v.title)) return null;
+  return {
+    id: id(v.id, 'agenda', i),
+    title: str(v.title, '', 120),
+    date,
+    time: optTime(v.time),
+    note: optStr(v.note, 500),
+    icon: oneOf(v.icon, COUNTDOWN_ICONS, 'star'),
+    yearly: bool(v.yearly),
+    by: person(v.by),
+    createdAt: stamp(v.createdAt),
+  };
+}
+
 function normalizeSyncReports(v: unknown): AppContent['syncReports'] {
   if (!isObj(v)) return {};
   const out: AppContent['syncReports'] = {};
@@ -1153,6 +1174,7 @@ export function normalizeContent(raw: unknown): AppContent {
     pings: list(raw.pings, normalizePing).slice(-60),
     daily: list(raw.daily, normalizeDailyAnswer).slice(-2000),
     datePlans: list(raw.datePlans, normalizeDatePlan).slice(-500),
+    agenda: list(raw.agenda, normalizeAgendaItem).slice(-800),
   });
 }
 
