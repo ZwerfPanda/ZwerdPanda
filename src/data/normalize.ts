@@ -1,5 +1,6 @@
 import { refreshStarterTexts } from './starterTexts';
 import {
+  CONTENT_SCHEMA,
   createDefaultContent,
   defaultPet,
   cloneUs,
@@ -1120,6 +1121,7 @@ export function normalizeContent(raw: unknown): AppContent {
   const albums = list(raw.albums, normalizeAlbum);
   return refreshStarterTexts({
     version: 1,
+    schema: CONTENT_SCHEMA,
     profile: normalizeProfile(raw.profile),
     milestones: Array.isArray(raw.milestones)
       ? list(raw.milestones, normalizeMilestone)

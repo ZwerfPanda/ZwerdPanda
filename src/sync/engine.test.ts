@@ -367,3 +367,133 @@ describe('SyncEngine with two phones', () => {
     expect(stranger.engine.getState().phase).toBe('needs-space');
   });
 });
+
+describe('an older app on the other phone', () => {
+  /** What the app from before this update saves: only the parts it knows. */
+  const asOldApp = (content: AppContent) => {
+    const c = JSON.parse(JSON.stringify(content));
+    for (const key of ['schema', 'flowers', 'coupons', 'pings', 'daily', 'datePlans'])
+      delete c[key];
+    delete c.her.ideas;
+    delete c.pet.careDays;
+    c.her.nails.saved = c.her.nails.saved.map(({ loved: _, ...s }: { loved?: string }) => s);
+    c.games.results = c.games.results.filter(
+      (r: { game: string }) => !['memory', 'hockey'].includes(r.game),
+    );
+    return c;
+  };
+  /** The other phone, still on the old app, saves something it does know about. */
+  const oldPhoneSaves = (server: FakeServer, recipe: (c: AppContent) => AppContent) => {
+    const [spaceId, row] = [...server.rows.entries()][0];
+    const next = asOldApp(recipe(normalizeContent(JSON.parse(row.json))));
+    server.rows.set(spaceId, { version: row.version + 1, json: JSON.stringify(next) });
+    server.notify(spaceId);
+  };
+
+  it('never loses what the older app doesn’t know about', async () => {
+    const { valencio, shenaya, server } = await connectedPair();
+    const now = '2026-10-24T10:00:00.000Z';
+    const set = { ...valencio.content.her.nails.current, id: 'nails-1', savedAt: now, loved: now };
+    valencio.edit((c) => ({
+      ...c,
+      flowers: [{ id: 'b-1', flowers: ['🌹 Rozen'], vase: 0, favorite: false, createdAt: now }],
+      coupons: [
+        { id: 'cp-1', title: 'Ontbijt', emoji: '🥞', price: 20, from: 'you', createdAt: now },
+      ],
+      datePlans: [{ id: 'd-1', title: 'Schaatsen', date: '2026-11-01', createdAt: now }],
+      her: {
+        ...c.her,
+        ideas: [{ id: 'i-1', text: 'Meer Coco', status: 'new', createdAt: now }],
+        nails: { ...c.her.nails, saved: [set] },
+      },
+      pet: { ...c.pet, careDays: ['2026-10-24'] },
+      games: {
+        ...c.games,
+        results: [{ id: 'r-1', game: 'memory', players: ['you', 'coco'], winner: 'you', at: now }],
+      },
+    }));
+    await valencio.engine.syncNow();
+
+    // Her phone hasn't updated yet and saves a new subtitle.
+    oldPhoneSaves(server, (c) => ({
+      ...c,
+      profile: { ...c.profile, subtitle: 'From the old app' },
+    }));
+    await wait(80);
+    await valencio.engine.syncNow();
+
+    const c = valencio.content;
+    expect(c.profile.subtitle).toBe('From the old app');
+    expect(c.flowers.map((b) => b.id)).toEqual(['b-1']);
+    expect(c.coupons.map((x) => x.id)).toEqual(['cp-1']);
+    expect(c.datePlans.map((x) => x.id)).toEqual(['d-1']);
+    expect(c.her.ideas.map((x) => x.id)).toEqual(['i-1']);
+    expect(c.her.nails.saved[0].loved).toBe(now);
+    expect(c.pet.careDays).toEqual(['2026-10-24']);
+    expect(c.games.results.map((r) => r.id)).toEqual(['r-1']);
+    // …and the server has them again, saved by the new app.
+    const stored = JSON.parse([...server.rows.values()][0].json);
+    expect(stored.schema).toBe(2);
+    expect(stored.flowers).toHaveLength(1);
+    expect(stored.profile.subtitle).toBe('From the old app');
+
+    // Once she updates, she gets everything.
+    await shenaya.engine.syncNow();
+    expect(shenaya.content.flowers.map((b) => b.id)).toEqual(['b-1']);
+    expect(stableEqual(valencio.content, shenaya.content)).toBe(true);
+  });
+
+  it('still lets the new app delete those things', async () => {
+    const { valencio, server } = await connectedPair();
+    const now = '2026-10-24T10:00:00.000Z';
+    valencio.edit((c) => ({
+      ...c,
+      flowers: [{ id: 'b-1', flowers: ['🌷 Tulpen'], vase: 0, favorite: false, createdAt: now }],
+    }));
+    await valencio.engine.syncNow();
+    valencio.edit((c) => ({ ...c, flowers: [] }));
+    await valencio.engine.syncNow();
+    oldPhoneSaves(server, (c) => ({ ...c, profile: { ...c.profile, subtitle: 'Old app again' } }));
+    await wait(80);
+    await valencio.engine.syncNow();
+    expect(valencio.content.flowers).toEqual([]);
+    expect(valencio.content.profile.subtitle).toBe('Old app again');
+  });
+
+  it('takes content from the first app with the flower shop as it is', async () => {
+    const { valencio, server } = await connectedPair();
+    const now = '2026-10-24T10:00:00.000Z';
+    valencio.edit((c) => ({
+      ...c,
+      flowers: [{ id: 'b-1', flowers: ['🌷 Tulpen'], vase: 0, favorite: false, createdAt: now }],
+    }));
+    await valencio.engine.syncNow();
+    // That app knew the flower shop but not the marker: her new bouquet counts.
+    const [spaceId, row] = [...server.rows.entries()][0];
+    const theirs = JSON.parse(row.json);
+    delete theirs.schema;
+    theirs.flowers.push({
+      id: 'b-2',
+      flowers: ['🌹 Rozen'],
+      vase: 1,
+      favorite: false,
+      createdAt: now,
+    });
+    server.rows.set(spaceId, { version: row.version + 1, json: JSON.stringify(theirs) });
+    server.notify(spaceId);
+    await wait(80);
+    await valencio.engine.syncNow();
+    expect(valencio.content.flowers.map((b) => b.id).sort()).toEqual(['b-1', 'b-2']);
+  });
+
+  it('changes nothing between two up-to-date phones', async () => {
+    const { valencio, shenaya, server } = await connectedPair();
+    valencio.edit((c) => ({ ...c, flowers: [] }));
+    await valencio.engine.syncNow();
+    const version = [...server.rows.values()][0].version;
+    await shenaya.engine.syncNow();
+    await valencio.engine.syncNow();
+    // Nobody had anything new: no extra saves.
+    expect([...server.rows.values()][0].version).toBe(version);
+  });
+});

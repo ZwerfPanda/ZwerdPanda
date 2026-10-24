@@ -1,6 +1,14 @@
 import { CARE_DAYS_LIMIT, CHAT_LIMIT, PET_LOG_LIMIT } from '../data/normalize';
-import { createDefaultContent } from '../data/defaults';
-import type { AppContent, CocoPet, HerSpace, OurList, StarHunt, UsContent } from '../data/types';
+import { CONTENT_SCHEMA, createDefaultContent } from '../data/defaults';
+import type {
+  AppContent,
+  CocoPet,
+  GameId,
+  HerSpace,
+  OurList,
+  StarHunt,
+  UsContent,
+} from '../data/types';
 
 /**
  * Merging two people's edits.
@@ -281,6 +289,7 @@ export function mergeHunt(base: StarHunt, local: StarHunt, remote: StarHunt): St
 export function mergeContent(base: AppContent, local: AppContent, remote: AppContent): AppContent {
   return {
     version: 1,
+    schema: CONTENT_SCHEMA,
     profile: mergeFields(base.profile, local.profile, remote.profile),
     milestones: mergeList(base.milestones, local.milestones, remote.milestones),
     albums: mergeList(base.albums, local.albums, remote.albums),
@@ -420,6 +429,67 @@ export function mergeFirstJoin(
       local.lists.filter((l) => l.items.length > 0 || !remote.lists.some((r) => r.id === l.id)),
       remote.lists,
     ),
+  };
+}
+
+/* --------------------------------------------- an older app on the other phone */
+
+/**
+ * Which shape of our content the app that saved it knew. The marker came a
+ * little after shape 2 itself, so without it: content that has the flower
+ * shop is shape 2, anything older is shape 1.
+ */
+export function writerSchema(raw: unknown): number {
+  if (!isObject(raw)) return 1;
+  if (typeof raw.schema === 'number') return raw.schema;
+  return 'flowers' in raw ? 2 : 1;
+}
+
+const GAMES_SINCE_2: readonly GameId[] = ['memory', 'hockey'];
+
+/**
+ * Content saved by an older app is missing whatever that app didn't know yet.
+ * That isn't the other phone deleting it, so those parts are kept as we had
+ * them (`ours`: the last copy we agreed on). Everything the older app does
+ * know about stays exactly as it saved it.
+ */
+export function carryForward(shared: AppContent, ours: AppContent, writer: number): AppContent {
+  if (writer >= 2) return shared;
+  const savedLove = new Map(ours.her.nails.saved.map((s) => [s.id, s.loved]));
+  const sentLove = new Map((ours.her.nails.sent ?? []).map((s) => [s.id, s.set.loved]));
+  const results = new Set(shared.games.results.map((r) => r.id));
+  return {
+    ...shared,
+    flowers: ours.flowers,
+    coupons: ours.coupons,
+    pings: ours.pings,
+    daily: ours.daily,
+    datePlans: ours.datePlans,
+    her: {
+      ...shared.her,
+      ideas: ours.her.ideas,
+      nails: {
+        ...shared.her.nails,
+        saved: shared.her.nails.saved.map((s) => ({ ...s, loved: savedLove.get(s.id) })),
+        sent: shared.her.nails.sent?.map((s) => ({
+          ...s,
+          set: { ...s.set, loved: sentLove.get(s.id) },
+        })),
+      },
+    },
+    pet: {
+      ...shared.pet,
+      careDays: [...new Set([...shared.pet.careDays, ...ours.pet.careDays])]
+        .sort()
+        .slice(-CARE_DAYS_LIMIT),
+    },
+    games: {
+      ...shared.games,
+      results: [
+        ...shared.games.results,
+        ...ours.games.results.filter((r) => GAMES_SINCE_2.includes(r.game) && !results.has(r.id)),
+      ],
+    },
   };
 }
 

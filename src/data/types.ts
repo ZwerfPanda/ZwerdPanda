@@ -736,6 +736,11 @@ export interface Profile {
 
 export interface AppContent {
   version: 1;
+  /**
+   * Which app version's shape this content has (see CONTENT_SCHEMA). An older
+   * app drops what it doesn't know, this marker included, so the sync can tell.
+   */
+  schema: number;
   profile: Profile;
   milestones: Milestone[];
   albums: Album[];

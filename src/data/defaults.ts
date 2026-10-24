@@ -574,9 +574,20 @@ export function cloneUs(us: UsContent): UsContent {
   };
 }
 
+/**
+ * The shape of our content in this version of the app. Bump it whenever a new
+ * part is added to our universe, and teach `carryForward` (sync/merge.ts) to
+ * keep that part when an older app saves without it.
+ *   1 — up to the photo fixes (October 2026)
+ *   2 — flower shop, prizes, pings, question of the day, dates, idea box,
+ *       hearts on nail sets, care days, Memory and air hockey
+ */
+export const CONTENT_SCHEMA = 2;
+
 export function createDefaultContent(): AppContent {
   return {
     version: 1,
+    schema: CONTENT_SCHEMA,
     profile: { ...defaultProfile },
     milestones: milestones.map((m) => ({ ...m, media: [...m.media] })),
     albums: defaultAlbums.map((a) => ({ ...a })),

@@ -1,6 +1,14 @@
 import type { AppContent } from '../data/types';
 import { fingerprint } from './fingerprint';
-import { contentMediaIds, mergeContent, mergeFirstJoin, stableEqual } from './merge';
+import {
+  carryForward,
+  contentMediaIds,
+  mergeContent,
+  mergeFirstJoin,
+  stableEqual,
+  writerSchema,
+} from './merge';
+import { CONTENT_SCHEMA } from '../data/defaults';
 import { OfflineError, type Account, type SyncBackend, type SyncState } from './types';
 
 /**
@@ -189,13 +197,13 @@ export class SyncEngine {
         this.meta = { userId: account.id, spaceId, baseVersion: 0, pending: true };
         this.base = this.deps.getContent();
       } else {
-        const shared = this.deps.normalize(remote.content);
+        const { shared, restored } = this.adopt(remote.content, this.deps.getContent());
         const merged = mergeFirstJoin(this.deps.getContent(), shared);
         this.meta = {
           userId: account.id,
           spaceId,
           baseVersion: remote.version,
-          pending: !stableEqual(merged, shared),
+          pending: restored || !stableEqual(merged, shared),
         };
         this.base = shared;
         this.deps.applyRemote(merged);
@@ -310,12 +318,13 @@ export class SyncEngine {
       return;
     }
     if (remote.version === meta.baseVersion) return;
-    const shared = this.deps.normalize(remote.content);
     const local = this.deps.getContent();
+    const { shared, restored } = this.adopt(remote.content, this.base ?? local);
     const next = meta.pending && this.base ? mergeContent(this.base, local, shared) : shared;
     this.base = shared;
     meta.baseVersion = remote.version;
-    meta.pending = meta.pending && !stableEqual(next, shared);
+    // What an older app couldn't save goes back to the server straight away.
+    meta.pending = (meta.pending && !stableEqual(next, shared)) || restored;
     if (!stableEqual(next, local)) this.deps.applyRemote(next);
     this.persist();
     this.deps.retryMissingMedia();
@@ -338,8 +347,8 @@ export class SyncEngine {
         meta.baseVersion = result.version;
         continue;
       }
-      const shared = this.deps.normalize(result.current);
       const local = this.deps.getContent();
+      const { shared, restored } = this.adopt(result.current, this.base ?? local);
       const merged =
         meta.baseVersion === 0 || !this.base
           ? mergeFirstJoin(local, shared)
@@ -348,13 +357,26 @@ export class SyncEngine {
       meta.baseVersion = result.version;
       if (!stableEqual(merged, local)) this.deps.applyRemote(merged);
       this.persist();
-      if (stableEqual(merged, shared)) {
+      if (!restored && stableEqual(merged, shared)) {
         meta.pending = false;
         this.persistMeta();
         return;
       }
     }
     throw new Error('De andere telefoon slaat precies tegelijk op — we proberen het zo opnieuw.');
+  }
+
+  /**
+   * The shared copy as this app reads it. An older app on the other phone
+   * saves without the parts it doesn't know; those are kept from `ours` and
+   * `restored` says they still have to go back to the server.
+   */
+  private adopt(raw: unknown, ours: AppContent): { shared: AppContent; restored: boolean } {
+    const shared = this.deps.normalize(raw);
+    const writer = writerSchema(raw);
+    if (writer >= CONTENT_SCHEMA) return { shared, restored: false };
+    const kept = carryForward(shared, ours, writer);
+    return { shared: kept, restored: !stableEqual(kept, shared) };
   }
 
   private fail(error: unknown) {
