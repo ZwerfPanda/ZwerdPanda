@@ -38,6 +38,7 @@ import { HuntStar } from '../hunt/HuntStar';
 import { HerNotes, usePetName } from './HerNotes';
 import { HerMusic } from './HerMusic';
 import { NailStudio } from './NailStudio';
+import { FlowerShopCard, IdeaBox } from './IdeaBox';
 import { TestBanner, askHerTest, useTestTaps } from './HerTest';
 import './her.css';
 
@@ -146,6 +147,8 @@ export function HerPage() {
         <div className="her-grid">
           <Today visitor={visitor} />
           {her.coco && <CocoNook />}
+          <FlowerShopCard />
+          <IdeaBox visitor={visitor} />
         </div>
       )}
       {tab === 'music' && <HerMusic visitor={visitor} />}

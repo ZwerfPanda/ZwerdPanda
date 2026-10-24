@@ -13,12 +13,16 @@ import { SpotifyProvider } from '../components/music/SpotifyProvider';
 import { CelebrationHost, ConfirmHost, Toaster, toast } from '../components/ui/feedback';
 import { Intro } from '../features/intro/Intro';
 import { InstallSheetHost } from '../pwa/InstallSheet';
+import { PingCatcher } from '../features/home/Together';
+import { DatePlannerHost } from '../features/dates/DatePlanner';
+import { NewsHost } from '../features/news/NewsSheet';
 import { startSync } from '../sync/sync';
 import { HomePage } from '../features/home/HomePage';
 import { PageLoading } from './PageLoading';
 import { CocoCompanion } from '../features/pet/Companion';
 import { WelcomeHost } from '../features/welcome/Welcome';
 import { HiddenHutch } from '../features/pet/HiddenHutch';
+import { useCocoBow } from '../features/pet/cocoBow';
 import { installTapSounds, setSfxEnabled } from '../lib/audio/sfx';
 import { setAmbienceEnabled } from '../lib/audio/ambience';
 
@@ -41,6 +45,8 @@ const pages = {
   museum: () => import('../features/museum/MuseumPage').then((m) => ({ default: m.MuseumPage })),
   quiz: () => import('../features/quiz/QuizPage').then((m) => ({ default: m.QuizPage })),
   games: () => import('../features/games/GamesPage').then((m) => ({ default: m.GamesPage })),
+  flowers: () =>
+    import('../features/flowers/FlowersPage').then((m) => ({ default: m.FlowersPage })),
   settings: () =>
     import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 };
@@ -58,6 +64,7 @@ const HerPage = lazy(pages.her);
 const MuseumPage = lazy(pages.museum);
 const QuizPage = lazy(pages.quiz);
 const GamesPage = lazy(pages.games);
+const FlowersPage = lazy(pages.flowers);
 const SettingsPage = lazy(pages.settings);
 
 const PAGES: Record<RoutePath, () => React.ReactNode> = {
@@ -76,6 +83,7 @@ const PAGES: Record<RoutePath, () => React.ReactNode> = {
   '/museum': () => <MuseumPage />,
   '/quiz': () => <QuizPage />,
   '/games': () => <GamesPage />,
+  '/flowers': () => <FlowersPage />,
   '/settings': () => <SettingsPage />,
 };
 
@@ -130,6 +138,7 @@ export function App() {
   useEffect(() => setSfxEnabled(prefs.sfx), [prefs.sfx]);
   useEffect(() => setAmbienceEnabled(prefs.ambience), [prefs.ambience]);
   useEffect(() => installTapSounds(), []);
+  useCocoBow();
 
   // Connect to our shared universe, if one is configured.
   useEffect(() => {
@@ -199,9 +208,12 @@ export function App() {
           {!introOpen && <HiddenHutch />}
           <Toaster />
           <ConfirmHost />
+          <DatePlannerHost />
           <CelebrationHost />
           <InstallSheetHost />
           {!introOpen && <WelcomeHost />}
+          {!introOpen && <PingCatcher />}
+          {!introOpen && <NewsHost />}
           <AnimatePresence>
             {introOpen && <Intro key="intro" onEnter={closeIntro} />}
           </AnimatePresence>

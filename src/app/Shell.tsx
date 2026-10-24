@@ -12,9 +12,11 @@ import {
   Play,
   Settings2,
   Smartphone,
+  Sparkles,
   X,
 } from 'lucide-react';
 import { openInstallSheet } from '../pwa/InstallSheet';
+import { openNews } from '../features/news/news';
 import { useSyncState } from '../sync/sync';
 import { href, useRoute, type RoutePath } from '../lib/router';
 import { DESKTOP_PATHS, GROUPS, TAB_PATHS, sectionFor, sectionsIn, type Section } from './sections';
@@ -301,6 +303,20 @@ export function MenuSheet({ open, onClose }: { open: boolean; onClose: () => voi
             <span>Eén universe op jullie allebei je telefoon</span>
           </span>
         </a>
+        <button
+          type="button"
+          className="menu-app__btn"
+          onClick={() => {
+            onClose();
+            openNews();
+          }}
+        >
+          <Sparkles aria-hidden="true" />
+          <span>
+            <strong>Wat is er nieuw?</strong>
+            <span>De laatste updates in het kort</span>
+          </span>
+        </button>
       </div>
     </Dialog>
   );

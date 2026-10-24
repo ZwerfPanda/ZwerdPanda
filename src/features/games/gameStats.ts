@@ -1,6 +1,7 @@
 import { updateContent } from '../../data/store';
 import type { AppContent, GameId, GameResult, Person, Player, ScoreGame } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
+import { monthName, tournament } from './tickets';
 
 export const GAME_NAMES: Record<GameId, string> = {
   uno: 'UNO',
@@ -10,6 +11,8 @@ export const GAME_NAMES: Record<GameId, string> = {
   skeeball: 'skeeball',
   darts: 'darten',
   zeeslag: 'zeeslag',
+  memory: 'memory',
+  hockey: 'airhockey',
 };
 
 /** Writes down how a game ended (once per id, so a match counts once). */
@@ -72,7 +75,7 @@ export function gameBrag(
     'Oké oké… nog één potje?',
     'Pff. Volgende keer ben jij de sjaak.',
   ];
-  for (const game of ['uno', 'c4', 'hangman', 'zeeslag', 'darts'] as GameId[]) {
+  for (const game of ['uno', 'c4', 'hangman', 'zeeslag', 'darts', 'memory', 'hockey'] as GameId[]) {
     const h = headToHead(c.games.results, game, 'you', 'partner');
     if (h.a + h.b === 0) continue;
     if (h.a === h.b) {
@@ -107,6 +110,14 @@ export function gameBrag(
         `Darten: ${wins}–${losses} voor mij 🎯 Ik gooi gewoon raak.`,
         `Ik ben de dart-${crown(leader)}, {pet}. ${wins} keer gewonnen!`,
       ],
+      memory: [
+        `Memory: ${wins}–${losses} voor mij 🧠 Ik onthoud gewoon alles van ons.`,
+        `Ik vind onze foto’s sneller dan jij, {pet}. ${wins} keer gewonnen!`,
+      ],
+      hockey: [
+        `Airhockey: ${wins}–${losses}. Mijn schot is niet te stoppen 🏒`,
+        `${wins} keer gescoord tegen jou… ik bedoel gewonnen. Allebei eigenlijk 😏`,
+      ],
       bowling: [],
       skeeball: [],
     };
@@ -130,6 +141,19 @@ export function gameBrag(
       reply: pick(replies, rng),
     });
   }
+  // Last month's champion doesn't let anyone forget it.
+  const now = new Date();
+  const prev = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1))
+    .toISOString()
+    .slice(0, 7);
+  const champ = tournament(c.games.results).find((m) => m.month === prev && m.champion);
+  if (champ?.champion) {
+    options.push({
+      leader: champ.champion,
+      text: `Ik was kampioen van ${monthName(prev)} 🏆 ${Math.max(champ.you, champ.partner)}–${Math.min(champ.you, champ.partner)}, {pet}.`,
+      reply: pick(replies, rng),
+    });
+  }
   if (!options.length) return null;
   const choice = pick(options, rng);
   return { ...choice, reply: choice.reply };
@@ -138,7 +162,7 @@ export function gameBrag(
 /** What Coco says about her games against `me`. */
 export function cocoGameTalk(c: AppContent, me: Person, name: string, rng: Rng): string | null {
   const lines: string[] = [];
-  for (const game of ['uno', 'c4', 'hangman', 'zeeslag', 'darts'] as GameId[]) {
+  for (const game of ['uno', 'c4', 'hangman', 'zeeslag', 'darts', 'memory', 'hockey'] as GameId[]) {
     const h = headToHead(c.games.results, game, me, 'coco');
     if (h.a + h.b === 0) continue;
     const g = GAME_NAMES[game];

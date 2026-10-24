@@ -1,12 +1,13 @@
 import { lazy, Suspense, useState } from 'react';
 import { useContent } from '../../data/store';
-import { otherPerson, useMe } from '../../data/people';
-import { navigate, useRoute } from '../../lib/router';
+import { nameOf, otherPerson, useMe } from '../../data/people';
+import { href, navigate, useRoute } from '../../lib/router';
 import { playSfx } from '../../lib/audio/sfx';
 import { useAmbience } from '../../lib/audio/ambience';
 import { PageLoading } from '../../app/PageLoading';
 import type { Player, ScoreGame } from '../../data/types';
 import { headToHead } from './gameStats';
+import { monthName, ticketBalance, tournament } from './tickets';
 import './arcade.css';
 
 const ConnectFour = lazy(() => import('./ConnectFour').then((m) => ({ default: m.ConnectFour })));
@@ -17,6 +18,9 @@ const Skeeball = lazy(() => import('./Skeeball').then((m) => ({ default: m.Skeeb
 const Darts = lazy(() => import('./Darts').then((m) => ({ default: m.Darts })));
 const Zeeslag = lazy(() => import('./Zeeslag').then((m) => ({ default: m.Zeeslag })));
 const Claw = lazy(() => import('./Claw').then((m) => ({ default: m.Claw })));
+const Memory = lazy(() => import('./Memory').then((m) => ({ default: m.Memory })));
+const Hockey = lazy(() => import('./Hockey').then((m) => ({ default: m.Hockey })));
+const Prizes = lazy(() => import('./Prizes').then((m) => ({ default: m.Prizes })));
 
 const GAMES = [
   {
@@ -61,6 +65,21 @@ const GAMES = [
     blurb: 'Herinneringen & date-ideetjes',
     tint: '#ffd8a8',
   },
+  { id: 'memory', emoji: '🧠', title: 'Memory', blurb: 'Met onze eigen foto’s', tint: '#e4ddf5' },
+  {
+    id: 'hockey',
+    emoji: '🏒',
+    title: 'Airhockey',
+    blurb: 'Elk aan een kant van je telefoon',
+    tint: '#c9e4f5',
+  },
+  {
+    id: 'prizes',
+    emoji: '🎁',
+    title: 'Prijzenkast',
+    blurb: 'Win bonnen met je tickets',
+    tint: '#ffd8a8',
+  },
 ] as const;
 
 /** Our arcade: a few games for the two of us. */
@@ -85,7 +104,13 @@ export function GamesPage() {
                     ? Zeeslag
                     : game === 'claw'
                       ? Claw
-                      : null;
+                      : game === 'memory'
+                        ? Memory
+                        : game === 'hockey'
+                          ? Hockey
+                          : game === 'prizes'
+                            ? Prizes
+                            : null;
     if (Game)
       return (
         <Suspense fallback={<PageLoading />}>
@@ -103,6 +128,8 @@ function Arcade() {
   const profile = useContent((c) => c.profile);
   const me = useMe();
   const [inserting, setInserting] = useState<string | null>(null);
+  const content = useContent((c) => c);
+  const myTickets = ticketBalance(content, me);
   useAmbience('arcade');
 
   // What scrolls along the LED ticker: records and wins (Coco's too).
@@ -169,6 +196,13 @@ function Arcade() {
         </div>
       </div>
 
+      <p className="hall__tickets">
+        🎟️ Jouw tickets: <strong>{myTickets}</strong>
+        <a href={href('/games', { g: 'prizes' })}>naar de prijzenkast →</a>
+      </p>
+
+      <Trophies />
+
       <ul className="hall__floor">
         {GAMES.map((g) => {
           const live =
@@ -219,6 +253,58 @@ function Arcade() {
   );
 }
 
+/** Champion of the month: who won the most games against the other. */
+function Trophies() {
+  const results = useContent((c) => c.games.results);
+  const profile = useContent((c) => c.profile);
+  const months = tournament(results);
+  const thisMonth = new Date().toISOString().slice(0, 7);
+  const now = months.find((m) => m.month === thisMonth) ?? {
+    month: thisMonth,
+    you: 0,
+    partner: 0,
+    champion: null,
+  };
+  const past = months.filter((m) => m.month !== thisMonth && m.champion);
+  const name = (p: 'you' | 'partner') => nameOf(p, profile);
+  return (
+    <section className="trophies" aria-labelledby="trophies-title">
+      <h2 id="trophies-title" className="trophies__title">
+        🏆 Kampioen van {monthName(thisMonth)}
+      </h2>
+      <div className="trophies__now">
+        <span className={now.champion === 'you' ? 'is-lead' : ''}>
+          <small>{profile.yourName.toUpperCase()}</small>
+          <strong>{now.you}</strong>
+        </span>
+        <em>tegen</em>
+        <span className={now.champion === 'partner' ? 'is-lead' : ''}>
+          <small>{profile.partnerName.toUpperCase()}</small>
+          <strong>{now.partner}</strong>
+        </span>
+      </div>
+      <p className="trophies__hint">
+        {now.champion
+          ? `${name(now.champion)} staat voor deze maand. Wie de meeste potjes van de ander wint, krijgt de beker.`
+          : 'Nog gelijk deze maand — elk gewonnen potje tegen elkaar telt.'}
+      </p>
+      {past.length > 0 && (
+        <ul className="trophies__shelf" aria-label="Eerdere kampioenen">
+          {past.slice(0, 12).map((m) => (
+            <li key={m.month} className={`trophy trophy--${m.champion}`}>
+              <span aria-hidden="true">🏆</span>
+              <strong>{name(m.champion!)}</strong>
+              <small>
+                {monthName(m.month)} {m.month.slice(0, 4)} · {m.you}–{m.partner}
+              </small>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 const MARQUEE: Record<string, string> = {
   uno: 'linear-gradient(90deg,#ff3b5c,#ffb020,#2bd67b,#2f7bff)',
   c4: 'linear-gradient(90deg,#2f6fd6,#ff4f8b)',
@@ -228,6 +314,9 @@ const MARQUEE: Record<string, string> = {
   zeeslag: 'linear-gradient(90deg,#1f6fd6,#2bd6c1)',
   darts: 'linear-gradient(90deg,#d8323c,#2fa64f)',
   claw: 'linear-gradient(90deg,#ff8cc0,#b07bff,#7fc8ff)',
+  memory: 'linear-gradient(90deg,#b07bff,#5ff3ff)',
+  hockey: 'linear-gradient(90deg,#4f8bff,#ff5fa2)',
+  prizes: 'linear-gradient(90deg,#ffd75e,#ff8cc0)',
   quiz: 'linear-gradient(90deg,#ffd75e,#ff9a5c)',
 };
 
@@ -424,6 +513,63 @@ function Preview({ id }: { id: string }) {
             <path d="M60 40l22 -18" stroke="#c9c3b5" strokeWidth="2" />
             <path d="M82 22l6 -2 -3 6z" fill="#5ff3ff" />
           </g>
+        </svg>
+      );
+    case 'memory':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--memory">
+          {[0, 1, 2, 3].map((i) => (
+            <g key={i} className="pv-flip" style={{ animationDelay: `${i * 0.45}s` }}>
+              <rect
+                x={18 + i * 22}
+                y="22"
+                width="18"
+                height="26"
+                rx="3"
+                fill={i % 2 ? '#b07bff' : '#5ff3ff'}
+                stroke="#fff"
+                strokeWidth="1.5"
+              />
+              <text x={27 + i * 22} y="40" textAnchor="middle" fontSize="10" fill="#fff">
+                {['♥', '🐰', '♥', '🐰'][i]}
+              </text>
+            </g>
+          ))}
+        </svg>
+      );
+    case 'hockey':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--hockey">
+          <rect
+            x="30"
+            y="6"
+            width="60"
+            height="68"
+            rx="8"
+            fill="#132a5c"
+            stroke="#5ff3ff"
+            strokeOpacity="0.6"
+          />
+          <line x1="30" y1="40" x2="90" y2="40" stroke="#5ff3ff" strokeOpacity="0.5" />
+          <circle cx="60" cy="16" r="6" fill="#ff5fa2" />
+          <circle cx="60" cy="64" r="6" fill="#4f8bff" />
+          <circle className="pv-puck" cx="60" cy="40" r="3.5" fill="#fff" />
+        </svg>
+      );
+    case 'prizes':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--prizes">
+          <rect x="24" y="10" width="72" height="60" rx="6" fill="#2a1840" stroke="#ffd75e" />
+          <line x1="24" y1="40" x2="96" y2="40" stroke="#ffd75e" strokeOpacity="0.6" />
+          <text x="42" y="34" fontSize="16" textAnchor="middle">
+            🧋
+          </text>
+          <text x="78" y="34" fontSize="16" textAnchor="middle">
+            💐
+          </text>
+          <text x="60" y="64" fontSize="16" textAnchor="middle" className="pv-q">
+            🎟️
+          </text>
         </svg>
       );
     case 'claw':

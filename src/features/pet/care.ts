@@ -1,4 +1,4 @@
-import { PET_LOG_LIMIT } from '../../data/normalize';
+import { CARE_DAYS_LIMIT, PET_LOG_LIMIT, localDay } from '../../data/normalize';
 import type { CocoPet, Person, PetAction, PetFood, PetOutfit, PetTrick } from '../../data/types';
 import { durationBetween, parseIsoDate, todayIso, todayUtc, daysUntil } from '../../lib/dates';
 import { createId } from '../../lib/id';
@@ -235,7 +235,7 @@ export interface OutfitInfo {
 
 export const OUTFITS: Record<PetOutfit, OutfitInfo> = {
   none: { label: 'Gewoon Coco', level: 0 },
-  bow: { label: 'Roze strikje', level: 1 },
+  bow: { label: 'Strikje in nagelkleur 💅', level: 1 },
   flowers: { label: 'Bloemenkroontje', level: 2 },
   scarf: { label: 'Knus sjaaltje', level: 3 },
   party: { label: 'Feesthoedje', level: 4 },
@@ -653,6 +653,13 @@ function addLog(
   return [{ id: createId('care'), action, detail, by, at }, ...pet.log].slice(0, PET_LOG_LIMIT);
 }
 
+/** Today counts for her care streak (dressing up doesn't). */
+function addCareDay(pet: CocoPet, at: string): string[] {
+  const day = localDay(at);
+  if (pet.careDays.includes(day)) return pet.careDays;
+  return [...pet.careDays, day].sort().slice(-CARE_DAYS_LIMIT);
+}
+
 export function care(pet: CocoPet, action: Care, by: Person, now: Date = new Date()): CareResult {
   const request = requestOf(pet, now.getTime());
   const result = careOnly(pet, action, by, now);
@@ -682,7 +689,13 @@ function careOnly(pet: CocoPet, action: Care, by: Person, now: Date): CareResult
     message: string,
     learned?: PetTrick,
   ): CareResult => ({
-    pet: { ...pet, ...next, bond: pet.bond + bond, log: addLog(pet, log, detail, by, at) },
+    pet: {
+      ...pet,
+      ...next,
+      bond: pet.bond + bond,
+      log: addLog(pet, log, detail, by, at),
+      careDays: log === 'outfit' ? pet.careDays : addCareDay(pet, at),
+    },
     ok: true,
     message,
     bond,
@@ -811,6 +824,7 @@ function careOnly(pet: CocoPet, action: Care, by: Person, now: Date): CareResult
               handled,
               bond: Math.max(0, pet.bond - 2),
               log: addLog(pet, 'raised', 'oops', by, at),
+              careDays: addCareDay(pet, at),
             },
             ok: true,
             message: 'Oei. Daar schrok ze van — ze vertrouwt je even wat minder.',

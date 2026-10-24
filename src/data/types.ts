@@ -299,6 +299,8 @@ export interface CocoPet {
   tricks: Partial<Record<PetTrick, number>>;
   outfit: PetOutfit;
   log: PetLogEntry[];
+  /** Days (YYYY-MM-DD) someone looked after her: her care streak. */
+  careDays: string[];
   /** How well brought up she is, 0–100: grows when we respond kindly to mischief. */
   manners: number;
   /** Mischief moments we already responded to (so the other phone doesn't get them again). */
@@ -519,6 +521,8 @@ export interface NailSet {
   colors: string[];
   art: NailArt[];
   savedAt?: string;
+  /** When he gave it a heart. */
+  loved?: string;
 }
 
 /** A set she sent him, to show off. */
@@ -553,6 +557,16 @@ export interface HerSpace {
   journal: JournalEntry[];
   bucket: BucketItem[];
   goals: Goal[];
+  /** Her wishes for our app, for him to pass on. */
+  ideas: IdeaNote[];
+}
+
+export interface IdeaNote {
+  id: ID;
+  text: string;
+  /** new → he has seen it → it's in the app. */
+  status: 'new' | 'seen' | 'built';
+  createdAt: string;
 }
 
 /* ---------------------------------------------------------- museum of us */
@@ -665,7 +679,16 @@ export interface GameScore {
   at: string;
 }
 
-export type GameId = 'uno' | 'c4' | 'hangman' | 'bowling' | 'skeeball' | 'darts' | 'zeeslag';
+export type GameId =
+  | 'uno'
+  | 'c4'
+  | 'hangman'
+  | 'bowling'
+  | 'skeeball'
+  | 'darts'
+  | 'zeeslag'
+  | 'memory'
+  | 'hockey';
 /** Who can play: the two of us, and Coco. */
 export type Player = Person | 'coco';
 
@@ -736,6 +759,79 @@ export interface AppContent {
   games: Games;
   /** Each phone says, after syncing, whether it matched the shared copy (see the Samen-check). */
   syncReports: Partial<Record<Person, SyncReport>>;
+  /** Her flower shop: every bouquet he gave her. */
+  flowers: Bouquet[];
+  /** Arcade prize counter: little promises we make each other, bought with tickets. */
+  coupons: Coupon[];
+  /** "Ik denk aan je" taps. */
+  pings: Ping[];
+  /** Answers to the question of the day. */
+  daily: DailyAnswer[];
+  /** Dates we planned (from an idea), with a countdown and, after, a memory. */
+  datePlans: DatePlan[];
+}
+
+export interface Bouquet {
+  id: ID;
+  media?: MediaSource;
+  /** YYYY-MM-DD, if we know it. */
+  date?: string;
+  occasion?: string;
+  /** Rozen, tulpen… */
+  flowers: string[];
+  /** Her own words about it. */
+  note?: string;
+  /** The little card that came with it (his words). */
+  card?: string;
+  /** Which vase it stands in on the shelf. */
+  vase: number;
+  favorite: boolean;
+  by?: Person;
+  createdAt: string;
+}
+
+export interface Coupon {
+  id: ID;
+  title: string;
+  emoji: string;
+  /** Tickets it costs. */
+  price: number;
+  /** Who made it — and will make it happen. It's for the other. */
+  from: Person;
+  wonAt?: string;
+  /** Asked to cash it in. */
+  usedAt?: string;
+  createdAt: string;
+}
+
+export interface Ping {
+  id: ID;
+  from: Person;
+  kind: 'heart' | 'hug' | 'kiss';
+  at: string;
+}
+
+export interface DailyAnswer {
+  /** `${date}:${who}` — one each per day. */
+  id: ID;
+  date: string;
+  who: Person;
+  text: string;
+  at: string;
+}
+
+export interface DatePlan {
+  id: ID;
+  title: string;
+  /** YYYY-MM-DD */
+  date: string;
+  countdownId?: ID;
+  /** The memory we added afterwards. */
+  memoryId?: ID;
+  /** "Not now" on the after-the-date question. */
+  skipped?: boolean;
+  by?: Person;
+  createdAt: string;
 }
 
 export interface SyncReport {

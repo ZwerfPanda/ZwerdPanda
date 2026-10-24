@@ -1,6 +1,8 @@
 import { INK } from '../../components/art/shapes';
 import type { PetFood } from '../../data/types';
 import { FoodArt } from './Props';
+import { SeasonFloor, SeasonWall, SeasonWindow } from './DenSeason';
+import type { Season } from './season';
 
 /** Where Coco can be in her den, as a % from the left. */
 export const SPOTS = {
@@ -71,8 +73,11 @@ export function DenScene({
   hay = 100,
   bowl = null,
   rustle = null,
+  season = null,
 }: {
   light: DenLight;
+  /** Decorations for the time of year (Halloween, Christmas, her birthday…). */
+  season?: Season | null;
   /** 0–100: how full the hay rack and water bottle are. */
   hay?: number;
   bowl?: { food: PetFood; bites: number } | null;
@@ -93,6 +98,9 @@ export function DenScene({
           <stop offset="0%" stopColor={p.sky[0]} />
           <stop offset="100%" stopColor={p.sky[1]} />
         </linearGradient>
+        <clipPath id="den-window">
+          <rect x="236" y="34" width="104" height="96" rx="10" />
+        </clipPath>
         <radialGradient id="den-glow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#ffd98e" stopOpacity="0.55" />
           <stop offset="100%" stopColor="#ffd98e" stopOpacity="0" />
@@ -140,6 +148,7 @@ export function DenScene({
             />
           </g>
         )}
+        {season && <SeasonWindow season={season} />}
         <path d="M288 34v96M236 82h104" stroke={INK} strokeWidth="3" />
         <path d="M226 28q20 50 6 110l-14 0q8 -60 -6 -110z" fill="#e9a7b4" {...S} />
         <path d="M350 28q-20 50 -6 110l14 0q-8 -60 6 -110z" fill="#e9a7b4" {...S} />
@@ -157,6 +166,8 @@ export function DenScene({
           strokeWidth="2"
         />
       </g>
+
+      {season && <SeasonWall season={season} />}
 
       {/* floor */}
       <rect y="196" width="400" height="104" fill={p.floor} />
@@ -176,6 +187,7 @@ export function DenScene({
         strokeDasharray="6 7"
         opacity="0.6"
       />
+      {season && <SeasonFloor season={season} light={light} />}
 
       {/* hay rack + water bottle */}
       <g className={rustle === 'hay' ? 'den-rustle' : undefined}>

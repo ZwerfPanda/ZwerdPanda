@@ -113,6 +113,7 @@ function useCards(): Partial<Record<RoutePath, ReactNode>> {
   const profile = useContent((c) => c.profile);
   const me = useMe();
   const stops = useContent((c) => c.museum.stops.length);
+  const flowerCount = useContent((c) => c.flowers.length);
 
   const unread = letters.filter((l) => sealedFor(l, me, profile)).length;
   const somedays = dreams.filter((d) => d.someday).length;
@@ -448,6 +449,26 @@ function useCards(): Partial<Record<RoutePath, ReactNode>> {
         <span>
           <h3 className="ex-label">{her.title || `${partnerName}’s Little World`}</h3>
           <span className="ex-sub">jouw eigen plekje — journal, bucket list & goals</span>
+        </span>
+      </a>
+    ),
+    '/flowers': (
+      <a className="ex-sticker ex-sticker--flowers" href={href('/flowers')}>
+        <svg viewBox="0 0 80 80" aria-hidden="true">
+          <circle cx="40" cy="40" r="34" fill="#fde0e8" />
+          <path d="M30 46h20l-3 20H33z" fill="#cfe8f2" stroke={INK} strokeWidth="2" />
+          <path d="M40 46V30M34 46l-4-12M46 46l4-12" stroke="#5f9b5a" strokeWidth="2.5" />
+          <circle cx="40" cy="26" r="7" fill="#e6889b" stroke={INK} strokeWidth="2" />
+          <circle cx="29" cy="32" r="6" fill="#ffd75e" stroke={INK} strokeWidth="2" />
+          <circle cx="51" cy="32" r="6" fill="#cbbfe9" stroke={INK} strokeWidth="2" />
+        </svg>
+        <span>
+          <h3 className="ex-label">Bloemenwinkeltje</h3>
+          <span className="ex-sub">
+            {flowerCount
+              ? `${flowerCount} ${flowerCount === 1 ? 'boeket' : 'boeketten'} op de plank`
+              : 'al je boeketten, elk in een vaasje'}
+          </span>
         </span>
       </a>
     ),

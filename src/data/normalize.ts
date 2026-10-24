@@ -13,6 +13,11 @@ import {
   defaultHunt,
 } from './defaults';
 import type {
+  DatePlan,
+  DailyAnswer,
+  Ping,
+  Coupon,
+  Bouquet,
   Album,
   AppContent,
   ArtKey,
@@ -431,10 +436,25 @@ const COUNTDOWN_ICONS: readonly CountdownIcon[] = [
 
 /** The most care-log entries we keep (newest first). */
 export const PET_LOG_LIMIT = 40;
+/** Care days we remember for the streak (a bit over a year). */
+export const CARE_DAYS_LIMIT = 400;
+
+/** A moment as a calendar day where this phone is. */
+export const localDay = (iso: string) => {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 function normalizePet(v: unknown): CocoPet {
   if (!isObj(v))
-    return { ...defaultPet, treats: { ...defaultPet.treats }, tricks: {}, log: [], handled: [] };
+    return {
+      ...defaultPet,
+      treats: { ...defaultPet.treats },
+      tricks: {},
+      log: [],
+      careDays: [],
+      handled: [],
+    };
   const treats = isObj(v.treats) ? v.treats : {};
   const tricks: CocoPet['tricks'] = {};
   if (isObj(v.tricks)) {
@@ -473,6 +493,17 @@ function normalizePet(v: unknown): CocoPet {
     tricks,
     outfit: oneOf(v.outfit, OUTFITS, 'none'),
     log,
+    careDays: [
+      ...new Set([
+        ...arr(v.careDays)
+          .map((d) => optDate(d))
+          .filter((d): d is string => Boolean(d)),
+        // Days from the diary count too (it's all there was before the streak).
+        ...log.filter((e) => e.action !== 'outfit').map((e) => localDay(e.at)),
+      ]),
+    ]
+      .sort()
+      .slice(-CARE_DAYS_LIMIT),
     manners: Math.round(clampNumber(v.manners, 0, 100)),
     handled: arr(v.handled)
       .filter((h): h is string => typeof h === 'string' && h.length <= 40)
@@ -735,6 +766,7 @@ function normalizeNailSet(v: unknown, i: number): NailSet | null {
     colors: colors.length === 5 ? colors : [...fallback.colors],
     art: art.length === 5 ? art : [...fallback.art],
     savedAt: optStamp(v.savedAt),
+    loved: optStamp(v.loved),
   };
 }
 
@@ -825,6 +857,16 @@ export function normalizeHer(v: unknown): HerSpace {
     goals: list(v.goals, normalizeGoal)
       .filter((g) => !g.private)
       .slice(0, 200),
+    ideas: list(v.ideas, (x, i) =>
+      isObj(x) && optStr(x.text)
+        ? {
+            id: id(x.id, 'idea', i),
+            text: str(x.text, '', 1000),
+            status: oneOf(x.status, ['new', 'seen', 'built'] as const, 'new'),
+            createdAt: stamp(x.createdAt),
+          }
+        : null,
+    ).slice(-300),
   };
 }
 
@@ -954,10 +996,80 @@ const GAME_IDS: readonly GameId[] = [
   'skeeball',
   'darts',
   'zeeslag',
+  'memory',
+  'hockey',
 ];
 const PLAYERS: readonly Player[] = ['you', 'partner', 'coco'];
 
 const JUDGEMENTS = ['right', 'close', 'wrong'] as const;
+
+function normalizeBouquet(v: unknown, i: number): Bouquet | null {
+  if (!isObj(v)) return null;
+  return {
+    id: id(v.id, 'bouquet', i),
+    media: normalizeMedia(v.media) ?? undefined,
+    date: optDate(v.date),
+    occasion: optStr(v.occasion, 80),
+    flowers: arr(v.flowers)
+      .filter((f): f is string => typeof f === 'string' && f.length > 0)
+      .map((f) => f.slice(0, 40))
+      .slice(0, 12),
+    note: optStr(v.note, 5000),
+    card: optStr(v.card, 5000),
+    vase: Math.round(clampNumber(v.vase, 0, 5)),
+    favorite: bool(v.favorite),
+    by: person(v.by),
+    createdAt: stamp(v.createdAt),
+  };
+}
+
+function normalizeCoupon(v: unknown, i: number): Coupon | null {
+  const from = isObj(v) ? person(v.from) : undefined;
+  if (!isObj(v) || !from || !optStr(v.title)) return null;
+  return {
+    id: id(v.id, 'coupon', i),
+    title: str(v.title, '', 120),
+    emoji: str(v.emoji, '🎟️', 16) || '🎟️',
+    price: Math.round(clampNumber(v.price, 1, 10_000, 50)),
+    from,
+    wonAt: optStamp(v.wonAt),
+    usedAt: optStamp(v.usedAt),
+    createdAt: stamp(v.createdAt),
+  };
+}
+
+function normalizePing(v: unknown, i: number): Ping | null {
+  const from = isObj(v) ? person(v.from) : undefined;
+  if (!isObj(v) || !from || !optStamp(v.at)) return null;
+  return {
+    id: id(v.id, 'ping', i),
+    from,
+    kind: oneOf(v.kind, ['heart', 'hug', 'kiss'] as const, 'heart'),
+    at: v.at as string,
+  };
+}
+
+function normalizeDailyAnswer(v: unknown): DailyAnswer | null {
+  const who = isObj(v) ? person(v.who) : undefined;
+  const date = isObj(v) ? optDate(v.date) : undefined;
+  if (!isObj(v) || !who || !date || !optStr(v.text)) return null;
+  return { id: `${date}:${who}`, date, who, text: str(v.text, '', 2000), at: stamp(v.at) };
+}
+
+function normalizeDatePlan(v: unknown, i: number): DatePlan | null {
+  const date = isObj(v) ? optDate(v.date) : undefined;
+  if (!isObj(v) || !date || !optStr(v.title)) return null;
+  return {
+    id: id(v.id, 'dateplan', i),
+    title: str(v.title, '', 200),
+    date,
+    countdownId: optStr(v.countdownId, 120),
+    memoryId: optStr(v.memoryId, 120),
+    skipped: bool(v.skipped) || undefined,
+    by: person(v.by),
+    createdAt: stamp(v.createdAt),
+  };
+}
 
 function normalizeSyncReports(v: unknown): AppContent['syncReports'] {
   if (!isObj(v)) return {};
@@ -1034,6 +1146,11 @@ export function normalizeContent(raw: unknown): AppContent {
     quiz: normalizeQuiz(raw.quiz),
     games: normalizeGames(raw.games),
     syncReports: normalizeSyncReports(raw.syncReports),
+    flowers: list(raw.flowers, normalizeBouquet).slice(0, 2000),
+    coupons: list(raw.coupons, normalizeCoupon).slice(-500),
+    pings: list(raw.pings, normalizePing).slice(-60),
+    daily: list(raw.daily, normalizeDailyAnswer).slice(-2000),
+    datePlans: list(raw.datePlans, normalizeDatePlan).slice(-500),
   });
 }
 

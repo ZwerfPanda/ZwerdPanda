@@ -466,3 +466,53 @@ export function BrushArt() {
     </g>
   );
 }
+
+const STAR = Array.from({ length: 10 }, (_, i) => {
+  const a = (Math.PI / 5) * i - Math.PI / 2;
+  const r = i % 2 ? 2 : 4.6;
+  return `${i ? 'L' : 'M'}${(Math.cos(a) * r).toFixed(1)} ${(Math.sin(a) * r).toFixed(1)}`;
+}).join('');
+
+/** Halloween: a little witch hat with a bent tip. Brim centred on (0, 4). */
+export function WitchHat() {
+  return (
+    <g>
+      <ellipse cy="4" rx="25" ry="5.5" fill="#3a2c54" stroke={INK} strokeWidth="2.5" />
+      <path
+        d="M-15 3C-11 -10 -7 -24 1 -34C5 -39 12 -38 15 -33C9 -32 6 -26 7 -18C8 -9 11 -3 15 3z"
+        fill="#4b3a6b"
+        stroke={INK}
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+      />
+      <path d="M-13.5 -3q13.5 4 27 0" fill="none" stroke="#f29b38" strokeWidth="4" />
+      <path d={`${STAR}Z`} transform="translate(0 -15)" fill="#ffd34d" />
+    </g>
+  );
+}
+
+/** Christmas: a red hat with a white trim, its tip flopping over. Trim centred on (0, 2). */
+export function SantaHat() {
+  return (
+    <g>
+      <path
+        d="M-19 2C-15 -20 2 -36 22 -30C26 -28 26 -22 22 -20C14 -22 10 -12 17 2z"
+        fill="#d93b3b"
+        stroke={INK}
+        strokeWidth="2.5"
+        strokeLinejoin="round"
+      />
+      <rect
+        x="-22"
+        y="-3"
+        width="44"
+        height="10"
+        rx="5"
+        fill="#fbf8f4"
+        stroke={INK}
+        strokeWidth="2.5"
+      />
+      <circle cx="24" cy="-24" r="6" fill="#fbf8f4" stroke={INK} strokeWidth="2" />
+    </g>
+  );
+}

@@ -23,6 +23,7 @@ import { celebrateFrom, toast } from '../../components/ui/feedback';
 import { createId, nowIso } from '../../lib/id';
 import { playSfx } from '../../lib/audio/sfx';
 import { getHer, updateHer, useHer } from './herData';
+import { setOfTheMonth, toggleLove, type GallerySet } from './nailGallery';
 
 const SKIN = '#946040';
 const SKIN_LIGHT = '#a8734e';
@@ -540,8 +541,75 @@ async function handAsPicture(svg: SVGSVGElement): Promise<Blob | null> {
   }
 }
 
+/** His heart on a set: a button on his phone, a little badge on hers. */
+function LoveMark({
+  item,
+  visitor,
+  crowned,
+}: {
+  item: GallerySet;
+  visitor: boolean;
+  crowned: boolean;
+}) {
+  const yourName = useContent((c) => c.profile.yourName);
+  const loved = Boolean(item.set.loved);
+  if (visitor) {
+    return (
+      <button
+        type="button"
+        className={`nail-love${loved ? ' is-loved' : ''}`}
+        aria-pressed={loved}
+        aria-label={crowned ? 'Hartje voor deze set (set van de maand)' : 'Hartje voor deze set'}
+        data-sfx="none"
+        onClick={() => {
+          playSfx(loved ? 'tap' : 'heart', true);
+          updateHer({ nails: toggleLove(getHer().nails, item.key, nowIso()) });
+          if (!loved) toast('Hartje gegeven 💗 Je favoriet van deze maand krijgt de 👑');
+        }}
+      >
+        <span aria-hidden="true">{crowned ? '👑' : loved ? '💗' : '🤍'}</span>
+      </button>
+    );
+  }
+  if (!loved) return null;
+  return (
+    <span
+      className="nail-love is-loved"
+      role="img"
+      aria-label={
+        crowned ? `Set van de maand, gekozen door ${yourName}` : `${yourName} gaf deze een hartje`
+      }
+      title={crowned ? 'Set van de maand' : `${yourName} vindt deze mooi`}
+    >
+      {crowned ? '👑' : '💗'}
+    </span>
+  );
+}
+
+/** The set he loved most recently this month, in the spotlight. */
+function MonthSpotlight({ best, visitor }: { best: GallerySet | null; visitor: boolean }) {
+  const yourName = useContent((c) => c.profile.yourName);
+  const month = new Date().toLocaleDateString('nl-NL', { month: 'long' });
+  if (!best) {
+    return visitor ? (
+      <p className="nail-month__hint">
+        Geef je favoriet een 🤍 — die wordt haar set van {month} 👑
+      </p>
+    ) : null;
+  }
+  return (
+    <figure className="nail-month">
+      <NailHand set={best.set} small />
+      <figcaption>
+        <strong>👑 Set van {month}</strong>
+        <span>{visitor ? 'Jouw favoriet van deze maand' : `Gekozen door ${yourName} 💗`}</span>
+      </figcaption>
+    </figure>
+  );
+}
+
 /** On his phone: the sets she sent him. Seeing them marks them as seen. */
-function SentToYou({ sent }: { sent: SentNails[] }) {
+function SentToYou({ sent, crown }: { sent: SentNails[]; crown?: string }) {
   const partnerName = useContent((c) => c.profile.partnerName);
   const unseen = sent.filter((s) => !s.seenAt).length;
   useEffect(() => {
@@ -565,6 +633,11 @@ function SentToYou({ sent }: { sent: SentNails[] }) {
             <span className="nail-saved__open">
               <NailHand set={s.set} small />
             </span>
+            <LoveMark
+              item={{ key: s.id, set: s.set, at: s.at, sent: true }}
+              visitor
+              crowned={crown === s.id}
+            />
           </li>
         ))}
       </ul>
@@ -574,6 +647,7 @@ function SentToYou({ sent }: { sent: SentNails[] }) {
 
 export function NailStudio({ visitor }: { visitor: boolean }) {
   const nails = useHer((h) => h.nails);
+  const crown = setOfTheMonth(nails);
   const yourName = useContent((c) => c.profile.yourName);
   const set = nails.current;
   const stage = useRef<HTMLDivElement>(null);
@@ -928,7 +1002,10 @@ export function NailStudio({ visitor }: { visitor: boolean }) {
           </div>
         )}
       </div>
-      {visitor && <SentToYou sent={nails.sent ?? []} />}
+      {(nails.saved.length > 0 || (visitor && Boolean(nails.sent?.length))) && (
+        <MonthSpotlight best={crown} visitor={visitor} />
+      )}
+      {visitor && <SentToYou sent={nails.sent ?? []} crown={crown?.key} />}
       {nails.saved.length > 0 && (
         <>
           <h3 className="her-card__sub">
@@ -937,6 +1014,11 @@ export function NailStudio({ visitor }: { visitor: boolean }) {
           <ul className="nail-saved">
             {nails.saved.map((s) => (
               <li key={s.id}>
+                <LoveMark
+                  item={{ key: s.id, set: s, at: s.savedAt ?? '', sent: false }}
+                  visitor={visitor}
+                  crowned={crown?.key === s.id}
+                />
                 <button
                   type="button"
                   className="nail-saved__open"

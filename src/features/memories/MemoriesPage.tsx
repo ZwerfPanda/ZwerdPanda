@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FolderPen, Heart, ImagePlus, Play, Search } from 'lucide-react';
 import { getContent, useContent } from '../../data/store';
@@ -16,6 +16,7 @@ import { useReducedMotion } from '../../hooks/useMotion';
 import { Lightbox } from './Lightbox';
 import { MemoryForm } from './MemoryForm';
 import { AlbumsDialog } from './AlbumsDialog';
+import { datePreset, type DatePreset } from '../dates/datePlans';
 import './memories.css';
 import { ByTag } from '../../components/common/ByTag';
 import { SampleNotice } from '../../components/common/SampleNotice';
@@ -30,10 +31,22 @@ export function MemoriesPage() {
   const album = params.get('album') ?? 'all';
   const [query, setQuery] = useState('');
   const [lightbox, setLightbox] = useState<{ index: number; play: boolean } | null>(null);
-  const [form, setForm] = useState<{ open: boolean; memory: Memory | null }>({
+  const [form, setForm] = useState<{
+    open: boolean;
+    memory: Memory | null;
+    preset?: DatePreset | null;
+  }>({
     open: false,
     memory: null,
   });
+  // From "Hoe was jullie date?" on the home page: a new memory for that date.
+  const datePlanId = params.get('add') === 'date' ? params.get('plan') : null;
+  useEffect(() => {
+    if (!datePlanId) return;
+    const preset = datePreset(getContent(), datePlanId);
+    if (preset) setForm({ open: true, memory: null, preset });
+    replaceParams({ add: null, plan: null });
+  }, [datePlanId]);
   const [albumsOpen, setAlbumsOpen] = useState(false);
 
   const visible = useMemo(() => {
@@ -233,6 +246,7 @@ export function MemoriesPage() {
       <MemoryForm
         open={form.open}
         memory={form.memory}
+        preset={form.preset}
         defaultAlbumId={defaultAlbumId}
         onClose={() => setForm({ open: false, memory: null })}
       />

@@ -1559,6 +1559,88 @@ a.her-wish__main:hover .her-wish__title {
   transform: scale(0.75);
 }
 
+/* his heart on a set; the crown for the set of the month */
+.nail-love {
+  position: absolute;
+  bottom: -8px;
+  left: -8px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  box-shadow:
+    0 0 0 1px var(--accent-soft),
+    0 3px 8px rgba(0, 0, 0, 0.12);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+button.nail-love {
+  cursor: pointer;
+}
+
+button.nail-love:active {
+  transform: scale(0.9);
+}
+
+.nail-love.is-loved {
+  animation: nail-love-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes nail-love-pop {
+  from {
+    transform: scale(0.4);
+  }
+}
+
+.nail-month {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 16px 0 4px;
+  padding: 10px 14px 10px 10px;
+  border-radius: var(--radius-m);
+  background: linear-gradient(120deg, #fff4c9, #ffe3ec);
+  box-shadow: inset 0 0 0 1.5px #ecc95a;
+  color: #4a3a12;
+}
+
+.nail-month .nail-hand {
+  flex: none;
+  width: 92px;
+}
+
+.nail-month figcaption {
+  display: grid;
+  gap: 2px;
+}
+
+.nail-month strong {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+
+.nail-month span {
+  font-size: 0.88rem;
+}
+
+.nail-month__hint {
+  margin: 14px 0 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nail-love.is-loved {
+    animation: none;
+  }
+}
+
 /* ------------------------------------------------- his test mode (his phone) */
 
 .her-test {
@@ -1596,4 +1678,131 @@ a.her-wish__main:hover .her-wish__title {
 
 .nail-sent {
   margin-top: 14px;
+}
+
+/* -------------------------------------------- flower shop peek, idea box */
+
+.her-card__hint {
+  display: block;
+  margin: 0 0 12px;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+.her-flowers {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  align-items: center;
+  gap: 14px;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.2s var(--ease-spring);
+}
+
+.her-flowers:hover,
+.her-flowers:focus-visible {
+  transform: translateY(-2px);
+}
+
+.her-flowers .her-card__title {
+  display: block;
+  margin: 0 0 2px;
+}
+
+.her-flowers .her-card__hint {
+  margin: 0;
+}
+
+.her-flowers__vase {
+  position: relative;
+  display: grid;
+  justify-items: center;
+}
+
+.her-flowers__vase .vase {
+  width: 64px;
+  height: auto;
+}
+
+.her-flowers__bloom {
+  margin-bottom: -14px;
+  font-size: 2.2rem;
+  line-height: 1;
+  animation: her-bloom 4s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+@keyframes her-bloom {
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+.her-ideas .her-card__title svg {
+  width: 22px;
+  height: 22px;
+  vertical-align: -2px;
+}
+
+.her-ideas__form {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.her-ideas__form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface-raised);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--ink);
+  font: inherit;
+  resize: vertical;
+}
+
+.her-ideas__form .btn {
+  justify-self: start;
+}
+
+.her-ideas__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.her-idea {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface-raised);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.her-idea p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.her-idea .tag {
+  justify-self: start;
+}
+
+.her-idea--built {
+  box-shadow: inset 0 0 0 1.5px var(--sage-400, #7fb08a);
+}
+
+.her-idea__actions {
+  display: flex;
+  gap: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .her-flowers__bloom {
+    animation: none;
+  }
 }

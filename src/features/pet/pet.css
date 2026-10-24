@@ -1222,3 +1222,167 @@
     animation: none;
   }
 }
+
+/* ------------------------------------------------ seasons in the den */
+
+.den__season {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-m);
+  background: var(--accent-wash);
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.den__season span {
+  flex: 1 1 220px;
+}
+
+.den-bat {
+  transform-box: fill-box;
+  transform-origin: 50% 40%;
+  animation: den-bat 0.45s ease-in-out infinite alternate;
+}
+
+@keyframes den-bat {
+  to {
+    transform: scaleY(0.55);
+  }
+}
+
+.den-spider {
+  animation: den-spider 3.2s ease-in-out infinite alternate;
+}
+
+@keyframes den-spider {
+  to {
+    transform: translateY(9px);
+  }
+}
+
+.den-flake {
+  animation: den-flake 6s linear infinite;
+}
+
+@keyframes den-flake {
+  from {
+    transform: translate(0, -64px);
+  }
+  50% {
+    transform: translate(4px, 0);
+  }
+  to {
+    transform: translate(0, 64px);
+  }
+}
+
+.den-bulb {
+  animation: den-bulb 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes den-bulb {
+  to {
+    opacity: 0.45;
+  }
+}
+
+.den-float {
+  animation: den-float 2.6s ease-in-out infinite alternate;
+}
+
+@keyframes den-float {
+  to {
+    transform: translateY(-7px);
+  }
+}
+
+.den-balloon {
+  animation: den-float 3.4s ease-in-out infinite alternate;
+}
+
+.den-flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: den-flame 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes den-flame {
+  to {
+    transform: scale(0.8, 1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .den-bat,
+  .den-spider,
+  .den-flake,
+  .den-bulb,
+  .den-float,
+  .den-balloon,
+  .den-flame {
+    animation: none;
+  }
+}
+
+[data-motion='reduce'] .den-bat,
+[data-motion='reduce'] .den-spider,
+[data-motion='reduce'] .den-flake,
+[data-motion='reduce'] .den-bulb,
+[data-motion='reduce'] .den-float,
+[data-motion='reduce'] .den-balloon,
+[data-motion='reduce'] .den-flame {
+  animation: none;
+}
+
+/* ------------------------------------------------ care streak */
+
+.den__streak {
+  display: grid;
+  gap: 4px;
+  min-width: 170px;
+  font-size: 0.85rem;
+}
+
+.den__streak-count {
+  font-weight: 700;
+  color: var(--accent-strong);
+}
+
+.den__streak-next,
+.den__streak-best {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.den__medals {
+  display: flex;
+  gap: 4px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.den__medals li {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--accent-wash);
+  box-shadow: inset 0 0 0 1px var(--accent-soft);
+  font-size: 0.95rem;
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+.den__medals li.is-earned {
+  background: #fff4c9;
+  box-shadow: inset 0 0 0 1.5px #ecc95a;
+  filter: none;
+  opacity: 1;
+}

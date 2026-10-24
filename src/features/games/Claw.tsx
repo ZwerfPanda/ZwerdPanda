@@ -9,6 +9,7 @@ import { celebrateFrom } from '../../components/ui/feedback';
 import { useReducedMotion } from '../../hooks/useMotion';
 import { createId, nowIso } from '../../lib/id';
 import { GameShell } from './GameShell';
+import { planDate } from '../dates/DatePlanner';
 import { PRIZE_STYLE, fillMachine, grabs, prizePool, type Prize } from './claw';
 
 const CAPSULES = 9;
@@ -337,6 +338,19 @@ export function Claw() {
               <p className="grab-prize__title">{won.title}</p>
               {won.text && <p className="grab-prize__text">{won.text}</p>}
               <div className="game-actions">
+                {won.kind === 'date' && (
+                  <button
+                    type="button"
+                    className="neon-btn neon-btn--small"
+                    onClick={() => {
+                      const title = won.title;
+                      setWon(null);
+                      planDate(title);
+                    }}
+                  >
+                    📅 Plan deze date
+                  </button>
+                )}
                 {won.kind === 'date' && (
                   <button
                     type="button"

@@ -2772,3 +2772,419 @@ button.sea__cell:focus-visible {
     animation: none;
   }
 }
+
+/* ------------------------------------------------ tickets and trophies */
+
+.cab--memory {
+  --cab-glow: #b07bff;
+}
+.cab--hockey {
+  --cab-glow: #4f8bff;
+}
+.cab--prizes {
+  --cab-glow: var(--neon-gold);
+}
+
+.pv-flip {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pv-flip 3.6s ease-in-out infinite;
+}
+
+@keyframes pv-flip {
+  0%,
+  40%,
+  100% {
+    transform: scaleX(1);
+  }
+  20% {
+    transform: scaleX(0);
+  }
+}
+
+.pv-puck {
+  animation: pv-puck 2s ease-in-out infinite alternate;
+}
+
+@keyframes pv-puck {
+  from {
+    transform: translate(-14px, -18px);
+  }
+  to {
+    transform: translate(14px, 18px);
+  }
+}
+
+.hall__tickets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: #07040c;
+  box-shadow: inset 0 0 0 1px rgba(255, 215, 94, 0.4);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.hall__tickets strong {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 1.2rem;
+  color: var(--neon-gold);
+  text-shadow: 0 0 8px rgba(255, 215, 94, 0.7);
+}
+
+.hall__tickets a {
+  color: var(--neon-cyan);
+  font-size: 0.88rem;
+}
+
+.trophies {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 215, 94, 0.16), transparent 70%),
+    linear-gradient(180deg, #2a1840, #170d26);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 215, 94, 0.45),
+    0 0 24px rgba(255, 215, 94, 0.18);
+}
+
+.trophies__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  text-align: center;
+  color: #fff8d6;
+  text-shadow: 0 0 10px rgba(255, 215, 94, 0.7);
+}
+
+.trophies__now {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.trophies__now span {
+  display: grid;
+  justify-items: center;
+  min-width: 90px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: #07040c;
+}
+
+.trophies__now small {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+}
+
+.trophies__now strong {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 1.7rem;
+  color: #ff8f8f;
+}
+
+.trophies__now .is-lead {
+  box-shadow: 0 0 0 2px var(--neon-gold);
+}
+
+.trophies__now .is-lead strong {
+  color: var(--neon-gold);
+  text-shadow: 0 0 8px rgba(255, 215, 94, 0.8);
+}
+
+.trophies__now em {
+  font-family: var(--font-hand);
+  font-style: normal;
+  color: var(--ink-soft);
+}
+
+.trophies__hint {
+  margin: 0;
+  font-size: 0.84rem;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.trophies__shelf {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 4px 4px;
+  overflow-x: auto;
+  list-style: none;
+  border-top: 3px solid #a8714a;
+}
+
+.trophy {
+  display: grid;
+  justify-items: center;
+  flex: 0 0 auto;
+  min-width: 96px;
+  text-align: center;
+}
+
+.trophy span {
+  font-size: 1.8rem;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 94, 0.7));
+}
+
+.trophy strong {
+  font-size: 0.86rem;
+}
+
+.trophy small {
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+
+/* ---------------------------------------------------------- prize counter */
+
+.prize-section {
+  display: grid;
+  gap: 10px;
+}
+
+.prize-section__title {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+
+.prize-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prize {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  padding: 14px 10px;
+  border-radius: 16px;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.12), transparent 40%),
+    linear-gradient(180deg, #2c1d45, #1a1029);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 215, 94, 0.5),
+    0 0 18px rgba(255, 215, 94, 0.15);
+  text-align: center;
+}
+
+.prize__emoji {
+  font-size: 2.2rem;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+}
+
+.prize__title {
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+
+.prize__price {
+  font-family: ui-monospace, Menlo, monospace;
+  font-weight: 800;
+  color: var(--neon-gold);
+}
+
+.prize-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prize-ticket {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: repeating-linear-gradient(90deg, #2c1d45 0 12px, #2a1a40 12px 24px);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.prize-ticket > span:first-child {
+  font-size: 1.6rem;
+}
+
+.prize-ticket strong {
+  display: block;
+}
+
+.prize-ticket small {
+  color: var(--ink-soft);
+}
+
+.prize-ticket.is-used {
+  opacity: 0.65;
+}
+
+.prize-form label {
+  display: grid;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.prize-form input[type='range'] {
+  accent-color: var(--neon-pink);
+}
+
+.prize-form__suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.prize-form__emoji {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.prize-form__emoji button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: #0b0714;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.prize-form__emoji button[aria-checked='true'] {
+  box-shadow:
+    inset 0 0 0 2px var(--neon-gold),
+    0 0 10px rgba(255, 215, 94, 0.5);
+}
+
+/* ----------------------------------------------------------------- memory */
+
+.memory {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  perspective: 900px;
+}
+
+.memory__card {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.memory__card:disabled {
+  cursor: default;
+}
+
+.memory__inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.45s var(--ease-spring);
+}
+
+.memory__card.is-up .memory__inner {
+  transform: rotateY(180deg);
+}
+
+.memory__back,
+.memory__front {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 12px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.memory__back {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.18) 0 18%, transparent 19%),
+    repeating-linear-gradient(45deg, #3a1a5c 0 6px, #2a1240 6px 12px);
+  box-shadow:
+    inset 0 0 0 2px var(--neon-violet),
+    0 6px 12px rgba(0, 0, 0, 0.4);
+  color: #fff;
+  font-size: 1.4rem;
+  text-shadow: 0 0 8px var(--neon-pink);
+}
+
+.memory__front {
+  transform: rotateY(180deg);
+  background: #fff6fb;
+  box-shadow:
+    inset 0 0 0 3px #fff,
+    0 6px 12px rgba(0, 0, 0, 0.4);
+  font-size: 2rem;
+}
+
+.memory__front .media {
+  width: 100%;
+  height: 100%;
+}
+
+.memory__card.is-matched .memory__front {
+  box-shadow:
+    inset 0 0 0 3px #5dff9a,
+    0 0 16px rgba(93, 255, 154, 0.6);
+}
+
+/* ------------------------------------------------------------- air hockey */
+
+.hockey {
+  display: grid;
+  justify-items: center;
+  padding: 10px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, #2a1840, #170d26);
+  box-shadow:
+    0 0 0 3px #2b1d3f,
+    0 14px 30px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(79, 139, 255, 0.3);
+}
+
+.hockey__rink {
+  display: block;
+  border-radius: 16px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  box-shadow: 0 0 0 3px #5ff3ff55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-flip,
+  .pv-puck,
+  .memory__inner {
+    animation: none !important;
+    transition: none;
+  }
+}

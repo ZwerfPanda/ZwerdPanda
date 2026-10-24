@@ -13,9 +13,19 @@ import type {
 import { deleteMedia, listMediaIds } from '../lib/media';
 import { restorePointMediaIds } from './restorePoints';
 import { getHerPrivate } from './herPrivate';
+import { contentMediaIds } from '../sync/merge';
 
 /** Collections that hold a list of items with ids. */
-export type CollectionKey = 'milestones' | 'memories' | 'letters' | 'dreams' | 'capsules' | 'songs';
+export type CollectionKey =
+  | 'milestones'
+  | 'memories'
+  | 'letters'
+  | 'dreams'
+  | 'capsules'
+  | 'songs'
+  | 'flowers'
+  | 'coupons'
+  | 'datePlans';
 type ItemOf<K extends CollectionKey> = AppContent[K][number];
 
 export function upsertItem<K extends CollectionKey>(
@@ -145,16 +155,8 @@ function addSource(ids: Set<string>, source: MediaSource | undefined) {
 }
 
 export function referencedMediaIds(c: AppContent = getContent()): Set<string> {
-  const ids = new Set<string>();
-  c.milestones.forEach((m) => m.media.forEach((s) => addSource(ids, s)));
-  c.memories.forEach((m) => addSource(ids, m.media));
-  c.dreams.forEach((d) => addSource(ids, d.media));
-  addSource(ids, c.coco.portrait);
-  c.her.bucket.forEach((b) => addSource(ids, b.media));
-  c.museum.stops.forEach((s) => s.media.forEach((m) => addSource(ids, m)));
-  c.letters.forEach((l) => l.voice && ids.add(l.voice.mediaId));
-  c.museum.stops.forEach((s) => s.voice && ids.add(s.voice.mediaId));
-  c.her.notes.forEach((n) => n.voice && ids.add(n.voice.mediaId));
+  // Exactly what the sync sends, so the two lists can never drift apart.
+  const ids = new Set<string>(contentMediaIds(c));
   // Her private wishes keep their photos too, even though they're not shared.
   getHerPrivate().bucket.forEach((b) => addSource(ids, b.media));
   const soundtrack = getPrefs().customSoundtrackId;

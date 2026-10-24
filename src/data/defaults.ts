@@ -426,6 +426,7 @@ export const defaultPet: CocoPet = {
   tricks: {},
   outfit: 'none',
   log: [],
+  careDays: [],
   manners: 0,
   handled: [],
 };
@@ -526,6 +527,7 @@ export const defaultHer: HerSpace = {
   journal: [],
   bucket: [],
   goals: [],
+  ideas: [],
 };
 
 export const defaultHunt: StarHunt = {
@@ -554,6 +556,7 @@ export function cloneHer(her: HerSpace): HerSpace {
     journal: her.journal.map((j) => ({ ...j })),
     bucket: her.bucket.map((b) => ({ ...b })),
     goals: her.goals.map((g) => ({ ...g, steps: g.steps.map((s) => ({ ...s })) })),
+    ideas: (her.ideas ?? []).map((i) => ({ ...i })),
   };
 }
 
@@ -589,7 +592,14 @@ export function createDefaultContent(): AppContent {
       stars: defaultSurprises.stars.map((s) => ({ ...s })),
     },
     coco: { facts: defaultCoco.facts.map((f) => ({ ...f })), notes: [] },
-    pet: { ...defaultPet, treats: { ...defaultPet.treats }, tricks: {}, log: [], handled: [] },
+    pet: {
+      ...defaultPet,
+      treats: { ...defaultPet.treats },
+      tricks: {},
+      log: [],
+      careDays: [],
+      handled: [],
+    },
     countdowns: [],
     welcome: { ...defaultWelcome },
     lists: defaultLists.map((l) => ({ ...l, items: [] })),
@@ -600,6 +610,11 @@ export function createDefaultContent(): AppContent {
     games: { matches: [], scores: [], results: [] },
     museum: defaultMuseum(),
     syncReports: {},
+    flowers: [],
+    coupons: [],
+    pings: [],
+    daily: [],
+    datePlans: [],
   };
 }
 

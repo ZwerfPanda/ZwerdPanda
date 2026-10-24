@@ -22,6 +22,21 @@ function closePreview() {
   listeners.forEach((l) => l());
 }
 
+/** True while the one-time welcome is waiting to be shown on this phone. */
+export function useWelcomeDue(): boolean {
+  const welcome = useContent((c) => c.welcome);
+  const me = useMe();
+  const sync = useSyncState();
+  return (
+    me === 'partner' &&
+    Boolean(sync.spaceId) &&
+    sync.phase === 'synced' &&
+    welcome.enabled &&
+    !welcome.seenAt &&
+    welcome.message.trim().length > 0
+  );
+}
+
 /**
  * The one-time welcome: shown to the partner the first time her phone has
  * synced the shared universe, then never again (unless switched back on).
@@ -34,16 +49,7 @@ export function WelcomeHost() {
     },
     () => previewing,
   );
-  const welcome = useContent((c) => c.welcome);
-  const me = useMe();
-  const sync = useSyncState();
-  const due =
-    me === 'partner' &&
-    Boolean(sync.spaceId) &&
-    sync.phase === 'synced' &&
-    welcome.enabled &&
-    !welcome.seenAt &&
-    welcome.message.trim().length > 0;
+  const due = useWelcomeDue();
 
   if (!preview && !due) return null;
   return (

@@ -1721,3 +1721,256 @@
   display: grid;
   margin: -6px 0 26px;
 }
+
+/* ------------------------------------------- thinking of you, daily question */
+
+.home__together {
+  display: grid;
+  gap: 14px;
+}
+
+@media (min-width: 900px) {
+  .home__together {
+    grid-template-columns: 1fr 1.4fr;
+    align-items: start;
+  }
+}
+
+.send-love {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border-radius: var(--radius-l);
+  background:
+    radial-gradient(circle at 90% 10%, rgba(230, 136, 155, 0.25), transparent 50%),
+    var(--surface-raised);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    var(--shadow-1);
+  text-align: center;
+}
+
+.send-love__title {
+  margin: 0;
+  font-family: var(--font-hand);
+  font-size: 1.9rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.send-love__sub {
+  margin: 0 0 6px;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.send-love__buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.send-love__btn {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 76px;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 18px;
+  background: var(--accent-wash);
+  box-shadow: inset 0 0 0 1px var(--accent-soft);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s var(--ease-spring);
+}
+
+.send-love__btn span {
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.send-love__btn:active {
+  transform: scale(0.92);
+}
+
+.send-love__fly {
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  margin-left: -16px;
+  font-size: 2rem;
+  pointer-events: none;
+}
+
+.ping-catch {
+  position: fixed;
+  /* centred, as wide as its words (never wider than the screen) */
+  left: 16px;
+  right: 16px;
+  bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 24px);
+  z-index: 785;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: -webkit-fit-content;
+  width: fit-content;
+  margin-inline: auto;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: #fff6fb;
+  box-shadow:
+    0 0 0 2px #f2b6c6,
+    0 12px 30px rgba(90, 30, 60, 0.3);
+  color: #5b2a3a;
+  cursor: pointer;
+}
+
+.ping-catch__emoji {
+  font-size: 1.9rem;
+  line-height: 1;
+}
+
+.ping-catch__float {
+  position: fixed;
+  inset: 0;
+  z-index: 784;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ping-catch__float span {
+  position: fixed;
+  bottom: -40px;
+  font-size: 1.8rem;
+  animation: ping-rise 3.4s ease-out forwards;
+}
+
+@keyframes ping-rise {
+  to {
+    transform: translateY(-85vh) rotate(18deg);
+    opacity: 0;
+  }
+}
+
+.daily-q {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border-radius: var(--radius-l);
+  background:
+    linear-gradient(160deg, rgba(203, 191, 233, 0.35), transparent 60%), var(--surface-raised);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    var(--shadow-1);
+}
+
+.daily-q__eyebrow {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.daily-q__q {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 5.5vw, 1.55rem);
+  line-height: 1.25;
+}
+
+.daily-q__form {
+  display: grid;
+  gap: 8px;
+}
+
+.daily-q__form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--ink);
+  font: inherit;
+  resize: vertical;
+}
+
+.daily-q__form .btn {
+  justify-self: start;
+}
+
+.daily-q__answers {
+  display: grid;
+  gap: 8px;
+}
+
+.daily-q__bubble {
+  display: grid;
+  gap: 2px;
+  justify-self: start;
+  max-width: 90%;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 18px 18px 18px 4px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  white-space: pre-wrap;
+}
+
+.daily-q__bubble--me {
+  justify-self: end;
+  border-radius: 18px 18px 4px 18px;
+  background: var(--accent-wash);
+}
+
+.daily-q__bubble small {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.daily-q__wait {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.daily-q__more {
+  justify-self: start;
+}
+
+.daily-q__history {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.daily-q__history li {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface);
+  font-size: 0.9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ping-catch__float span {
+    animation: none;
+  }
+}
+
+.countdowns__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

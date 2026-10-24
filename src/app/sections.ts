@@ -1,6 +1,7 @@
 import {
   BookHeart,
   TrainFront,
+  Flower,
   Flower2,
   Gamepad2,
   Gift,
@@ -100,6 +101,15 @@ export const SECTIONS: Section[] = [
     blurb: 'Helemaal van jou',
     icon: Flower2,
     tint: '#f9d0e0',
+  },
+  {
+    path: '/flowers',
+    group: 'you',
+    label: 'Bloemenwinkeltje',
+    short: 'Bloemen',
+    blurb: 'Al je boeketten, elk in een eigen vaasje',
+    icon: Flower,
+    tint: '#fbd3e0',
   },
   {
     path: '/story',

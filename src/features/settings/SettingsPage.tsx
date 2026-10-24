@@ -11,9 +11,11 @@ import {
   RotateCcw,
   ShieldCheck,
   Smartphone,
+  Sparkles,
   Upload,
   Volume2,
 } from 'lucide-react';
+import { openNews } from '../news/news';
 import {
   resetAllLocalData,
   storageAvailable,
@@ -380,6 +382,9 @@ function AppSection() {
         <button type="button" className="btn btn--primary" onClick={openInstallSheet}>
           <Smartphone aria-hidden="true" />{' '}
           {install.installed ? 'Installeren op een ander apparaat' : 'Installeer de app'}
+        </button>
+        <button type="button" className="btn btn--soft" onClick={openNews}>
+          <Sparkles aria-hidden="true" /> Wat is er nieuw?
         </button>
       </div>
       <Checkbox

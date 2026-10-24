@@ -1,4 +1,5 @@
 import { GAME_NAMES } from '../games/gameStats';
+import { gallerySets } from '../her/nailGallery';
 import { Sparkles, X } from 'lucide-react';
 import { useContent } from '../../data/store';
 import { nameOf, otherPerson, useMe } from '../../data/people';
@@ -35,6 +36,37 @@ export function newSince(content: AppContent, from: Person, since: string): NewT
   add(content.coco.notes.filter(fresh).length, 'Coco-momentje', '/coco', 'Coco-momentjes');
   add(content.countdowns.filter(fresh).length, 'countdown', '/', 'countdowns');
   add(content.museum.stops.filter(fresh).length, 'halte', '/museum', 'haltes');
+  add(
+    content.pings.filter((p) => p.from === from && p.at > since).length,
+    'keer aan je gedacht 💗',
+    '/',
+    'keer aan je gedacht 💗',
+  );
+  add(
+    content.daily.filter((a) => a.who === from && a.at > since).length,
+    'antwoord op de vraag van de dag',
+    '/',
+    'antwoorden op de vraag van de dag',
+  );
+  add(
+    content.flowers.filter(fresh).length,
+    'boeket in het winkeltje',
+    '/flowers',
+    'boeketten in het winkeltje',
+  );
+  add(content.datePlans.filter(fresh).length, 'geplande date', '/', 'geplande dates');
+  add(
+    content.coupons.filter((c) => c.from === from && c.createdAt > since).length,
+    'nieuwe bon in de prijzenkast',
+    '/games',
+    'nieuwe bonnen in de prijzenkast',
+  );
+  add(
+    content.coupons.filter((c) => c.from !== from && c.usedAt && c.usedAt > since).length,
+    'bon om in te wisselen 🎟️',
+    '/games',
+    'bonnen om in te wisselen 🎟️',
+  );
   // Love notes are always from him; the nail sets she sends are for him.
   if (from === 'you') {
     add(
@@ -43,7 +75,19 @@ export function newSince(content: AppContent, from: Person, since: string): NewT
       '/her',
       'love notes',
     );
+    add(
+      gallerySets(content.her.nails).filter((s) => s.set.loved && s.set.loved > since).length,
+      'hartje voor je nail set 💅',
+      '/her',
+      'hartjes voor je nail sets 💅',
+    );
   } else {
+    add(
+      content.her.ideas.filter((i) => i.createdAt > since).length,
+      'idee voor de app',
+      '/her',
+      'ideeën voor de app',
+    );
     add(
       (content.her.nails.sent ?? []).filter((s) => s.at > since).length,
       'nail set voor jou',

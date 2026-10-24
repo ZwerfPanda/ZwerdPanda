@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Cake,
+  CalendarHeart,
   CupSoda,
   Gift,
   Heart,
@@ -24,6 +25,7 @@ import { Checkbox, TextField } from '../../components/ui/Fields';
 import { confirm, toast } from '../../components/ui/feedback';
 import { ByTag } from '../../components/common/ByTag';
 import { daysLabel, upcoming, type Upcoming } from './countdowns';
+import { planDate } from '../dates/DatePlanner';
 
 const ICONS: Record<Upcoming['icon'], typeof Heart> = {
   heart: Heart,
@@ -67,13 +69,18 @@ export function Countdowns() {
             Aftellen
           </h2>
         </div>
-        <button
-          type="button"
-          className="btn btn--soft btn--small"
-          onClick={() => setForm({ open: true, item: null })}
-        >
-          <Plus aria-hidden="true" /> Datum toevoegen
-        </button>
+        <div className="countdowns__actions">
+          <button type="button" className="btn btn--soft btn--small" onClick={() => planDate()}>
+            <CalendarHeart aria-hidden="true" /> Plan een date
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost btn--small"
+            onClick={() => setForm({ open: true, item: null })}
+          >
+            <Plus aria-hidden="true" /> Datum toevoegen
+          </button>
+        </div>
       </div>
       {list.length === 0 ? (
         <p className="muted">

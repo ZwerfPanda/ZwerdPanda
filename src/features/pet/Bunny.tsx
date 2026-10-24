@@ -1,7 +1,8 @@
 import { useEffect, useId, useState } from 'react';
-import type { PetFood, PetOutfit } from '../../data/types';
+import type { PetFood } from '../../data/types';
+import type { CocoLook } from './season';
 import { INK } from '../../components/art/shapes';
-import { FoodArt } from './Props';
+import { FoodArt, SantaHat, WitchHat } from './Props';
 
 /**
  * Coco, drawn as she really is: a dwarf rabbit with a black coat, a soft grey
@@ -119,7 +120,7 @@ export function Bunny({
 }: {
   pose?: BunnyPose;
   face?: BunnyFace;
-  outfit?: PetOutfit;
+  outfit?: CocoLook;
   /** Food in her mouth, nibbled down by `bites`. */
   food?: { food: PetFood; bites: number } | null;
   chewing?: boolean;
@@ -273,8 +274,18 @@ export function Bunny({
         {/* head-top outfits */}
         {outfit === 'bow' && (
           <g transform={`translate(-26 ${hy - 26}) rotate(-18)`}>
-            <path d="M0 0l-14 -9v18zM0 0l14 -9v18z" fill="#ef9fb3" {...S} strokeWidth={2.5} />
-            <circle r="4.5" fill="#e27d97" {...S} strokeWidth={2} />
+            <path
+              d="M0 0l-14 -9v18zM0 0l14 -9v18z"
+              style={{ fill: 'var(--coco-bow, #ef9fb3)' }}
+              {...S}
+              strokeWidth={2.5}
+            />
+            <circle
+              r="4.5"
+              style={{ fill: 'var(--coco-bow-knot, #e27d97)' }}
+              {...S}
+              strokeWidth={2}
+            />
           </g>
         )}
         {outfit === 'flowers' && (
@@ -297,6 +308,16 @@ export function Bunny({
                 <circle r="2.6" fill="#e8b74c" />
               </g>
             ))}
+          </g>
+        )}
+        {outfit === 'witch' && (
+          <g transform={`translate(4 ${hy - 31}) rotate(8)`}>
+            <WitchHat />
+          </g>
+        )}
+        {outfit === 'santa' && (
+          <g transform={`translate(2 ${hy - 30}) rotate(6)`}>
+            <SantaHat />
           </g>
         )}
         {outfit === 'party' && (
@@ -342,7 +363,7 @@ export function Bunny({
  * The "flop": lying on her side, fully relaxed — what rabbits do when they
  * feel completely safe.
  */
-function Flop({ fur, outfit }: { fur: string; outfit: PetOutfit }) {
+function Flop({ fur, outfit }: { fur: string; outfit: CocoLook }) {
   return (
     <g className="bunny bunny--flop">
       {/* back feet stretched out */}
@@ -367,10 +388,32 @@ function Flop({ fur, outfit }: { fur: string; outfit: PetOutfit }) {
       />
       <path d="M-74 62h8l-4 4z" fill={NOSE} stroke={INK} strokeWidth="1.5" strokeLinejoin="round" />
       <circle cx="-42" cy="64" r="5" fill="#c98591" opacity="0.35" />
+      {outfit === 'witch' && (
+        <g transform="translate(-54 30) rotate(-24) scale(0.8)">
+          <WitchHat />
+        </g>
+      )}
+      {outfit === 'santa' && (
+        <g transform="translate(-54 31) rotate(-24) scale(0.8)">
+          <SantaHat />
+        </g>
+      )}
+      {outfit === 'party' && (
+        <g transform="translate(-56 32) rotate(-28) scale(0.85)">
+          <path d="M-13 4l13 -36l13 36z" fill="#9fc3e8" {...S} strokeWidth={2.5} />
+          <path d="M-8 -9l16 4M-4 -20l8 2" stroke="#fff" strokeWidth="3" strokeLinecap="round" />
+          <circle cy="-34" r="5" fill="#f6c454" {...S} strokeWidth={2} />
+        </g>
+      )}
       {outfit === 'bow' && (
         <g transform="translate(-36 36) rotate(20)">
-          <path d="M0 0l-12 -8v16zM0 0l12 -8v16z" fill="#ef9fb3" {...S} strokeWidth={2.5} />
-          <circle r="4" fill="#e27d97" {...S} strokeWidth={2} />
+          <path
+            d="M0 0l-12 -8v16zM0 0l12 -8v16z"
+            style={{ fill: 'var(--coco-bow, #ef9fb3)' }}
+            {...S}
+            strokeWidth={2.5}
+          />
+          <circle r="4" style={{ fill: 'var(--coco-bow-knot, #e27d97)' }} {...S} strokeWidth={2} />
         </g>
       )}
     </g>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   Baby,
   BookOpen,
+  CalendarHeart,
   Check,
   Film,
   Gift,
@@ -29,6 +30,8 @@ import { ByTag } from '../../components/common/ByTag';
 import { SiteFooter } from '../../components/common/SiteFooter';
 import './lists.css';
 import { HuntStar } from '../hunt/HuntStar';
+import { planDate } from '../dates/DatePlanner';
+import { isDateList } from '../dates/datePlans';
 
 export const LIST_ICONS: Record<ListIcon, { icon: LucideIcon; label: string }> = {
   baby: { icon: Baby, label: 'Baby' },
@@ -292,6 +295,17 @@ function ListView({ list, onEdit }: { list: OurList; onEdit: () => void }) {
               >
                 <Heart />
               </button>
+              {isDateList(list) && !item.done && (
+                <button
+                  type="button"
+                  className="icon-btn"
+                  aria-label={`“${item.text}” plannen`}
+                  title="Plan deze date"
+                  onClick={() => planDate(item.text)}
+                >
+                  <CalendarHeart />
+                </button>
+              )}
               <button
                 type="button"
                 className="icon-btn"

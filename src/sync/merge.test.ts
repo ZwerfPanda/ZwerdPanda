@@ -329,3 +329,81 @@ describe('Coco’s upbringing across two phones', () => {
     expect(merged.cleanedAt).toBe('2026-10-23T09:00:00.000Z');
   });
 });
+
+describe('this round’s new things across two phones', () => {
+  it('keeps care days from both phones for the streak', () => {
+    const base = createDefaultContent();
+    const local: AppContent = {
+      ...base,
+      pet: { ...base.pet, careDays: ['2026-10-20', '2026-10-22'] },
+    };
+    const remote: AppContent = {
+      ...base,
+      pet: { ...base.pet, careDays: ['2026-10-21', '2026-10-22'] },
+    };
+    expect(mergeContent(base, local, remote).pet.careDays).toEqual([
+      '2026-10-20',
+      '2026-10-21',
+      '2026-10-22',
+    ]);
+  });
+
+  it('keeps his heart on a set while she saves a new one', () => {
+    const base = createDefaultContent();
+    const set = { ...base.her.nails.current, id: 'nails-1', savedAt: '2026-10-20T10:00:00.000Z' };
+    const start: AppContent = {
+      ...base,
+      her: { ...base.her, nails: { ...base.her.nails, saved: [set] } },
+    };
+    // His phone: a heart. Her phone: a second set, and an idea for the app.
+    const his: AppContent = {
+      ...start,
+      her: {
+        ...start.her,
+        nails: {
+          ...start.her.nails,
+          saved: [{ ...set, loved: '2026-10-23T10:00:00.000Z' }],
+        },
+      },
+    };
+    const hers: AppContent = {
+      ...start,
+      her: {
+        ...start.her,
+        nails: {
+          ...start.her.nails,
+          saved: [{ ...set, id: 'nails-2', savedAt: '2026-10-23T11:00:00.000Z' }, set],
+        },
+        ideas: [{ id: 'idea-1', text: 'Een spelletje met Coco', status: 'new', createdAt: 'x' }],
+      },
+    };
+    const merged = mergeContent(start, his, hers).her;
+    expect(merged.nails.saved.map((s) => s.id).sort()).toEqual(['nails-1', 'nails-2']);
+    expect(merged.nails.saved.find((s) => s.id === 'nails-1')?.loved).toBe(
+      '2026-10-23T10:00:00.000Z',
+    );
+    expect(merged.ideas.map((i) => i.text)).toEqual(['Een spelletje met Coco']);
+  });
+
+  it('keeps a planned date, its memory and the bouquets from both phones', () => {
+    const base = createDefaultContent();
+    const plan = {
+      id: 'date-1',
+      title: 'Picknick',
+      date: '2026-10-20',
+      countdownId: 'countdown-1',
+      createdAt: '2026-10-10T10:00:00.000Z',
+    };
+    const start: AppContent = { ...base, datePlans: [plan] };
+    const local: AppContent = { ...start, datePlans: [{ ...plan, memoryId: 'mem-9' }] };
+    const remote: AppContent = {
+      ...start,
+      flowers: [
+        { id: 'bouquet-1', flowers: ['🌷 Tulpen'], vase: 1, favorite: false, createdAt: 'x' },
+      ],
+    };
+    const merged = mergeContent(start, local, remote);
+    expect(merged.datePlans[0].memoryId).toBe('mem-9');
+    expect(merged.flowers.map((b) => b.id)).toEqual(['bouquet-1']);
+  });
+});

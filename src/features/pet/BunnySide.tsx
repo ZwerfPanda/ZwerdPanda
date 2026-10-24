@@ -1,8 +1,9 @@
 import { useId } from 'react';
-import type { PetFood, PetOutfit } from '../../data/types';
+import type { PetFood } from '../../data/types';
+import type { CocoLook } from './season';
 import { INK } from '../../components/art/shapes';
 import { useBlink } from './Bunny';
-import { FoodArt } from './Props';
+import { FoodArt, SantaHat, WitchHat } from './Props';
 
 /**
  * Coco from the side (facing right), for hopping, sniffing and eating.
@@ -104,7 +105,7 @@ export function BunnySide({
   pose?: SidePose;
   food?: { food: PetFood; bites: number } | null;
   chewing?: boolean;
-  outfit?: PetOutfit;
+  outfit?: CocoLook;
   sniffing?: boolean;
 }) {
   const uid = useId().replace(/:/g, '');
@@ -248,8 +249,18 @@ export function BunnySide({
           )}
           {outfit === 'bow' && (
             <g transform="translate(30 -24) rotate(-30)">
-              <path d="M0 0l-11 -7v14zM0 0l11 -7v14z" fill="#ef9fb3" {...S} strokeWidth={2.2} />
-              <circle r="3.8" fill="#e27d97" {...S} strokeWidth={1.8} />
+              <path
+                d="M0 0l-11 -7v14zM0 0l11 -7v14z"
+                style={{ fill: 'var(--coco-bow, #ef9fb3)' }}
+                {...S}
+                strokeWidth={2.2}
+              />
+              <circle
+                r="3.8"
+                style={{ fill: 'var(--coco-bow-knot, #e27d97)' }}
+                {...S}
+                strokeWidth={1.8}
+              />
             </g>
           )}
           {outfit === 'flowers' &&
@@ -270,6 +281,16 @@ export function BunnySide({
                 <circle r="2.3" fill="#e8b74c" />
               </g>
             ))}
+          {outfit === 'witch' && (
+            <g transform="translate(38 -30) rotate(14) scale(0.85)">
+              <WitchHat />
+            </g>
+          )}
+          {outfit === 'santa' && (
+            <g transform="translate(40 -29) rotate(-8) scale(-0.85 0.85)">
+              <SantaHat />
+            </g>
+          )}
           {outfit === 'party' && (
             <g transform="translate(40 -32) rotate(18)">
               <path d="M-11 4l11 -30l11 30z" fill="#9fc3e8" {...S} strokeWidth={2.2} />

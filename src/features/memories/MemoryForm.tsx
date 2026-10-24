@@ -8,6 +8,7 @@ import type { MediaSource, Memory } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
 import { isValidIsoDate } from '../../lib/dates';
 import { getAuthor } from '../../data/people';
+import { patchPlan, type DatePreset } from '../dates/datePlans';
 
 interface Draft {
   media: MediaSource[];
@@ -28,11 +29,14 @@ export function MemoryForm({
   onClose,
   memory,
   defaultAlbumId,
+  preset,
 }: {
   open: boolean;
   onClose: () => void;
   memory: Memory | null;
   defaultAlbumId?: string;
+  /** A new memory for a date we planned: title and day filled in, linked when saved. */
+  preset?: DatePreset | null;
 }) {
   const albums = useContent((c) => c.albums);
   const [draft, setDraft] = useState<Draft>({
@@ -62,9 +66,9 @@ export function MemoryForm({
           }
         : {
             media: [],
-            caption: '',
+            caption: preset?.caption ?? '',
             note: '',
-            date: '',
+            date: preset?.date ?? '',
             location: '',
             albumIds: defaultAlbumId ? [defaultAlbumId] : [],
             favorite: false,
@@ -73,7 +77,7 @@ export function MemoryForm({
     // Only when it opens (or opens on something else): a sync or an update
     // arriving while you edit must never wipe what you've typed or the photos
     // you've just added.
-  }, [open, memory?.id, defaultAlbumId]);
+  }, [open, memory?.id, defaultAlbumId, preset?.planId]);
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
@@ -122,11 +126,16 @@ export function MemoryForm({
         createdAt: nowIso(),
         ...details,
       }));
-      updateContent((c) => ({ ...c, memories: [...created, ...c.memories] }));
+      updateContent((c) => {
+        const next = { ...c, memories: [...created, ...c.memories] };
+        return preset ? patchPlan(next, preset.planId, { memoryId: created[0].id }) : next;
+      });
       toast(
-        created.length === 1
-          ? 'In ons plakboek gezet ♡'
-          : `${created.length} herinneringen in ons plakboek gezet`,
+        preset
+          ? 'Jullie date staat in het plakboek ♡'
+          : created.length === 1
+            ? 'In ons plakboek gezet ♡'
+            : `${created.length} herinneringen in ons plakboek gezet`,
       );
     }
     onClose();

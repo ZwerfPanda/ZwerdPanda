@@ -425,7 +425,8 @@
   background: var(--accent-wash);
 }
 
-.chip[aria-pressed='true'] {
+.chip[aria-pressed='true'],
+.chip[role='tab'][aria-selected='true'] {
   background: var(--btn-bg);
   color: var(--btn-ink);
   box-shadow: none;

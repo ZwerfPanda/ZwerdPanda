@@ -1,4 +1,4 @@
-import { CHAT_LIMIT, PET_LOG_LIMIT } from '../data/normalize';
+import { CARE_DAYS_LIMIT, CHAT_LIMIT, PET_LOG_LIMIT } from '../data/normalize';
 import { createDefaultContent } from '../data/defaults';
 import type { AppContent, CocoPet, HerSpace, OurList, StarHunt, UsContent } from '../data/types';
 
@@ -223,6 +223,8 @@ export function mergePet(base: CocoPet, local: CocoPet, remote: CocoPet): CocoPe
     log: mergeList(base.log, local.log, remote.log)
       .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
       .slice(0, PET_LOG_LIMIT),
+    // A day either of us cared for her stays a care day.
+    careDays: [...new Set([...local.careDays, ...remote.careDays])].sort().slice(-CARE_DAYS_LIMIT),
   };
 }
 
@@ -257,6 +259,13 @@ export function mergeHer(base: HerSpace, local: HerSpace, remote: HerSpace): Her
     goals: mergeList(base.goals, local.goals, remote.goals),
     music: mergeList(base.music, local.music, remote.music),
     notes: mergeList(base.notes, local.notes, remote.notes),
+    ideas: mergeList(base.ideas, local.ideas, remote.ideas),
+    // Her saved sets and his hearts on them merge per set, so neither undoes the other.
+    nails: {
+      current: mergeFields(base, local, remote).nails.current,
+      saved: mergeList(base.nails.saved, local.nails.saved, remote.nails.saved),
+      sent: mergeList(base.nails.sent ?? [], local.nails.sent ?? [], remote.nails.sent ?? []),
+    },
   };
 }
 
@@ -314,6 +323,11 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
       you: newest(local.syncReports.you, remote.syncReports.you),
       partner: newest(local.syncReports.partner, remote.syncReports.partner),
     },
+    flowers: mergeList(base.flowers, local.flowers, remote.flowers),
+    coupons: mergeList(base.coupons, local.coupons, remote.coupons),
+    pings: mergeList(base.pings, local.pings, remote.pings).slice(-60),
+    daily: mergeList(base.daily, local.daily, remote.daily),
+    datePlans: mergeList(base.datePlans, local.datePlans, remote.datePlans),
   };
 }
 
@@ -396,7 +410,12 @@ export function mergeFirstJoin(
       goals: addPlain(local.her.goals, remote.her.goals),
       music: addPlain(local.her.music, remote.her.music),
       notes: addPlain(local.her.notes, remote.her.notes),
+      ideas: addPlain(local.her.ideas, remote.her.ideas),
     },
+    flowers: addPlain(local.flowers, remote.flowers),
+    coupons: addPlain(local.coupons, remote.coupons),
+    daily: addPlain(local.daily, remote.daily),
+    datePlans: addPlain(local.datePlans, remote.datePlans),
     lists: addPlain(
       local.lists.filter((l) => l.items.length > 0 || !remote.lists.some((r) => r.id === l.id)),
       remote.lists,
@@ -421,5 +440,6 @@ export function contentMediaIds(content: AppContent): string[] {
   content.letters.forEach((l) => voice(l.voice));
   content.museum.stops.forEach((s) => voice(s.voice));
   content.her.notes.forEach((n) => voice(n.voice));
+  content.flowers.forEach((b) => add(b.media));
   return [...ids];
 }

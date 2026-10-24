@@ -1,0 +1,116 @@
+import type { RoutePath } from '../lib/router';
+
+/**
+ * What changed in the app, newest first — shown once on each phone after an
+ * update, and always under "Wat is er nieuw?" in the menu. Add an entry at the
+ * top with every update; "{his}" and "{her}" become our names.
+ */
+
+export interface ChangeItem {
+  emoji: string;
+  title: string;
+  text: string;
+  path?: RoutePath;
+}
+
+export interface ChangeEntry {
+  /** Unique and sortable: newer entries get a later id. */
+  id: string;
+  when: string;
+  title: string;
+  items: ChangeItem[];
+}
+
+export const CHANGELOG: ChangeEntry[] = [
+  {
+    id: '2026-10-2',
+    when: 'oktober 2026',
+    title: 'Bloemen, prijzen en een feestelijke Coco',
+    items: [
+      {
+        emoji: '💐',
+        title: 'Bloemenwinkeltje',
+        text: 'Al je boeketten van {his} op de plank: met foto, de bloemen, het kaartje en water geven.',
+        path: '/flowers',
+      },
+      {
+        emoji: '🎟️',
+        title: 'Tickets & prijzenkast',
+        text: 'Elk potje levert tickets op. Wissel ze in voor bonnen die jullie voor elkaar maken.',
+        path: '/games',
+      },
+      {
+        emoji: '🏆',
+        title: 'Kampioen van de maand',
+        text: 'Wie wint deze maand de meeste potjes? De winnaar krijgt een plekje in de trofeeënkast.',
+        path: '/games',
+      },
+      {
+        emoji: '🃏',
+        title: 'Memory & airhockey',
+        text: 'Memory met jullie eigen foto’s, en airhockey op één telefoon. Samen of tegen Coco.',
+        path: '/games',
+      },
+      {
+        emoji: '💗',
+        title: 'Ik denk aan je',
+        text: 'Stuur een hartje, knuffel of kusje. De ander ziet het zodra die de app opent.',
+        path: '/',
+      },
+      {
+        emoji: '❓',
+        title: 'Vraag van de dag',
+        text: 'Elke dag een vraag. Het antwoord van de ander zie je pas als je zelf hebt geantwoord.',
+        path: '/',
+      },
+      {
+        emoji: '📅',
+        title: 'Dates plannen',
+        text: 'Zet een date in de agenda met een aftelklok. Na de date vraagt de app om een foto.',
+        path: '/',
+      },
+      {
+        emoji: '💅',
+        title: 'Nagelgalerij',
+        text: '{his} kan hartjes geven aan je sets. Zijn favoriet wordt de set van de maand 👑.',
+        path: '/her',
+      },
+      {
+        emoji: '💡',
+        title: 'Ideeënbus',
+        text: 'Een wens voor de app? Zet hem in de ideeënbus in je hoekje, dan ziet {his} hem.',
+        path: '/her',
+      },
+      {
+        emoji: '🎀',
+        title: 'Coco in stijl',
+        text: 'Draagt Coco haar strikje? Dan krijgt het de kleur van je nieuwste nagelset.',
+        path: '/coco',
+      },
+      {
+        emoji: '🎃',
+        title: 'Seizoenen in het hok',
+        text: 'Halloween, kerst met sneeuw, Valentijn, Pasen en een feest op Coco’s verjaardag.',
+        path: '/coco',
+      },
+      {
+        emoji: '🔥',
+        title: 'Verzorg-streak',
+        text: 'Dagen op rij voor Coco gezorgd, met medailles bij 3, 7, 14, 30 en 100 dagen.',
+        path: '/coco',
+      },
+      {
+        emoji: '✨',
+        title: 'Wat is er nieuw?',
+        text: 'Dit lijstje: na elke update zie je hier in het kort wat er veranderd is.',
+      },
+    ],
+  },
+];
+
+/** Entries newer than the one last seen; just the newest on a phone that never looked. */
+export function unseenChanges(seen: string | null, log: ChangeEntry[] = CHANGELOG): ChangeEntry[] {
+  if (!log.length) return [];
+  if (!seen) return [log[0]];
+  return log.filter((e) => e.id > seen);
+}

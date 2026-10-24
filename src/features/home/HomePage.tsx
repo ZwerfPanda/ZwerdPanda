@@ -1,3 +1,4 @@
+import { DailyQuestion, SendLove } from './Together';
 import { useState } from 'react';
 import { useContent } from '../../data/store';
 import { Starfield } from '../../components/art/Starfield';
@@ -8,6 +9,7 @@ import { Explore } from './Explore';
 import { InstallBanner } from '../../pwa/InstallBanner';
 import './home.css';
 import { Countdowns } from './Countdowns';
+import { DateMemories } from '../dates/DatePlanner';
 import { WhatsNew } from './WhatsNew';
 import { HuntChip } from '../hunt/HuntBoard';
 import { DailyThing } from './DailyThing';
@@ -37,6 +39,10 @@ export function HomePage() {
 
       <div className="home__body">
         <WhatsNew />
+        <div className="home__together">
+          <SendLove />
+          <DailyQuestion />
+        </div>
         <div className="home__lead">
           <Counter />
           <HomeNote />
@@ -45,6 +51,7 @@ export function HomePage() {
           <WrappedButton />
         </div>
         <Explore />
+        <DateMemories />
         <Countdowns />
         <div className="home__hunt">
           <HuntChip />

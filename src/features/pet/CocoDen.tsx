@@ -20,13 +20,15 @@ import {
 import { getContent, updateContent, updatePrefs, useContent, usePrefs } from '../../data/store';
 import { getMe, nameOf } from '../../data/people';
 import type { PetFood, PetOutfit, PetTrick } from '../../data/types';
-import { celebrateFrom } from '../../components/ui/feedback';
+import { celebrate, celebrateFrom, toast } from '../../components/ui/feedback';
 import { useReducedMotion } from '../../hooks/useMotion';
 import { useToday } from '../../hooks/useToday';
-import { parseIsoDate } from '../../lib/dates';
+import { parseIsoDate, plural } from '../../lib/dates';
 import { Bunny, type BunnyFace, type BunnyPose } from './Bunny';
 import { BunnySide } from './BunnySide';
 import { DenScene, timeOfDay } from './DenScene';
+import { seasonLine, useCocoSeason } from './season';
+import { MEDALS, careStreak, medalToCelebrate } from './streak';
 import { BrushArt, FoodArt, WillowBall } from './Props';
 import { useHopper } from './useHopper';
 import { CareDiary, FeedTray, Meters, TrainTray, bondNames } from './DenPanels';
@@ -121,6 +123,9 @@ export function CocoDen() {
   const age = ageOf(pet.birthday, parseIsoDate(today) ?? undefined);
   const bond = bondLevel(pet.bond);
   const hop = useHopper(reduce);
+  const season = useCocoSeason(today, pet.birthday);
+  const shownOutfit = season.look(pet.outfit);
+  const streak = careStreak(pet.careDays, today);
 
   // How she looks right now.
   const [frontPose, setFrontPose] = useState<BunnyPose>('sit');
@@ -222,6 +227,16 @@ export function CocoDen() {
       1300,
     );
   }, []);
+
+  // A new medal for her care streak: celebrated once on each phone.
+  useEffect(() => {
+    const medal = medalToCelebrate(streak);
+    if (!medal) return;
+    celebrate();
+    playSfx('success', true);
+    toast(`${medal.emoji} Medaille: ${medal.name}! ${medal.days} dagen op rij voor Coco gezorgd.`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [streak.current]);
 
   const commit = (result: CareResult) => {
     if (result.ok) updateContent((c) => ({ ...c, pet: result.pet }));
@@ -793,6 +808,8 @@ export function CocoDen() {
   const dress = (outfit: PetOutfit) =>
     void scene(async (t) => {
       wake();
+      // Dressing her yourself takes the season's costume off.
+      season.setWearing(false);
       doCare({ type: 'outfit', outfit });
       hop.show('front');
       setFace('happy');
@@ -916,12 +933,61 @@ export function CocoDen() {
             🎓 {mannersLevel(pet.manners)} · {pet.manners}%
           </span>
         </div>
+        <div className="den__streak">
+          <span className="den__streak-count">
+            {streak.current > 0
+              ? `🔥 ${plural(streak.current, 'dag', 'dagen')} op rij verzorgd`
+              : '🔥 Begin vandaag een verzorg-reeks'}
+          </span>
+          <span className="den__streak-next">
+            {streak.current > 0 && !streak.caredToday
+              ? 'Zorg vandaag voor haar, dan loopt de reeks door'
+              : streak.next
+                ? `nog ${plural(streak.next.days - streak.current, 'dag', 'dagen')} tot ${streak.next.emoji} ${streak.next.name}`
+                : 'Alle medailles verdiend 👑'}
+          </span>
+          <ul className="den__medals" aria-label="Medailles">
+            {MEDALS.map((m) => {
+              const earned = streak.best >= m.days;
+              return (
+                <li
+                  key={m.days}
+                  className={earned ? 'is-earned' : undefined}
+                  title={`${m.name} · ${m.days} dagen op rij`}
+                >
+                  <span aria-hidden="true">{m.emoji}</span>
+                  <span className="visually-hidden">
+                    {m.name}, {m.days} dagen: {earned ? 'verdiend' : 'nog niet'}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          {streak.best > streak.current && (
+            <span className="den__streak-best">langste reeks: {streak.best} dagen</span>
+          )}
+        </div>
       </header>
 
       {age?.isBirthday && (
         <p className="den__birthday">
           <Cake aria-hidden="true" /> Coco is jarig — ze wordt vandaag {age.turning}! Het
           feesthoedje is vrijgespeeld.
+        </p>
+      )}
+      {season.season && (
+        <p className="den__season">
+          <span>{seasonLine(season.season, today)}</span>
+          {season.costume && season.costume !== pet.outfit && (
+            <button
+              type="button"
+              className="link-btn"
+              aria-pressed={season.wearing}
+              onClick={() => season.setWearing(!season.wearing)}
+            >
+              {season.wearing ? 'Kostuum uit' : 'Kostuum aan'}
+            </button>
+          )}
         </p>
       )}
 
@@ -958,7 +1024,13 @@ export function CocoDen() {
           stroke.current.last = null;
         }}
       >
-        <DenScene light={light} hay={needs.hay} bowl={bowl} rustle={rustle} />
+        <DenScene
+          light={light}
+          hay={needs.hay}
+          bowl={bowl}
+          rustle={rustle}
+          season={season.season}
+        />
 
         {extra === 'hurdle' && <span className="den-hurdle" aria-hidden="true" />}
         {extra === 'target' && <span className="den-target" aria-hidden="true" />}
@@ -1073,7 +1145,7 @@ export function CocoDen() {
                     <Bunny
                       pose={sleeping ? 'flop' : shownPose}
                       face={face}
-                      outfit={pet.outfit}
+                      outfit={shownOutfit}
                       food={mouth}
                       chewing={chewing}
                       look={look}
@@ -1085,7 +1157,7 @@ export function CocoDen() {
                       pose={hop.sidePose}
                       food={mouth}
                       chewing={chewing}
-                      outfit={pet.outfit}
+                      outfit={shownOutfit}
                       sniffing={sniffing}
                     />
                   )}

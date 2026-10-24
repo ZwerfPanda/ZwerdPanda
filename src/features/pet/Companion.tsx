@@ -12,6 +12,8 @@ import { useHopper } from './useHopper';
 import { sendCocoHome } from './home';
 import { care, isNapTime, requestOf } from './care';
 import { cocoGameTalk } from '../games/gameStats';
+import { useToday } from '../../hooks/useToday';
+import { useCocoSeason } from './season';
 import './companion.css';
 
 /** Little things Coco says when you arrive somewhere with her. */
@@ -45,6 +47,7 @@ export function CocoCompanion() {
 
 function Companion({ path }: { path: RoutePath }) {
   const pet = useContent((c) => c.pet);
+  const look = useCocoSeason(useToday(), pet.birthday).look(pet.outfit);
   const profile = useContent((c) => c.profile);
   const reduce = useReducedMotion();
   const desktop = useIsDesktop();
@@ -264,9 +267,9 @@ function Companion({ path }: { path: RoutePath }) {
             >
               <svg viewBox="-95 -120 190 215" aria-hidden="true">
                 {hop.view === 'front' ? (
-                  <Bunny pose={napping ? 'flop' : 'sit'} outfit={pet.outfit} />
+                  <Bunny pose={napping ? 'flop' : 'sit'} outfit={look} />
                 ) : (
-                  <BunnySide pose={hop.sidePose} outfit={pet.outfit} />
+                  <BunnySide pose={hop.sidePose} outfit={look} />
                 )}
               </svg>
             </motion.button>
