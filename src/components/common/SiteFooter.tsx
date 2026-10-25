@@ -1,5 +1,6 @@
 import { useContent } from '../../data/store';
 import { HiddenHeart } from './HiddenHeart';
+import { SecretLock } from '../../features/vault/SecretLock';
 import './common.css';
 
 export function SiteFooter() {
@@ -10,9 +11,7 @@ export function SiteFooter() {
       <p className="site-footer__small">
         Een privé wereldje voor twee <HiddenHeart />
       </p>
-      <a className="site-footer__lock" href="#/secret" aria-label="Ons geheimpje">
-        🔒
-      </a>
+      <SecretLock />
     </footer>
   );
 }

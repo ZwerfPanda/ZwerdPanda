@@ -64,13 +64,30 @@ function useAutoLock() {
   }, []);
 }
 
+/** While we're in here the whole app turns to velvet and candlelight. */
+function useSecretMode() {
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.secret = '';
+    return () => {
+      delete root.dataset.secret;
+    };
+  }, []);
+}
+
 export function VaultPage() {
   const lock = useContent((c) => c.vault.lock);
   const key = useVaultKey();
   useAutoLock();
+  useSecretMode();
   return (
     <div className="page vault">
       <div className="vault__glow" aria-hidden="true" />
+      <div className="vault__dust" aria-hidden="true">
+        {Array.from({ length: 12 }, (_, i) => (
+          <span key={i} style={{ '--i': i } as React.CSSProperties} />
+        ))}
+      </div>
       {!lock ? <Setup /> : !key ? <LockScreen /> : <Gallery k={key} />}
     </div>
   );
@@ -78,41 +95,73 @@ export function VaultPage() {
 
 /* --------------------------------------------------------------- the lock */
 
-function Keyhole({ open }: { open?: boolean }) {
+/** A round safe door with a combination dial and a heart-shaped keyhole. */
+function DoorArt({ state = 'closed' }: { state?: 'closed' | 'opening' }) {
+  const ticks = Array.from({ length: 36 }, (_, i) => i * 10);
   return (
-    <svg
-      className={`vault-keyhole${open ? ' is-open' : ''}`}
-      viewBox="0 0 120 150"
-      aria-hidden="true"
-    >
-      <defs>
-        <linearGradient id="vault-gold" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#f7dc8f" />
-          <stop offset="0.5" stopColor="#d9a441" />
-          <stop offset="1" stopColor="#8a5a1a" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M60 6c28 0 50 20 50 46v60c0 18-22 32-50 32S10 130 10 112V52C10 26 32 6 60 6z"
-        fill="url(#vault-gold)"
-        stroke="#5a3a10"
-        strokeWidth="2"
-      />
-      <path
-        d="M60 20c20 0 36 14 36 33v56c0 12-16 22-36 22S24 121 24 109V53c0-19 16-33 36-33z"
-        fill="none"
-        stroke="#fff1c4"
-        strokeOpacity="0.5"
-        strokeWidth="1.5"
-        strokeDasharray="3 4"
-      />
-      <path d="M60 52a14 14 0 0 1 8 25.5L74 108H46l6-30.5A14 14 0 0 1 60 52z" fill="#1a0610" />
-      <path
-        d="M60 40l-5-5a3.5 3.5 0 0 1 5-4a3.5 3.5 0 0 1 5 4z"
-        fill="#ff8fb8"
-        className="vault-keyhole__heart"
-      />
-    </svg>
+    <div className={`vault-safe${state === 'opening' ? ' is-opening' : ''}`} aria-hidden="true">
+      <svg className="vault-safe__frame" viewBox="0 0 200 200">
+        <defs>
+          <linearGradient id="vault-gold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#f7dc8f" />
+            <stop offset="0.5" stopColor="#d9a441" />
+            <stop offset="1" stopColor="#8a5a1a" />
+          </linearGradient>
+          <radialGradient id="vault-face" cx="40%" cy="35%" r="75%">
+            <stop offset="0" stopColor="#5b1840" />
+            <stop offset="1" stopColor="#24071a" />
+          </radialGradient>
+        </defs>
+        <circle cx="100" cy="100" r="96" fill="#12030c" />
+        <circle cx="100" cy="100" r="92" fill="none" stroke="url(#vault-gold)" strokeWidth="6" />
+      </svg>
+      <div className="vault-safe__door">
+        <svg viewBox="0 0 200 200">
+          <circle cx="100" cy="100" r="86" fill="url(#vault-face)" />
+          <circle cx="100" cy="100" r="86" fill="none" stroke="url(#vault-gold)" strokeWidth="3" />
+          {Array.from({ length: 12 }, (_, i) => {
+            const a = (i / 12) * Math.PI * 2;
+            return (
+              <circle
+                key={i}
+                cx={100 + Math.cos(a) * 76}
+                cy={100 + Math.sin(a) * 76}
+                r="3.2"
+                fill="url(#vault-gold)"
+              />
+            );
+          })}
+          {/* the bolts, which slide back when it opens */}
+          <g className="vault-safe__bolts" fill="url(#vault-gold)" stroke="#5a3a10" strokeWidth="1">
+            <rect x="94" y="2" width="12" height="22" rx="3" />
+            <rect x="94" y="176" width="12" height="22" rx="3" />
+            <rect x="2" y="94" width="22" height="12" rx="3" />
+            <rect x="176" y="94" width="22" height="12" rx="3" />
+          </g>
+          <g className="vault-safe__dial">
+            <circle cx="100" cy="100" r="50" fill="url(#vault-gold)" stroke="#5a3a10" />
+            <circle cx="100" cy="100" r="42" fill="#2c0b22" />
+            {ticks.map((t) => (
+              <path
+                key={t}
+                d={`M100 ${t % 30 === 0 ? 51 : 53}v${t % 30 === 0 ? 7 : 4}`}
+                stroke="#2c0b22"
+                strokeWidth={t % 30 === 0 ? 2 : 1}
+                transform={`rotate(${t} 100 100)`}
+              />
+            ))}
+            <path d="M100 58l-4 -6h8z" fill="#ff8fb8" />
+          </g>
+          <path
+            className="vault-safe__heart"
+            d="M100 116l-13 -13a8 8 0 0 1 13 -10a8 8 0 0 1 13 10z"
+            fill="#ff8fb8"
+          />
+          <path d="M100 98a5 5 0 0 1 3 9l2 10h-10l2 -10a5 5 0 0 1 3 -9z" fill="#2c0b22" />
+        </svg>
+      </div>
+      <div className="vault-safe__inside" />
+    </div>
   );
 }
 
@@ -146,7 +195,7 @@ function Setup() {
 
   return (
     <form className="vault-door" onSubmit={save}>
-      <Keyhole />
+      <DoorArt />
       <h1 className="vault-door__title">Ons geheimpje</h1>
       <p className="vault-door__lede">
         Alleen voor ons twee. Kies het wachtwoord: alles hierin wordt ermee versleuteld, ook op de
@@ -192,6 +241,7 @@ function LockScreen() {
   const [busy, setBusy] = useState(false);
   const [wrong, setWrong] = useState(0);
   const [show, setShow] = useState(false);
+  const [opening, setOpening] = useState(false);
   const reduce = useReducedMotion();
 
   const open = async (e: React.FormEvent) => {
@@ -199,28 +249,37 @@ function LockScreen() {
     if (!pw || busy) return;
     setBusy(true);
     const key = await unlock(pw, lock);
-    setBusy(false);
     if (!key) {
+      setBusy(false);
       setWrong((n) => n + 1);
       playSfx('error', true);
       return;
     }
     setPw('');
-    playSfx('sparkle', true);
-    setVaultKey(key);
+    if (reduce) {
+      setVaultKey(key);
+      return;
+    }
+    // The dial spins, the bolts slide back, the door swings open.
+    setOpening(true);
+    playSfx('vault', true);
+    window.setTimeout(() => playSfx('sparkle', true), 1000);
+    window.setTimeout(() => setVaultKey(key), 1500);
   };
 
   return (
     <motion.form
       key={wrong}
-      className="vault-door"
+      className={`vault-door${opening ? ' is-opening' : ''}`}
       onSubmit={open}
       animate={wrong && !reduce ? { x: [0, -10, 10, -6, 6, 0] } : undefined}
       transition={{ duration: 0.4 }}
     >
-      <Keyhole />
+      <DoorArt state={opening ? 'opening' : 'closed'} />
       <h1 className="vault-door__title">Ons geheimpje</h1>
-      <p className="vault-door__lede">Alleen voor ons twee ♡</p>
+      <p className="vault-door__lede">
+        {opening ? 'Klik… de deur gaat open ✨' : 'Alleen voor ons twee ♡'}
+      </p>
       <div className="vault-field">
         <label htmlFor="vault-pw">Wachtwoord</label>
         <span className="vault-field__row">
@@ -248,13 +307,53 @@ function LockScreen() {
         </p>
       )}
       <button type="submit" className="vault-btn" disabled={busy || !pw}>
-        {busy ? 'Openen…' : '🗝️ Openen'}
+        {opening ? 'Openen…' : busy ? 'Even kijken…' : '🗝️ Openen'}
       </button>
     </motion.form>
   );
 }
 
 /* ------------------------------------------------------------ the gallery */
+
+/** Velvet drapes over the top of the room, with gold fringe and tassels. */
+function Curtain() {
+  return (
+    <svg
+      className="vault-curtain"
+      viewBox="0 0 400 60"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="vault-velvet" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#3a0a26" />
+          <stop offset="1" stopColor="#8a1f52" />
+        </linearGradient>
+      </defs>
+      <path
+        d={`M0 0H400V30${Array.from({ length: 8 }, (_, i) => `Q${375 - i * 50} 58 ${350 - i * 50} 30`).join('')}Z`}
+        fill="url(#vault-velvet)"
+      />
+      <path
+        d={`M400 30${Array.from({ length: 8 }, (_, i) => `Q${375 - i * 50} 58 ${350 - i * 50} 30`).join('')}`}
+        fill="none"
+        stroke="#e3b45a"
+        strokeWidth="2.5"
+        strokeDasharray="1 3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function Candle({ tall }: { tall?: boolean }) {
+  return (
+    <span className={`vault-candle${tall ? ' is-tall' : ''}`}>
+      <span className="vault-candle__flame" />
+      <span className="vault-candle__wax" />
+    </span>
+  );
+}
 
 type Kind = 'all' | 'image' | 'video';
 
@@ -288,6 +387,8 @@ function Gallery({ k }: { k: CryptoKey }) {
       id === 'all' ? true : id === 'fav' ? m.favorite : m.category === id,
     ).length;
   const loose = [...metas.values()].filter((m) => !m.category || !cats.has(m.category)).length;
+  const photos = [...metas.values()].filter((m) => m.kind === 'image').length;
+  const videos = metas.size - photos;
 
   const add = async (files: FileList | null) => {
     if (!files?.length) return;
@@ -312,53 +413,74 @@ function Gallery({ k }: { k: CryptoKey }) {
 
   return (
     <>
-      <header className="vault-head">
-        <div>
+      <header className="vault-room">
+        <Curtain />
+        <div className="vault-room__candles" aria-hidden="true">
+          <Candle />
+          <Candle tall />
+        </div>
+        <div className="vault-room__title">
           <p className="vault-head__eyebrow">alleen voor ons twee</p>
           <h1 className="vault-head__title">Ons geheimpje</h1>
           <p className="vault-head__count">
-            {metas.size} {metas.size === 1 ? 'herinnering' : 'herinneringen'} · versleuteld 🔒
+            <span>📷 {photos}</span>
+            <span>🎬 {videos}</span>
+            <span>♥ {count('fav')}</span>
           </p>
+          <button
+            type="button"
+            className="vault-btn vault-btn--ghost vault-room__lock"
+            onClick={() => {
+              playSfx('close', true);
+              lockVault();
+            }}
+          >
+            <Lock aria-hidden="true" /> Vergrendel
+          </button>
         </div>
-        <button
-          type="button"
-          className="vault-btn vault-btn--ghost"
-          onClick={() => {
-            playSfx('close', true);
-            lockVault();
-          }}
-        >
-          <Lock aria-hidden="true" /> Vergrendel
-        </button>
+        <div className="vault-room__candles is-right" aria-hidden="true">
+          <Candle tall />
+          <Candle />
+        </div>
       </header>
 
-      <div className="vault-tabs" role="group" aria-label="Categorie">
+      <div className="vault-drawers" role="group" aria-label="Categorie">
         {[
-          { id: 'all', label: '✨ Alles', n: count('all') },
-          { id: 'fav', label: '♥ Favorieten', n: count('fav') },
+          { id: 'all', emoji: '✨', name: 'Alles', n: count('all') },
+          { id: 'fav', emoji: '♥', name: 'Favorieten', n: count('fav') },
           ...catList.map((c) => ({
             id: c.id,
-            label: `${c.meta.emoji} ${c.meta.name}`,
+            emoji: c.meta.emoji,
+            name: c.meta.name,
             n: count(c.id),
           })),
-          ...(loose ? [{ id: 'none', label: '📁 Zonder categorie', n: loose }] : []),
+          ...(loose ? [{ id: 'none', emoji: '📁', name: 'Zonder categorie', n: loose }] : []),
         ].map((t) => (
           <button
             key={t.id}
             type="button"
-            className="vault-chip"
+            className="vault-drawer"
             aria-pressed={cat === t.id}
-            onClick={() => setCat(t.id)}
+            onClick={() => {
+              playSfx('tap', true);
+              setCat(t.id);
+            }}
           >
-            {t.label} <span className="vault-chip__n">{t.n}</span>
+            <span className="vault-drawer__emoji" aria-hidden="true">
+              {t.emoji}
+            </span>
+            <span className="vault-drawer__name">{t.name}</span>
+            <span className="vault-drawer__n">{t.n}</span>
+            <span className="vault-drawer__knob" aria-hidden="true" />
           </button>
         ))}
         <button
           type="button"
-          className="vault-chip vault-chip--add"
+          className="vault-drawer vault-drawer--add"
           onClick={() => setCatForm({ open: true })}
         >
-          <Plus aria-hidden="true" /> Categorie
+          <Plus aria-hidden="true" />
+          <span className="vault-drawer__name">Categorie</span>
         </button>
       </div>
 
@@ -394,41 +516,54 @@ function Gallery({ k }: { k: CryptoKey }) {
             <Pencil aria-hidden="true" /> Categorie
           </button>
         )}
-        <button
-          type="button"
-          className="vault-btn"
-          onClick={() => input.current?.click()}
-          disabled={Boolean(busy)}
-        >
-          {busy ? `Verzegelen… ${busy.done}/${busy.of}` : '+ Toevoegen'}
-        </button>
-        <input
-          ref={input}
-          type="file"
-          accept="image/*,video/*"
-          multiple
-          hidden
-          onChange={(e) => void add(e.target.files)}
-        />
       </div>
 
       {shown.length === 0 ? (
         <div className="vault-empty">
+          <svg className="vault-empty__chest" viewBox="0 0 120 90" aria-hidden="true">
+            <path d="M14 40h92v42H14z" fill="#5b1840" stroke="#e3b45a" strokeWidth="2.5" />
+            <path
+              d="M14 40q0 -30 46 -30q46 0 46 30z"
+              fill="#7a1a48"
+              stroke="#e3b45a"
+              strokeWidth="2.5"
+              className="vault-empty__lid"
+            />
+            <path d="M14 52h92M52 40h16v18H52z" stroke="#e3b45a" strokeWidth="2.5" fill="#2c0b22" />
+            <path d="M60 46l-3 -3a2 2 0 0 1 3 -2a2 2 0 0 1 3 2z" fill="#ff8fb8" />
+          </svg>
           <p>
             {metas.size === 0
               ? 'Nog leeg… voeg jullie eerste foto’s en filmpjes toe. Ze worden op deze telefoon versleuteld, voordat ze ergens heen gaan.'
-              : 'Niets in deze categorie.'}
+              : 'Dit laatje is nog leeg.'}
           </p>
         </div>
       ) : (
         <ul className={`vault-grid${veil ? ' is-veiled' : ''}`}>
-          {shown.map((it) => (
-            <li key={it.id}>
+          {shown.map((it, i) => (
+            <li key={it.id} className={i % 7 === 0 && shown.length >= 6 ? 'is-big' : undefined}>
               <Tile k={k} item={it} meta={metas.get(it.id)!} onOpen={() => setViewing(it.id)} />
             </li>
           ))}
         </ul>
       )}
+
+      <button
+        type="button"
+        className="vault-btn vault-add"
+        onClick={() => input.current?.click()}
+        disabled={Boolean(busy)}
+      >
+        {busy ? `Verzegelen… ${busy.done}/${busy.of}` : '+ Toevoegen'}
+      </button>
+      <input
+        ref={input}
+        type="file"
+        accept="image/*,video/*"
+        multiple
+        hidden
+        onChange={(e) => void add(e.target.files)}
+      />
 
       <p className="vault-note">
         🔒 Versleuteld met jullie wachtwoord · vergrendelt vanzelf als je de app wegzet of deze

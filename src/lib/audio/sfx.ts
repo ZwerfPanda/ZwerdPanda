@@ -38,7 +38,9 @@ export type Sfx =
   | 'write'
   | 'train'
   | 'chime'
-  | 'polish';
+  | 'polish'
+  | 'unlock'
+  | 'vault';
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -201,6 +203,21 @@ const SOUNDS: Record<Sfx, (ac: AudioContext, t: number) => void> = {
   clunk: (ac, t) => {
     tone(ac, 140, t, 0.18, { to: 70, gain: 0.35 });
     noise(ac, t, 0.08, { filter: 'lowpass', freq: 700, gain: 0.25 });
+  },
+  // A key turning in a lock: two little clicks, then the shackle springs.
+  unlock: (ac, t) => {
+    noise(ac, t, 0.03, { filter: 'highpass', freq: 3800, gain: 0.3 });
+    noise(ac, t + 0.18, 0.04, { filter: 'highpass', freq: 3000, gain: 0.32 });
+    tone(ac, 520, t + 0.24, 0.12, { to: 880, type: 'triangle', gain: 0.16 });
+    noise(ac, t + 0.5, 0.5, { freq: 400, to: 1800, gain: 0.06, q: 0.7 });
+  },
+  // A heavy vault door: bolts back, a deep swing.
+  vault: (ac, t) => {
+    [0, 0.12, 0.24].forEach((d) =>
+      noise(ac, t + d, 0.06, { filter: 'lowpass', freq: 900, gain: 0.3 }),
+    );
+    tone(ac, 70, t + 0.35, 0.9, { to: 48, type: 'sawtooth', gain: 0.05, attack: 0.1 });
+    noise(ac, t + 0.35, 0.8, { filter: 'bandpass', freq: 260, gain: 0.08, q: 2 });
   },
   tap: (ac, t) => tone(ac, 1200, t, 0.05, { to: 900, gain: 0.18 }),
   pop: (ac, t) => tone(ac, 420, t, 0.09, { to: 980, gain: 0.4 }),
