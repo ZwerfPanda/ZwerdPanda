@@ -117,7 +117,11 @@ async function sealOldNow() {
 }
 
 /** "Test de opslag": a tiny sealed file up and back. Clears the wait after a failure. */
-export async function testPrivateStorage(): Promise<{ ok: boolean; problem?: string }> {
+export async function testPrivateStorage(): Promise<{
+  ok: boolean;
+  problem?: string;
+  carried?: boolean;
+}> {
   if (!pm || !space) return { ok: false, problem: 'Verbind eerst samen.' };
   const result = await pm.test(space);
   if (result.ok) {

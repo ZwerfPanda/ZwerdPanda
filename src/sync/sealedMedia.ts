@@ -50,7 +50,7 @@ export interface PrivateMedia {
     progress?: (done: number, of: number) => void,
   ): Promise<{ sealed: number; left: number; problem?: string }>;
   /** Tries the storage for real: a tiny sealed file up, back, and away again. */
-  test(space: string): Promise<{ ok: boolean; problem?: string }>;
+  test(space: string): Promise<{ ok: boolean; problem?: string; carried?: boolean }>;
 }
 
 const keyPath = (space: string) => `${space}/key/universe`;
@@ -255,7 +255,7 @@ export function sealBackend(
         await sealed.remove([path]).catch(() => undefined);
         if (!back || back.length !== bytes.length)
           return { ok: false, problem: 'Uploaden lukte, maar terughalen niet.' };
-        return { ok: true };
+        return { ok: true, carried: Boolean(sealed.carried) };
       } catch (error) {
         return { ok: false, problem: error instanceof Error ? error.message : String(error) };
       }

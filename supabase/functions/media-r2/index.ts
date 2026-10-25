@@ -115,7 +115,8 @@ export interface Env {
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info',
+  'Access-Control-Allow-Headers':
+    'authorization, apikey, content-type, x-client-info, x-op, x-space, x-path',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
@@ -236,11 +237,22 @@ export async function handle(
   const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
   if (!token) return reply(401, { error: 'sign in first' });
 
+  // Carrying a sealed piece ourselves (when the browser can't reach R2 directly):
+  // the op and path travel in headers, the bytes are the body.
+  const carry = req.headers.get('x-op');
   let body: { op?: string; space?: string; paths?: unknown; method?: string; prefix?: string };
-  try {
-    body = (await req.json()) as typeof body;
-  } catch {
-    return reply(400, { error: 'bad request' });
+  if (carry === 'put' || carry === 'get') {
+    body = {
+      op: carry,
+      space: req.headers.get('x-space') ?? '',
+      paths: [req.headers.get('x-path')],
+    };
+  } else {
+    try {
+      body = (await req.json()) as typeof body;
+    } catch {
+      return reply(400, { error: 'bad request' });
+    }
   }
   const space = String(body.space ?? '');
   if (!UUID.test(space)) return reply(400, { error: 'bad universe' });
@@ -294,6 +306,34 @@ export async function handle(
       return reply(200, { ok: false, problem: `R2 (${host}) is niet bereikbaar.` });
     }
     return reply(200, { ok: true, host, server: 'ok' });
+  }
+
+  if (body.op === 'put' || body.op === 'get') {
+    const path = (body.paths as unknown[])[0];
+    if (!okPath(space, path)) return reply(400, { error: 'bad path' });
+    if (body.op === 'put') {
+      const bytes = await req.arrayBuffer();
+      if (bytes.byteLength > 12 * 1024 * 1024) return reply(413, { error: 'piece too big' });
+      const res = await fetcher(await sign('PUT', path, undefined, 120), {
+        method: 'PUT',
+        body: bytes,
+      });
+      if (!res.ok)
+        return reply(502, {
+          error: `Schrijven naar R2 lukt niet: ${explain(res.status, await res.text(), env)}`,
+        });
+      return reply(200, { ok: true });
+    }
+    const res = await fetcher(await sign('GET', path, undefined, 120));
+    if (res.status === 404) return reply(404, { error: 'not found' });
+    if (!res.ok)
+      return reply(502, {
+        error: `Lezen uit R2 lukt niet: ${explain(res.status, await res.text(), env)}`,
+      });
+    return new Response(await res.arrayBuffer(), {
+      status: 200,
+      headers: { ...CORS, 'Content-Type': 'application/octet-stream' },
+    });
   }
 
   if (body.op === 'sign') {

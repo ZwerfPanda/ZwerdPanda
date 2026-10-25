@@ -20,6 +20,8 @@ export interface ObjectStore {
   remove(paths: string[]): Promise<void>;
   /** Only for R2: is the bucket reachable with our settings? */
   check?(space: string): Promise<{ ok: boolean; problem?: string }>;
+  /** Only for R2: true when our function carries the pieces (the browser can't reach R2). */
+  readonly carried?: boolean;
 }
 
 /** The function answered, but the browser wasn't allowed to talk to R2 itself. */
@@ -93,17 +95,89 @@ export function r2Store(options: {
     }
   };
 
-  return {
-    async put(path, data) {
+  // Some setups won't let the browser talk to R2 itself (CORS). Then our
+  // function carries the sealed pieces for us — for the rest of this session.
+  let carried = false;
+  const carry = async (op: 'put' | 'get', path: string, data?: Blob | Uint8Array) => {
+    const token = await options.token();
+    if (!token) throw new Error('Log eerst in.');
+    let res: Response;
+    try {
+      res = await fetch(options.functionUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          apikey: options.anonKey,
+          'Content-Type': 'application/octet-stream',
+          'x-op': op,
+          'x-space': options.spaceOf(path),
+          'x-path': path,
+        },
+        body: data ? bodyOf(data) : new Blob([]),
+      });
+    } catch (error) {
+      if (isNetworkError(error)) throw new OfflineError();
+      throw error;
+    }
+    return res;
+  };
+  const errorOf = async (res: Response, fallback: string) =>
+    new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? fallback);
+  const isCorsError = (error: unknown) =>
+    error instanceof Error && error.message.startsWith(CORS_PROBLEM);
+
+  const direct = {
+    async put(path: string, data: Blob | Uint8Array) {
       const res = await send(await sign('PUT', path), { method: 'PUT', body: bodyOf(data) });
       if (!res.ok) throw new Error(`Uploaden naar R2 lukte niet (${res.status}).`);
-      return true;
     },
-    async get(path) {
+    async get(path: string) {
       const res = await send(await sign('GET', path));
       if (res.status === 404) return null;
       if (!res.ok) throw new Error(`Ophalen uit R2 lukte niet (${res.status}).`);
       return new Uint8Array(await res.arrayBuffer());
+    },
+  };
+  const viaFunction = {
+    async put(path: string, data: Blob | Uint8Array) {
+      const res = await carry('put', path, data);
+      if (!res.ok) throw await errorOf(res, `Uploaden lukte niet (${res.status}).`);
+    },
+    async get(path: string) {
+      const res = await carry('get', path);
+      if (res.status === 404) return null;
+      if (!res.ok) throw await errorOf(res, `Ophalen lukte niet (${res.status}).`);
+      return new Uint8Array(await res.arrayBuffer());
+    },
+  };
+
+  return {
+    get carried() {
+      return carried;
+    },
+    async put(path, data) {
+      if (!carried) {
+        try {
+          await direct.put(path, data);
+          return true;
+        } catch (error) {
+          if (!isCorsError(error)) throw error;
+          carried = true;
+        }
+      }
+      await viaFunction.put(path, data);
+      return true;
+    },
+    async get(path) {
+      if (!carried) {
+        try {
+          return await direct.get(path);
+        } catch (error) {
+          if (!isCorsError(error)) throw error;
+          carried = true;
+        }
+      }
+      return viaFunction.get(path);
     },
     async list(folder) {
       return (

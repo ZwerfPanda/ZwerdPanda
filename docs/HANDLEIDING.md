@@ -263,8 +263,9 @@ per maand, en bekijken/downloaden kost niets. Zet eerst privé-opslag aan (stap 
 
 Daarna gaan nieuwe foto's en video's naar R2. Op het kaartje **Privé-opslag** staat een
 knop **Test de opslag**: die stuurt een klein versleuteld bestandje heen en terug en zegt
-precies wat er mis is als het niet lukt (verkeerde sleutel, bucket niet gevonden,
-CORS-regel). Wordt de functie later bijgewerkt, plak dan de nieuwe code opnieuw in de
+precies wat er mis is als het niet lukt (verkeerde sleutel, bucket niet gevonden).
+Weigert Cloudflare de browser (CORS), dan stuurt de app de versleutelde stukjes vanzelf
+via de functie; de test zegt dan "via onze eigen functie". Wordt de functie later bijgewerkt, plak dan de nieuwe code opnieuw in de
 editor van `media-r2` en klik **Deploy**. Wat al versleuteld in Supabase stond,
 verhuist vanzelf mee (zie het kaartje Privé-opslag). De functie geeft alleen
 ingelogde leden van jullie universe korte, tijdelijke links, alleen voor jullie eigen map.

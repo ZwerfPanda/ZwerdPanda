@@ -27,7 +27,7 @@ import { playSfx } from '../../lib/audio/sfx';
 export function PrivateStorage() {
   const { status, oldLeft, sealing, problem } = usePrivateMedia();
   const [testing, setTesting] = useState(false);
-  const [tested, setTested] = useState<{ ok: boolean } | null>(null);
+  const [tested, setTested] = useState<{ ok: boolean; carried?: boolean } | null>(null);
   const [fresh, setFresh] = useState<string | null>(null);
   const [shown, setShown] = useState<string | null>(null);
   const [typed, setTyped] = useState('');
@@ -200,7 +200,8 @@ export function PrivateStorage() {
             <p className={`private-store__progress${tested.ok ? ' is-done' : ''}`} role="status">
               {tested.ok ? (
                 <>
-                  <ShieldCheck aria-hidden="true" /> De opslag werkt: versleuteld heen en terug.
+                  <ShieldCheck aria-hidden="true" /> De opslag werkt: versleuteld heen en terug
+                  {tested.carried ? ' (via onze eigen functie).' : '.'}
                 </>
               ) : (
                 'De test lukte niet — zie hierboven waarom.'

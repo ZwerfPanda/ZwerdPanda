@@ -142,7 +142,10 @@ describe('finding the bucket', () => {
     }) as typeof fetch;
     const euEnv = { ...env, R2_ACCOUNT_ID: 'acct-eu' };
     const res = await handle(post({ op: 'check', space: SPACE }), euEnv, eu);
-    expect(await res.json()).toMatchObject({ ok: true, host: 'acct-eu.eu.r2.cloudflarestorage.com' });
+    expect(await res.json()).toMatchObject({
+      ok: true,
+      host: 'acct-eu.eu.r2.cloudflarestorage.com',
+    });
     const signed = await handle(
       post({ op: 'sign', space: SPACE, method: 'PUT', paths: [`${SPACE}/e2e/a.0`] }),
       euEnv,
@@ -169,5 +172,47 @@ describe('finding the bucket', () => {
       badKeys,
     );
     expect((await missing.json()).error).toMatch(/R2_SECRET_ACCESS_KEY/);
+  });
+});
+
+describe('carrying pieces when the browser can’t reach R2', () => {
+  it('puts and gets sealed pieces through the function, only for members', async () => {
+    const r2 = new Map<string, Uint8Array>();
+    const f = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith(env.SUPABASE_URL)) {
+        const token = new Headers(init?.headers).get('Authorization') ?? '';
+        return new Response(token.endsWith('good') ? '[{"space_id":"x"}]' : '[]');
+      }
+      const u = new URL(url);
+      const key = decodeURIComponent(u.pathname).replace(/^\/ours\/?/, '');
+      if (u.searchParams.get('list-type')) return new Response('<ListBucketResult/>');
+      if (init?.method === 'PUT') {
+        r2.set(key, new Uint8Array(init.body as ArrayBuffer));
+        return new Response(null);
+      }
+      const v = r2.get(key);
+      return v ? new Response(v as BlobPart) : new Response('', { status: 404 });
+    }) as typeof fetch;
+    const carry = (op: string, path: string, body?: Uint8Array, token = 'good') =>
+      new Request('https://fn/media-r2', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'x-op': op,
+          'x-space': SPACE,
+          'x-path': path,
+        },
+        body: (body ?? new Uint8Array()) as BlobPart,
+      });
+    const piece = new Uint8Array([1, 2, 3, 250]);
+    expect((await handle(carry('put', `${SPACE}/e2e/a.0`, piece), env, f)).status).toBe(200);
+    const got = await handle(carry('get', `${SPACE}/e2e/a.0`), env, f);
+    expect([...new Uint8Array(await got.arrayBuffer())]).toEqual([1, 2, 3, 250]);
+    expect((await handle(carry('get', `${SPACE}/e2e/nope.0`), env, f)).status).toBe(404);
+    expect((await handle(carry('get', `${SPACE}/e2e/a.0`, undefined, 'bad'), env, f)).status).toBe(
+      403,
+    );
+    expect((await handle(carry('put', `other/e2e/a.0`, piece), env, f)).status).toBe(400);
   });
 });
