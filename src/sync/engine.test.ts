@@ -387,6 +387,8 @@ describe('an older app on the other phone', () => {
       delete c[key];
     delete c.her.ideas;
     delete c.pet.careDays;
+    delete c.pet.decor;
+    c.pet.log = c.pet.log.filter((e: { action: string }) => e.action !== 'decor');
     c.her.nails.saved = c.her.nails.saved.map(({ loved: _, ...s }: { loved?: string }) => s);
     c.games.results = c.games.results.filter(
       (r: { game: string }) => !['memory', 'hockey'].includes(r.game),
@@ -444,7 +446,12 @@ describe('an older app on the other phone', () => {
         ideas: [{ id: 'i-1', text: 'Meer Coco', status: 'new', createdAt: now }],
         nails: { ...c.her.nails, saved: [set] },
       },
-      pet: { ...c.pet, careDays: ['2026-10-24'] },
+      pet: {
+        ...c.pet,
+        careDays: ['2026-10-24'],
+        decor: ['hammock'],
+        log: [{ id: 'care-d1', action: 'decor', detail: 'hammock', by: 'you', at: now }],
+      },
       games: {
         ...c.games,
         results: [{ id: 'r-1', game: 'memory', players: ['you', 'coco'], winner: 'you', at: now }],
@@ -483,11 +490,13 @@ describe('an older app on the other phone', () => {
     expect(c.her.ideas.map((x) => x.id)).toEqual(['i-1']);
     expect(c.her.nails.saved[0].loved).toBe(now);
     expect(c.pet.careDays).toEqual(['2026-10-24']);
+    expect(c.pet.decor).toEqual(['hammock']);
+    expect(c.pet.log.map((e) => e.id)).toEqual(['care-d1']);
     expect(c.games.results.map((r) => r.id)).toEqual(['r-1']);
     expect(c.games.matches.map((m) => m.id)).toEqual(['m-1']);
     // …and the server has them again, saved by the new app.
     const stored = JSON.parse([...server.rows.values()][0].json);
-    expect(stored.schema).toBe(5);
+    expect(stored.schema).toBe(6);
     expect(stored.cinema.films).toHaveLength(1);
     expect(stored.flowers).toHaveLength(1);
     expect(stored.profile.subtitle).toBe('From the old app');

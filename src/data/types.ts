@@ -251,6 +251,9 @@ export type PetFood =
 export type PetTrick = 'come' | 'boop' | 'spin' | 'stand' | 'jump';
 export type PetOutfit = 'none' | 'bow' | 'flowers' | 'scarf' | 'party';
 
+/** Things for her room, bought with the carrots she earns from our care. */
+export type PetDecor = 'rug' | 'garland' | 'plant' | 'toys' | 'hammock' | 'house';
+
 export type PetAction =
   | 'fed'
   | 'treat'
@@ -263,7 +266,8 @@ export type PetAction =
   | 'outfit'
   | 'cleaned'
   | 'raised'
-  | 'activity';
+  | 'activity'
+  | 'decor';
 
 export interface PetLogEntry {
   id: ID;
@@ -305,6 +309,8 @@ export interface CocoPet {
   manners: number;
   /** Mischief moments we already responded to (so the other phone doesn't get them again). */
   handled: string[];
+  /** What's in her room (bought with carrots: what we earned minus what we spent). */
+  decor: PetDecor[];
 }
 
 /* -------------------------------------------------------------- countdowns */

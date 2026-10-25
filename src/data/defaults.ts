@@ -429,6 +429,7 @@ export const defaultPet: CocoPet = {
   careDays: [],
   manners: 0,
   handled: [],
+  decor: [],
 };
 
 /** Starter words for the welcome — meant to be rewritten in Settings. */
@@ -585,7 +586,7 @@ export function cloneUs(us: UsContent): UsContent {
  *   4 — our cinema, and his own wording for texts on the site
  *   5 — Memory and darts together on two phones, and our secret place
  */
-export const CONTENT_SCHEMA = 5;
+export const CONTENT_SCHEMA = 6;
 
 export function createDefaultContent(): AppContent {
   return {
@@ -613,6 +614,7 @@ export function createDefaultContent(): AppContent {
       log: [],
       careDays: [],
       handled: [],
+      decor: [],
     },
     countdowns: [],
     welcome: { ...defaultWelcome },

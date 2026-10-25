@@ -229,6 +229,8 @@ export function mergePet(base: CocoPet, local: CocoPet, remote: CocoPet): CocoPe
     bond: addUp(base.bond, local.bond, remote.bond),
     manners: Math.min(100, addUp(base.manners, local.manners, remote.manners)),
     handled: [...new Set([...local.handled, ...remote.handled])].slice(-40),
+    // What one of us put in her room stays in it.
+    decor: [...new Set([...local.decor, ...remote.decor])],
     tricks,
     log: mergeList(base.log, local.log, remote.log)
       .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
@@ -493,8 +495,22 @@ const MATCHES_SINCE_5: readonly MatchKind[] = ['memory', 'darts'];
  */
 export function carryForward(shared: AppContent, ours: AppContent, writer: number): AppContent {
   if (writer >= CONTENT_SCHEMA) return shared;
-  // Schema 5 added Memory and darts on two phones (and our secret place).
   let out = shared;
+  // Schema 6 added the things in Coco's room (and the diary lines about them).
+  if (writer < 6) {
+    const known = new Set(shared.pet.log.map((e) => e.id));
+    out = {
+      ...out,
+      pet: {
+        ...out.pet,
+        decor: ours.pet.decor,
+        log: [...out.pet.log, ...ours.pet.log.filter((e) => e.action === 'decor' && !known.has(e.id))]
+          .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
+          .slice(0, PET_LOG_LIMIT),
+      },
+    };
+  }
+  // Schema 5 added Memory and darts on two phones (and our secret place).
   if (writer < 5) {
     out = { ...out, vault: ours.vault };
     const known = new Set(shared.games.matches.map((m) => m.id));

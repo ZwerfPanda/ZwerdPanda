@@ -999,7 +999,7 @@
 }
 
 .den__who--partner {
-  color: var(--lavender-500);
+  color: #6a55a8;
 }
 
 .den__diary-empty {
@@ -1388,4 +1388,710 @@
   box-shadow: inset 0 0 0 1.5px #ecc95a;
   filter: none;
   opacity: 1;
+}
+
+/* ======================================================= Coco's room, v3 */
+
+/* The room is the heart of the page: big, framed, with what she needs right under it. */
+.den {
+  gap: 14px;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.den__room {
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: var(--surface-raised);
+  box-shadow:
+    0 0 0 1px var(--line),
+    var(--shadow-2);
+  scroll-margin-top: 72px;
+}
+
+.den__room .den__stage {
+  max-height: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+@media (min-width: 720px) {
+  .den__room .den__stage {
+    aspect-ratio: 3 / 2;
+  }
+}
+
+@media (min-width: 1000px) {
+  .den {
+    max-width: 880px;
+    margin-inline: auto;
+  }
+}
+
+/* A bigger Coco */
+.den__coco {
+  width: 40%;
+  max-width: 250px;
+  margin-left: -20%;
+}
+
+@media (min-width: 720px) {
+  .den__coco {
+    width: 27%;
+    margin-left: -13.5%;
+  }
+}
+
+@media (min-width: 1000px) {
+  .den__coco {
+    margin-left: -125px;
+  }
+}
+
+/* Who she is and how she feels, on a little glass card in the corner */
+.den-hud {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  z-index: 5;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.den-hud > p {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 5px 11px 5px 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 252, 246, 0.86);
+  color: var(--plum-800);
+  box-shadow: 0 1px 6px rgba(61, 31, 58, 0.16);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.den-hud__face {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fde3ea;
+  font-size: 1.15rem;
+}
+
+.den-hud__who > span:last-child {
+  display: grid;
+  line-height: 1.1;
+}
+
+.den-hud__who strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.den-hud__who small {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #6f4a63;
+}
+
+.den-hud__carrots {
+  padding-left: 11px !important;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+/* Speech sits under the little card */
+.den__room .den__bubble {
+  top: 19%;
+}
+
+/* What she wishes for, said right in the room */
+.den-wish {
+  position: absolute;
+  top: 17%;
+  left: 50%;
+  z-index: 7;
+  width: min(300px, calc(100% - 24px));
+  margin: 0;
+  padding: 10px 12px;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  border-radius: 18px;
+  translate: -50% 0;
+  background: #fffcf6;
+  color: var(--plum-800);
+  text-align: center;
+}
+
+.den-wish .den-ask__text small {
+  color: #a33a60;
+}
+
+.den-wish::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  rotate: 45deg;
+  border-radius: 3px;
+  background: inherit;
+  box-shadow: 2px 2px 0 0 var(--accent-soft);
+}
+
+.den-wish.is-urgent::after {
+  box-shadow: 2px 2px 0 0 var(--accent);
+}
+
+.den-wish.is-mischief {
+  background: #fff4e0;
+  box-shadow:
+    inset 0 0 0 2px #e9a15b,
+    var(--shadow-1);
+}
+
+.den-wish .den-ask__text {
+  font-size: 0.88rem;
+  line-height: 1.3;
+}
+
+.den-wish .btn,
+.den-wish .btn.btn {
+  grid-column: 1;
+  justify-self: center;
+}
+
+@media (min-width: 560px) {
+  .den-wish {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* The parts of the room you can touch */
+.den-hotspots {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.den-hot {
+  pointer-events: auto;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.den-hot__area {
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 3;
+  transition: fill 0.2s;
+}
+
+.den-hot--rack:hover .den-hot__area {
+  fill: rgba(255, 255, 255, 0.16);
+}
+
+.den-hot:focus-visible .den-hot__area {
+  stroke: var(--focus);
+  stroke-dasharray: 6 4;
+}
+
+.den-hot[aria-disabled='true'] {
+  cursor: default;
+}
+
+.den-hot--poop > g {
+  transition: transform 0.2s;
+}
+
+.den-hot--poop:active > g {
+  transform: scale(0.8);
+}
+
+.den-scene__empty {
+  fill: #c4577a;
+  font-family: var(--font-hand);
+  font-size: 15px;
+  font-weight: 700;
+  animation: den-blink 1.6s ease-in-out infinite;
+}
+
+.den-scene__sign {
+  fill: #fffaf2;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.den-scene__sign--bowl {
+  fill: #7aa3cc;
+  font-size: 9px;
+}
+
+@keyframes den-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.den-sway {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: den-sway 4s ease-in-out infinite;
+}
+
+@keyframes den-sway {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+.den-swing {
+  transform-box: view-box;
+  transform-origin: 174px 112px;
+  animation: den-swing 5s ease-in-out infinite;
+}
+
+@keyframes den-swing {
+  0%,
+  100% {
+    transform: rotate(-1.5deg);
+  }
+  50% {
+    transform: rotate(1.5deg);
+  }
+}
+
+.den-twinkle {
+  animation: den-twinkle 1.8s ease-in-out infinite;
+}
+
+@keyframes den-twinkle {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+[data-motion='reduce'] .den-sway,
+[data-motion='reduce'] .den-swing,
+[data-motion='reduce'] .den-twinkle,
+[data-motion='reduce'] .den-scene__empty {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .den-sway,
+  .den-swing,
+  .den-twinkle,
+  .den-scene__empty {
+    animation: none;
+  }
+}
+
+/* Right under the room: her needs as rings, and what's going on */
+.den__under {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px 14px;
+  background: linear-gradient(180deg, var(--accent-wash), var(--surface-raised) 70%);
+}
+
+.den-rings {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.den-ring {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+
+.den-ring__dial {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+}
+
+.den-ring__dial svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  rotate: -90deg;
+}
+
+.den-ring__dial > svg + svg {
+  position: static;
+  width: 17px;
+  height: 17px;
+  rotate: none;
+  color: var(--accent-strong);
+}
+
+.den-ring__track {
+  fill: var(--surface);
+  stroke: var(--accent-wash);
+  stroke-width: 5;
+}
+
+.den-ring__fill {
+  fill: none;
+  stroke: var(--rose-400);
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.6s var(--ease-out);
+}
+
+.den-ring.is-good .den-ring__fill {
+  stroke: #6fae7f;
+}
+
+.den-ring.is-low .den-ring__fill {
+  stroke: #e98a4f;
+}
+
+.den-ring.is-low .den-ring__dial {
+  animation: den-ring-low 2.2s ease-in-out infinite;
+}
+
+@keyframes den-ring-low {
+  0%,
+  80%,
+  100% {
+    transform: none;
+  }
+  90% {
+    transform: scale(1.08);
+  }
+}
+
+[data-motion='reduce'] .den-ring.is-low .den-ring__dial {
+  animation: none;
+}
+
+.den-ring__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.den__under .den__status {
+  min-height: 0;
+  margin: 2px 0 0;
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.den__together {
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-wash);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  justify-self: center;
+}
+
+.den__under .den__season {
+  font-size: 0.84rem;
+}
+
+/* Six big buttons */
+.den__tools {
+  gap: 8px;
+}
+
+.den .den-tool {
+  min-height: 72px;
+  border-radius: 20px;
+  background: var(--surface-raised);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    var(--shadow-1);
+}
+
+.den .den-tool svg {
+  width: 26px;
+  height: 26px;
+}
+
+.den .den-tool.is-active {
+  background: var(--btn-bg);
+  color: var(--btn-ink);
+}
+
+/* Tabs */
+.den-tabs {
+  display: grid;
+  gap: 12px;
+  scroll-margin-top: 72px;
+}
+
+.den-tabs__list {
+  display: flex;
+  gap: 6px;
+  margin: 0 -4px;
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.den-tabs__list::-webkit-scrollbar {
+  display: none;
+}
+
+.den-tabs__tab {
+  flex: none;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-raised);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.den-tabs__tab[aria-selected='true'] {
+  background: var(--btn-bg);
+  color: var(--btn-ink);
+  box-shadow: var(--shadow-1);
+}
+
+.den-tabs__tab:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.den-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.den-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: var(--radius-l);
+  background: var(--surface-raised);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    var(--shadow-1);
+}
+
+.den-card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.den-card__title svg {
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+  fill: currentColor;
+}
+
+.den-card__count {
+  margin-left: auto;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-wash);
+  font-family: var(--font-body, inherit);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.den-card__note {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
+/* Today's round */
+.den-round {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.den-round li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-m);
+  background: var(--accent-wash);
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.den-round li.is-done {
+  background: #e4f2e3;
+}
+
+.den-round__tick {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: inset 0 0 0 2px var(--accent-soft);
+}
+
+.den-round li.is-done .den-round__tick {
+  background: #6fae7f;
+  box-shadow: none;
+  color: #fff;
+}
+
+.den-round__tick svg {
+  width: 14px;
+  height: 14px;
+}
+
+.den-round__by {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* Bond levels and what they bring */
+.den-levels {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+
+.den-levels li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  padding: 6px 10px;
+  border-radius: var(--radius-m);
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+.den-levels li::before {
+  content: '♡';
+  color: var(--accent-soft);
+}
+
+.den-levels li.is-reached {
+  color: var(--ink);
+  background: var(--accent-wash);
+}
+
+.den-levels li.is-reached::before {
+  content: '♥';
+  color: var(--accent);
+}
+
+.den-levels__name {
+  font-weight: 700;
+}
+
+.den-levels__gift {
+  font-size: 0.78rem;
+}
+
+/* The little shop for her room */
+.den-shop__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.den-shop__list li {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 12px 10px;
+  border-radius: var(--radius-m);
+  background: var(--accent-wash);
+  text-align: center;
+}
+
+.den-shop__list li.is-owned {
+  background: #e4f2e3;
+}
+
+.den-shop__emoji {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.den-shop__name {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* About Coco: a scrapbook */
+.coco-scrap {
+  display: grid;
+  gap: 18px;
+  padding: 18px 14px;
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle, rgba(196, 87, 122, 0.12) 1px, transparent 1.5px) 0 0 / 18px 18px,
+    var(--surface);
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    var(--shadow-1);
+}
+
+.den-panel--about .den__foot {
+  justify-content: center;
+}
+
+.den-round li.is-done,
+.den-shop__list li.is-owned {
+  background: var(--done-wash, #e4f2e3);
+}
+
+[data-theme='midnight'] .den {
+  --done-wash: rgba(111, 174, 127, 0.18);
 }

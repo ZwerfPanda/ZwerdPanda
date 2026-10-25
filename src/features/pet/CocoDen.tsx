@@ -4,47 +4,45 @@ import {
   Brush,
   Cake,
   Carrot,
-  GraduationCap,
   HandHeart,
-  Heart,
-  House,
-  Lock,
   Package,
   PartyPopper,
-  Shirt,
   Sparkles,
   SprayCan,
   Volleyball,
   X,
 } from 'lucide-react';
-import { getContent, updateContent, updatePrefs, useContent, usePrefs } from '../../data/store';
+import { getContent, updateContent, useContent } from '../../data/store';
 import { getMe, nameOf } from '../../data/people';
-import type { PetFood, PetOutfit, PetTrick } from '../../data/types';
+import type { PetDecor, PetFood, PetOutfit, PetTrick } from '../../data/types';
 import { celebrate, celebrateFrom, toast } from '../../components/ui/feedback';
 import { useReducedMotion } from '../../hooks/useMotion';
 import { useToday } from '../../hooks/useToday';
-import { parseIsoDate, plural } from '../../lib/dates';
+import { parseIsoDate, timeAgo } from '../../lib/dates';
 import { Bunny, type BunnyFace, type BunnyPose } from './Bunny';
 import { BunnySide } from './BunnySide';
-import { DenScene, timeOfDay } from './DenScene';
+import { DenHotspots, DenScene, timeOfDay } from './DenScene';
 import { seasonLine, useCocoSeason } from './season';
-import { MEDALS, careStreak, medalToCelebrate } from './streak';
+import { careStreak, medalToCelebrate } from './streak';
 import { BrushArt, FoodArt, WillowBall } from './Props';
 import { useHopper } from './useHopper';
-import { CareDiary, FeedTray, Meters, TrainTray, bondNames } from './DenPanels';
-import { FunTray, MischiefCard, MischiefOutcome, RequestCard } from './DenCare';
-import { sendCocoHome } from './home';
+import { FeedTray, TrainTray } from './DenPanels';
+import { FunTray, MischiefCard, MischiefOutcome } from './DenCare';
+import { DenBadge, NeedRings } from './DenHud';
+import { CareTab, DEN_TABS, DiaryTab, TricksTab, WardrobeTab, type DenTab } from './DenTabs';
 import {
   BUNNY_FACTS,
+  DECOR,
   FOODS,
   MOOD_LINES,
-  OUTFITS,
   TRICKS,
   ACTIVITIES,
   ageOf,
   bondLevel,
   care,
-  mannersLevel,
+  carrotsOf,
+  describeCare,
+  droppingsOf,
   mischiefOf,
   requestOf,
   wellbeing,
@@ -53,7 +51,6 @@ import {
   isNapTime,
   moodOf,
   needsOf,
-  outfitUnlocked,
   trainingGain,
   type Care,
   type CareResult,
@@ -71,9 +68,32 @@ const CARE_SOUND: Record<Care['type'], Sfx> = {
   clean: 'paper',
   activity: 'success',
   raise: 'sparkle',
+  decor: 'chime',
 };
 
-type Tray = 'feed' | 'play' | 'train' | 'dress' | 'fun' | null;
+type Tray = 'feed' | 'play' | 'train' | 'fun' | 'mischief' | null;
+const TAB_KEY = 'olu:coco-tab:v1';
+
+/** The tab you had open last time (just a convenience on this phone). */
+function useDenTab(): [DenTab, (tab: DenTab) => void] {
+  const [tab, setTab] = useState<DenTab>(() => {
+    try {
+      const saved = localStorage.getItem(TAB_KEY);
+      return DEN_TABS.some((t) => t.id === saved) ? (saved as DenTab) : 'care';
+    } catch {
+      return 'care';
+    }
+  });
+  const choose = (next: DenTab) => {
+    setTab(next);
+    try {
+      localStorage.setItem(TAB_KEY, next);
+    } catch {
+      /* private mode: it just isn't remembered */
+    }
+  };
+  return [tab, choose];
+}
 type Mode = 'cuddle' | 'brush' | null;
 type Particle = {
   id: number;
@@ -106,10 +126,10 @@ function useNow(): number {
   return now;
 }
 
-export function CocoDen() {
+export function CocoDen({ about }: { about?: React.ReactNode }) {
   const pet = useContent((c) => c.pet);
   const profile = useContent((c) => c.profile);
-  const { companion } = usePrefs();
+  const [tab, setTab] = useDenTab();
   const today = useToday();
   const now = useNow();
   const reduce = useReducedMotion();
@@ -161,6 +181,13 @@ export function CocoDen() {
     () => BUNNY_FACTS[Math.floor(Math.random() * BUNNY_FACTS.length)],
   );
 
+  // Droppings you already tapped away (until the hutch is cleaned).
+  const [swept, setSwept] = useState<number[]>([]);
+  useEffect(() => setSwept([]), [pet.cleanedAt]);
+  const droppings = droppingsOf(needs.clean);
+
+  const roomRef = useRef<HTMLDivElement>(null);
+  const tabsRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const bunnyRef = useRef<HTMLButtonElement>(null);
   const width = useRef(320);
@@ -270,7 +297,7 @@ export function CocoDen() {
     // On a phone the buttons sit below the room: bring Coco into view.
     const stage = stageRef.current?.getBoundingClientRect();
     if (stage && (stage.top < 60 || stage.bottom > window.innerHeight - 80)) {
-      stageRef.current?.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+      roomRef.current?.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
     }
   };
 
@@ -691,20 +718,25 @@ export function CocoDen() {
     void scene(async (t) => {
       wake();
       setTray(null);
-      setFact('Karton knagen en graven is een favoriete konijnenhobby — en goed voor ze.');
+      const house = getContent().pet.decor.includes('house');
+      setFact(
+        house
+          ? 'Een eigen schuilplekje geeft konijnen rust: daar voelen ze zich veilig.'
+          : 'Karton knagen en graven is een favoriete konijnenhobby — en goed voor ze.',
+      );
       if (!(await hop.hopTo(t, AT.boxDoor - 4))) return;
       hop.show('front');
       await hop.hopInPlace(t, 0.03);
       if (!(await hop.fade(t, 0, 0.25))) return;
       setRustle('box');
-      say('*knaag knaag* Ze geeft de doos een make-over.');
+      say(house ? 'Ze verdwijnt in haar huisje… *knus*' : '*knaag knaag* Ze geeft de doos een make-over.');
       if (!(await hop.wait(t, 2200))) return;
       setRustle(null);
       if (!(await hop.fade(t, 1, 0.2))) return;
       setFrontPose('sit');
       setFace('happy');
       burst('crumb', 4);
-      doCare({ type: 'play', toy: 'in de kartonnen doos' });
+      doCare({ type: 'play', toy: house ? 'in haar huisje' : 'in de kartonnen doos' });
       if (!(await hop.wait(t, 700))) return;
       await hop.hopTo(t, 66);
     });
@@ -872,7 +904,11 @@ export function CocoDen() {
       case 'play':
         return setTray('play');
       case 'trick':
-        return setTray('train');
+        setTab('tricks');
+        return tabsRef.current?.scrollIntoView({
+          block: 'start',
+          behavior: reduce ? 'auto' : 'smooth',
+        });
       case 'activity':
         return setTray('fun');
     }
@@ -885,6 +921,60 @@ export function CocoDen() {
     if (good) burst('heart', 3);
   };
 
+  /* ------------------------------------------------- touching the room */
+
+  const refill = () => feed('hay');
+
+  const sweep = (index: number) => {
+    wake();
+    playSfx('pop', true);
+    burst('text', 1, 'opgeruimd!');
+    const next = [...swept, index];
+    setSwept(next);
+    if (next.length >= droppings) cleanHutch();
+  };
+
+  /* --------------------------------------------------------- her room */
+
+  const buy = (item: PetDecor) =>
+    void scene(async (t) => {
+      wake();
+      const result = doCare({ type: 'decor', item });
+      if (!result.ok) return;
+      celebrateFrom(bunnyRef.current);
+      toast(`${DECOR[item].emoji} ${DECOR[item].label} staat in haar kamer!`);
+      const spot: Record<PetDecor, number> = {
+        rug: 50,
+        garland: 70,
+        plant: 86,
+        toys: 80,
+        hammock: 44,
+        house: 84,
+      };
+      if (!(await hop.hopTo(t, spot[item]))) return;
+      hop.show('front');
+      setFace('happy');
+      burst('heart', 4);
+      await hop.binky(t);
+    });
+
+  const startTraining = (trick: PetTrick) => {
+    wake();
+    setTraining(trick);
+    setTray('train');
+    void scene(async (t) => {
+      await hop.hopTo(t, AT.middle);
+      hop.show('front');
+    });
+    say(TRICKS[trick].cue);
+  };
+
+  // What the other one of us did for her lately — so you see you're doing it together.
+  const me = getMe();
+  const fromOther = pet.log.find((e) => e.by && e.by !== me && e.action !== 'outfit');
+  const otherRecent =
+    fromOther && now - Date.parse(fromOther.at) < 8 * 3_600_000 ? fromOther : null;
+
   const trayButton = (key: Exclude<Tray, null>, label: string, icon: React.ReactNode) => (
     <button
       type="button"
@@ -894,411 +984,406 @@ export function CocoDen() {
         wake();
         setMode(null);
         setTraining(null);
+        setOutcome(null);
         setTray(tray === key ? null : key);
       }}
-      disabled={busy && key !== 'train'}
+      disabled={busy}
     >
       {icon}
       <span>{label}</span>
     </button>
   );
 
+  const calm = !sleeping && !busy && !mode && !seek && !training && !bubble;
+  // A need that runs low comes first, then her mischief, then a little wish.
+  const event = mischief && !sleeping && !outcome && !request?.urgent ? mischief : null;
+
   return (
     <section className="den" aria-labelledby="den-title">
-      <header className="den__head">
-        <div>
-          <p className="den__eyebrow hand">our digital bunny</p>
-          <h2 id="den-title" className="den__title">
-            Coco’s holletje
-          </h2>
-          <p className="den__meta">
-            {pet.sex === 'girl' ? 'Meisje' : 'Jongen'}
-            {age && (
-              <>
-                {' · '}
-                {age.label} oud · {age.stage}
-              </>
-            )}
-          </p>
-        </div>
-        <div className="den__bond" aria-label={`Band: ${bond.name}`}>
-          <span className="den__bond-name">
-            <Heart aria-hidden="true" /> {bond.name}
-          </span>
-          <span className="den__bond-bar" aria-hidden="true">
-            <span style={{ width: `${Math.round(bond.progress * 100)}%` }} />
-          </span>
-          {bond.next && <span className="den__bond-next">volgende: {bond.next}</span>}
-          <span className="den__manners" title="Hoe goed opgevoed ze is">
-            🎓 {mannersLevel(pet.manners)} · {pet.manners}%
-          </span>
-        </div>
-        <div className="den__streak">
-          <span className="den__streak-count">
-            {streak.current > 0
-              ? `🔥 ${plural(streak.current, 'dag', 'dagen')} op rij verzorgd`
-              : '🔥 Begin vandaag een verzorg-reeks'}
-          </span>
-          <span className="den__streak-next">
-            {streak.current > 0 && !streak.caredToday
-              ? 'Zorg vandaag voor haar, dan loopt de reeks door'
-              : streak.next
-                ? `nog ${plural(streak.next.days - streak.current, 'dag', 'dagen')} tot ${streak.next.emoji} ${streak.next.name}`
-                : 'Alle medailles verdiend 👑'}
-          </span>
-          <ul className="den__medals" aria-label="Medailles">
-            {MEDALS.map((m) => {
-              const earned = streak.best >= m.days;
-              return (
-                <li
-                  key={m.days}
-                  className={earned ? 'is-earned' : undefined}
-                  title={`${m.name} · ${m.days} dagen op rij`}
-                >
-                  <span aria-hidden="true">{m.emoji}</span>
-                  <span className="visually-hidden">
-                    {m.name}, {m.days} dagen: {earned ? 'verdiend' : 'nog niet'}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-          {streak.best > streak.current && (
-            <span className="den__streak-best">langste reeks: {streak.best} dagen</span>
-          )}
-        </div>
-      </header>
-
+      <h2 id="den-title" className="visually-hidden">
+        Coco’s kamer
+      </h2>
       {age?.isBirthday && (
         <p className="den__birthday">
           <Cake aria-hidden="true" /> Coco is jarig — ze wordt vandaag {age.turning}! Het
           feesthoedje is vrijgespeeld.
         </p>
       )}
-      {season.season && (
-        <p className="den__season">
-          <span>{seasonLine(season.season, today)}</span>
-          {season.costume && season.costume !== pet.outfit && (
-            <button
-              type="button"
-              className="link-btn"
-              aria-pressed={season.wearing}
-              onClick={() => season.setWearing(!season.wearing)}
-            >
-              {season.wearing ? 'Kostuum uit' : 'Kostuum aan'}
-            </button>
-          )}
-        </p>
-      )}
 
-      <div
-        className={`den__stage den__stage--${light}${mode ? ' is-stroking' : ''}`}
-        ref={stageRef}
-        onPointerMove={(e) => {
-          trackCursor(e);
-          onStroke(e);
-        }}
-        onPointerDown={(e) => {
-          if (mode) stroke.current.last = { x: e.clientX, y: e.clientY };
-        }}
-        onPointerUp={() => (stroke.current.last = null)}
-        onClick={(e) => {
-          // Tap the floor and she hops over to you.
-          if ((e.target as Element).closest('button')) return;
-          if (busy || mode || seek || ball || floorFood) return;
-          const box = e.currentTarget.getBoundingClientRect();
-          if (e.clientY < box.top + box.height * 0.62) return;
-          const to = clamp(((e.clientX - box.left) / box.width) * 100, 8, 92);
-          wake();
-          void scene(async (t) => {
-            if (!(await hop.hopTo(t, to))) return;
-            hop.show('front');
-            setFace('happy');
-            if (Math.random() < 0.4) say('Hier ben ik!');
-            await hop.hopInPlace(t, 0.03);
-            await hop.wait(t, 1200);
-          }, false);
-        }}
-        onPointerLeave={() => {
-          setCursor(null);
-          stroke.current.last = null;
-        }}
-      >
-        <DenScene
-          light={light}
-          hay={needs.hay}
-          bowl={bowl}
-          rustle={rustle}
-          season={season.season}
-        />
-
-        {extra === 'hurdle' && <span className="den-hurdle" aria-hidden="true" />}
-        {extra === 'target' && <span className="den-target" aria-hidden="true" />}
-
-        {floorFood && (
-          <motion.div
-            key={floorFood.key}
-            className="den-food"
-            style={{ x: foodX }}
-            drag={reduce ? false : 'x'}
-            dragConstraints={stageRef}
-            dragElastic={0.08}
-            dragMomentum={false}
-            onDragStart={() => (dragging.current = true)}
-            onDragEnd={() => (dragging.current = false)}
-            initial={{ y: -40, opacity: 0, scale: 0.6 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            transition={{ duration: reduce ? 0 : 0.35, ease: 'backOut' }}
-            aria-hidden="true"
-          >
-            <svg viewBox="-34 -46 68 84">
-              <FoodArt food={floorFood.food} bites={floorFood.bites} />
-            </svg>
-          </motion.div>
-        )}
-
-        {ball && (
-          <motion.button
-            type="button"
-            className="den-ball"
-            style={{ x: ballX }}
-            drag={reduce ? false : 'x'}
-            dragConstraints={stageRef}
-            dragElastic={0.2}
-            dragTransition={{
-              power: 0.35,
-              timeConstant: 320,
-              bounceStiffness: 300,
-              bounceDamping: 18,
-            }}
-            onDragStart={() => (dragging.current = true)}
-            onDragEnd={() => (dragging.current = false)}
-            onClick={() => rollBall(pctOf(ballX.get()) >= hop.pct() ? 1 : -1, 26)}
-            aria-label="Rol het balletje"
-          >
-            <motion.svg viewBox="-24 -24 48 48" style={{ rotate: ballSpin }} aria-hidden="true">
-              <WillowBall />
-            </motion.svg>
-          </motion.button>
-        )}
-
-        <motion.div
-          className={`den__coco${near ? ' is-near' : ''}`}
-          style={{ x: hop.x, zIndex: near ? 6 : 3 }}
+      <div className="den__room" ref={roomRef}>
+        <div
+          className={`den__stage den__stage--${light}${mode ? ' is-stroking' : ''}`}
+          ref={stageRef}
+          onPointerMove={(e) => {
+            trackCursor(e);
+            onStroke(e);
+          }}
+          onPointerDown={(e) => {
+            if (mode) stroke.current.last = { x: e.clientX, y: e.clientY };
+          }}
+          onPointerUp={() => (stroke.current.last = null)}
+          onClick={(e) => {
+            // Tap the floor and she hops over to you.
+            if ((e.target as Element).closest('button, [role="button"]')) return;
+            if (busy || mode || seek || ball || floorFood) return;
+            const box = e.currentTarget.getBoundingClientRect();
+            if (e.clientY < box.top + box.height * 0.62) return;
+            const to = clamp(((e.clientX - box.left) / box.width) * 100, 8, 92);
+            wake();
+            void scene(async (t) => {
+              if (!(await hop.hopTo(t, to))) return;
+              hop.show('front');
+              setFace('happy');
+              if (Math.random() < 0.4) say('Hier ben ik!');
+              await hop.hopInPlace(t, 0.03);
+              await hop.wait(t, 1200);
+            }, false);
+          }}
+          onPointerLeave={() => {
+            setCursor(null);
+            stroke.current.last = null;
+          }}
         >
-          <motion.span
-            className="den__shadow"
-            style={{ scale: shadowScale, opacity: hop.opacity }}
-            aria-hidden="true"
+          <DenScene
+            light={light}
+            hay={needs.hay}
+            bowl={bowl}
+            rustle={rustle}
+            season={season.season}
+            decor={pet.decor}
           />
-          <motion.div className="den__lift" style={{ y: hop.y, opacity: hop.opacity }}>
+          <DenHotspots
+            droppings={droppings}
+            swept={swept}
+            onRefill={refill}
+            onSweep={sweep}
+            disabled={busy || Boolean(mode) || Boolean(seek)}
+          />
+
+          <DenBadge
+            mood={sleeping ? 'asleep' : mood}
+            age={age?.label}
+            carrots={carrotsOf(pet)}
+          />
+
+          {extra === 'hurdle' && <span className="den-hurdle" aria-hidden="true" />}
+          {extra === 'target' && <span className="den-target" aria-hidden="true" />}
+
+          {floorFood && (
             <motion.div
-              className="den__shape"
-              style={{ scaleX: hop.scaleX, scaleY: hop.scaleY, rotate: hop.rotate }}
+              key={floorFood.key}
+              className="den-food"
+              style={{ x: foodX }}
+              drag={reduce ? false : 'x'}
+              dragConstraints={stageRef}
+              dragElastic={0.08}
+              dragMomentum={false}
+              onDragStart={() => (dragging.current = true)}
+              onDragEnd={() => (dragging.current = false)}
+              initial={{ y: -40, opacity: 0, scale: 0.6 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              transition={{ duration: reduce ? 0 : 0.35, ease: 'backOut' }}
+              aria-hidden="true"
             >
-              <button
-                ref={bunnyRef}
-                type="button"
-                className={`den__bunny${mode ? ` is-${mode}` : ''}`}
-                aria-label={
-                  mode === 'cuddle'
-                    ? 'Aai Coco (of druk om haar te knuffelen)'
-                    : mode === 'brush'
-                      ? 'Borstel Coco (of druk om haar te borstelen)'
-                      : sleeping
-                        ? 'Coco doet een dutje. Tik om haar zachtjes wakker te maken'
-                        : 'Coco. Tik om hoi te zeggen'
-                }
-                onClick={(e) => {
-                  if (mode) {
-                    // Keyboard presses: a few count as a full cuddle.
-                    if (e.detail === 0) {
-                      stroke.current.total += STROKE_GOAL / 3;
-                      burst(mode === 'cuddle' ? 'heart' : 'fur', 1);
-                      if (stroke.current.total > STROKE_GOAL) finishStroke();
-                    }
-                    return;
-                  }
-                  if (busy || seek || floorFood || ball) return;
-                  if (sleeping) {
-                    wake();
-                    return;
-                  }
-                  void scene(async (t) => {
-                    hop.show('front');
-                    setFace('happy');
-                    const lines = [
-                      'Nose boop!',
-                      'Ze snuffelt aan je vingers… goedgekeurd.',
-                      `${nameOf(getMe(), profile)}! Ze kent je.`,
-                      MOOD_LINES[mood],
-                    ];
-                    say(lines[Math.floor(Math.random() * lines.length)]);
-                    burst('heart', 2);
-                    await hop.hopInPlace(t);
-                    await hop.wait(t, 900);
-                  }, false);
-                }}
-              >
-                <svg viewBox="-95 -120 190 215" aria-hidden="true">
-                  {isFront ? (
-                    <Bunny
-                      pose={sleeping ? 'flop' : shownPose}
-                      face={face}
-                      outfit={shownOutfit}
-                      food={mouth}
-                      chewing={chewing}
-                      look={look}
-                      sniffing={sniffing}
-                      shadow={false}
-                    />
-                  ) : (
-                    <BunnySide
-                      pose={hop.sidePose}
-                      food={mouth}
-                      chewing={chewing}
-                      outfit={shownOutfit}
-                      sniffing={sniffing}
-                    />
-                  )}
-                </svg>
-              </button>
-            </motion.div>
-          </motion.div>
-          {sleeping && (
-            <span className="den__zz" aria-hidden="true">
-              z<span>z</span>
-              <span>z</span>
-            </span>
-          )}
-          <div className="den__particles" aria-hidden="true">
-            {particles.map((p) => (
-              <span
-                key={p.id}
-                className={`den-particle den-particle--${p.kind}`}
-                style={{ '--px': `${p.x}px`, '--py': `${p.y}px` } as React.CSSProperties}
-              >
-                {p.kind === 'heart' ? '♥' : p.kind === 'text' ? p.text : ''}
-              </span>
-            ))}
-          </div>
-        </motion.div>
-
-        {mode && cursor && (
-          <span
-            className={`den-cursor den-cursor--${mode}`}
-            style={{ left: cursor.x, top: cursor.y }}
-            aria-hidden="true"
-          >
-            {mode === 'brush' ? (
-              <svg viewBox="-30 -30 60 60">
-                <BrushArt />
+              <svg viewBox="-34 -46 68 84">
+                <FoodArt food={floorFood.food} bites={floorFood.bites} />
               </svg>
-            ) : (
-              <HandHeart />
-            )}
-          </span>
-        )}
-
-        <AnimatePresence>
-          {bubble && (
-            <motion.p
-              key={bubble.id}
-              className={`den__bubble den__bubble--${bubbleSide}`}
-              initial={{ opacity: 0, y: 6, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: reduce ? 0 : 0.2 }}
-            >
-              {bubble.text}
-            </motion.p>
+            </motion.div>
           )}
-        </AnimatePresence>
 
-        {seek && (
-          <div className="den__seek" role="group" aria-label="Waar verstopt Coco zich?">
-            <span>Waar verstopt ze zich?</span>
-            {(['hay', 'tunnel', 'box'] as HideSpot[]).map((place) => (
-              <button
-                key={place}
-                type="button"
-                className="den-seek-spot"
-                style={{ left: `${{ hay: 15, tunnel: 34, box: 86 }[place]}%` }}
-                onClick={() => guess(place)}
-                aria-label={
-                  place === 'box'
-                    ? 'In de doos?'
-                    : place === 'tunnel'
-                      ? 'In de tunnel?'
-                      : 'Achter het hooi?'
-                }
+          {ball && (
+            <motion.button
+              type="button"
+              className="den-ball"
+              style={{ x: ballX }}
+              drag={reduce ? false : 'x'}
+              dragConstraints={stageRef}
+              dragElastic={0.2}
+              dragTransition={{
+                power: 0.35,
+                timeConstant: 320,
+                bounceStiffness: 300,
+                bounceDamping: 18,
+              }}
+              onDragStart={() => (dragging.current = true)}
+              onDragEnd={() => (dragging.current = false)}
+              onClick={() => rollBall(pctOf(ballX.get()) >= hop.pct() ? 1 : -1, 26)}
+              aria-label="Rol het balletje"
+            >
+              <motion.svg viewBox="-24 -24 48 48" style={{ rotate: ballSpin }} aria-hidden="true">
+                <WillowBall />
+              </motion.svg>
+            </motion.button>
+          )}
+
+          <motion.div
+            className={`den__coco${near ? ' is-near' : ''}`}
+            style={{ x: hop.x, zIndex: near ? 6 : 3 }}
+          >
+            <motion.span
+              className="den__shadow"
+              style={{ scale: shadowScale, opacity: hop.opacity }}
+              aria-hidden="true"
+            />
+            <motion.div className="den__lift" style={{ y: hop.y, opacity: hop.opacity }}>
+              <motion.div
+                className="den__shape"
+                style={{ scaleX: hop.scaleX, scaleY: hop.scaleY, rotate: hop.rotate }}
               >
-                {place === 'box' ? 'Doos?' : place === 'tunnel' ? 'Tunnel?' : 'Hooi?'}
-              </button>
-            ))}
-          </div>
-        )}
+                <button
+                  ref={bunnyRef}
+                  type="button"
+                  className={`den__bunny${mode ? ` is-${mode}` : ''}`}
+                  aria-label={
+                    mode === 'cuddle'
+                      ? 'Aai Coco (of druk om haar te knuffelen)'
+                      : mode === 'brush'
+                        ? 'Borstel Coco (of druk om haar te borstelen)'
+                        : sleeping
+                          ? 'Coco doet een dutje. Tik om haar zachtjes wakker te maken'
+                          : 'Coco. Tik om hoi te zeggen'
+                  }
+                  onClick={(e) => {
+                    if (mode) {
+                      // Keyboard presses: a few count as a full cuddle.
+                      if (e.detail === 0) {
+                        stroke.current.total += STROKE_GOAL / 3;
+                        burst(mode === 'cuddle' ? 'heart' : 'fur', 1);
+                        if (stroke.current.total > STROKE_GOAL) finishStroke();
+                      }
+                      return;
+                    }
+                    if (busy || seek || floorFood || ball) return;
+                    if (sleeping) {
+                      wake();
+                      return;
+                    }
+                    void scene(async (t) => {
+                      hop.show('front');
+                      setFace('happy');
+                      const lines = [
+                        'Nose boop!',
+                        'Ze snuffelt aan je vingers… goedgekeurd.',
+                        `${nameOf(getMe(), profile)}! Ze kent je.`,
+                        MOOD_LINES[mood],
+                      ];
+                      say(lines[Math.floor(Math.random() * lines.length)]);
+                      burst('heart', 2);
+                      await hop.hopInPlace(t);
+                      await hop.wait(t, 900);
+                    }, false);
+                  }}
+                >
+                  <svg viewBox="-95 -120 190 215" aria-hidden="true">
+                    {isFront ? (
+                      <Bunny
+                        pose={sleeping ? 'flop' : shownPose}
+                        face={face}
+                        outfit={shownOutfit}
+                        food={mouth}
+                        chewing={chewing}
+                        look={look}
+                        sniffing={sniffing}
+                        shadow={false}
+                      />
+                    ) : (
+                      <BunnySide
+                        pose={hop.sidePose}
+                        food={mouth}
+                        chewing={chewing}
+                        outfit={shownOutfit}
+                        sniffing={sniffing}
+                      />
+                    )}
+                  </svg>
+                </button>
+              </motion.div>
+            </motion.div>
+            {sleeping && (
+              <span className="den__zz" aria-hidden="true">
+                z<span>z</span>
+                <span>z</span>
+              </span>
+            )}
+            <div className="den__particles" aria-hidden="true">
+              {particles.map((p) => (
+                <span
+                  key={p.id}
+                  className={`den-particle den-particle--${p.kind}`}
+                  style={{ '--px': `${p.x}px`, '--py': `${p.y}px` } as React.CSSProperties}
+                >
+                  {p.kind === 'heart' ? '♥' : p.kind === 'text' ? p.text : ''}
+                </span>
+              ))}
+            </div>
+          </motion.div>
 
-        {mode && (
-          <div className="den__mode">
-            <span>
-              {mode === 'cuddle' ? (
-                <>
-                  <HandHeart aria-hidden="true" /> Aai haar met je vinger
-                </>
+          {mode && cursor && (
+            <span
+              className={`den-cursor den-cursor--${mode}`}
+              style={{ left: cursor.x, top: cursor.y }}
+              aria-hidden="true"
+            >
+              {mode === 'brush' ? (
+                <svg viewBox="-30 -30 60 60">
+                  <BrushArt />
+                </svg>
               ) : (
-                <>
-                  <Brush aria-hidden="true" /> Borstel haar met je vinger
-                </>
+                <HandHeart />
               )}
             </span>
-            <span className="den__mode-bar" aria-hidden="true">
-              <span
-                style={{ width: `${Math.min(100, (stroke.current.total / STROKE_GOAL) * 100)}%` }}
-              />
-            </span>
-            <button
-              type="button"
-              className="icon-btn"
-              aria-label="Stop"
-              onClick={() => {
-                setMode(null);
-                setCursor(null);
-                setNear(false);
-                setIdleTick((n) => n + 1);
-              }}
-            >
-              <X />
-            </button>
-          </div>
-        )}
+          )}
+
+          <AnimatePresence>
+            {bubble && (
+              <motion.p
+                key={bubble.id}
+                className={`den__bubble den__bubble--${bubbleSide}`}
+                initial={{ opacity: 0, y: 6, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: reduce ? 0 : 0.2 }}
+              >
+                {bubble.text}
+              </motion.p>
+            )}
+          </AnimatePresence>
+
+          {/* What she'd love right now — or the mischief she's up to — said in the room. */}
+          <AnimatePresence>
+            {calm && (event || request) && (
+              <motion.div
+                key={event ? event.id : request?.id}
+                className={`den-ask den-wish${event ? ' is-mischief' : request?.urgent ? ' is-urgent' : ''}`}
+                initial={{ opacity: 0, y: 8, scale: 0.94 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: reduce ? 0 : 0.22 }}
+                role="status"
+              >
+                <p className="den-ask__text">
+                  <small>
+                    {event
+                      ? '😈 Kattenkwaad!'
+                      : request?.urgent
+                        ? 'Coco heeft je nodig'
+                        : 'Coco heeft een wensje'}
+                  </small>
+                  {event ? event.mischief.text : request?.text}
+                </p>
+                <button
+                  type="button"
+                  className="btn btn--primary btn--small"
+                  onClick={() => {
+                    if (event) {
+                      wake();
+                      setTray('mischief');
+                    } else if (request) answer(request);
+                  }}
+                >
+                  {event ? 'Wat doe je?' : request?.cta}
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {seek && (
+            <div className="den__seek" role="group" aria-label="Waar verstopt Coco zich?">
+              <span>Waar verstopt ze zich?</span>
+              {(['hay', 'tunnel', 'box'] as HideSpot[]).map((place) => (
+                <button
+                  key={place}
+                  type="button"
+                  className="den-seek-spot"
+                  style={{ left: `${{ hay: 15, tunnel: 34, box: 86 }[place]}%` }}
+                  onClick={() => guess(place)}
+                  aria-label={
+                    place === 'box'
+                      ? pet.decor.includes('house')
+                        ? 'In haar huisje?'
+                        : 'In de doos?'
+                      : place === 'tunnel'
+                        ? 'In de tunnel?'
+                        : 'Achter het hooi?'
+                  }
+                >
+                  {place === 'box'
+                    ? pet.decor.includes('house')
+                      ? 'Huisje?'
+                      : 'Doos?'
+                    : place === 'tunnel'
+                      ? 'Tunnel?'
+                      : 'Hooi?'}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {mode && (
+            <div className="den__mode">
+              <span>
+                {mode === 'cuddle' ? (
+                  <>
+                    <HandHeart aria-hidden="true" /> Aai haar met je vinger
+                  </>
+                ) : (
+                  <>
+                    <Brush aria-hidden="true" /> Borstel haar met je vinger
+                  </>
+                )}
+              </span>
+              <span className="den__mode-bar" aria-hidden="true">
+                <span
+                  style={{ width: `${Math.min(100, (stroke.current.total / STROKE_GOAL) * 100)}%` }}
+                />
+              </span>
+              <button
+                type="button"
+                className="icon-btn"
+                aria-label="Stop"
+                onClick={() => {
+                  setMode(null);
+                  setCursor(null);
+                  setNear(false);
+                  setIdleTick((n) => n + 1);
+                }}
+              >
+                <X />
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="den__under">
+          <NeedRings needs={needs} />
+          <p className="den__status" aria-live="polite">
+            {sleeping
+              ? 'Coco doet een dutje. Konijnen slapen midden op de dag en ’s nachts — ze zijn het wakkerst rond zonsopgang en schemering.'
+              : heard || MOOD_LINES[mood]}
+          </p>
+          {otherRecent && otherRecent.by && (
+            <p className="den__together">
+              <span aria-hidden="true">💌</span> {nameOf(otherRecent.by, profile)}{' '}
+              {describeCare(otherRecent)} · {timeAgo(otherRecent.at)}
+            </p>
+          )}
+          {season.season && (
+            <p className="den__season">
+              <span>{seasonLine(season.season, today)}</span>
+              {season.costume && season.costume !== pet.outfit && (
+                <button
+                  type="button"
+                  className="link-btn"
+                  aria-pressed={season.wearing}
+                  onClick={() => season.setWearing(!season.wearing)}
+                >
+                  {season.wearing ? 'Kostuum uit' : 'Kostuum aan'}
+                </button>
+              )}
+            </p>
+          )}
+        </div>
       </div>
-
-      <p className="den__status" aria-live="polite">
-        {sleeping
-          ? 'Coco doet een dutje. Konijnen slapen midden op de dag en ’s nachts — ze zijn het wakkerst rond zonsopgang en schemering.'
-          : heard || MOOD_LINES[mood]}
-      </p>
-
-      {!reduce && (
-        <p className="den__hint">
-          Tip: tik op de vloer en ze hupt erheen · sleep haar eten naar haar toe · zwiep haar
-          balletje
-        </p>
-      )}
-
-      <AnimatePresence>
-        {request && !sleeping && (
-          <RequestCard request={request} onAnswer={() => answer(request)} disabled={busy} />
-        )}
-      </AnimatePresence>
-      {mischief && !sleeping && !outcome && (
-        <MischiefCard
-          mischief={mischief.mischief}
-          onChoose={(good, reply) => raise(mischief.id, good, reply, mischief.mischief.fact)}
-        />
-      )}
-      <MischiefOutcome outcome={outcome} onClose={() => setOutcome(null)} />
 
       <div className="den__tools" role="group" aria-label="Zorg voor Coco">
         {trayButton('feed', 'Eten', <Carrot aria-hidden="true" />)}
@@ -1320,144 +1405,174 @@ export function CocoDen() {
           <Brush aria-hidden="true" />
           <span>Borstelen</span>
         </button>
+        {trayButton('play', 'Spelen', <Volleyball aria-hidden="true" />)}
+        {trayButton('fun', 'Uitjes', <PartyPopper aria-hidden="true" />)}
         <button type="button" className="den-tool" onClick={cleanHutch} disabled={busy}>
           <SprayCan aria-hidden="true" />
           <span>Hok schoonmaken</span>
         </button>
-        {trayButton('play', 'Spelen', <Volleyball aria-hidden="true" />)}
-        {trayButton('fun', 'Uitjes', <PartyPopper aria-hidden="true" />)}
-        {trayButton('train', 'Trucjes', <GraduationCap aria-hidden="true" />)}
-        {trayButton('dress', 'Aankleden', <Shirt aria-hidden="true" />)}
       </div>
 
       <AnimatePresence initial={false}>
-        {tray && (
+        {(tray || outcome) && (
           <motion.div
-            key={tray}
+            key={outcome ? 'outcome' : tray}
             className="den__tray"
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: reduce ? 0 : 0.18 }}
           >
-            {tray === 'feed' && <FeedTray today={today} onFeed={feed} />}
-            {tray === 'fun' && <FunTray onPick={doActivity} busy={busy} />}
-            {tray === 'play' && (
-              <div className="den-options">
-                <button type="button" className="den-option" onClick={playBall}>
-                  <svg viewBox="-24 -24 48 48" className="den-option__food" aria-hidden="true">
-                    <WillowBall />
-                  </svg>
-                  Wilgenbal
-                </button>
-                <button type="button" className="den-option" onClick={playTunnel}>
-                  <Sparkles aria-hidden="true" /> Tunnel zoomies
-                </button>
-                <button type="button" className="den-option" onClick={playBox}>
-                  <Package aria-hidden="true" /> Kartonnen doos
-                </button>
-                <button type="button" className="den-option" onClick={startSeek}>
-                  <Sparkles aria-hidden="true" /> Verstoppertje
-                </button>
-              </div>
-            )}
-            {tray === 'train' && (
-              <TrainTray
-                tricks={pet.tricks}
-                active={training}
-                busy={busy}
-                onStart={(trick) => {
-                  wake();
-                  setTraining(trick);
-                  void scene(async (t) => {
-                    await hop.hopTo(t, AT.middle);
-                    hop.show('front');
-                  });
-                  say(TRICKS[trick].cue);
+            {outcome ? (
+              <MischiefOutcome
+                outcome={outcome}
+                onClose={() => {
+                  setOutcome(null);
+                  setTray(null);
                 }}
-                onRep={(q) => void trainRep(q)}
-                onShow={(trick) => void showTrick(trick)}
-                onStop={() => setTraining(null)}
-                reduce={reduce}
               />
-            )}
-            {tray === 'dress' && (
-              <div className="den-options den-options--outfits">
-                {(Object.keys(OUTFITS) as PetOutfit[]).map((o) => {
-                  const unlocked = outfitUnlocked(o, pet.bond, Boolean(age?.isBirthday));
-                  return (
-                    <button
-                      key={o}
-                      type="button"
-                      className={`den-option${pet.outfit === o ? ' is-active' : ''}`}
-                      aria-pressed={pet.outfit === o}
-                      disabled={!unlocked}
-                      onClick={() => dress(o)}
-                    >
-                      <svg viewBox="-60 -95 120 100" aria-hidden="true" className="den-option__art">
-                        <Bunny pose="sit" outfit={o} shadow={false} />
+            ) : tray === 'mischief' ? (
+              mischief ? (
+                <MischiefCard
+                  mischief={mischief.mischief}
+                  onChoose={(good, reply) =>
+                    raise(mischief.id, good, reply, mischief.mischief.fact)
+                  }
+                />
+              ) : (
+                <p className="den__fact">Alles is weer rustig ♡</p>
+              )
+            ) : (
+              <>
+                {tray === 'feed' && <FeedTray today={today} onFeed={feed} />}
+                {tray === 'fun' && <FunTray onPick={doActivity} busy={busy} />}
+                {tray === 'play' && (
+                  <div className="den-options">
+                    <button type="button" className="den-option" onClick={playBall}>
+                      <svg viewBox="-24 -24 48 48" className="den-option__food" aria-hidden="true">
+                        <WillowBall />
                       </svg>
-                      <span>{OUTFITS[o].label}</span>
-                      {!unlocked && (
-                        <span className="den-option__lock">
-                          <Lock aria-hidden="true" />
-                          {o === 'party'
-                            ? 'verjaardag of Family'
-                            : `band: ${bondNames[OUTFITS[o].level]}`}
-                        </span>
-                      )}
+                      Wilgenbal
                     </button>
-                  );
-                })}
-              </div>
+                    <button type="button" className="den-option" onClick={playTunnel}>
+                      <Sparkles aria-hidden="true" /> Tunnel zoomies
+                    </button>
+                    <button type="button" className="den-option" onClick={playBox}>
+                      <Package aria-hidden="true" />{' '}
+                      {pet.decor.includes('house') ? 'In haar huisje' : 'Kartonnen doos'}
+                    </button>
+                    <button type="button" className="den-option" onClick={startSeek}>
+                      <Sparkles aria-hidden="true" /> Verstoppertje
+                    </button>
+                  </div>
+                )}
+                {tray === 'train' && training && (
+                  <TrainTray
+                    tricks={pet.tricks}
+                    active={training}
+                    busy={busy}
+                    onStart={startTraining}
+                    onRep={(q) => void trainRep(q)}
+                    onShow={(trick) => void showTrick(trick)}
+                    onStop={() => {
+                      setTraining(null);
+                      setTray(null);
+                    }}
+                    reduce={reduce}
+                  />
+                )}
+                <p className="den__fact">
+                  <Sparkles aria-hidden="true" /> {fact}
+                </p>
+              </>
             )}
-            <p className="den__fact">
-              <Sparkles aria-hidden="true" /> {fact}
-            </p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <Meters needs={needs} wellbeing={wellbeing(needs)} />
-
-      <CareDiary />
-
-      {companion ? (
-        <div className="den__along">
-          <p>
-            <Heart aria-hidden="true" /> Coco hupt op elke pagina met je mee.
-          </p>
-          <button
-            type="button"
-            className="btn btn--quiet btn--small"
-            onClick={() => sendCocoHome('/coco')}
-          >
-            <House aria-hidden="true" /> Laat haar thuis
-          </button>
+      <div className="den-tabs" ref={tabsRef}>
+        <div className="den-tabs__list" role="tablist" aria-label="Meer over Coco">
+          {DEN_TABS.map((t, i) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              id={`den-tab-${t.id}`}
+              aria-selected={tab === t.id}
+              aria-controls={`den-panel-${t.id}`}
+              tabIndex={tab === t.id ? 0 : -1}
+              className="den-tabs__tab"
+              onClick={() => setTab(t.id)}
+              onKeyDown={(e) => {
+                if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+                const next =
+                  DEN_TABS[(i + (e.key === 'ArrowRight' ? 1 : -1) + DEN_TABS.length) % DEN_TABS.length];
+                setTab(next.id);
+                document.getElementById(`den-tab-${next.id}`)?.focus();
+              }}
+            >
+              <span aria-hidden="true">{t.emoji}</span> {t.label}
+            </button>
+          ))}
         </div>
-      ) : (
-        <div className="den__along">
-          <p>
-            <House aria-hidden="true" /> Coco is thuis in haar hokje — dat staat ergens verstopt in
-            ons universe en piept aan de rand van een van de pagina’s. Vind het om haar weer mee te
-            nemen.
-          </p>
-          <button
-            type="button"
-            className="link-btn"
-            onClick={() => updatePrefs({ companion: true, cocoHome: undefined })}
-          >
-            Of roep haar gewoon terug
-          </button>
+        <div
+          className="den-tabs__panel"
+          role="tabpanel"
+          id={`den-panel-${tab}`}
+          aria-labelledby={`den-tab-${tab}`}
+        >
+          {tab === 'care' && (
+            <CareTab bond={bond} wellbeing={wellbeing(needs)} streak={streak} hint={!reduce} />
+          )}
+          {tab === 'tricks' && (
+            <TricksTab
+              busy={busy}
+              reduce={reduce}
+              onStart={(trick) => {
+                startTraining(trick);
+                roomRef.current?.scrollIntoView({
+                  block: 'start',
+                  behavior: reduce ? 'auto' : 'smooth',
+                });
+              }}
+              onShow={(trick) => {
+                roomRef.current?.scrollIntoView({
+                  block: 'start',
+                  behavior: reduce ? 'auto' : 'smooth',
+                });
+                void showTrick(trick);
+              }}
+            />
+          )}
+          {tab === 'wardrobe' && (
+            <WardrobeTab
+              isBirthday={Boolean(age?.isBirthday)}
+              busy={busy}
+              onDress={dress}
+              onBuy={(item) => {
+                roomRef.current?.scrollIntoView({
+                  block: 'start',
+                  behavior: reduce ? 'auto' : 'smooth',
+                });
+                buy(item);
+              }}
+            />
+          )}
+          {tab === 'diary' && <DiaryTab />}
+          {tab === 'about' && (
+            <div className="den-panel den-panel--about">
+              {about}
+              {age && !age.isBirthday && (
+                <p className="den__foot">
+                  <Cake aria-hidden="true" /> Geboren 1 juni 2026 · jarig over{' '}
+                  {age.daysToBirthday} {age.daysToBirthday === 1 ? 'dag' : 'dagen'} (ze wordt{' '}
+                  {age.turning})
+                </p>
+              )}
+            </div>
+          )}
         </div>
-      )}
-
-      {age && !age.isBirthday && (
-        <p className="den__foot">
-          <Cake aria-hidden="true" /> Geboren 1 juni 2026 · jarig over {age.daysToBirthday}{' '}
-          {age.daysToBirthday === 1 ? 'dag' : 'dagen'} (ze wordt {age.turning})
-        </p>
-      )}
+      </div>
     </section>
   );
 }

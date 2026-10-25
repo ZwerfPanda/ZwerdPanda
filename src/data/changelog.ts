@@ -23,6 +23,37 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-6',
+    when: 'oktober 2026',
+    title: 'Coco’s hoekje, helemaal opnieuw',
+    items: [
+      {
+        emoji: '🐰',
+        title: 'Een grote kamer voor Coco',
+        text: 'Ze is groter, haar kamer heeft licht en diepte, en je ziet meteen hoe het met haar gaat.',
+        path: '/coco',
+      },
+      {
+        emoji: '🧹',
+        title: 'Zorgen in haar kamer',
+        text: 'Tik op haar hooirek om bij te vullen en tik keuteltjes weg. Haar wensjes en kattenkwaad zie je in de kamer zelf.',
+        path: '/coco',
+      },
+      {
+        emoji: '🥕',
+        title: 'Worteltjes & inrichten',
+        text: 'Met zorgen verdien je worteltjes: koop een kleedje, lichtjes, een hangmatje of zelfs een eigen huisje.',
+        path: '/coco',
+      },
+      {
+        emoji: '✅',
+        title: 'Samen zorgen',
+        text: 'Een rondje van vandaag, en je ziet wat de ander net voor haar deed.',
+        path: '/coco',
+      },
+    ],
+  },
+  {
     id: '2026-10-5',
     when: 'oktober 2026',
     title: 'Pannenkoekenslag, 3D-bowlen en een nieuw bloemenwinkeltje',

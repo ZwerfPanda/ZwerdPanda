@@ -47,6 +47,7 @@ import type {
   PetAction,
   PetLogEntry,
   PetOutfit,
+  PetDecor,
   PetTrick,
   Welcome,
   Dream,
@@ -420,6 +421,7 @@ function normalizeCoco(v: unknown, fallback: CocoContent): CocoContent {
 
 const TRICKS: readonly PetTrick[] = ['come', 'boop', 'spin', 'stand', 'jump'];
 const OUTFITS: readonly PetOutfit[] = ['none', 'bow', 'flowers', 'scarf', 'party'];
+const DECORS: readonly PetDecor[] = ['rug', 'garland', 'plant', 'toys', 'hammock', 'house'];
 const PET_ACTIONS: readonly PetAction[] = [
   'fed',
   'treat',
@@ -433,6 +435,7 @@ const PET_ACTIONS: readonly PetAction[] = [
   'cleaned',
   'raised',
   'activity',
+  'decor',
 ];
 const COUNTDOWN_ICONS: readonly CountdownIcon[] = [
   'heart',
@@ -465,6 +468,7 @@ function normalizePet(v: unknown): CocoPet {
       log: [],
       careDays: [],
       handled: [],
+      decor: [],
     };
   const treats = isObj(v.treats) ? v.treats : {};
   const tricks: CocoPet['tricks'] = {};
@@ -519,6 +523,7 @@ function normalizePet(v: unknown): CocoPet {
     handled: arr(v.handled)
       .filter((h): h is string => typeof h === 'string' && h.length <= 40)
       .slice(-40),
+    decor: DECORS.filter((d) => arr(v.decor).includes(d)),
   };
 }
 

@@ -38,16 +38,21 @@ export function CocoPage() {
             Coco’s <em>Hoekje</em>
           </>
         }
-        lede="Ons kleine dwergkonijntje. Geef haar eten, knuffel haar en leer haar samen trucjes — plus haar foto’s, grappige momentjes en de officiële feitjes."
+        lede="Ons kleine dwergkonijntje. Zorg samen voor haar, richt haar kamer in en leer haar trucjes."
       />
       <CocoBirthday />
-      <CocoDen />
-      <div className="coco-top">
-        <Portrait />
-        <BunnyId />
-      </div>
-      <CocoPhotos />
-      <CocoNotes />
+      <CocoDen
+        about={
+          <div className="coco-scrap">
+            <div className="coco-top">
+              <Portrait />
+              <BunnyId />
+            </div>
+            <CocoPhotos />
+            <CocoNotes />
+          </div>
+        }
+      />
       <SiteFooter />
     </div>
   );

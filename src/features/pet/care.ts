@@ -1,5 +1,13 @@
 import { CARE_DAYS_LIMIT, PET_LOG_LIMIT, localDay } from '../../data/normalize';
-import type { CocoPet, Person, PetAction, PetFood, PetOutfit, PetTrick } from '../../data/types';
+import type {
+  CocoPet,
+  Person,
+  PetAction,
+  PetDecor,
+  PetFood,
+  PetOutfit,
+  PetTrick,
+} from '../../data/types';
 import { durationBetween, parseIsoDate, todayIso, todayUtc, daysUntil } from '../../lib/dates';
 import { createId } from '../../lib/id';
 
@@ -149,10 +157,11 @@ export function level(at: string | undefined, now: number, hours: number): numbe
 
 export function needsOf(pet: CocoPet, now: number): Needs {
   return {
-    tummy: level(pet.fedAt, now, 8),
+    // Slow on purpose: a busy day never leaves her sad, and she's never ill.
+    tummy: level(pet.fedAt, now, 12),
     hay: level(pet.hayAt, now, 24),
-    love: level(pet.pettedAt, now, 10),
-    play: level(pet.playedAt, now, 14),
+    love: level(pet.pettedAt, now, 14),
+    play: level(pet.playedAt, now, 18),
     fur: level(pet.groomedAt, now, 24 * 5),
     clean: level(pet.cleanedAt, now, 48),
   };
@@ -244,6 +253,96 @@ export const OUTFITS: Record<PetOutfit, OutfitInfo> = {
 export function outfitUnlocked(outfit: PetOutfit, bond: number, isBirthday: boolean): boolean {
   if (outfit === 'party' && isBirthday) return true;
   return bondLevel(bond).index >= OUTFITS[outfit].level;
+}
+
+/* ------------------------------------------------------------ her room */
+
+export interface DecorInfo {
+  label: string;
+  emoji: string;
+  /** In carrots. */
+  price: number;
+  /** What happens when it arrives. */
+  done: string;
+}
+
+export const DECOR: Record<PetDecor, DecorInfo> = {
+  rug: {
+    label: 'Zacht kleedje',
+    emoji: '🧶',
+    price: 20,
+    done: 'Ze ploft er meteen op. Dit is nu háár plekje.',
+  },
+  garland: {
+    label: 'Lichtslinger',
+    emoji: '✨',
+    price: 40,
+    done: 'Warme lichtjes boven haar hokje — extra knus ’s avonds.',
+  },
+  plant: {
+    label: 'Plantje (hoog, buiten haar bereik)',
+    emoji: '🪴',
+    price: 60,
+    done: 'Groen in haar kamer. Ze kijkt er nieuwsgierig naar omhoog.',
+  },
+  toys: {
+    label: 'Mandje met speeltjes',
+    emoji: '🧺',
+    price: 80,
+    done: 'Ze gooit meteen alles eruit. Precies de bedoeling.',
+  },
+  hammock: {
+    label: 'Hangmatje',
+    emoji: '🛏️',
+    price: 110,
+    done: 'Ze klimt erin, wiebelt even… en ligt als een prinsesje.',
+  },
+  house: {
+    label: 'Houten huisje met dakje',
+    emoji: '🏡',
+    price: 150,
+    done: 'Een eigen huisje! Ze snuffelt elk hoekje af en gaat binnen liggen.',
+  },
+};
+
+export const DECOR_ORDER: PetDecor[] = ['rug', 'garland', 'plant', 'toys', 'hammock', 'house'];
+
+/** Every ♡ we earn is also a carrot to spend on her room. */
+export function carrotsOf(pet: CocoPet): number {
+  const spent = pet.decor.reduce((sum, d) => sum + DECOR[d].price, 0);
+  return Math.max(0, pet.bond - spent);
+}
+
+/* --------------------------------------------------------- today's round */
+
+export interface RoundItem {
+  key: 'hay' | 'food' | 'love' | 'play';
+  label: string;
+  done: boolean;
+  by?: Person;
+}
+
+/** Coco's little round for today: worked out from the diary, so both phones agree. */
+export function roundOf(pet: CocoPet, now: Date = new Date()): RoundItem[] {
+  const today = todayIso(now);
+  const doneBy = (actions: PetAction[]) =>
+    pet.log.find((e) => actions.includes(e.action) && localDay(e.at) === today);
+  const items: [RoundItem['key'], string, PetAction[]][] = [
+    ['hay', 'Hooi & water', ['hay']],
+    ['food', 'Groente of brokjes', ['fed']],
+    ['love', 'Een knuffel', ['petted', 'activity']],
+    ['play', 'Even spelen', ['played', 'activity']],
+  ];
+  return items.map(([key, label, actions]) => {
+    const entry = doneBy(actions);
+    return { key, label, done: Boolean(entry), by: entry?.by };
+  });
+}
+
+/** How many droppings lie in her hutch: none when it's fresh, up to six. */
+export function droppingsOf(clean: number): number {
+  if (clean >= 85) return 0;
+  return Math.min(6, Math.ceil((85 - clean) / 14));
 }
 
 export type Stage = 'Baby' | 'Jonkie' | 'Puber' | 'Volwassen';
@@ -618,7 +717,8 @@ export type Care =
   | { type: 'outfit'; outfit: PetOutfit }
   | { type: 'clean' }
   | { type: 'activity'; activity: ActivityId }
-  | { type: 'raise'; id: string; good: boolean };
+  | { type: 'raise'; id: string; good: boolean }
+  | { type: 'decor'; item: PetDecor };
 
 export interface CareResult {
   pet: CocoPet;
@@ -831,6 +931,24 @@ function careOnly(pet: CocoPet, action: Care, by: Person, now: Date): CareResult
             bond: 0,
           };
     }
+    case 'decor': {
+      const item = DECOR[action.item];
+      if (pet.decor.includes(action.item)) return decline('Dat staat al in haar hokje ♡');
+      const carrots = carrotsOf(pet);
+      if (carrots < item.price)
+        return decline(`Nog ${item.price - carrots} worteltjes sparen — zorg lekker voor haar.`);
+      // Shopping is fun, but it isn't looking after her: no care day, no love.
+      return {
+        pet: {
+          ...pet,
+          decor: [...pet.decor, action.item],
+          log: addLog(pet, 'decor', action.item, by, at),
+        },
+        ok: true,
+        message: item.done,
+        bond: 0,
+      };
+    }
     case 'outfit':
       return done(
         { outfit: action.outfit },
@@ -872,6 +990,8 @@ export function describeCare(entry: CocoPet['log'][number]): string {
       return entry.detail && entry.detail in ACTIVITIES
         ? `deed iets leuks: ${ACTIVITIES[entry.detail as ActivityId].label.toLowerCase()}`
         : 'deed iets leuks met haar';
+    case 'decor':
+      return `zette ${entry.detail && entry.detail in DECOR ? DECOR[entry.detail as PetDecor].label.toLowerCase().replace(/ \(.*\)/, '') : 'iets moois'} in haar hokje`;
     case 'outfit':
       return entry.detail === 'none'
         ? 'deed haar outfit uit'

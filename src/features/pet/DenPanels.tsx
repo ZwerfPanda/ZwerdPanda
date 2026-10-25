@@ -1,81 +1,18 @@
 import { useEffect, useRef } from 'react';
-import {
-  GraduationCap,
-  Heart,
-  Sparkles,
-  SprayCan,
-  Smile,
-  Volleyball,
-  Wheat,
-  Salad,
-} from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
 import { useContent } from '../../data/store';
 import { nameOf } from '../../data/people';
 import type { PetFood, PetTrick } from '../../data/types';
 import { timeAgo, todayIso } from '../../lib/dates';
 import { FoodSvg } from './Props';
-import { FOODS, TREATS_PER_DAY, TRICKS, TRICK_ORDER, describeCare, type Needs } from './care';
+import { FOODS, TREATS_PER_DAY, TRICKS, TRICK_ORDER, describeCare } from './care';
 
-/** The panels under Coco's room: needs, food, training and the care diary. */
+/** The panels under Coco's room: food, training and the care diary. */
 
 export const GREENS: PetFood[] = ['pellets', 'romaine', 'parsley', 'coriander', 'basil'];
 export const TREATS: PetFood[] = ['carrot', 'apple', 'banana', 'strawberry'];
 
 export const bondNames = ['Verlegen', 'Nieuwsgierig', 'Vertrouwd', 'Best friends', 'Family'];
-
-export function Meters({ needs, wellbeing }: { needs: Needs; wellbeing: number }) {
-  const items: { key: keyof Needs; label: string; icon: React.ReactNode }[] = [
-    { key: 'hay', label: 'Hooi & water', icon: <Wheat aria-hidden="true" /> },
-    { key: 'tummy', label: 'Buikje', icon: <Salad aria-hidden="true" /> },
-    { key: 'love', label: 'Knuffels', icon: <Heart aria-hidden="true" /> },
-    { key: 'play', label: 'Speeltijd', icon: <Volleyball aria-hidden="true" /> },
-    { key: 'fur', label: 'Vacht', icon: <Sparkles aria-hidden="true" /> },
-    { key: 'clean', label: 'Schoon hokje', icon: <SprayCan aria-hidden="true" /> },
-  ];
-  return (
-    <ul className="den__meters">
-      <li
-        className={`den__meters-total ${wellbeing < 30 ? 'is-low' : wellbeing > 70 ? 'is-good' : ''}`}
-      >
-        <span className="den-meter__label">
-          <Smile aria-hidden="true" />
-          Hoe gaat het met Coco?
-        </span>
-        <span
-          className="den-meter__bar"
-          role="meter"
-          aria-label="Hoe gaat het met Coco"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={wellbeing}
-        >
-          <span style={{ width: `${wellbeing}%` }} />
-        </span>
-      </li>
-      {items.map((item) => {
-        const value = needs[item.key];
-        return (
-          <li key={item.key} className={value < 25 ? 'is-low' : value > 70 ? 'is-good' : ''}>
-            <span className="den-meter__label">
-              {item.icon}
-              {item.label}
-            </span>
-            <span
-              className="den-meter__bar"
-              role="meter"
-              aria-label={item.label}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={value}
-            >
-              <span style={{ width: `${value}%` }} />
-            </span>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
 
 export function FeedTray({ today, onFeed }: { today: string; onFeed: (food: PetFood) => void }) {
   const treats = useContent((c) => c.pet.treats);
@@ -235,7 +172,7 @@ export function TrainTray({
   );
 }
 
-export function CareDiary() {
+export function CareDiary({ limit = 6 }: { limit?: number }) {
   const log = useContent((c) => c.pet.log);
   const profile = useContent((c) => c.profile);
   if (!log.length) {
@@ -247,9 +184,8 @@ export function CareDiary() {
   }
   return (
     <div className="den__diary">
-      <h3 className="den__diary-title">Zorgdagboek</h3>
       <ul>
-        {log.slice(0, 6).map((entry) => (
+        {log.slice(0, limit).map((entry) => (
           <li key={entry.id}>
             <span>
               <span className={`den__who den__who--${entry.by ?? 'you'}`}>

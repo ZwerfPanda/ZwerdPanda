@@ -1,7 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { defaultPet } from '../../data/defaults';
 import type { CocoPet } from '../../data/types';
-import { ageOf, bondLevel, care, isNapTime, level, moodOf, needsOf, outfitUnlocked } from './care';
+import {
+  ageOf,
+  bondLevel,
+  care,
+  carrotsOf,
+  describeCare,
+  droppingsOf,
+  isNapTime,
+  level,
+  moodOf,
+  needsOf,
+  outfitUnlocked,
+  roundOf,
+} from './care';
 
 const fresh = (): CocoPet => ({
   ...defaultPet,
@@ -109,5 +122,54 @@ describe('growing up', () => {
     expect(outfitUnlocked('bow', 0, false)).toBe(false);
     expect(outfitUnlocked('bow', 30, false)).toBe(true);
     expect(outfitUnlocked('party', 0, true)).toBe(true);
+  });
+});
+
+describe('her room', () => {
+  const pet = (bond: number, decor: CocoPet['decor'] = []): CocoPet => ({
+    ...defaultPet,
+    treats: { ...defaultPet.treats },
+    tricks: {},
+    log: [],
+    careDays: [],
+    handled: [],
+    bond,
+    decor,
+  });
+
+  it('carrots are what we earned minus what we spent', () => {
+    expect(carrotsOf(pet(30))).toBe(30);
+    expect(carrotsOf(pet(30, ['rug']))).toBe(10);
+    expect(carrotsOf(pet(10, ['rug', 'garland']))).toBe(0);
+  });
+
+  it('buying puts it in her room, once, and only with enough carrots', () => {
+    const now = new Date('2026-10-25T09:00:00');
+    const poor = care(pet(10), { type: 'decor', item: 'rug' }, 'you', now);
+    expect(poor.ok).toBe(false);
+    const bought = care(pet(25), { type: 'decor', item: 'rug' }, 'you', now);
+    expect(bought.ok).toBe(true);
+    expect(bought.pet.decor).toEqual(['rug']);
+    expect(bought.pet.bond).toBe(25);
+    expect(carrotsOf(bought.pet)).toBe(5);
+    expect(bought.pet.careDays).toEqual([]);
+    expect(describeCare(bought.pet.log[0])).toBe('zette zacht kleedje in haar hokje');
+    expect(care(bought.pet, { type: 'decor', item: 'rug' }, 'you', now).ok).toBe(false);
+  });
+
+  it('today’s round follows the diary', () => {
+    const now = new Date('2026-10-25T09:00:00');
+    const fed = care(pet(0), { type: 'feed', food: 'hay' }, 'partner', now).pet;
+    const round = roundOf(fed, now);
+    expect(round.find((r) => r.key === 'hay')).toMatchObject({ done: true, by: 'partner' });
+    expect(round.filter((r) => r.done)).toHaveLength(1);
+    expect(roundOf(fed, new Date('2026-10-26T09:00:00')).some((r) => r.done)).toBe(false);
+  });
+
+  it('a clean hutch has no droppings, a messy one a handful', () => {
+    expect(droppingsOf(100)).toBe(0);
+    expect(droppingsOf(85)).toBe(0);
+    expect(droppingsOf(60)).toBe(2);
+    expect(droppingsOf(0)).toBe(6);
   });
 });
