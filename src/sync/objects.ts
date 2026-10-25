@@ -96,8 +96,24 @@ export function r2Store(options: {
   };
 
   // Some setups won't let the browser talk to R2 itself (CORS). Then our
-  // function carries the sealed pieces for us — for the rest of this session.
-  let carried = false;
+  // function carries the sealed pieces for us. This phone remembers that for a
+  // week (just a convenience: nothing secret), then tries the direct way again.
+  const CARRY_KEY = 'olu:r2-carry:v1';
+  let carried = (() => {
+    try {
+      return Date.now() - Number(localStorage.getItem(CARRY_KEY) ?? 0) < 7 * 86_400_000;
+    } catch {
+      return false;
+    }
+  })();
+  const rememberCarry = () => {
+    carried = true;
+    try {
+      localStorage.setItem(CARRY_KEY, String(Date.now()));
+    } catch {
+      // Private mode: we'll just find out again next time.
+    }
+  };
   const carry = async (op: 'put' | 'get', path: string, data?: Blob | Uint8Array) => {
     const token = await options.token();
     if (!token) throw new Error('Log eerst in.');
@@ -162,7 +178,7 @@ export function r2Store(options: {
           return true;
         } catch (error) {
           if (!isCorsError(error)) throw error;
-          carried = true;
+          rememberCarry();
         }
       }
       await viaFunction.put(path, data);
@@ -174,7 +190,7 @@ export function r2Store(options: {
           return await direct.get(path);
         } catch (error) {
           if (!isCorsError(error)) throw error;
-          carried = true;
+          rememberCarry();
         }
       }
       return viaFunction.get(path);

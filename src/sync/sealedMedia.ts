@@ -53,6 +53,18 @@ export interface PrivateMedia {
   test(space: string): Promise<{ ok: boolean; problem?: string; carried?: boolean }>;
 }
 
+/** Runs `fn` over `items`, a few at a time. */
+async function inParallel<T>(items: T[], at: number, fn: (item: T, i: number) => Promise<void>) {
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++;
+      await fn(items[i], i);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(at, items.length) }, worker));
+}
+
 const keyPath = (space: string) => `${space}/key/universe`;
 const folder = (space: string) => `${space}/e2e`;
 const baseName = (name: string) => name.slice(0, name.lastIndexOf('.'));
@@ -87,9 +99,14 @@ export function sealBackend(
 
   const putSealed = async (space: string, id: string, blob: Blob, key: CryptoKey) => {
     const chunks = chunkCount(blob.size);
-    for (let n = 0; n < chunks; n++) {
-      await sealed.put(`${folder(space)}/${id}.${n}`, await sealChunk(key, id, blob, n));
-    }
+    // Three pieces on their way at once; the manifest only after all of them.
+    await inParallel(
+      Array.from({ length: chunks }, (_, n) => n),
+      3,
+      async (n) => {
+        await sealed.put(`${folder(space)}/${id}.${n}`, await sealChunk(key, id, blob, n));
+      },
+    );
     await sealed.put(
       `${folder(space)}/${id}.m`,
       await sealManifest(key, id, {
@@ -124,12 +141,18 @@ export function sealBackend(
         const key = await getKey(space);
         if (!key) return null; // it'll open once this phone has our code
         const m = await openManifest(key, id, manifest);
-        const parts: ArrayBuffer[] = [];
-        for (let n = 0; n < m.chunks; n++) {
-          const piece = await store.get(`${folder(space)}/${id}.${n}`);
-          if (!piece) return null;
-          parts.push(await openChunk(key, id, n, piece));
-        }
+        const parts: ArrayBuffer[] = new Array(m.chunks);
+        let missing = false;
+        await inParallel(
+          Array.from({ length: m.chunks }, (_, n) => n),
+          3,
+          async (n) => {
+            const piece = await store.get(`${folder(space)}/${id}.${n}`);
+            if (!piece) missing = true;
+            else parts[n] = await openChunk(key, id, n, piece);
+          },
+        );
+        if (missing) return null;
         return new Blob(parts, { type: m.type });
       }
       return backend.downloadMedia(space, id);
@@ -212,7 +235,7 @@ export function sealBackend(
         failed++;
         problem ??= error instanceof Error ? error.message : String(error);
       };
-      for (const id of plainIds) {
+      await inParallel(plainIds, 2, async (id) => {
         try {
           const blob = (await localBlob(id)) ?? (await backend.downloadMedia(space, id));
           if (blob) await putSealed(space, id, blob, key);
@@ -221,7 +244,7 @@ export function sealBackend(
           note(error);
         }
         progress?.(++done, of);
-      }
+      });
       // Already sealed, but still in the bucket: move the sealed pieces to R2 as they are.
       for (const m of moved) {
         const id = baseName(m.name);

@@ -141,8 +141,24 @@ function okPath(space: string, path: unknown): path is string {
   );
 }
 
+/** Members we just checked, for a few minutes (so a big video doesn't ask for every piece). */
+const members = new Map<string, number>();
+const MEMBER_FOR = 5 * 60_000;
+
 /** Asks Supabase (with the caller's own sign-in) whether they're in this universe. */
 async function isMember(env: Env, token: string, space: string, fetcher: typeof fetch) {
+  const known = `${space}:${token}`;
+  const until = members.get(known);
+  if (until && until > Date.now()) return true;
+  if (await askMember(env, token, space, fetcher)) {
+    if (members.size > 200) members.clear();
+    members.set(known, Date.now() + MEMBER_FOR);
+    return true;
+  }
+  return false;
+}
+
+async function askMember(env: Env, token: string, space: string, fetcher: typeof fetch) {
   const res = await fetcher(
     `${env.SUPABASE_URL}/rest/v1/space_members?select=space_id&space_id=eq.${space}`,
     { headers: { apikey: env.SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` } },
