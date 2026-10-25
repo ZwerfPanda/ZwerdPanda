@@ -236,3 +236,26 @@ describe('sealed photos', () => {
     await expect(b.privateMedia!.enable(SPACE)).rejects.toThrow(/andere telefoon/);
   });
 });
+
+describe('when the storage refuses', () => {
+  it('stops at the first error instead of trying every photo, and keeps them all', async () => {
+    const bucket = memoryStore();
+    for (let i = 0; i < 6; i++)
+      await bucket.put(`${SPACE}/old-${i}`, new TextEncoder().encode(`photo-${i}`));
+    let puts = 0;
+    const broken: ObjectStore = {
+      ...memoryStore(),
+      async put() {
+        puts++;
+        throw new Error('R2 zegt nee');
+      },
+    };
+    const phone = sealBackend(backendOn(bucket, broken), phoneKeys());
+    await phone.privateMedia!.enable(SPACE);
+    const result = await phone.privateMedia!.sealOld(SPACE, async () => null);
+    expect(result.problem).toBe('R2 zegt nee');
+    expect(result.left).toBe(6);
+    expect(puts).toBeLessThanOrEqual(2);
+    for (let i = 0; i < 6; i++) expect(bucket.files.has(`${SPACE}/old-${i}`)).toBe(true);
+  });
+});

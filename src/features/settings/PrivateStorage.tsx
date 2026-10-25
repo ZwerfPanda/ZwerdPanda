@@ -211,7 +211,7 @@ export function PrivateStorage() {
           <button
             type="button"
             className="btn btn--ghost btn--small"
-            disabled={testing || Boolean(sealing)}
+            disabled={testing}
             onClick={async () => {
               setTesting(true);
               setTested(null);

@@ -235,7 +235,14 @@ export function sealBackend(
         failed++;
         problem ??= error instanceof Error ? error.message : String(error);
       };
+      // One storage error usually means they'd all fail: stop, say why, and keep
+      // the rest as they are (nothing is removed before its new copy is safe).
       await inParallel(plainIds, 2, async (id) => {
+        if (problem) {
+          failed++;
+          progress?.(++done, of);
+          return;
+        }
         try {
           const blob = (await localBlob(id)) ?? (await backend.downloadMedia(space, id));
           if (blob) await putSealed(space, id, blob, key);
@@ -247,6 +254,11 @@ export function sealBackend(
       });
       // Already sealed, but still in the bucket: move the sealed pieces to R2 as they are.
       for (const m of moved) {
+        if (problem) {
+          failed++;
+          progress?.(++done, of);
+          continue;
+        }
         const id = baseName(m.name);
         try {
           const pieces = (await plain.list(folder(space))).filter((o) => baseName(o.name) === id);
