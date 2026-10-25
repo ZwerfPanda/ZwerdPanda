@@ -10,7 +10,7 @@ import {
   unwrapKey,
   wrapKey,
 } from './sealed';
-import { sealBackend, type KeyStore } from './sealedMedia';
+import { retried, sealBackend, type KeyStore } from './sealedMedia';
 import { KeyNeededError, type SyncBackend } from './types';
 
 const SPACE = 'space-1';
@@ -259,9 +259,10 @@ describe('when the storage refuses', () => {
     const result = await phone.privateMedia!.sealOld(SPACE, async () => null);
     expect(result.problem).toBe('R2 zegt nee');
     expect(result.left).toBe(6);
-    expect(puts).toBeLessThanOrEqual(2);
+    // Two photos at once, each piece tried three times, then it stops.
+    expect(puts).toBeLessThanOrEqual(6);
     for (let i = 0; i < 6; i++) expect(bucket.files.has(`${SPACE}/old-${i}`)).toBe(true);
-  });
+  }, 20_000);
 });
 
 describe('how much we use', () => {
@@ -275,5 +276,20 @@ describe('how much we use', () => {
     expect(u.where).toBe('supabase');
     expect(u.files).toBe(2); // one sealed photo, one still plain
     expect(u.bytes).toBeGreaterThan(1100);
+  });
+});
+
+describe('a shaky connection', () => {
+  it('tries a piece again before giving up', async () => {
+    let tries = 0;
+    const value = await retried(async () => {
+      if (++tries < 3) throw new Error('weg');
+      return 'gelukt';
+    }, [1, 1]);
+    expect(value).toBe('gelukt');
+    expect(tries).toBe(3);
+    await expect(retried(async () => Promise.reject(new Error('blijft weg')), [1])).rejects.toThrow(
+      'blijft weg',
+    );
   });
 });

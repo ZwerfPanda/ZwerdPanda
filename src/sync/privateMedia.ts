@@ -42,6 +42,9 @@ let state: PrivateState = { status: null, oldLeft: 0, sealing: null, problem: nu
 /** After a failed round we wait a while before trying again, instead of looping. */
 let failedAt = 0;
 const RETRY_AFTER = 10 * 60_000;
+/** Just the connection that dropped: look again much sooner. */
+const RETRY_OFFLINE = 60_000;
+let retryAfter = RETRY_AFTER;
 const listeners = new Set<() => void>();
 let checking: Promise<void> | null = null;
 
@@ -89,7 +92,7 @@ export function refreshPrivateMedia(): Promise<void> {
       if (status === 'on') {
         const oldLeft = await pm!.oldCount(space!);
         set({ oldLeft });
-        if (oldLeft > 0 && Date.now() - failedAt > RETRY_AFTER) await sealOldNow();
+        if (oldLeft > 0 && Date.now() - failedAt > retryAfter) await sealOldNow();
       }
     } catch {
       // Offline: we'll look again next time.
@@ -109,8 +112,17 @@ async function sealOldNow() {
       async (id) => (await getMedia(id).catch(() => undefined))?.blob ?? null,
       (done, of) => set({ sealing: { done, of } }),
     );
-    set({ oldLeft: result.left, problem: result.problem ?? null });
+    const offline = /geen verbinding/i.test(result.problem ?? '');
+    set({
+      oldLeft: result.left,
+      problem: offline
+        ? 'De verbinding viel even weg. Hij gaat over een minuut vanzelf verder (of tik op Test de opslag).'
+        : (result.problem ?? null),
+    });
     failedAt = result.left > 0 ? Date.now() : 0;
+    retryAfter = offline ? RETRY_OFFLINE : RETRY_AFTER;
+    // Pick it up again by itself once the wait is over, even without a sync.
+    if (result.left > 0) window.setTimeout(() => void refreshPrivateMedia(), retryAfter + 1000);
   } finally {
     set({ sealing: null });
   }

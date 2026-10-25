@@ -55,6 +55,18 @@ export interface PrivateMedia {
   test(space: string): Promise<{ ok: boolean; problem?: string; carried?: boolean }>;
 }
 
+/** A moment on a shaky connection shouldn't fail a whole photo: try a piece three times. */
+export async function retried<T>(fn: () => Promise<T>, waits = [1500, 4000]): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (attempt >= waits.length || error instanceof KeyNeededError) throw error;
+      await new Promise((r) => setTimeout(r, waits[attempt]));
+    }
+  }
+}
+
 /** Runs `fn` over `items`, a few at a time. */
 async function inParallel<T>(items: T[], at: number, fn: (item: T, i: number) => Promise<void>) {
   let next = 0;
@@ -106,18 +118,17 @@ export function sealBackend(
       Array.from({ length: chunks }, (_, n) => n),
       3,
       async (n) => {
-        await sealed.put(`${folder(space)}/${id}.${n}`, await sealChunk(key, id, blob, n));
+        const bytes = await sealChunk(key, id, blob, n);
+        await retried(() => sealed.put(`${folder(space)}/${id}.${n}`, bytes));
       },
     );
-    await sealed.put(
-      `${folder(space)}/${id}.m`,
-      await sealManifest(key, id, {
-        v: 1,
-        type: blob.type || 'application/octet-stream',
-        size: blob.size,
-        chunks,
-      }),
-    );
+    const manifest = await sealManifest(key, id, {
+      v: 1,
+      type: blob.type || 'application/octet-stream',
+      size: blob.size,
+      chunks,
+    });
+    await retried(() => sealed.put(`${folder(space)}/${id}.m`, manifest));
     // The plain copy from before, if there was one, goes.
     await plain.remove([`${space}/${id}`]).catch(() => undefined);
   };
@@ -151,7 +162,7 @@ export function sealBackend(
           Array.from({ length: m.chunks }, (_, n) => n),
           3,
           async (n) => {
-            const piece = await store.get(`${folder(space)}/${id}.${n}`);
+            const piece = await retried(() => store.get(`${folder(space)}/${id}.${n}`));
             if (!piece) missing = true;
             else parts[n] = new Blob([await openChunk(key, id, n, piece)]);
           },
@@ -263,7 +274,8 @@ export function sealBackend(
           return;
         }
         try {
-          const blob = (await localBlob(id)) ?? (await backend.downloadMedia(space, id));
+          const blob =
+            (await localBlob(id)) ?? (await retried(() => backend.downloadMedia(space, id)));
           if (blob) await putSealed(space, id, blob, key);
           else failed++;
         } catch (error) {
@@ -283,9 +295,9 @@ export function sealBackend(
           const pieces = (await plain.list(folder(space))).filter((o) => baseName(o.name) === id);
           const manifest = pieces.find((o) => o.name.endsWith('.m'))!;
           for (const p of [...pieces.filter((o) => o !== manifest), manifest]) {
-            const bytes = await plain.get(`${folder(space)}/${p.name}`);
+            const bytes = await retried(() => plain.get(`${folder(space)}/${p.name}`));
             if (!bytes) throw new Error('missing piece');
-            await sealed.put(`${folder(space)}/${p.name}`, bytes);
+            await retried(() => sealed.put(`${folder(space)}/${p.name}`, bytes));
           }
           await plain.remove(pieces.map((o) => `${folder(space)}/${o.name}`));
         } catch (error) {
