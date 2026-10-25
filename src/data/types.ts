@@ -660,7 +660,17 @@ export interface Quiz {
 
 /* ---------------------------------------------------------------- games */
 
-export type MatchKind = 'c4' | 'hangman' | 'uno' | 'zeeslag' | 'memory' | 'darts';
+export type MatchKind =
+  | 'c4'
+  | 'hangman'
+  | 'uno'
+  | 'zeeslag'
+  | 'memory'
+  | 'darts'
+  | 'skeeball'
+  | 'bowling'
+  | 'bingo'
+  | 'kwartet';
 
 /** A game we play together, turn by turn, each on our own phone. */
 export interface GameMatch {
@@ -694,7 +704,9 @@ export type GameId =
   | 'darts'
   | 'zeeslag'
   | 'memory'
-  | 'hockey';
+  | 'hockey'
+  | 'bingo'
+  | 'kwartet';
 /** Who can play: the two of us, and Coco. */
 export type Player = Person | 'coco';
 

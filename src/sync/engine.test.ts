@@ -391,10 +391,11 @@ describe('an older app on the other phone', () => {
     c.pet.log = c.pet.log.filter((e: { action: string }) => e.action !== 'decor');
     c.her.nails.saved = c.her.nails.saved.map(({ loved: _, ...s }: { loved?: string }) => s);
     c.games.results = c.games.results.filter(
-      (r: { game: string }) => !['memory', 'hockey'].includes(r.game),
+      (r: { game: string }) => !['memory', 'hockey', 'bingo', 'kwartet'].includes(r.game),
     );
     c.games.matches = c.games.matches.filter(
-      (m: { kind: string }) => !['memory', 'darts'].includes(m.kind),
+      (m: { kind: string }) =>
+        !['memory', 'darts', 'skeeball', 'bowling', 'bingo', 'kwartet'].includes(m.kind),
     );
     return c;
   };
@@ -454,13 +455,25 @@ describe('an older app on the other phone', () => {
       },
       games: {
         ...c.games,
-        results: [{ id: 'r-1', game: 'memory', players: ['you', 'coco'], winner: 'you', at: now }],
+        results: [
+          { id: 'r-1', game: 'memory', players: ['you', 'coco'], winner: 'you', at: now },
+          { id: 'r-2', game: 'kwartet', players: ['you', 'partner'], winner: 'you', at: now },
+        ],
         matches: [
           {
             id: 'm-1',
             kind: 'darts',
             state: { throws: [] },
             turn: 'you',
+            startedBy: 'you',
+            createdAt: now,
+            updatedAt: now,
+          },
+          {
+            id: 'm-2',
+            kind: 'skeeball',
+            state: { scores: { you: 230 } },
+            turn: 'partner',
             startedBy: 'you',
             createdAt: now,
             updatedAt: now,
@@ -492,11 +505,11 @@ describe('an older app on the other phone', () => {
     expect(c.pet.careDays).toEqual(['2026-10-24']);
     expect(c.pet.decor).toEqual(['hammock']);
     expect(c.pet.log.map((e) => e.id)).toEqual(['care-d1']);
-    expect(c.games.results.map((r) => r.id)).toEqual(['r-1']);
-    expect(c.games.matches.map((m) => m.id)).toEqual(['m-1']);
+    expect(c.games.results.map((r) => r.id).sort()).toEqual(['r-1', 'r-2']);
+    expect(c.games.matches.map((m) => m.id).sort()).toEqual(['m-1', 'm-2']);
     // …and the server has them again, saved by the new app.
     const stored = JSON.parse([...server.rows.values()][0].json);
-    expect(stored.schema).toBe(6);
+    expect(stored.schema).toBe(7);
     expect(stored.cinema.films).toHaveLength(1);
     expect(stored.flowers).toHaveLength(1);
     expect(stored.profile.subtitle).toBe('From the old app');

@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useContent } from '../../data/store';
-import { getAuthor, useMe } from '../../data/people';
+import { getAuthor, nameOf, useMe } from '../../data/people';
 import { playSfx } from '../../lib/audio/sfx';
 import { celebrateFrom } from '../../components/ui/feedback';
 import { useReducedMotion } from '../../hooks/useMotion';
 import { addScore, useBest } from './gameData';
 import { recordResult } from './gameStats';
+import { DUEL_LABELS, DuelPanel, useDuelRound } from './DuelPanel';
 import { afterRoll, frameScores, marks, totalScore } from './bowlingScore';
 import { GameShell, ScoreBoard, type PlayMode } from './GameShell';
 import { strokeSpeed } from './skee';
@@ -440,6 +441,10 @@ export function Bowling() {
   );
   const [flash, setFlash] = useState<{ key: number; text: string } | null>(null);
   const [coco, setCoco] = useState<{ frames: number[][]; shown: number } | null>(null);
+  const duel = useDuelRound('bowling', mode);
+  const duelNow = useRef(duel);
+  duelNow.current = duel;
+  const [handOver, setHandOver] = useState(false);
 
   const world = useRef({
     ball: { x: 50, y: START_Y, vx: 0, vy: 0 } as Body,
@@ -515,9 +520,16 @@ export function Bowling() {
       setFrames(next);
       setOver(true);
       const total = totalScore(next);
-      if (getAuthor()) addScore('bowling', total);
-      if (mode === 'coco') startCoco(total);
-      else setMessage(`Klaar! ${total} punten 🏆`);
+      if (mode === 'coco') {
+        if (getAuthor()) addScore('bowling', total);
+        startCoco(total);
+      } else {
+        // Against each other: a duel (apart), or the second game settles it (one phone).
+        const end = duelNow.current.finish(total);
+        setMessage(end.text);
+        setHandOver(Boolean(end.handOver));
+        if (end.tickets) celebrateFrom(canvas.current);
+      }
       return;
     }
     if (result.nextFrame) {
@@ -760,7 +772,9 @@ export function Bowling() {
     playSfx('roll', true);
   };
 
-  const restart = () => {
+  const restart = (keepDuel = false) => {
+    if (!keepDuel) duel.reset();
+    setHandOver(false);
     world.current = {
       ball: { x: 50, y: START_Y, vx: 0, vy: 0 },
       pins: rack(),
@@ -790,7 +804,8 @@ export function Bowling() {
         setMode(m);
         restart();
       }}
-      labels={{ remote: '🏆 Records (samen)', coco: '🐰 Tegen Coco' }}
+      modes={['remote', 'local', 'coco']}
+      labels={DUEL_LABELS}
       score={
         <ScoreBoard
           label="records"
@@ -806,6 +821,7 @@ export function Bowling() {
         />
       }
     >
+      <DuelPanel kind="bowling" mode={mode} first={duel.first} result={duel.result} />
       <ol className="bowl-sheet" aria-label="Jouw scorekaart">
         {Array.from({ length: 10 }, (_, f) => (
           <li key={f} className={f === frame && !over ? 'is-now' : ''}>
@@ -860,9 +876,15 @@ export function Bowling() {
       {!getAuthor() && (
         <p className="game-hint">Kies in Instellingen wie je bent om je record te bewaren.</p>
       )}
-      <button type="button" className="neon-btn" onClick={restart}>
-        {over ? 'Nog een potje' : 'Opnieuw beginnen'}
-      </button>
+      {handOver && over ? (
+        <button type="button" className="neon-btn" onClick={() => restart(true)}>
+          Nu {nameOf(duel.player, profile)} ▶
+        </button>
+      ) : (
+        <button type="button" className="neon-btn" onClick={() => restart()}>
+          {over ? 'Nog een potje' : 'Opnieuw beginnen'}
+        </button>
+      )}
     </GameShell>
   );
 }

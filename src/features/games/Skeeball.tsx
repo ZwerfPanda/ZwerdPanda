@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useContent } from '../../data/store';
-import { getAuthor, useMe } from '../../data/people';
+import { getAuthor, nameOf, useMe } from '../../data/people';
 import { playSfx } from '../../lib/audio/sfx';
 import { celebrateFrom } from '../../components/ui/feedback';
 import { useReducedMotion } from '../../hooks/useMotion';
 import { addScore, useBest } from './gameData';
 import { recordResult } from './gameStats';
 import { GameShell, ScoreBoard, type PlayMode } from './GameShell';
+import { DUEL_LABELS, DuelPanel, useDuelRound } from './DuelPanel';
 import {
   BALLS,
   BOARD_Q,
@@ -407,6 +408,10 @@ export function Skeeball() {
   const [pops, setPops] = useState<{ id: number; v: number; x: number; y: number }[]>([]);
   const [tickets, setTickets] = useState<number | null>(null);
   const [cocoScore, setCocoScore] = useState<number | null>(null);
+  const duel = useDuelRound('skeeball', mode);
+  const duelNow = useRef(duel);
+  duelNow.current = duel;
+  const [handOver, setHandOver] = useState(false);
   const shot = useRef<Throw | null>(null);
   const aim = useRef(0);
   const drag = useRef<{ x: number; y: number; t: number }[]>([]);
@@ -526,13 +531,17 @@ export function Skeeball() {
       if (shot.current) return;
       finished.current = true;
       const total = scoreRef.current;
-      if (getAuthor()) addScore('skeeball', total);
-      setTickets(Math.max(1, Math.round(total / 10)));
       playSfx('success', true);
       if (mode !== 'coco') {
-        setLast(`Klaar! ${total} punten 🏆`);
+        // Against each other: a duel (apart), or the second round settles it (one phone).
+        const end = duelNow.current.finish(total);
+        setLast(end.text);
+        setTickets(end.tickets);
+        setHandOver(Boolean(end.handOver));
+        if (end.tickets) celebrateFrom(canvas.current);
         return;
       }
+      if (getAuthor()) addScore('skeeball', total);
       setLast('Coco is aan de beurt… 🐰');
       const rolls = cocoRolls();
       let shown = 0;
@@ -629,7 +638,9 @@ export function Skeeball() {
     }
   };
 
-  const restart = () => {
+  const restart = (keepDuel = false) => {
+    if (!keepDuel) duel.reset();
+    setHandOver(false);
     setLeft(BALLS);
     setScore(0);
     setPops([]);
@@ -649,7 +660,8 @@ export function Skeeball() {
         setMode(m);
         restart();
       }}
-      labels={{ remote: '🏆 Records (samen)', coco: '🐰 Tegen Coco' }}
+      modes={['remote', 'local', 'coco']}
+      labels={DUEL_LABELS}
       score={
         <ScoreBoard
           label="records"
@@ -665,6 +677,7 @@ export function Skeeball() {
         />
       }
     >
+      <DuelPanel kind="skeeball" mode={mode} first={duel.first} result={duel.result} />
       <div className="skee-status">
         <span className="skee-digits" aria-label={`Score ${score}`}>
           {String(score).padStart(3, '0')}
@@ -739,9 +752,15 @@ export function Skeeball() {
       <p className="game-hint">
         Tip: schuif je vinger opzij om te mikken. De 100 zit in de hoeken bovenaan.
       </p>
-      <button type="button" className="neon-btn" onClick={restart}>
-        {left === 0 ? 'Nog een keer' : 'Opnieuw beginnen'}
-      </button>
+      {handOver && left === 0 ? (
+        <button type="button" className="neon-btn" onClick={() => restart(true)}>
+          Nu {nameOf(duel.player, profile)} ▶
+        </button>
+      ) : (
+        <button type="button" className="neon-btn" onClick={() => restart()}>
+          {left === 0 ? 'Nog een keer' : 'Opnieuw beginnen'}
+        </button>
+      )}
     </GameShell>
   );
 }

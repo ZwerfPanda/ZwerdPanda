@@ -19,6 +19,8 @@ const Darts = lazy(() => import('./Darts').then((m) => ({ default: m.Darts })));
 const Zeeslag = lazy(() => import('./Zeeslag').then((m) => ({ default: m.Zeeslag })));
 const Claw = lazy(() => import('./Claw').then((m) => ({ default: m.Claw })));
 const Memory = lazy(() => import('./Memory').then((m) => ({ default: m.Memory })));
+const Bingo = lazy(() => import('./Bingo').then((m) => ({ default: m.Bingo })));
+const Kwartet = lazy(() => import('./Kwartet').then((m) => ({ default: m.Kwartet })));
 const Hockey = lazy(() => import('./Hockey').then((m) => ({ default: m.Hockey })));
 const Prizes = lazy(() => import('./Prizes').then((m) => ({ default: m.Prizes })));
 
@@ -47,8 +49,38 @@ const GAMES = [
     tint: '#e4ddf5',
     kind: 'hangman',
   },
-  { id: 'bowling', emoji: '🎳', title: 'Bowlen', blurb: 'Veeg voor een strike', tint: '#f9d0e0' },
-  { id: 'skeeball', emoji: '🎯', title: 'Skeeball', blurb: 'Mik op de 100', tint: '#e0ebd4' },
+  {
+    id: 'bowling',
+    emoji: '🎳',
+    title: 'Bowlen',
+    blurb: 'Veeg voor een strike — duel om tickets',
+    tint: '#f9d0e0',
+    kind: 'bowling',
+  },
+  {
+    id: 'skeeball',
+    emoji: '🎯',
+    title: 'Skeeball',
+    blurb: 'Mik op de 100 — duel om tickets',
+    tint: '#e0ebd4',
+    kind: 'skeeball',
+  },
+  {
+    id: 'bingo',
+    emoji: '🎱',
+    title: 'Bingo',
+    blurb: 'Trek een bal, stempel, roep BINGO!',
+    tint: '#ffd8a8',
+    kind: 'bingo',
+  },
+  {
+    id: 'kwartet',
+    emoji: '🐟',
+    title: 'Kwartet',
+    blurb: 'Vissen! Acht families uit de zee',
+    tint: '#c9e4f5',
+    kind: 'kwartet',
+  },
   {
     id: 'zeeslag',
     emoji: '🥞',
@@ -108,9 +140,13 @@ export function GamesPage() {
                         ? Memory
                         : game === 'hockey'
                           ? Hockey
-                          : game === 'prizes'
-                            ? Prizes
-                            : null;
+                          : game === 'bingo'
+                            ? Bingo
+                            : game === 'kwartet'
+                              ? Kwartet
+                              : game === 'prizes'
+                                ? Prizes
+                                : null;
     if (Game)
       return (
         <Suspense fallback={<PageLoading />}>
@@ -532,6 +568,50 @@ function Preview({ id }: { id: string }) {
               />
               <text x={27 + i * 22} y="40" textAnchor="middle" fontSize="10" fill="#fff">
                 {['♥', '🐰', '♥', '🐰'][i]}
+              </text>
+            </g>
+          ))}
+        </svg>
+      );
+    case 'bingo':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--bingo">
+          <circle cx="40" cy="40" r="24" fill="#2a1240" stroke="#ffd75e" strokeWidth="3" />
+          {['#ff5fa2', '#b07bff', '#5ff3ff', '#ffd75e', '#7ee08a'].map((c, i) => (
+            <circle
+              key={c}
+              className="pv-bingo"
+              cx={30 + (i % 3) * 10}
+              cy={34 + Math.floor(i / 3) * 10}
+              r="4.5"
+              fill={c}
+              style={{ animationDelay: `${i * 0.25}s` }}
+            />
+          ))}
+          <circle cx="88" cy="40" r="15" fill="#fff" stroke="#ff5fa2" strokeWidth="4" />
+          <text x="88" y="45" textAnchor="middle" fontSize="13" fontWeight="900" fill="#2a1240">
+            42
+          </text>
+        </svg>
+      );
+    case 'kwartet':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--kwartet">
+          <ellipse cx="60" cy="62" rx="44" ry="12" fill="#1677a8" />
+          {['🐠', '🐙', '🦀', '🐬'].map((f, i) => (
+            <g key={f} className="pv-card" style={{ animationDelay: `${i * 0.5}s` }}>
+              <rect
+                x="47"
+                y="14"
+                width="26"
+                height="38"
+                rx="4"
+                fill="#fff"
+                stroke="#5ff3ff"
+                strokeWidth="2"
+              />
+              <text x="60" y="39" textAnchor="middle" fontSize="16">
+                {f}
               </text>
             </g>
           ))}

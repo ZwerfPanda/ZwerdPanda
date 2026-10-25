@@ -23,6 +23,31 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-8',
+    when: 'oktober 2026',
+    title: 'Nieuw in de Arcade Hall',
+    items: [
+      {
+        emoji: '🎱',
+        title: 'Bingo',
+        text: 'Om de beurt een bal trekken, je nummers stempelen en als eerste BINGO roepen. Samen op twee telefoons, op één telefoon, of tegen Coco.',
+        path: '/games',
+      },
+      {
+        emoji: '🐟',
+        title: 'Kwartet',
+        text: 'Acht families uit de zee. Vraag de ander om de kaart die je mist — heeft die hem niet, dan is het vissen!',
+        path: '/games',
+      },
+      {
+        emoji: '⚔️',
+        title: 'Skeeball en bowlen: duel om tickets',
+        text: 'Speel allebei een rondje, ook op je eigen telefoon wanneer het uitkomt. De hoogste score wint 10 tickets, de ander krijgt er 4.',
+        path: '/games',
+      },
+    ],
+  },
+  {
     id: '2026-10-7',
     when: 'oktober 2026',
     title: 'Privé-opslag: alleen voor ons twee',

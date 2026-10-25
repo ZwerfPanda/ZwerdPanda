@@ -13,6 +13,8 @@ export const GAME_NAMES: Record<GameId, string> = {
   zeeslag: 'zeeslag',
   memory: 'memory',
   hockey: 'airhockey',
+  bingo: 'bingo',
+  kwartet: 'kwartet',
 };
 
 /** Writes down how a game ended (once per id, so a match counts once). */
@@ -75,7 +77,19 @@ export function gameBrag(
     'Oké oké… nog één potje?',
     'Pff. Volgende keer ben jij de sjaak.',
   ];
-  for (const game of ['uno', 'c4', 'hangman', 'zeeslag', 'darts', 'memory', 'hockey'] as GameId[]) {
+  for (const game of [
+    'uno',
+    'c4',
+    'hangman',
+    'zeeslag',
+    'darts',
+    'memory',
+    'hockey',
+    'bingo',
+    'kwartet',
+    'skeeball',
+    'bowling',
+  ] as GameId[]) {
     const h = headToHead(c.games.results, game, 'you', 'partner');
     if (h.a + h.b === 0) continue;
     if (h.a === h.b) {
@@ -118,8 +132,22 @@ export function gameBrag(
         `Airhockey: ${wins}–${losses}. Mijn schot is niet te stoppen 🏒`,
         `${wins} keer gescoord tegen jou… ik bedoel gewonnen. Allebei eigenlijk 😏`,
       ],
-      bowling: [],
-      skeeball: [],
+      bingo: [
+        `BINGO! ${wins} keer voor mij, {pet} 🎱`,
+        `Bingo: ${wins}–${losses}. Ik heb gewoon de geluksballen.`,
+      ],
+      kwartet: [
+        `Kwartet: ${wins}–${losses} voor mij 🐟 Ik vis ze er allemaal uit.`,
+        `Heb jij misschien Papa Krab? Nee? Dan heb ik weer gewonnen 🦀 (${wins} keer!)`,
+      ],
+      bowling: [
+        `Bowlingduel: ${wins}–${losses} voor mij 🎳`,
+        `${wins} duels gewonnen op de baan, {pet}. Strike!`,
+      ],
+      skeeball: [
+        `Skeeball-duel: ${wins}–${losses} voor mij 🎟️`,
+        `Ik won al ${wins} skeeball-duels, {pet}. Mik maar beter 😌`,
+      ],
     };
     options.push({ leader, text: pick(texts[game], rng), reply: pick(replies, rng) });
   }
@@ -162,7 +190,17 @@ export function gameBrag(
 /** What Coco says about her games against `me`. */
 export function cocoGameTalk(c: AppContent, me: Person, name: string, rng: Rng): string | null {
   const lines: string[] = [];
-  for (const game of ['uno', 'c4', 'hangman', 'zeeslag', 'darts', 'memory', 'hockey'] as GameId[]) {
+  for (const game of [
+    'uno',
+    'c4',
+    'hangman',
+    'zeeslag',
+    'darts',
+    'memory',
+    'hockey',
+    'bingo',
+    'kwartet',
+  ] as GameId[]) {
     const h = headToHead(c.games.results, game, me, 'coco');
     if (h.a + h.b === 0) continue;
     const g = GAME_NAMES[game];

@@ -1,5 +1,5 @@
 import { getContent, replaceContent } from '../data/store';
-import { normalizeMatch } from '../data/normalize';
+import { DUEL_KINDS, normalizeMatch } from '../data/normalize';
 import type { GameMatch } from '../data/types';
 import type { SyncEngine } from './engine';
 
@@ -37,7 +37,11 @@ export function receive(message: unknown) {
   const ours = c.games.matches.find((x) => x.id === m.id);
   if (ours && ours.updatedAt >= m.updatedAt) return;
   const others = c.games.matches.filter((x) => x.id !== m.id);
-  // A new match replaces an unfinished one of the same game, like startMatch does.
-  const kept = ours ? others : others.filter((x) => x.kind !== m.kind || x.winner);
+  // A new match replaces an unfinished one of the same game, like startMatch does
+  // (a duel's open rounds wait side by side).
+  const kept =
+    ours || DUEL_KINDS.includes(m.kind)
+      ? others
+      : others.filter((x) => x.kind !== m.kind || x.winner);
   replaceContent({ ...c, games: { ...c.games, matches: [...kept, m].slice(-100) } }, 'remote');
 }

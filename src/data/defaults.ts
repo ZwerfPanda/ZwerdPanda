@@ -585,8 +585,10 @@ export function cloneUs(us: UsContent): UsContent {
  *   3 — our shared agenda (our own events)
  *   4 — our cinema, and his own wording for texts on the site
  *   5 — Memory and darts together on two phones, and our secret place
+ *   6 — the things in Coco's room
+ *   7 — skeeball and bowling duels, bingo and kwartet
  */
-export const CONTENT_SCHEMA = 6;
+export const CONTENT_SCHEMA = 7;
 
 export function createDefaultContent(): AppContent {
   return {

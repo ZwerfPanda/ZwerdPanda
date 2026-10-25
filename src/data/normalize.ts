@@ -948,7 +948,20 @@ function normalizeMuseum(v: unknown): Museum {
   return { stops: list(v.stops, normalizeStop).slice(0, 120), foundAt: optStamp(v.foundAt) };
 }
 
-const MATCH_KINDS: readonly MatchKind[] = ['c4', 'hangman', 'uno', 'zeeslag', 'memory', 'darts'];
+const MATCH_KINDS: readonly MatchKind[] = [
+  'c4',
+  'hangman',
+  'uno',
+  'zeeslag',
+  'memory',
+  'darts',
+  'skeeball',
+  'bowling',
+  'bingo',
+  'kwartet',
+];
+/** Games where each of us plays our own round: several can be open at once. */
+export const DUEL_KINDS: readonly MatchKind[] = ['skeeball', 'bowling'];
 const SCORE_GAMES: readonly ScoreGame[] = ['bowling', 'skeeball', 'darts'];
 
 /** One game in progress between the two of us (also as it arrives live). */
@@ -1017,6 +1030,8 @@ const GAME_IDS: readonly GameId[] = [
   'zeeslag',
   'memory',
   'hockey',
+  'bingo',
+  'kwartet',
 ];
 const PLAYERS: readonly Player[] = ['you', 'partner', 'coco'];
 

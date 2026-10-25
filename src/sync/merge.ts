@@ -486,6 +486,8 @@ export function writerSchema(raw: unknown): number {
 
 const GAMES_SINCE_2: readonly GameId[] = ['memory', 'hockey'];
 const MATCHES_SINCE_5: readonly MatchKind[] = ['memory', 'darts'];
+const MATCHES_SINCE_7: readonly MatchKind[] = ['skeeball', 'bowling', 'bingo', 'kwartet'];
+const GAMES_SINCE_7: readonly GameId[] = ['bingo', 'kwartet'];
 
 /**
  * Content saved by an older app is missing whatever that app didn't know yet.
@@ -496,6 +498,27 @@ const MATCHES_SINCE_5: readonly MatchKind[] = ['memory', 'darts'];
 export function carryForward(shared: AppContent, ours: AppContent, writer: number): AppContent {
   if (writer >= CONTENT_SCHEMA) return shared;
   let out = shared;
+  // Schema 7 added duels for skeeball and bowling, bingo and kwartet.
+  if (writer < 7) {
+    const matches = new Set(out.games.matches.map((m) => m.id));
+    const results = new Set(out.games.results.map((r) => r.id));
+    out = {
+      ...out,
+      games: {
+        ...out.games,
+        matches: [
+          ...out.games.matches,
+          ...ours.games.matches.filter(
+            (m) => MATCHES_SINCE_7.includes(m.kind) && !matches.has(m.id),
+          ),
+        ],
+        results: [
+          ...out.games.results,
+          ...ours.games.results.filter((r) => GAMES_SINCE_7.includes(r.game) && !results.has(r.id)),
+        ],
+      },
+    };
+  }
   // Schema 6 added the things in Coco's room (and the diary lines about them).
   if (writer < 6) {
     const known = new Set(shared.pet.log.map((e) => e.id));
