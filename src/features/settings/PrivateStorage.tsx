@@ -8,17 +8,19 @@ import {
   ShieldCheck,
   Stethoscope,
 } from 'lucide-react';
-import { toast } from '../../components/ui/feedback';
+import { confirm, toast } from '../../components/ui/feedback';
 import {
   enablePrivateMedia,
   joinPrivateMedia,
   privateMediaCode,
+  privateMediaUsage,
   refreshPrivateMedia,
   testPrivateStorage,
   usePrivateMedia,
 } from '../../sync/privateMedia';
 import { formatCode, isCompleteCode } from '../../sync/sealed';
 import { playSfx } from '../../lib/audio/sfx';
+import { formatBytes } from '../../lib/media';
 
 /**
  * Our photos and videos, sealed on our phones: switch it on (first phone),
@@ -38,6 +40,18 @@ export function PrivateStorage() {
   useEffect(() => {
     void refreshPrivateMedia();
   }, []);
+
+  const [usage, setUsage] = useState<Awaited<ReturnType<typeof privateMediaUsage>>>(null);
+  useEffect(() => {
+    if (status !== 'on' || sealing) return;
+    let live = true;
+    privateMediaUsage()
+      .then((u) => live && setUsage(u))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [status, sealing, oldLeft, tested]);
 
   const enable = async () => {
     setBusy(true);
@@ -190,6 +204,7 @@ export function PrivateStorage() {
               <ShieldCheck aria-hidden="true" /> Alles online is versleuteld.
             </p>
           )}
+          {usage && <UsageMeter {...usage} />}
           {problem && !sealing && (
             <div className="private-store__problem" role="alert">
               <strong>Er gaat iets mis met de opslag</strong>
@@ -227,7 +242,15 @@ export function PrivateStorage() {
             <button
               type="button"
               className="btn btn--ghost btn--small"
-              onClick={async () => setShown(await privateMediaCode())}
+              onClick={async () => {
+                const ok = await confirm({
+                  title: 'Onze code tonen?',
+                  message:
+                    'Met deze code kan iemand al jullie foto’s openen. Laat niemand meekijken, en maak er geen screenshot van.',
+                  confirmLabel: 'Toon de code',
+                });
+                if (ok) setShown(await privateMediaCode());
+              }}
             >
               <Eye aria-hidden="true" /> Toon onze code
             </button>
@@ -245,5 +268,48 @@ function CodeView({ code }: { code: string }) {
         <span key={i}>{part}</span>
       ))}
     </p>
+  );
+}
+
+const GB = 1024 ** 3;
+
+/** How much we keep, what's free, and roughly what more would cost. */
+function UsageMeter({
+  bytes,
+  files,
+  where,
+}: {
+  bytes: number;
+  files: number;
+  where: 'r2' | 'supabase';
+}) {
+  const free = where === 'r2' ? 10 * GB : 1 * GB;
+  const share = Math.min(100, Math.round((bytes / free) * 100));
+  const over = Math.max(0, bytes - free) / GB;
+  return (
+    <div className="private-store__usage">
+      <p>
+        <strong>{formatBytes(bytes)}</strong> in {where === 'r2' ? 'Cloudflare R2' : 'Supabase'}
+        {' · '}
+        {files} {files === 1 ? 'bestand' : 'bestanden'}
+      </p>
+      <span
+        className="private-store__bar"
+        role="meter"
+        aria-label="Gebruikte gratis ruimte"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={share}
+      >
+        <span style={{ width: `${Math.max(2, share)}%` }} />
+      </span>
+      <small>
+        {where === 'r2'
+          ? over > 0
+            ? `${share}% van de gratis 10 GB vol — daarboven ongeveer $${(over * 0.015).toFixed(2)} per maand.`
+            : `${share}% van de gratis 10 GB. Daarboven kost het ongeveer $0,015 per GB per maand.`
+          : `${share}% van de ongeveer 1 GB die gratis is in Supabase.`}
+      </small>
+    </div>
   );
 }

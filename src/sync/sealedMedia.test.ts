@@ -33,7 +33,11 @@ function memoryStore(): ObjectStore & { files: Map<string, Uint8Array> } {
     async list(folder) {
       return [...files.keys()]
         .filter((k) => k.startsWith(`${folder}/`) && !k.slice(folder.length + 1).includes('/'))
-        .map((k) => ({ name: k.slice(folder.length + 1), createdAt: null }));
+        .map((k) => ({
+          name: k.slice(folder.length + 1),
+          createdAt: null,
+          size: files.get(k)!.length,
+        }));
     },
     async remove(paths) {
       paths.forEach((p) => files.delete(p));
@@ -257,5 +261,19 @@ describe('when the storage refuses', () => {
     expect(result.left).toBe(6);
     expect(puts).toBeLessThanOrEqual(2);
     for (let i = 0; i < 6; i++) expect(bucket.files.has(`${SPACE}/old-${i}`)).toBe(true);
+  });
+});
+
+describe('how much we use', () => {
+  it('adds up sealed pieces and any plain photos left', async () => {
+    const bucket = memoryStore();
+    await bucket.put(`${SPACE}/old-1`, new Uint8Array(100));
+    const phone = sealBackend(backendOn(bucket), phoneKeys());
+    await phone.privateMedia!.enable(SPACE);
+    await phone.backend.uploadMedia(SPACE, 'media-1', photo('x'.repeat(1000)));
+    const u = await phone.privateMedia!.usage(SPACE);
+    expect(u.where).toBe('supabase');
+    expect(u.files).toBe(2); // one sealed photo, one still plain
+    expect(u.bytes).toBeGreaterThan(1100);
   });
 });

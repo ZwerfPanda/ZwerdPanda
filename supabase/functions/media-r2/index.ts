@@ -374,7 +374,7 @@ export async function handle(
   if (body.op === 'list') {
     const prefix = String(body.prefix ?? '');
     if (!okPath(space, `${prefix}/x`)) return reply(400, { error: 'bad prefix' });
-    const items: { name: string; createdAt: string | null }[] = [];
+    const items: { name: string; createdAt: string | null; size?: number }[] = [];
     let token2: string | undefined;
     for (let page = 0; page < 200; page++) {
       const query: Record<string, string> = {
@@ -390,7 +390,12 @@ export async function handle(
       for (const m of xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)) {
         const key = /<Key>([^<]*)<\/Key>/.exec(m[1])?.[1] ?? '';
         const at = /<LastModified>([^<]*)<\/LastModified>/.exec(m[1])?.[1] ?? null;
-        items.push({ name: key.slice(prefix.length + 1), createdAt: at });
+        const size = Number(/<Size>([^<]*)<\/Size>/.exec(m[1])?.[1] ?? NaN);
+        items.push({
+          name: key.slice(prefix.length + 1),
+          createdAt: at,
+          ...(Number.isFinite(size) ? { size } : {}),
+        });
       }
       token2 = /<NextContinuationToken>([^<]*)<\/NextContinuationToken>/.exec(xml)?.[1];
       if (!/<IsTruncated>true<\/IsTruncated>/.test(xml) || !token2) break;

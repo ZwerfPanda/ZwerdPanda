@@ -49,6 +49,8 @@ export interface PrivateMedia {
     localBlob: (id: string) => Promise<Blob | null>,
     progress?: (done: number, of: number) => void,
   ): Promise<{ sealed: number; left: number; problem?: string }>;
+  /** How much we store, and where. */
+  usage(space: string): Promise<{ bytes: number; files: number; where: 'r2' | 'supabase' }>;
   /** Tries the storage for real: a tiny sealed file up, back, and away again. */
   test(space: string): Promise<{ ok: boolean; problem?: string; carried?: boolean }>;
 }
@@ -141,7 +143,9 @@ export function sealBackend(
         const key = await getKey(space);
         if (!key) return null; // it'll open once this phone has our code
         const m = await openManifest(key, id, manifest);
-        const parts: ArrayBuffer[] = new Array(m.chunks);
+        // Each opened piece becomes its own Blob straight away, so the browser can keep
+        // it out of memory (on disk) instead of holding a whole video at once.
+        const parts: Blob[] = new Array(m.chunks);
         let missing = false;
         await inParallel(
           Array.from({ length: m.chunks }, (_, n) => n),
@@ -149,7 +153,7 @@ export function sealBackend(
           async (n) => {
             const piece = await store.get(`${folder(space)}/${id}.${n}`);
             if (!piece) missing = true;
-            else parts[n] = await openChunk(key, id, n, piece);
+            else parts[n] = new Blob([await openChunk(key, id, n, piece)]);
           },
         );
         if (missing) return null;
@@ -214,6 +218,21 @@ export function sealBackend(
     async code(space) {
       await getKey(space);
       return cache.get(space)?.code ?? null;
+    },
+
+    async usage(space) {
+      const sum = (list: { size?: number }[]) => list.reduce((t, o) => t + (o.size ?? 0), 0);
+      let bytes = 0;
+      let files = 0;
+      for (const store of stores) {
+        const list = await store.list(folder(space));
+        bytes += sum(list);
+        files += list.filter((o) => o.name.endsWith('.m')).length;
+      }
+      const loose = await plain.list(space);
+      bytes += sum(loose);
+      files += loose.length;
+      return { bytes, files, where: sealed === plain ? 'supabase' : 'r2' };
     },
 
     async oldCount(space) {

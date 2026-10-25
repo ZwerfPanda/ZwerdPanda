@@ -122,16 +122,25 @@ export function createSupabaseBackend(config: SyncConfig): SyncBackend {
       return new Uint8Array(await data.arrayBuffer());
     },
     async list(folder) {
-      const all: { name: string; createdAt: string | null }[] = [];
+      const all: { name: string; createdAt: string | null; size?: number }[] = [];
       for (let offset = 0; ; offset += 1000) {
         const page = (await call(
           client.storage.from(BUCKET).list(folder, { limit: 1000, offset }),
-        )) as { name: string; id: string | null; created_at?: string | null }[];
+        )) as {
+          name: string;
+          id: string | null;
+          created_at?: string | null;
+          metadata?: { size?: number } | null;
+        }[];
         // Folders come back too (without an id): only files count.
         all.push(
           ...page
             .filter((p) => p.id)
-            .map((p) => ({ name: p.name, createdAt: p.created_at ?? null })),
+            .map((p) => ({
+              name: p.name,
+              createdAt: p.created_at ?? null,
+              size: p.metadata?.size,
+            })),
         );
         if (page.length < 1000) break;
       }

@@ -7,14 +7,15 @@
  * the code. Without the code that copy is useless; the code never goes to
  * the server.
  *
- * Each file is cut into pieces of 8 MB; every piece is encrypted on its own
+ * Each file is cut into pieces of 4 MB; every piece is encrypted on its own
  * with AES-GCM (so big videos never need to be in memory twice, and no single
  * piece hits a storage limit). A small sealed "manifest" says what the file
  * is and how many pieces it has. Each piece is bound to its file id and
  * position, so pieces can't be swapped around.
  */
 
-export const CHUNK_SIZE = 8 * 1024 * 1024;
+/** Pieces of 4 MB: small enough for any function or phone; older 8 MB pieces still open. */
+export const CHUNK_SIZE = 4 * 1024 * 1024;
 export const CODE_ITERATIONS = 310_000;
 /** No 0/O, 1/I/L or U: easy to read back from paper. */
 const ALPHABET = '23456789ABCDEFGHJKMNPQRSTVWXYZ';

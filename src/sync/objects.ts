@@ -9,6 +9,8 @@ export interface StoredObject {
   /** The file name inside the folder that was listed. */
   name: string;
   createdAt: string | null;
+  /** In bytes, when the storage tells us. */
+  size?: number;
 }
 
 export interface ObjectStore {

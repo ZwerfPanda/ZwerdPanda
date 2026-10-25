@@ -133,6 +133,11 @@ export async function testPrivateStorage(): Promise<{
   return result;
 }
 
+export async function privateMediaUsage() {
+  if (!pm || !space) return null;
+  return pm.usage(space);
+}
+
 /** The first phone: make our key. Returns the code to write down. */
 export async function enablePrivateMedia(): Promise<string> {
   if (!pm || !space) throw new Error('Verbind eerst samen.');

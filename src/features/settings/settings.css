@@ -761,3 +761,39 @@
   box-shadow: inset 0 0 0 1px rgba(255, 150, 150, 0.35);
   color: #ffc9c4;
 }
+
+.private-store__usage {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface-raised);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.private-store__usage p {
+  margin: 0;
+}
+
+.private-store__usage small {
+  color: var(--ink-soft);
+}
+
+.private-store__bar {
+  position: relative;
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--accent-wash);
+  box-shadow: inset 0 0 0 1px var(--accent-soft);
+}
+
+.private-store__bar > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--rose-400, #e88aa0), var(--accent));
+}
