@@ -24,17 +24,16 @@ import {
 } from './bingo';
 import {
   ALL_CARDS,
-  FAMILIES,
   HAND_SIZE,
+  RANKS,
   ask,
-  askable,
   cocoAsk,
   current as kwTurn,
-  familyOf,
   fish,
-  newKwartet,
-  readKwartet,
-  type KwartetState,
+  newGoFish,
+  rankOf,
+  readGoFish,
+  type GoFishState,
 } from './kwartet';
 
 /** A repeatable "random". */
@@ -211,99 +210,103 @@ describe('bingo', () => {
   });
 });
 
-describe('kwartet', () => {
-  const total = (s: KwartetState) =>
-    s.seats.reduce((n, p) => n + s.hands[p].length + s.sets[p].length * 4, 0) + s.pond.length;
-
-  it('deals seven each and keeps every card exactly once', () => {
-    const s = newKwartet(['you', 'partner'], seeded(4));
-    expect(ALL_CARDS).toHaveLength(FAMILIES.length * 4);
-    expect(s.hands.you.length + s.sets.you.length * 4).toBe(HAND_SIZE);
-    expect(total(s)).toBe(32);
+describe('go fish', () => {
+  const total = (s: GoFishState) =>
+    s.seats.reduce((n, p) => n + s.hands[p].length + s.books[p].length * 4, 0) + s.pond.length;
+  const game = (over: Partial<GoFishState>): GoFishState => ({
+    v: 2,
+    seats: ['you', 'partner'],
+    hands: { you: [], partner: [] },
+    pond: [],
+    books: { you: [], partner: [] },
+    turn: 0,
+    phase: 'ask',
+    log: [],
+    ...over,
   });
 
-  it('gives you the card when they have it, and you go again', () => {
-    const s: KwartetState = {
-      seats: ['you', 'partner'],
-      hands: { you: ['krab:papa'], partner: ['krab:mama', 'haai:baby'] },
-      pond: ['walvis:kind'],
-      sets: { you: [], partner: [] },
-      turn: 0,
-      phase: 'ask',
-      log: [],
-    };
-    expect(askable(s, 'you')).toEqual(['krab:mama', 'krab:kind', 'krab:baby']);
-    expect(ask(s, 'haai:baby')).toBe(s); // not a family you hold
-    const got = ask(s, 'krab:mama');
-    expect(got.hands.you).toEqual(['krab:papa', 'krab:mama']);
+  it('deals seven each from a deck of 52, the rest in the pond', () => {
+    const s = newGoFish(['you', 'partner'], seeded(4));
+    expect(ALL_CARDS).toHaveLength(52);
+    expect(s.hands.you.length + s.books.you.length * 4).toBe(HAND_SIZE);
+    expect(s.pond.length).toBe(38);
+    expect(total(s)).toBe(52);
+  });
+
+  it('hands over every card of the asked rank, and you go again', () => {
+    const s = game({
+      hands: { you: ['K-S'], partner: ['K-C', 'K-D', '3-H'] },
+      pond: ['7-S'],
+    });
+    expect(ask(s, '3')).toBe(s); // you can only ask for what you hold
+    const got = ask(s, 'K');
+    expect(got.hands.you.sort()).toEqual(['K-C', 'K-D', 'K-S']);
+    expect(got.hands.partner).toEqual(['3-H']);
+    expect(got.log.at(-1)).toMatchObject({ type: 'ask', rank: 'K', got: 2 });
     expect(kwTurn(got)).toBe('you');
-    expect(got.phase).toBe('ask');
-    // Not there: fish, and the turn passes (unless it's the one you asked for).
-    const miss = ask(got, 'krab:baby');
+  });
+
+  it('go fish: take one, and the turn passes unless it is what you asked for', () => {
+    const s = game({ hands: { you: ['Q-H'], partner: ['2-S'] }, pond: ['7-S'] });
+    const miss = ask(s, 'Q');
     expect(miss.phase).toBe('fish');
+    expect(miss.log.at(-1)).toMatchObject({ got: 0 });
     const fished = fish(miss);
-    expect(fished.hands.you).toContain('walvis:kind');
+    expect(fished.hands.you).toContain('7-S');
     expect(kwTurn(fished)).toBe('partner');
-    const lucky = fish({ ...miss, pond: ['krab:baby'] });
+    const lucky = fish({ ...miss, pond: ['Q-S'] });
     expect(kwTurn(lucky)).toBe('you');
+    expect(lucky.log.at(-1)).toMatchObject({ type: 'fish', lucky: true });
   });
 
-  it('lays down a kwartet and ends when every family is down', () => {
-    const others = FAMILIES.slice(1).map((f) => f.id);
-    const s: KwartetState = {
+  it('four of a rank make a book, and the most books wins', () => {
+    const rest = RANKS.filter((r) => r !== 'A');
+    const s = game({
       seats: ['you', 'coco'],
-      hands: { you: ['krab:papa', 'krab:mama', 'krab:kind'], coco: ['krab:baby'] },
-      pond: [],
-      sets: { you: others.slice(0, 3), coco: others.slice(3) },
-      turn: 0,
-      phase: 'ask',
-      log: [],
-    };
-    const end = ask(s, 'krab:baby');
-    expect(end.sets.you).toContain('krab');
-    expect(end.log.at(-1)).toMatchObject({ type: 'kwartet', who: 'you', family: 'krab' });
-    expect(end.winner).toBe('draw'); // 4–4
+      hands: { you: ['A-S', 'A-H', 'A-D'], coco: ['A-C'] },
+      books: { you: rest.slice(0, 6), coco: rest.slice(6) },
+    });
+    const end = ask(s, 'A');
+    expect(end.books.you).toContain('A');
+    expect(end.log.at(-1)).toMatchObject({ type: 'book', who: 'you', rank: 'A' });
+    expect(end.winner).toBe('you'); // 7–6
   });
 
-  it('plays a whole game against Coco to the end', () => {
+  it('plays whole games against Coco to the end', () => {
     for (let seed = 1; seed < 15; seed++) {
       const rng = seeded(seed);
-      let s = newKwartet(['you', 'coco'], rng);
-      for (let step = 0; step < 500 && !s.winner; step++) {
+      let s = newGoFish(['you', 'coco'], rng);
+      for (let step = 0; step < 800 && !s.winner; step++) {
         const who = kwTurn(s);
         if (s.phase === 'fish') s = fish(s);
         else {
-          const card = who === 'coco' ? cocoAsk(s, rng) : askable(s, who)[0];
-          s = card ? ask(s, card) : fish({ ...s, phase: 'fish' });
+          const rank = who === 'coco' ? cocoAsk(s, rng) : rankOf(s.hands[who][0]);
+          s = rank ? ask(s, rank) : fish({ ...s, phase: 'fish' });
         }
-        expect(total(s)).toBe(32);
+        expect(total(s)).toBe(52);
       }
       expect(s.winner).toBeDefined();
-      expect(s.sets.you.length + s.sets.coco.length).toBe(8);
-      for (const p of s.seats) expect(s.hands[p]).toEqual([]);
+      expect(s.books.you.length + s.books.coco.length).toBe(13);
     }
   });
 
-  it('lets Coco ask about families you asked her about', () => {
-    const s: KwartetState = {
+  it('lets Coco ask for what you asked her about', () => {
+    const s = game({
       seats: ['you', 'coco'],
-      hands: { you: ['haai:papa'], coco: ['krab:papa', 'haai:mama'] },
-      pond: [],
-      sets: { you: [], coco: [] },
+      hands: { you: ['9-S'], coco: ['5-H', '9-D'] },
       turn: 1,
-      phase: 'ask',
-      log: [{ type: 'ask', who: 'you', card: 'haai:mama', got: true }],
-    };
-    expect(familyOf(cocoAsk(s, () => 0)!)).toBe('haai');
+      log: [{ type: 'ask', who: 'you', rank: '9', got: 0 }],
+    });
+    expect(cocoAsk(s, () => 0)).toBe('9');
   });
 
-  it('reads a game back from a match', () => {
-    const s = newKwartet(['you', 'partner'], seeded(8));
-    expect(readKwartet(JSON.parse(JSON.stringify(s)))).toEqual({
+  it('reads a game back from a match, and starts over on an old fish-kwartet game', () => {
+    const s = newGoFish(['you', 'partner'], seeded(8));
+    expect(readGoFish(JSON.parse(JSON.stringify(s)))).toEqual({
       ...s,
       asked: undefined,
       winner: undefined,
     });
-    expect(readKwartet({ seats: ['you'] })).toBeNull();
+    expect(readGoFish({ seats: ['you', 'partner'], hands: { you: ['krab:papa'] } })).toBeNull();
   });
 });

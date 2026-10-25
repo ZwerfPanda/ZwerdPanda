@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CHANGELOG, unseenChanges, type ChangeEntry } from './changelog';
+import { CHANGELOG, compareIds, unseenChanges, type ChangeEntry } from './changelog';
 
 describe('what’s new', () => {
   const log: ChangeEntry[] = [
@@ -17,11 +17,28 @@ describe('what’s new', () => {
 
   it('keeps the real changelog newest first with unique ids and links', () => {
     const ids = CHANGELOG.map((e) => e.id);
-    expect([...ids].sort().reverse()).toEqual(ids);
+    expect([...ids].sort(compareIds).reverse()).toEqual(ids);
     expect(new Set(ids).size).toBe(ids.length);
     for (const entry of CHANGELOG) {
       expect(entry.items.length).toBeGreaterThan(0);
       for (const item of entry.items) expect(item.text.length).toBeLessThan(140);
     }
+  });
+});
+
+describe('changelog ids', () => {
+  it('see the tenth after the ninth', () => {
+    expect(
+      unseenChanges('2026-10-9', [
+        { id: '2026-10-10', when: '', title: 'new', items: [] },
+        { id: '2026-10-9', when: '', title: 'old', items: [] },
+      ]).map((e) => e.title),
+    ).toEqual(['new']);
+    expect(
+      unseenChanges('2026-10-10', [
+        { id: '2026-10-10', when: '', title: 'new', items: [] },
+        { id: '2026-10-9', when: '', title: 'old', items: [] },
+      ]),
+    ).toEqual([]);
   });
 });

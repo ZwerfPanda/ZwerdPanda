@@ -14,7 +14,7 @@ export const GAME_NAMES: Record<GameId, string> = {
   memory: 'memory',
   hockey: 'airhockey',
   bingo: 'bingo',
-  kwartet: 'kwartet',
+  kwartet: 'Go Fish',
 };
 
 /** Writes down how a game ended (once per id, so a match counts once). */
@@ -137,8 +137,8 @@ export function gameBrag(
         `Bingo: ${wins}–${losses}. Ik heb gewoon de geluksballen.`,
       ],
       kwartet: [
-        `Kwartet: ${wins}–${losses} voor mij 🐟 Ik vis ze er allemaal uit.`,
-        `Heb jij misschien Papa Krab? Nee? Dan heb ik weer gewonnen 🦀 (${wins} keer!)`,
+        `Go Fish: ${wins}–${losses} voor mij 🐟 Ik vis ze er allemaal uit.`,
+        `Heb jij misschien een koning? Nee? Go Fish! Ik won al ${wins} keer 🦈`,
       ],
       bowling: [
         `Bowlingduel: ${wins}–${losses} voor mij 🎳`,

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useContent } from '../../data/store';
 import { nameOf, otherPerson, useMe } from '../../data/people';
 import type { GameMatch, Person, Player } from '../../data/types';
@@ -8,27 +8,28 @@ import { celebrateFrom } from '../../components/ui/feedback';
 import { useReducedMotion } from '../../hooks/useMotion';
 import { startMatch, updateMatch, useMatch } from './gameData';
 import { headToHead, recordResult } from './gameStats';
-import { GameShell, ScoreBoard, TurnBanner, WhoAreYou, type PlayMode } from './GameShell';
+import { GameShell, ScoreBoard, WhoAreYou, type PlayMode } from './GameShell';
 import {
-  FAMILIES,
-  MEMBERS,
+  CREATURE,
+  SUIT_SIGN,
   ask,
-  askable,
-  cardName,
   cocoAsk,
   current,
-  family,
-  familyOf,
   fish,
-  member,
-  memberOf,
-  newKwartet,
+  isRed,
+  newGoFish,
   opponent,
-  readKwartet,
-  type KwartetEvent,
-  type KwartetState,
+  rankName,
+  rankOf,
+  readGoFish,
+  sortHand,
+  suitOf,
+  type GoFishEvent,
+  type GoFishState,
+  type Rank,
 } from './kwartet';
 
+/** Go Fish (the cabinet and match are still called "kwartet"). */
 export function Kwartet() {
   const [mode, setMode] = useState<PlayMode>('remote');
   const [round, setRound] = useState(0);
@@ -40,7 +41,7 @@ export function Kwartet() {
   return (
     <GameShell
       id="kwartet"
-      title="Kwartet"
+      title="Go Fish!"
       mode={mode}
       onMode={(m) => {
         setMode(m);
@@ -70,10 +71,10 @@ export function Kwartet() {
     >
       {mode === 'remote' ? (
         <WhoAreYou>
-          <RemoteKwartet />
+          <RemoteGoFish />
         </WhoAreYou>
       ) : (
-        <HereKwartet
+        <HereGoFish
           key={`${mode}-${round}`}
           vsCoco={mode === 'coco'}
           onAgain={() => setRound((r) => r + 1)}
@@ -85,278 +86,360 @@ export function Kwartet() {
 
 /* ------------------------------------------------------------ the parts */
 
-function FishCard({ card, small = false }: { card: string; small?: boolean }) {
-  const f = family(familyOf(card));
-  const m = member(memberOf(card));
+function Starfish({ size = 18 }: { size?: number }) {
+  return (
+    <svg viewBox="-10 -10 20 20" width={size} height={size} aria-hidden="true">
+      <path
+        d="M0-9 2.4-3.2 8.6-2.8 3.8 1.2 5.4 7.3 0 3.9-5.4 7.3-3.8 1.2-8.6-2.8-2.4-3.2Z"
+        fill="#ff6b8b"
+        stroke="#ffd1dc"
+        strokeWidth="0.8"
+        strokeLinejoin="round"
+      />
+      <circle r="1.1" fill="#ffd1dc" />
+    </svg>
+  );
+}
+
+function Card({ card, small = false }: { card: string; small?: boolean }) {
+  const rank = rankOf(card);
   return (
     <span
-      className={`kw-card ${small ? 'is-small' : ''} kw-card--${m.id}`}
-      style={{ '--tint': f.tint } as React.CSSProperties}
+      className={`gf-card ${isRed(card) ? 'is-red' : ''} ${small ? 'is-small' : ''}`}
       role="img"
-      aria-label={cardName(card)}
+      aria-label={`${rankName(rank, 1)} ${{ S: 'schoppen', H: 'harten', D: 'ruiten', C: 'klaveren' }[suitOf(card)]}`}
     >
-      <span className="kw-card__fish" aria-hidden="true">
-        {f.emoji}
+      <span className="gf-card__corner" aria-hidden="true">
+        <b>{rank}</b>
+        <i>{SUIT_SIGN[suitOf(card)]}</i>
       </span>
-      <span className="kw-card__badge" aria-hidden="true">
-        {m.badge}
+      <span className="gf-card__creature" aria-hidden="true">
+        {CREATURE[rank]}
       </span>
-      {!small && (
-        <span className="kw-card__name" aria-hidden="true">
-          {m.name}
-          <br />
-          {f.name}
-        </span>
-      )}
+    </span>
+  );
+}
+
+function Back({ className = '' }: { className?: string }) {
+  return (
+    <span className={`gf-back ${className}`} aria-hidden="true">
+      <Starfish size={22} />
     </span>
   );
 }
 
 /** What happened, as the one looking at the screen sees it. */
-function eventText(e: KwartetEvent, viewer: Player, label: (p: Player) => string) {
+function eventText(e: GoFishEvent, viewer: Player, across: Player, label: (p: Player) => string) {
   const mine = e.who === viewer;
   const who = label(e.who);
-  if (e.type === 'kwartet') {
-    const f = family(e.family);
-    return `${mine ? 'Jij hebt' : `${who} heeft`} een kwartet: de ${f.name}-familie ${f.emoji}🎉`;
-  }
-  const name = cardName(e.card);
+  if (e.type === 'book')
+    return `${mine ? 'Jij hebt' : `${who} heeft`} een book: vier ${rankName(e.rank)}! ⭐`;
   if (e.type === 'ask') {
+    const other = label(across);
     if (mine)
       return e.got
-        ? `Je vroeg om ${name} — hebbes! Je mag nog een keer.`
-        : `Geen ${name}… Vissen! 🎣`;
+        ? `Je kreeg ${rankName(e.rank, e.got)} van ${other}. Jij bent nog een keer!`
+        : `Je vroeg ${other} om ${rankName(e.rank)}… Go Fish!`;
     return e.got
-      ? `${who} vroeg om jouw ${name}… en die is nu weg 😬`
-      : `${who} vroeg om ${name} — die heb jij niet. Vissen!`;
+      ? `${who} vroeg om je ${rankName(e.rank)} en kreeg er ${e.got} 😬`
+      : `${who} vroeg om ${rankName(e.rank)} — die heb jij niet. Go Fish!`;
   }
+  const rank = rankOf(e.card);
   if (mine)
     return e.lucky
-      ? `Je viste precies ${name}! Nog een beurt 🍀`
-      : `Je viste ${name} uit de vijver.`;
+      ? `Je viste ${rankName(rank, 1)} — precies wat je vroeg! Nog een beurt 🍀`
+      : `Je viste ${rankName(rank, 1)}.`;
   return e.lucky
-    ? `${who} viste precies ${name}! Nog een beurt.`
-    : `${who} viste een kaart uit de vijver.`;
+    ? `${who} viste precies wat er gevraagd werd. Nog een beurt!`
+    : `${who} viste een kaart.`;
 }
 
-function eventSound(e: KwartetEvent | undefined) {
+function eventSound(e: GoFishEvent | undefined) {
   if (!e) return;
-  if (e.type === 'kwartet') return playSfx('success', true);
+  if (e.type === 'book') return playSfx('success', true);
   if (e.type === 'fish') return playSfx('splash', true);
   playSfx(e.got ? 'card' : 'boing', true);
 }
 
-/** The table, from one seat: the other's hand face down, the pond, your hand. */
+/** The table, from one seat: the other across, the pond, your fan of cards. */
 function Table({
   s,
   viewer,
   canAct,
   label,
+  avatar,
   onAsk,
   onFish,
 }: {
-  s: KwartetState;
+  s: GoFishState;
   viewer: Player;
   canAct: boolean;
   label: (p: Player) => string;
-  onAsk: (card: string) => void;
+  avatar: (p: Player) => string;
+  onAsk: (rank: Rank) => void;
   onFish: () => void;
 }) {
   const reduce = useReducedMotion();
-  const [open, setOpen] = useState<string | null>(null);
+  const [picked, setPicked] = useState<Rank | null>(null);
   const other = opponent(s, viewer);
-  const hand = (s.hands[viewer] ?? []).slice().sort();
-  const families = [...new Set(hand.map(familyOf))];
-  const options = new Set(askable(s, viewer));
+  const hand = sortHand(s.hands[viewer] ?? []);
+  const theirs = (s.hands[other] ?? []).length;
   const asking = canAct && s.phase === 'ask';
   const fishing = canAct && s.phase === 'fish';
-  const feed = s.log.slice(-3).reverse();
+  const last = s.log[s.log.length - 1];
+  const now = current(s);
+
+  // "GO FISH!" when an ask comes back empty.
+  const [banner, setBanner] = useState(0);
+  const seen = useRef(s.log.length);
+  useEffect(() => {
+    if (s.log.length === seen.current && last?.type !== 'ask') return;
+    seen.current = s.log.length;
+    if (last?.type === 'ask' && last.got === 0) setBanner(Date.now());
+  }, [s.log.length, last?.type, s.phase]);
 
   useEffect(() => {
-    if (!asking) setOpen(null);
+    if (!asking) setPicked(null);
   }, [asking]);
 
-  // The question opens under your hand: bring it into view.
-  const askBox = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (open)
-      askBox.current?.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
-  }, [open]);
+  const message = s.winner
+    ? null
+    : asking
+      ? picked
+        ? `Vraag ${label(other)} om ${rankName(picked)}?`
+        : `${last && last.who !== viewer ? `${eventText(last, viewer, other, label)} ` : ''}Kies een kaart om naar te vragen`
+      : fishing
+        ? `${last?.type === 'ask' && s.asked ? `${label(other)} heeft geen ${rankName(s.asked)}. ` : ''}Tik op de stapel om te vissen 🎣`
+        : last
+          ? eventText(last, viewer, other, label)
+          : `${label(now)} is aan de beurt…`;
 
+  // The fan always fits: the more cards, the more they overlap.
+  const fanRef = useRef<HTMLDivElement>(null);
+  const [room, setRoom] = useState(320);
+  useEffect(() => {
+    const measure = () => setRoom(fanRef.current?.clientWidth ?? 320);
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, []);
+  const CARD = 66;
+  const overlap =
+    hand.length > 1 ? Math.min(-18, -(CARD - (room - CARD - 8) / (hand.length - 1))) : 0;
   return (
-    <div className="kw-table">
-      <div className="kw-them">
-        <span className="kw-them__name">{label(other)}</span>
-        <span
-          className="kw-backs"
-          role="img"
-          aria-label={`${(s.hands[other] ?? []).length} kaarten`}
-        >
-          {(s.hands[other] ?? []).map((_, i) => (
-            <span key={i} className="kw-back" aria-hidden="true" />
+    <div className="gf-table">
+      <span className="gf-bubbles" aria-hidden="true">
+        {Array.from({ length: 9 }, (_, i) => (
+          <span
+            key={i}
+            style={{
+              left: `${6 + i * 11}%`,
+              top: `${12 + ((i * 37) % 70)}%`,
+              width: 14 + ((i * 13) % 30),
+              animationDelay: `${i * -0.8}s`,
+            }}
+          />
+        ))}
+      </span>
+
+      <div className="gf-them">
+        <span className="gf-them__fan" aria-label={`${theirs} kaarten`} role="img">
+          {Array.from({ length: Math.min(theirs, 14) }, (_, i) => (
+            <Back key={i} className="is-tiny" />
           ))}
         </span>
-        <Sets s={s} seat={other} />
+        <span className="gf-avatar" aria-hidden="true">
+          {avatar(other)}
+        </span>
+        <strong className="gf-name">{label(other)}</strong>
+        <Books s={s} seat={other} />
       </div>
 
-      <button
-        type="button"
-        className={`kw-pond ${fishing ? 'is-fishing' : ''}`}
-        onClick={() => fishing && onFish()}
-        disabled={!fishing}
-        data-sfx="none"
-      >
-        <span className="kw-pond__water" aria-hidden="true">
-          {s.pond.slice(0, 7).map((_, i) => (
-            <span key={i} className="kw-pond__card" style={{ '--i': i } as React.CSSProperties} />
-          ))}
-          <span className="kw-pond__fish">🐟</span>
-        </span>
-        <span className="kw-pond__label">
-          {fishing ? '🎣 Vissen!' : `${s.pond.length} in de vijver`}
-        </span>
-      </button>
+      <div className="gf-middle">
+        <div className="gf-ask-slot">
+          {asking && picked && (
+            <button
+              type="button"
+              className="gf-ask"
+              data-sfx="none"
+              onClick={() => {
+                setPicked(null);
+                onAsk(picked);
+              }}
+            >
+              VRAAG
+            </button>
+          )}
+        </div>
+        <button
+          type="button"
+          className={`gf-pond ${fishing ? 'is-fishing' : ''}`}
+          disabled={!fishing}
+          onClick={onFish}
+          data-sfx="none"
+          aria-label={
+            fishing ? 'Vissen: pak een kaart van de stapel' : `De stapel: ${s.pond.length} kaarten`
+          }
+        >
+          <span className="gf-pond__stack" aria-hidden="true">
+            <Back />
+          </span>
+          {s.pond.length > 0 && <span className="gf-pond__count">{s.pond.length}</span>}
+        </button>
+        <AnimatePresence>
+          {banner > 0 && (
+            <motion.div
+              key={banner}
+              className="gf-banner"
+              aria-hidden="true"
+              initial={reduce ? { opacity: 0 } : { scale: 0.3, opacity: 0, rotate: -8 }}
+              animate={
+                reduce
+                  ? { opacity: [0, 1, 1, 0] }
+                  : { scale: [0.3, 1.15, 1, 1], opacity: [0, 1, 1, 0], rotate: [-8, 3, 0, 0] }
+              }
+              transition={{ duration: 1.6, times: [0, 0.25, 0.8, 1] }}
+              onAnimationComplete={() => setBanner(0)}
+            >
+              <span className="gf-banner__fish">🐟</span>
+              <span className="gf-banner__go">GO</span>
+              <span className="gf-banner__fish is-flip">🐟</span>
+              <span className="gf-banner__word">FISH!</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {message && (
+          <p className="gf-message" aria-live="polite">
+            {message}
+          </p>
+        )}
+      </div>
 
-      <ul className="kw-feed" aria-live="polite">
-        {feed.map((e, i) => (
-          <li key={`${s.log.length - i}`} className={i === 0 ? 'is-new' : ''}>
-            {eventText(e, viewer, label)}
-          </li>
-        ))}
-      </ul>
-
-      {asking && (
-        <p className="kw-hint">
-          Tik op een familie die je hebt, en vraag {label(other)} om een kaart die je mist.
-        </p>
-      )}
-
-      <div className="kw-hand" aria-label="Jouw kaarten">
-        {families.map((f) => {
-          const cards = hand.filter((c) => familyOf(c) === f);
-          const fam = family(f);
+      <div className="gf-hand" role="group" aria-label="Jouw kaarten" ref={fanRef}>
+        {hand.map((card, i) => {
+          const rank = rankOf(card);
+          const up = picked === rank;
           return (
             <button
-              key={f}
+              key={card}
               type="button"
-              className={`kw-group ${open === f ? 'is-open' : ''}`}
+              className={`gf-hand__card ${up ? 'is-up' : ''}`}
+              style={{ marginLeft: i ? overlap : 0, zIndex: i }}
               disabled={!asking}
-              onClick={() => setOpen(open === f ? null : f)}
-              aria-expanded={asking ? open === f : undefined}
+              onClick={() => {
+                playSfx('tap', true);
+                setPicked(up ? null : rank);
+              }}
+              aria-pressed={asking ? up : undefined}
               data-sfx="none"
             >
-              <span className="kw-group__cards">
-                {cards.map((c) => (
-                  <FishCard key={c} card={c} />
-                ))}
-              </span>
-              <small>
-                {fam.emoji} {cards.length}/4
-              </small>
+              <Card card={card} />
             </button>
           );
         })}
-        {!hand.length && <p className="kw-hint">Geen kaarten meer in je hand.</p>}
+        {!hand.length && <p className="gf-message">Geen kaarten meer in je hand.</p>}
       </div>
 
-      {/* No fade-out: once it's not your turn, nothing here may be tapped. */}
-      {asking && open && (
-        <motion.div
-          ref={askBox}
-          className="kw-ask"
-          initial={reduce ? { opacity: 0 } : { y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-        >
-          <p>{label(other)}, heb jij…</p>
-          <div className="kw-ask__row">
-            {MEMBERS.map((m) => {
-              const card = `${open}:${m.id}`;
-              const have = hand.includes(card);
-              return (
-                <button
-                  key={card}
-                  type="button"
-                  className="kw-ask__pick"
-                  disabled={!options.has(card)}
-                  onClick={() => {
-                    setOpen(null);
-                    onAsk(card);
-                  }}
-                  aria-label={
-                    have
-                      ? `✓ ${cardName(card)} (heb je al)`
-                      : `${m.name}: vraag om ${cardName(card)}`
-                  }
-                  data-sfx="none"
-                >
-                  <span aria-hidden="true">
-                    <FishCard card={card} small />
-                  </span>
-                  <span>{have ? '✓' : m.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </motion.div>
-      )}
-
-      <div className="kw-mine">
-        <span>Jouw kwartetten</span>
-        <Sets s={s} seat={viewer} />
+      <div className="gf-me">
+        <Books s={s} seat={viewer} />
+        <span className="gf-avatar is-me" aria-hidden="true">
+          {avatar(viewer)}
+        </span>
+        <span className={`gf-pill ${now === viewer && !s.winner ? 'is-on' : ''}`}>
+          {s.winner ? 'Klaar!' : now === viewer ? 'Jouw beurt' : `${label(now)} is aan de beurt`}
+        </span>
       </div>
+      <Wreck />
     </div>
   );
 }
 
-function Sets({ s, seat }: { s: KwartetState; seat: Player }) {
-  const sets = s.sets[seat] ?? [];
+function Books({ s, seat }: { s: GoFishState; seat: Player }) {
+  const books = s.books[seat] ?? [];
   return (
-    <span className="kw-sets" aria-label={`${sets.length} kwartetten`}>
-      {sets.length
-        ? sets.map((f) => (
-            <span key={f} className="kw-set" title={`${family(f).name}-familie`}>
-              {family(f).emoji}
+    <span className="gf-books">
+      <Starfish />
+      <b>Books: {books.length}</b>
+      {books.length > 0 && (
+        <span className="gf-books__list" aria-label={books.map((r) => rankName(r)).join(', ')}>
+          {books.map((r) => (
+            <span key={r} className="gf-books__one" aria-hidden="true">
+              {CREATURE[r]}
             </span>
-          ))
-        : '—'}
+          ))}
+        </span>
+      )}
     </span>
   );
 }
 
-function endText(s: KwartetState, viewer: Player, label: (p: Player) => string) {
-  const [a, b] = s.seats.map((p) => s.sets[p]?.length ?? 0);
-  if (s.winner === 'draw') return `Gelijkspel! ${a}–${b} 🐟`;
-  if (!s.winner) return undefined;
-  const score = `${Math.max(a, b)}–${Math.min(a, b)}`;
-  if (s.winner === viewer) return `Jij wint met ${score}! 🐠🎉`;
-  return s.winner === 'coco'
-    ? `Coco wint met ${score} 🐰👑`
-    : `${label(s.winner)} wint met ${score} 💕`;
+/** The sunken ship and seaweed on the sea floor. */
+function Wreck() {
+  return (
+    <svg
+      className="gf-wreck"
+      viewBox="0 0 360 90"
+      preserveAspectRatio="xMidYMax slice"
+      aria-hidden="true"
+    >
+      <path d="M0 90 Q60 70 120 80 T240 78 T360 84 V90Z" fill="#14235a" />
+      <g transform="translate(150 30) rotate(-12)">
+        <path d="M0 40 L110 40 L95 62 L12 62Z" fill="#e8762e" />
+        <rect x="18" y="20" width="62" height="22" rx="3" fill="#f29a45" />
+        <rect x="26" y="25" width="12" height="10" rx="2" fill="#24387e" />
+        <rect x="44" y="25" width="12" height="10" rx="2" fill="#24387e" />
+        <rect x="62" y="25" width="12" height="10" rx="2" fill="#24387e" />
+        <rect x="70" y="-10" width="10" height="32" fill="#3a3f5c" />
+      </g>
+      {[30, 70, 300, 330].map((x, i) => (
+        <path
+          key={x}
+          className="gf-weed"
+          style={{ animationDelay: `${i * 0.4}s` }}
+          d={`M${x} 90 q-8 -16 0 -30 q8 -14 0 -30`}
+          stroke="#3fae58"
+          strokeWidth="5"
+          fill="none"
+          strokeLinecap="round"
+        />
+      ))}
+    </svg>
+  );
 }
 
-const COUNT = FAMILIES.length;
+function endText(s: GoFishState, viewer: Player, label: (p: Player) => string) {
+  const [a, b] = s.seats.map((p) => s.books[p]?.length ?? 0);
+  if (s.winner === 'draw') return `Gelijkspel! ${a}–${b} books 🐟`;
+  if (!s.winner) return null;
+  const score = `${Math.max(a, b)}–${Math.min(a, b)}`;
+  if (s.winner === viewer) return `Jij wint met ${score} books! 🐠🎉`;
+  return s.winner === 'coco'
+    ? `Coco wint met ${score} books 🐰👑`
+    : `${label(s.winner)} wint met ${score} books 💕`;
+}
 
 /* ---------------------------------------------- one phone, or with Coco */
 
-function HereKwartet({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void }) {
+function HereGoFish({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void }) {
   const me = useMe();
   const profile = useContent((c) => c.profile);
   const seats: Player[] = vsCoco ? [me, 'coco'] : [me, otherPerson(me)];
-  const [s, setS] = useState<KwartetState>(() => newKwartet(seats));
+  const [s, setS] = useState<GoFishState>(() => newGoFish(seats));
   const [shown, setShown] = useState<Player | null>(vsCoco ? me : null);
   const recorded = useRef(false);
   const box = useRef<HTMLDivElement>(null);
   const now = current(s);
   const label = (p: Player) =>
     p === 'coco' ? 'Coco' : vsCoco && p === me ? 'Jij' : nameOf(p, profile);
+  const avatar = (p: Player) => (p === 'coco' ? '🐰' : nameOf(p, profile).charAt(0).toUpperCase());
   const viewer: Player = vsCoco ? me : (shown ?? now);
 
-  const apply = (next: KwartetState) => {
+  const apply = (next: GoFishState) => {
     eventSound(next.log[next.log.length - 1]);
     setS(next);
   };
   /** A tap from the table: only for whoever's turn it really is now. */
-  const move = (recipe: (cur: KwartetState) => KwartetState) =>
+  const move = (recipe: (cur: GoFishState) => GoFishState) =>
     setS((cur) => {
       if (cur.winner || current(cur) === 'coco') return cur;
       const next = recipe(cur);
@@ -370,10 +453,10 @@ function HereKwartet({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void
     const t = window.setTimeout(
       () => {
         if (s.phase === 'fish') return apply(fish(s));
-        const card = cocoAsk(s);
-        apply(card ? ask(s, card) : fish({ ...s, phase: 'fish' }));
+        const rank = cocoAsk(s);
+        apply(rank ? ask(s, rank) : fish({ ...s, phase: 'fish' }));
       },
-      s.phase === 'fish' ? 900 : 1400,
+      s.phase === 'fish' ? 1100 : 1700,
     );
     return () => window.clearTimeout(t);
   }, [vsCoco, now, s]);
@@ -388,27 +471,21 @@ function HereKwartet({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void
 
   // Two of us on one phone: the hand stays hidden until it's handed over.
   const curtain = !vsCoco && !s.winner && shown !== now;
+  const end = endText(s, viewer, label);
 
   return (
-    <div className="kwartet" ref={box}>
-      <TurnBanner
-        mine={now !== 'coco'}
-        name="Coco 🐰🤔"
-        note={
-          s.phase === 'fish'
-            ? `${label(now)} moet vissen!`
-            : `${label(now)} ${vsCoco ? 'bent' : 'is'} aan de beurt — vraag om een kaart`
-        }
-        done={endText(s, viewer, label)}
-      />
+    <div className="gofish" ref={box}>
+      {end && <p className="game-turn game-turn--done">{end}</p>}
       {curtain ? (
-        <div className="kw-curtain">
+        <div className="gf-curtain">
           <span aria-hidden="true">🌊🐟🌊</span>
           <p>
             Geef de telefoon aan <strong>{label(now)}</strong>
           </p>
           {s.log.length > 0 && (
-            <p className="kw-hint">{eventText(s.log[s.log.length - 1], now, label)}</p>
+            <p className="gf-curtain__last">
+              {eventText(s.log[s.log.length - 1], now, opponent(s, now), label)}
+            </p>
           )}
           <button type="button" className="neon-btn" onClick={() => setShown(now)}>
             Ik ben {label(now)} — laat mijn kaarten zien
@@ -420,13 +497,11 @@ function HereKwartet({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void
           viewer={viewer}
           canAct={!s.winner && now === viewer}
           label={label}
-          onAsk={(card) => move((cur) => ask(cur, card))}
+          avatar={avatar}
+          onAsk={(rank) => move((cur) => ask(cur, rank))}
           onFish={() => move(fish)}
         />
       )}
-      <p className="kw-count">
-        {s.seats.reduce((n, p) => n + (s.sets[p]?.length ?? 0), 0)} van de {COUNT} families compleet
-      </p>
       {s.winner && (
         <button type="button" className="neon-btn" onClick={onAgain}>
           Nog een potje
@@ -438,16 +513,20 @@ function HereKwartet({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void
 
 /* -------------------------------------------------- each on our own phone */
 
-function RemoteKwartet() {
+function RemoteGoFish() {
   const me = useMe();
   const them = otherPerson(me);
   const profile = useContent((c) => c.profile);
   const match = useMatch('kwartet');
-  const s = readKwartet(match?.state);
+  const s = readGoFish(match?.state);
   const box = useRef<HTMLDivElement>(null);
   const heard = useRef<string | null>(null);
   const theirName = nameOf(them, profile);
   const label = (p: Player) => (p === me ? 'Jij' : nameOf(p as Person, profile));
+  const avatar = (p: Player) =>
+    nameOf(p as Person, profile)
+      .charAt(0)
+      .toUpperCase();
 
   // What they do arrives with a sound.
   useEffect(() => {
@@ -462,10 +541,10 @@ function RemoteKwartet() {
     if (match?.winner === me) celebrateFrom(box.current);
   }, [match?.winner]);
 
-  const act = (m: GameMatch, recipe: (s: KwartetState) => KwartetState) => {
-    let made: KwartetState | null = null;
+  const act = (m: GameMatch, recipe: (s: GoFishState) => GoFishState) => {
+    let made: GoFishState | null = null;
     updateMatch(m.id, (x) => {
-      const cur = readKwartet(x.state);
+      const cur = readGoFish(x.state);
       if (!cur || x.winner || current(cur) !== me) return x;
       const next = recipe(cur);
       made = next;
@@ -476,21 +555,21 @@ function RemoteKwartet() {
         winner: next.winner as Person | 'draw' | undefined,
       };
     });
-    const done = made as KwartetState | null;
+    const done = made as GoFishState | null;
     if (done) eventSound(done.log[done.log.length - 1]);
   };
 
   const start = () => {
     playSfx('splash', true);
-    startMatch('kwartet', newKwartet([me, them]) as unknown as Record<string, unknown>, me, me);
+    startMatch('kwartet', newGoFish([me, them]) as unknown as Record<string, unknown>, me, me);
   };
 
   if (!match || !s) {
     return (
       <div className="game-panel">
         <p>
-          Acht families uit de zee, vier van elk. Vraag de ander om de kaarten die je mist — heeft
-          die hem niet, dan is het vissen! Wie de meeste kwartetten heeft, wint.
+          Vraag {theirName} om koningen, azen of drietjes — heeft die ze, dan krijg je ze allemaal.
+          Niet? Go Fish! Vier van dezelfde is een book, en wie de meeste books heeft wint.
         </p>
         <button type="button" className="neon-btn" onClick={start}>
           Daag {theirName} uit
@@ -500,27 +579,19 @@ function RemoteKwartet() {
   }
 
   const mine = !match.winner && current(s) === me;
+  const end = endText(s, me, label);
   return (
-    <div className="kwartet" ref={box}>
-      <TurnBanner
-        mine={mine}
-        name={theirName}
-        note={
-          s.phase === 'fish' ? 'Vissen! Tik op de vijver 🎣' : 'Jouw beurt — vraag om een kaart'
-        }
-        done={endText(s, me, label)}
-      />
+    <div className="gofish" ref={box}>
+      {end && <p className="game-turn game-turn--done">{end}</p>}
       <Table
         s={s}
         viewer={me}
         canAct={mine}
         label={label}
-        onAsk={(card) => act(match, (cur) => ask(cur, card))}
+        avatar={avatar}
+        onAsk={(rank) => act(match, (cur) => ask(cur, rank))}
         onFish={() => act(match, fish)}
       />
-      <p className="kw-count">
-        {s.seats.reduce((n, p) => n + (s.sets[p]?.length ?? 0), 0)} van de {COUNT} families compleet
-      </p>
       {match.winner && (
         <button type="button" className="neon-btn" onClick={start}>
           Nog een potje

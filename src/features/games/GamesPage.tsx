@@ -76,8 +76,8 @@ const GAMES = [
   {
     id: 'kwartet',
     emoji: '🐟',
-    title: 'Kwartet',
-    blurb: 'Vissen! Acht families uit de zee',
+    title: 'Go Fish!',
+    blurb: 'Vraag om koningen of azen — en vis!',
     tint: '#c9e4f5',
     kind: 'kwartet',
   },

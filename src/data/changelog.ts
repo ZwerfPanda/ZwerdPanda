@@ -23,6 +23,19 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-10',
+    when: 'oktober 2026',
+    title: 'Go Fish!',
+    items: [
+      {
+        emoji: '🐟',
+        title: 'Kwartet is nu Go Fish',
+        text: 'Vraag om koningen, azen of drietjes: heeft de ander ze, dan krijg je ze allemaal. Niet? Go Fish! Wie de meeste books heeft, wint.',
+        path: '/games',
+      },
+    ],
+  },
+  {
     id: '2026-10-9',
     when: 'oktober 2026',
     title: 'Darten en bowlen, echter',
@@ -304,5 +317,8 @@ export const CHANGELOG: ChangeEntry[] = [
 export function unseenChanges(seen: string | null, log: ChangeEntry[] = CHANGELOG): ChangeEntry[] {
   if (!log.length) return [];
   if (!seen) return [log[0]];
-  return log.filter((e) => e.id > seen);
+  return log.filter((e) => compareIds(e.id, seen) > 0);
 }
+
+/** Ids compare number by number, so "2026-10-10" comes after "2026-10-9". */
+export const compareIds = (a: string, b: string) => a.localeCompare(b, 'en', { numeric: true });
