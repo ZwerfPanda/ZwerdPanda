@@ -450,8 +450,9 @@ export class SyncEngine {
         this.markUploaded(ids);
       }
       return blob;
-    } catch {
-      return null;
+    } catch (error) {
+      // Let whoever asked know why (the cinema shows it), instead of just "not here".
+      throw error instanceof Error ? error : new Error(String(error));
     }
   }
 

@@ -5,7 +5,7 @@ import { useContent } from '../../data/store';
 import { nameOf, otherPerson, sweetName, useMe } from '../../data/people';
 import { updateCinema } from '../../data/actions';
 import type { Film, FilmNight } from '../../data/types';
-import { useMediaUrl } from '../../lib/media';
+import { mediaProblem, retryMissingMedia, useMediaUrl } from '../../lib/media';
 import { lockScroll, trapTab } from '../../components/ui/scrollLock';
 import { useMusic } from '../../components/music/MusicProvider';
 import { useReducedMotion } from '../../hooks/useMotion';
@@ -217,11 +217,29 @@ export function Screening({
                 aria-label={film.title}
               />
             ) : (
-              <p className="cin-slide">
-                {media.status === 'loading'
-                  ? 'De film wordt opgehaald…'
-                  : 'Deze film staat nog niet op deze telefoon — hij komt vanzelf binnen.'}
-              </p>
+              <div className="cin-slide">
+                <p>
+                  {media.status === 'loading'
+                    ? 'De film wordt opgehaald… bij een grote film kan dat even duren.'
+                    : 'Deze film staat nog niet op deze telefoon — hij komt vanzelf binnen.'}
+                </p>
+                {media.status === 'missing' && film.video.type === 'local' && (
+                  <>
+                    {mediaProblem(film.video.mediaId) && (
+                      <p className="cin-slide__line">
+                        Ophalen lukte niet: {mediaProblem(film.video.mediaId)}
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn--soft btn--small"
+                      onClick={retryMissingMedia}
+                    >
+                      Opnieuw proberen
+                    </button>
+                  </>
+                )}
+              </div>
             )}
             {phase === 'doors' && (
               <div className="cin-slide cin-slide--curtain">

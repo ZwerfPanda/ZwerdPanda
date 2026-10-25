@@ -126,11 +126,25 @@ export async function getMediaBlob(id: string): Promise<Blob | null> {
   return blob;
 }
 
+/** Why fetching a file from the other phone's uploads failed, the last time we tried. */
+const problems = new Map<string, string>();
+
+export function mediaProblem(id: string | undefined): string | null {
+  return id ? (problems.get(id) ?? null) : null;
+}
+
 async function loadMediaUrl(id: string): Promise<string | null> {
   const record = await getMedia(id);
   if (record) return URL.createObjectURL(record.blob);
   if (!remoteFetcher) return null;
-  const blob = await remoteFetcher(id);
+  let blob: Blob | null;
+  try {
+    blob = await remoteFetcher(id);
+    problems.delete(id);
+  } catch (error) {
+    problems.set(id, error instanceof Error ? error.message : String(error));
+    return null;
+  }
   if (!blob) return null;
   await putMedia(blob, 'shared', id).catch(() => undefined);
   return URL.createObjectURL(blob);
