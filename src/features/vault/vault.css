@@ -976,3 +976,54 @@ html[data-secret] {
   outline: 3px solid #f7dc8f;
   outline-offset: 3px;
 }
+
+/* while the phone prepares what was picked */
+.vault-preparing {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--tabbar-h, 72px) + var(--safe-bottom, 0px) + 86px);
+  transform: translateX(-50%);
+  z-index: 41;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 12px;
+  align-items: start;
+  width: min(92vw, 26rem);
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(40, 10, 30, 0.96);
+  border: 1px solid rgba(247, 220, 143, 0.5);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.55);
+  color: #fbeee0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+.vault-preparing strong {
+  color: #f7dc8f;
+}
+.vault-preparing p {
+  margin: 4px 0 0;
+}
+.vault-preparing .vault-btn {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+.vault-preparing__spin {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  border-radius: 50%;
+  border: 3px solid rgba(247, 220, 143, 0.3);
+  border-top-color: #f7dc8f;
+  animation: vault-spin 0.9s linear infinite;
+}
+@keyframes vault-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vault-preparing__spin {
+    animation: none;
+  }
+}

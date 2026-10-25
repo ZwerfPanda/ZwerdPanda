@@ -374,12 +374,18 @@ function Gallery({ k }: { k: CryptoKey }) {
   const [viewing, setViewing] = useState<string | null>(null);
   const [catForm, setCatForm] = useState<{ open: boolean; id?: string }>({ open: false });
   const [busy, setBusy] = useState<{ done: number; of: number } | null>(null);
+  /** The picker is open (or closed, while the phone still prepares what was chosen). */
+  const [waiting, setWaiting] = useState<number | null>(null);
   const input = useRef<HTMLInputElement>(null);
   // Closing the picker without choosing.
   useEffect(() => {
     const el = input.current;
-    el?.addEventListener('cancel', stopPicking);
-    return () => el?.removeEventListener('cancel', stopPicking);
+    const cancel = () => {
+      stopPicking();
+      setWaiting(null);
+    };
+    el?.addEventListener('cancel', cancel);
+    return () => el?.removeEventListener('cancel', cancel);
   }, []);
 
   const shown = useMemo(
@@ -404,6 +410,7 @@ function Gallery({ k }: { k: CryptoKey }) {
 
   const add = async (files: FileList | null) => {
     stopPicking();
+    setWaiting(null);
     if (!files?.length) return;
     const list = Array.from(files);
     // Right away, so it's clear the photos arrived (sealing a video takes a moment).
@@ -584,10 +591,23 @@ function Gallery({ k }: { k: CryptoKey }) {
           multiple
           className="visually-hidden"
           disabled={Boolean(busy)}
-          onClick={startPicking}
+          onClick={() => {
+            startPicking();
+            setWaiting(Date.now());
+          }}
           onChange={(e) => void add(e.target.files)}
         />
       </label>
+
+      {waiting !== null && !busy && (
+        <Preparing
+          since={waiting}
+          onStop={() => {
+            stopPicking();
+            setWaiting(null);
+          }}
+        />
+      )}
 
       <p className="vault-note">
         🔒 Versleuteld met jullie wachtwoord · vergrendelt vanzelf als je de app wegzet of deze
@@ -613,6 +633,42 @@ function Gallery({ k }: { k: CryptoKey }) {
         onRemoved={() => setCat('all')}
       />
     </>
+  );
+}
+
+/**
+ * Between the tap on the picker's tick and the photos arriving, an iPhone
+ * first converts them (and squeezes long videos), without showing anything.
+ * Here it shows.
+ */
+function Preparing({ since, onStop }: { since: number; onStop: () => void }) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const t = window.setInterval(() => tick((n) => n + 1), 1000);
+    return () => window.clearInterval(t);
+  }, []);
+  const seconds = Math.floor((Date.now() - since) / 1000);
+  return (
+    <div className="vault-preparing" role="status">
+      <span className="vault-preparing__spin" aria-hidden="true" />
+      <div>
+        <strong>Je telefoon maakt ze klaar…</strong>
+        <p>
+          Na het vinkje zet je iPhone de foto’s en video’s eerst om. Bij veel foto’s of een lange
+          video kan dat even duren — laat de app open.
+        </p>
+        {seconds > 90 && (
+          <p>
+            Duurt het te lang? Kies minder tegelijk, of bewaar een lange video eerst in de
+            Bestanden-app (Deel → Bewaar in Bestanden) en kies hem via “Kies bestand” — dan hoeft
+            hij niet omgezet te worden.
+          </p>
+        )}
+      </div>
+      <button type="button" className="vault-btn vault-btn--ghost" onClick={onStop}>
+        Stoppen
+      </button>
+    </div>
   );
 }
 

@@ -154,7 +154,6 @@ export async function addToVault(
   onProgress?: (done: number) => void,
 ): Promise<string[]> {
   const problems: string[] = [];
-  const added: VaultItem[] = [];
   let done = 0;
   for (const file of files) {
     try {
@@ -182,21 +181,23 @@ export async function addToVault(
       const small = still ? await shrink(still) : null;
       const media = await sealAndStore(k, full, 'secret');
       const thumb = small ? await sealAndStore(k, small, 'secret-thumb') : undefined;
-      added.push({
+      const item: VaultItem = {
         id: createId('vault'),
         media,
         thumb,
         box: await sealJson(k, meta),
         by: getAuthor(),
         createdAt: nowIso(),
-      });
+      };
+      // Each one is kept as soon as it's sealed: a long batch never loses what's done.
+      updateContent((c) => ({ ...c, vault: { ...c.vault, items: [...c.vault.items, item] } }));
     } catch (e) {
       problems.push(e instanceof Error ? e.message : `“${file.name}” toevoegen lukte niet.`);
     }
     onProgress?.(++done);
+    // A breath between files, so the phone can tidy up memory.
+    await new Promise((r) => setTimeout(r, 30));
   }
-  if (added.length)
-    updateContent((c) => ({ ...c, vault: { ...c.vault, items: [...c.vault.items, ...added] } }));
   return problems;
 }
 
