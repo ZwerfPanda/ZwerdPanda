@@ -18,7 +18,13 @@ export interface ObjectStore {
   /** Files directly inside a folder (not in its subfolders). */
   list(folder: string): Promise<StoredObject[]>;
   remove(paths: string[]): Promise<void>;
+  /** Only for R2: is the bucket reachable with our settings? */
+  check?(space: string): Promise<{ ok: boolean; problem?: string }>;
 }
+
+/** The function answered, but the browser wasn't allowed to talk to R2 itself. */
+export const CORS_PROBLEM =
+  'Je browser mag niet bij Cloudflare R2. Controleer de CORS-regel van de bucket: daar moet precies dit adres in staan:';
 
 function bodyOf(data: Blob | Uint8Array): Blob {
   return data instanceof Blob
@@ -77,6 +83,11 @@ export function r2Store(options: {
     try {
       return await fetch(url, init);
     } catch (error) {
+      // Just signed by our function, so we're online: this is R2 saying no (CORS).
+      if (isNetworkError(error) && (typeof navigator === 'undefined' || navigator.onLine))
+        throw new Error(
+          `${CORS_PROBLEM} ${typeof location !== 'undefined' ? location.origin : ''}`,
+        );
       if (isNetworkError(error)) throw new OfflineError();
       throw error;
     }
@@ -102,6 +113,13 @@ export function r2Store(options: {
           prefix: folder,
         })
       ).items;
+    },
+    async check(space) {
+      try {
+        return await call<{ ok: boolean; problem?: string }>({ op: 'check', space });
+      } catch (error) {
+        return { ok: false, problem: error instanceof Error ? error.message : String(error) };
+      }
     },
     async remove(paths) {
       for (let i = 0; i < paths.length; i += 500) {

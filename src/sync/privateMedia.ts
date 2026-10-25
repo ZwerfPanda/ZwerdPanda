@@ -31,12 +31,17 @@ export interface PrivateState {
   /** Photos still plain on the server. */
   oldLeft: number;
   sealing: { done: number; of: number } | null;
+  /** Why the last round of sealing didn't finish (shown on the card). */
+  problem: string | null;
 }
 
 let pm: PrivateMedia | null = null;
 let space: string | null = null;
 let afterChange: (() => void) | null = null;
-let state: PrivateState = { status: null, oldLeft: 0, sealing: null };
+let state: PrivateState = { status: null, oldLeft: 0, sealing: null, problem: null };
+/** After a failed round we wait a while before trying again, instead of looping. */
+let failedAt = 0;
+const RETRY_AFTER = 10 * 60_000;
 const listeners = new Set<() => void>();
 let checking: Promise<void> | null = null;
 
@@ -56,7 +61,8 @@ export function attachPrivateMedia(
   pm = next;
   space = spaceId;
   afterChange = onKeyReady;
-  set({ status: null, oldLeft: 0, sealing: null });
+  set({ status: null, oldLeft: 0, sealing: null, problem: null });
+  failedAt = 0;
   void refreshPrivateMedia();
 }
 
@@ -83,7 +89,7 @@ export function refreshPrivateMedia(): Promise<void> {
       if (status === 'on') {
         const oldLeft = await pm!.oldCount(space!);
         set({ oldLeft });
-        if (oldLeft > 0) await sealOldNow();
+        if (oldLeft > 0 && Date.now() - failedAt > RETRY_AFTER) await sealOldNow();
       }
     } catch {
       // Offline: we'll look again next time.
@@ -103,10 +109,24 @@ async function sealOldNow() {
       async (id) => (await getMedia(id).catch(() => undefined))?.blob ?? null,
       (done, of) => set({ sealing: { done, of } }),
     );
-    set({ oldLeft: result.left });
+    set({ oldLeft: result.left, problem: result.problem ?? null });
+    failedAt = result.left > 0 ? Date.now() : 0;
   } finally {
     set({ sealing: null });
   }
+}
+
+/** "Test de opslag": a tiny sealed file up and back. Clears the wait after a failure. */
+export async function testPrivateStorage(): Promise<{ ok: boolean; problem?: string }> {
+  if (!pm || !space) return { ok: false, problem: 'Verbind eerst samen.' };
+  const result = await pm.test(space);
+  if (result.ok) {
+    failedAt = 0;
+    set({ problem: null });
+    void refreshPrivateMedia();
+    afterChange?.();
+  } else set({ problem: result.problem ?? 'Onbekende fout.' });
+  return result;
 }
 
 /** The first phone: make our key. Returns the code to write down. */

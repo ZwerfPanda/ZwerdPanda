@@ -9,6 +9,7 @@
  *
  * Secrets to set in Supabase (Edge Functions → Secrets):
  *   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET
+ *   (optional) R2_JURISDICTION=eu for a bucket in the EU — found by itself otherwise
  * SUPABASE_URL and SUPABASE_ANON_KEY are provided by Supabase itself.
  *
  * One self-contained file, so it can be pasted into the Supabase dashboard.
@@ -108,6 +109,8 @@ export interface Env {
   R2_ACCESS_KEY_ID: string;
   R2_SECRET_ACCESS_KEY: string;
   R2_BUCKET: string;
+  /** "eu" for a bucket kept in the EU; empty: worked out on first use. */
+  R2_JURISDICTION?: string;
 }
 
 const CORS = {
@@ -148,6 +151,65 @@ async function isMember(env: Env, token: string, space: string, fetcher: typeof 
   return Array.isArray(rows) && rows.length > 0;
 }
 
+/** A short, readable reason for what R2 answered. */
+function explain(status: number, xml: string, env: Env): string {
+  const code = /<Code>([^<]*)<\/Code>/.exec(xml)?.[1] ?? '';
+  if (code === 'NoSuchBucket' || status === 404)
+    return `Bucket “${env.R2_BUCKET}” niet gevonden. Klopt R2_BUCKET precies, en staat R2_ACCOUNT_ID goed?`;
+  if (/InvalidAccessKeyId|SignatureDoesNotMatch|InvalidArgument/.test(code) || status === 401)
+    return 'De R2-sleutels kloppen niet. Check R2_ACCESS_KEY_ID en R2_SECRET_ACCESS_KEY in Supabase (geen spaties ervoor of erachter).';
+  if (code === 'AccessDenied' || status === 403)
+    return `De R2-token mag niet bij bucket “${env.R2_BUCKET}”. Geef hem “Object Read & Write” voor deze bucket.`;
+  return `R2 antwoordde ${status}${code ? ` (${code})` : ''}.`;
+}
+
+let knownHost: string | null = null;
+
+/**
+ * Which R2 address our bucket lives at: the normal one, or the EU one for a
+ * bucket kept in the EU. Tried once per start, then remembered.
+ */
+async function findHost(
+  env: Env,
+  fetcher: typeof fetch,
+  signAt: (
+    host: string,
+    method: string,
+    key: string,
+    query?: Record<string, string>,
+    expires?: number,
+  ) => Promise<string>,
+): Promise<{ host: string; problem?: string }> {
+  const base = `${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
+  const named = env.R2_JURISDICTION?.trim().toLowerCase();
+  const hosts = named
+    ? [`${env.R2_ACCOUNT_ID}.${named}.r2.cloudflarestorage.com`]
+    : [base, `${env.R2_ACCOUNT_ID}.eu.r2.cloudflarestorage.com`];
+  if (knownHost && hosts.includes(knownHost)) return { host: knownHost };
+  let problem = '';
+  for (const host of hosts) {
+    let res: Response;
+    try {
+      res = await fetcher(await signAt(host, 'GET', '', { 'list-type': '2', 'max-keys': '1' }, 60));
+    } catch {
+      problem = `R2 (${host}) is niet bereikbaar. Klopt R2_ACCOUNT_ID?`;
+      continue;
+    }
+    if (res.ok) {
+      knownHost = host;
+      return { host };
+    }
+    const xml = await res.text().catch(() => '');
+    // Not found here: maybe it lives at the EU address.
+    if (res.status === 404 || /NoSuchBucket/.test(xml)) {
+      problem = explain(404, xml, env);
+      continue;
+    }
+    return { host, problem: explain(res.status, xml, env) };
+  }
+  return { host: hosts[0], problem };
+}
+
 function amzNow(now: Date): string {
   return now
     .toISOString()
@@ -163,8 +225,13 @@ export async function handle(
 ): Promise<Response> {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
   if (req.method !== 'POST') return reply(405, { error: 'POST only' });
-  if (!env.R2_ACCOUNT_ID || !env.R2_ACCESS_KEY_ID || !env.R2_SECRET_ACCESS_KEY || !env.R2_BUCKET)
-    return reply(500, { error: 'R2 is not configured' });
+  const missing = (
+    ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET'] as const
+  ).filter((k) => !env[k]);
+  if (missing.length)
+    return reply(500, {
+      error: `R2 is nog niet ingesteld: deze secrets ontbreken in Supabase: ${missing.join(', ')}.`,
+    });
 
   const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
   if (!token) return reply(401, { error: 'sign in first' });
@@ -179,8 +246,13 @@ export async function handle(
   if (!UUID.test(space)) return reply(400, { error: 'bad universe' });
   if (!(await isMember(env, token, space, fetcher))) return reply(403, { error: 'not yours' });
 
-  const host = `${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
-  const sign = (method: string, key: string, query?: Record<string, string>, expires = 900) =>
+  const signAt = (
+    host: string,
+    method: string,
+    key: string,
+    query?: Record<string, string>,
+    expires = 900,
+  ) =>
     presign({
       method,
       host,
@@ -192,6 +264,17 @@ export async function handle(
       expires,
       query,
     });
+  const resolved = await findHost(env, fetcher, signAt);
+  const host = resolved.host;
+  const sign = (method: string, key: string, query?: Record<string, string>, expires = 900) =>
+    signAt(host, method, key, query, expires);
+
+  if (body.op === 'check') {
+    return reply(
+      200,
+      resolved.problem ? { ok: false, problem: resolved.problem } : { ok: true, host },
+    );
+  }
 
   if (body.op === 'sign') {
     const method = body.method === 'PUT' ? 'PUT' : 'GET';
@@ -262,6 +345,7 @@ if (deno) {
       R2_ACCESS_KEY_ID: env('R2_ACCESS_KEY_ID'),
       R2_SECRET_ACCESS_KEY: env('R2_SECRET_ACCESS_KEY'),
       R2_BUCKET: env('R2_BUCKET'),
+      R2_JURISDICTION: env('R2_JURISDICTION'),
     }),
   );
 }

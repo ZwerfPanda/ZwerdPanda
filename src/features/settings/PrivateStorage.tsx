@@ -1,11 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Copy, Eye, KeyRound, LoaderCircle, LockKeyhole, ShieldCheck } from 'lucide-react';
+import {
+  Copy,
+  Eye,
+  KeyRound,
+  LoaderCircle,
+  LockKeyhole,
+  ShieldCheck,
+  Stethoscope,
+} from 'lucide-react';
 import { toast } from '../../components/ui/feedback';
 import {
   enablePrivateMedia,
   joinPrivateMedia,
   privateMediaCode,
   refreshPrivateMedia,
+  testPrivateStorage,
   usePrivateMedia,
 } from '../../sync/privateMedia';
 import { formatCode, isCompleteCode } from '../../sync/sealed';
@@ -16,7 +25,9 @@ import { playSfx } from '../../lib/audio/sfx';
  * type our code (the other phone), and see that it's working.
  */
 export function PrivateStorage() {
-  const { status, oldLeft, sealing } = usePrivateMedia();
+  const { status, oldLeft, sealing, problem } = usePrivateMedia();
+  const [testing, setTesting] = useState(false);
+  const [tested, setTested] = useState<{ ok: boolean } | null>(null);
   const [fresh, setFresh] = useState<string | null>(null);
   const [shown, setShown] = useState<string | null>(null);
   const [typed, setTyped] = useState('');
@@ -170,14 +181,45 @@ export function PrivateStorage() {
             </p>
           ) : oldLeft > 0 ? (
             <p className="private-store__progress" role="status">
-              Nog {oldLeft} oude {oldLeft === 1 ? 'foto' : 'foto’s'} onversleuteld online — die
-              worden versleuteld zodra ze op deze (of de andere) telefoon staan.
+              Nog {oldLeft} {oldLeft === 1 ? 'foto' : 'foto’s'} die nog versleuteld of naar de
+              nieuwe opslag verplaatst moeten worden. Niets gaat verloren: het oude exemplaar blijft
+              staan tot het nieuwe er veilig staat.
             </p>
           ) : (
             <p className="private-store__progress is-done">
               <ShieldCheck aria-hidden="true" /> Alles online is versleuteld.
             </p>
           )}
+          {problem && !sealing && (
+            <div className="private-store__problem" role="alert">
+              <strong>Er gaat iets mis met de opslag</strong>
+              <p>{problem}</p>
+            </div>
+          )}
+          {tested && (
+            <p className={`private-store__progress${tested.ok ? ' is-done' : ''}`} role="status">
+              {tested.ok ? (
+                <>
+                  <ShieldCheck aria-hidden="true" /> De opslag werkt: versleuteld heen en terug.
+                </>
+              ) : (
+                'De test lukte niet — zie hierboven waarom.'
+              )}
+            </p>
+          )}
+          <button
+            type="button"
+            className="btn btn--ghost btn--small"
+            disabled={testing || Boolean(sealing)}
+            onClick={async () => {
+              setTesting(true);
+              setTested(null);
+              setTested(await testPrivateStorage());
+              setTesting(false);
+            }}
+          >
+            <Stethoscope aria-hidden="true" /> {testing ? 'Testen…' : 'Test de opslag'}
+          </button>
           {shown ? (
             <CodeView code={shown} />
           ) : (

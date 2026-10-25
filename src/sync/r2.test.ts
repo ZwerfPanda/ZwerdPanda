@@ -126,3 +126,48 @@ describe('the media-r2 function', () => {
     expect(res.status).toBe(500);
   });
 });
+
+describe('finding the bucket', () => {
+  it('finds a bucket kept in the EU by itself, and explains wrong keys', async () => {
+    const seen: string[] = [];
+    const eu = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith(env.SUPABASE_URL)) return new Response('[{"space_id":"x"}]');
+      const u = new URL(url);
+      seen.push(u.host);
+      if (!u.host.includes('.eu.'))
+        return new Response('<Error><Code>NoSuchBucket</Code></Error>', { status: 404 });
+      void init;
+      return new Response('<ListBucketResult><IsTruncated>false</IsTruncated></ListBucketResult>');
+    }) as typeof fetch;
+    const euEnv = { ...env, R2_ACCOUNT_ID: 'acct-eu' };
+    const res = await handle(post({ op: 'check', space: SPACE }), euEnv, eu);
+    expect(await res.json()).toEqual({ ok: true, host: 'acct-eu.eu.r2.cloudflarestorage.com' });
+    const signed = await handle(
+      post({ op: 'sign', space: SPACE, method: 'PUT', paths: [`${SPACE}/e2e/a.0`] }),
+      euEnv,
+      eu,
+    );
+    expect((await signed.json()).urls[0]).toContain('acct-eu.eu.r2.cloudflarestorage.com');
+
+    const badKeys = (async (input: RequestInfo | URL) =>
+      String(input).startsWith(env.SUPABASE_URL)
+        ? new Response('[{"space_id":"x"}]')
+        : new Response('<Error><Code>InvalidAccessKeyId</Code></Error>', {
+            status: 403,
+          })) as typeof fetch;
+    const wrong = await handle(
+      post({ op: 'check', space: SPACE }),
+      { ...env, R2_ACCOUNT_ID: 'acct-wrong' },
+      badKeys,
+    );
+    expect((await wrong.json()).problem).toMatch(/R2-sleutels kloppen niet/);
+
+    const missing = await handle(
+      post({ op: 'check', space: SPACE }),
+      { ...env, R2_SECRET_ACCESS_KEY: '' },
+      badKeys,
+    );
+    expect((await missing.json()).error).toMatch(/R2_SECRET_ACCESS_KEY/);
+  });
+});

@@ -739,3 +739,25 @@
 [data-theme='midnight'] .private-store__wrong {
   color: #ff9fb0;
 }
+
+.private-store__problem {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #fff1f0;
+  box-shadow: inset 0 0 0 1px #f2b8b5;
+  color: #7a1f1a;
+  font-size: 0.9rem;
+}
+
+.private-store__problem p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+[data-theme='midnight'] .private-store__problem {
+  background: rgba(255, 120, 120, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 150, 150, 0.35);
+  color: #ffc9c4;
+}

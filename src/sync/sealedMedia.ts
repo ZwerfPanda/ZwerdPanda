@@ -48,7 +48,9 @@ export interface PrivateMedia {
     space: string,
     localBlob: (id: string) => Promise<Blob | null>,
     progress?: (done: number, of: number) => void,
-  ): Promise<{ sealed: number; left: number }>;
+  ): Promise<{ sealed: number; left: number; problem?: string }>;
+  /** Tries the storage for real: a tiny sealed file up, back, and away again. */
+  test(space: string): Promise<{ ok: boolean; problem?: string }>;
 }
 
 const keyPath = (space: string) => `${space}/key/universe`;
@@ -205,13 +207,18 @@ export function sealBackend(
       const of = plainIds.length + moved.length;
       let done = 0;
       let failed = 0;
+      let problem: string | undefined;
+      const note = (error: unknown) => {
+        failed++;
+        problem ??= error instanceof Error ? error.message : String(error);
+      };
       for (const id of plainIds) {
         try {
           const blob = (await localBlob(id)) ?? (await backend.downloadMedia(space, id));
           if (blob) await putSealed(space, id, blob, key);
           else failed++;
-        } catch {
-          failed++;
+        } catch (error) {
+          note(error);
         }
         progress?.(++done, of);
       }
@@ -227,12 +234,31 @@ export function sealBackend(
             await sealed.put(`${folder(space)}/${p.name}`, bytes);
           }
           await plain.remove(pieces.map((o) => `${folder(space)}/${o.name}`));
-        } catch {
-          failed++;
+        } catch (error) {
+          note(error);
         }
         progress?.(++done, of);
       }
-      return { sealed: of - failed, left: failed };
+      return { sealed: of - failed, left: failed, problem };
+    },
+
+    async test(space) {
+      try {
+        const reach = await sealed.check?.(space);
+        if (reach && !reach.ok) return reach;
+        const key = await getKey(space);
+        if (!key) return { ok: false, problem: 'Deze telefoon heeft onze code nog niet.' };
+        const path = `${folder(space)}/_check.0`;
+        const bytes = await sealChunk(key, '_check', new Blob(['test']), 0);
+        await sealed.put(path, bytes);
+        const back = await sealed.get(path);
+        await sealed.remove([path]).catch(() => undefined);
+        if (!back || back.length !== bytes.length)
+          return { ok: false, problem: 'Uploaden lukte, maar terughalen niet.' };
+        return { ok: true };
+      } catch (error) {
+        return { ok: false, problem: error instanceof Error ? error.message : String(error) };
+      }
     },
   };
 

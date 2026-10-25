@@ -226,10 +226,11 @@ per maand, en bekijken/downloaden kost niets. Zet eerst privé-opslag aan (stap 
 **A. Cloudflare**
 1. Maak een account op [dash.cloudflare.com](https://dash.cloudflare.com) en open
    **R2 Object Storage**. Cloudflare vraagt een betaalmethode, ook voor het gratis deel.
-2. **Create bucket**, bijvoorbeeld `ons-universe`. Kies als locatie/jurisdictie **EU**
-   als dat wordt aangeboden.
+2. **Create bucket**, bijvoorbeeld `ons-universe`. Een bucket in de **EU** mag: de
+   functie vindt dat zelf uit (of zet het secret `R2_JURISDICTION` op `eu`).
 3. Open de bucket → **Settings → CORS policy → Add/Edit** en plak (met jullie eigen
-   site-adres):
+   site-adres, **precies** zoals in de adresbalk: met `https://`, zonder `/` aan het
+   eind; gebruik je ook een eigen domein, zet die er dan als tweede adres bij):
    ```json
    [
      {
@@ -260,7 +261,11 @@ per maand, en bekijken/downloaden kost niets. Zet eerst privé-opslag aan (stap 
    `VITE_` begint komt in de website zelf.)
 2. **Deploys → Trigger deploy → Deploy site**.
 
-Daarna gaan nieuwe foto's en video's naar R2. Wat al versleuteld in Supabase stond,
+Daarna gaan nieuwe foto's en video's naar R2. Op het kaartje **Privé-opslag** staat een
+knop **Test de opslag**: die stuurt een klein versleuteld bestandje heen en terug en zegt
+precies wat er mis is als het niet lukt (verkeerde sleutel, bucket niet gevonden,
+CORS-regel). Wordt de functie later bijgewerkt, plak dan de nieuwe code opnieuw in de
+editor van `media-r2` en klik **Deploy**. Wat al versleuteld in Supabase stond,
 verhuist vanzelf mee (zie het kaartje Privé-opslag). De functie geeft alleen
 ingelogde leden van jullie universe korte, tijdelijke links, alleen voor jullie eigen map.
 
