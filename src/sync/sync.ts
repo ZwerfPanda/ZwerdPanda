@@ -9,6 +9,8 @@ import { reportAfterSync } from './report';
 import { clearDeviceConfig, resolveSyncConfig, saveDeviceConfig, type SyncConfig } from './config';
 import type { SyncState } from './types';
 import { connectLive } from './live';
+import { sealBackend } from './sealedMedia';
+import { attachPrivateMedia, checkPrivateMediaAfterSync, phoneKeyStore } from './privateMedia';
 
 /**
  * The app-wide connection to the shared universe. With no server configured
@@ -35,13 +37,19 @@ let state: SyncState = { ...OFF, phase: 'starting' };
 let unsubscribeEngine: (() => void) | null = null;
 const listeners = new Set<() => void>();
 
+let privateMedia: ReturnType<typeof sealBackend>['privateMedia'] = null;
+
 function setState(next: SyncState) {
   state = next;
+  attachPrivateMedia(privateMedia, next.spaceId, () => void engine?.syncNow());
   // Whoever created the universe is `you`; the other signed-in person is `partner`.
   if (next.account && next.owner)
     setMe(sameEmail(next.account.email, next.owner) ? 'you' : 'partner');
   listeners.forEach((listener) => listener());
-  if (engine && next.phase === 'synced' && !next.pendingChanges) void reportAfterSync(engine);
+  if (engine && next.phase === 'synced' && !next.pendingChanges) {
+    void reportAfterSync(engine);
+    checkPrivateMediaAfterSync();
+  }
 }
 
 /** Email addresses don't care about capitals or stray spaces. */
@@ -110,7 +118,10 @@ export async function startSync() {
   }
   try {
     const { createSupabaseBackend } = await loadBackend();
-    engine = new SyncEngine(createSupabaseBackend(config), deps);
+    // Every photo and video is sealed on this phone before it goes anywhere.
+    const sealed = sealBackend(createSupabaseBackend(config), phoneKeyStore);
+    privateMedia = sealed.privateMedia;
+    engine = new SyncEngine(sealed.backend, deps);
     const offState = engine.subscribe(() => setState(engine!.getState()));
     const offLive = connectLive(engine);
     unsubscribeEngine = () => {

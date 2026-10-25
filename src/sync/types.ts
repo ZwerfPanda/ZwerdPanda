@@ -1,3 +1,5 @@
+import type { ObjectStore } from './objects';
+
 /**
  * What the sync engine needs from a server. The app ships a Supabase
  * implementation (supabaseBackend.ts); tests use an in-memory one.
@@ -42,6 +44,11 @@ export interface LiveLine {
 }
 
 export interface SyncBackend {
+  /** Plain file storage in the Supabase bucket (paths start with the universe id). */
+  objects?: ObjectStore;
+  /** Where sealed photos go: R2 when it's set up, otherwise the same bucket. */
+  sealedObjects?: ObjectStore;
+
   getAccount(): Promise<Account | null>;
   onAccountChange(listener: (account: Account | null) => void): () => void;
   onPasswordRecovery(listener: () => void): () => void;
@@ -108,5 +115,13 @@ export class OfflineError extends Error {
   constructor(message = 'Even geen verbinding.') {
     super(message);
     this.name = 'OfflineError';
+  }
+}
+
+/** Our photos are sealed, but this phone doesn't have our code yet: hold on to them. */
+export class KeyNeededError extends Error {
+  constructor(message = 'Vul eerst onze code in, dan gaan je foto’s mee.') {
+    super(message);
+    this.name = 'KeyNeededError';
   }
 }

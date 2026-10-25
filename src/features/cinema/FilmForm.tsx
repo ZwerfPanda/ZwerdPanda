@@ -9,7 +9,7 @@ import { MediaPicker } from '../../components/media/MediaPicker';
 import { MediaView } from '../../components/media/MediaView';
 import { toast } from '../../components/ui/feedback';
 import { createId, nowIso } from '../../lib/id';
-import { MAX_VIDEO_BYTES, formatBytes, putMedia } from '../../lib/media';
+import { maxVideoBytes, formatBytes, putMedia } from '../../lib/media';
 import { playSfx } from '../../lib/audio/sfx';
 import { GENRES, GENRE_IDS, captureStill } from './cinema';
 import { Poster } from './Poster';
@@ -55,9 +55,9 @@ export function FilmForm({
       setError(`“${file.name}” is geen filmpje.`);
       return;
     }
-    if (file.size > MAX_VIDEO_BYTES) {
+    if (file.size > maxVideoBytes()) {
       setError(
-        `“${file.name}” is ${formatBytes(file.size)}. Filmpjes tot ${formatBytes(MAX_VIDEO_BYTES)} passen in onze bios — kort hem even in, of film in 1080p in plaats van 4K.`,
+        `“${file.name}” is ${formatBytes(file.size)}. Filmpjes tot ${formatBytes(maxVideoBytes())} passen in onze bios — kort hem even in, of film in 1080p in plaats van 4K.`,
       );
       return;
     }
@@ -169,8 +169,7 @@ export function FilmForm({
                 </button>
               </div>
               <span className="field__hint">
-                Tot {formatBytes(MAX_VIDEO_BYTES)} — ongeveer 45 seconden in HD. Hij komt ook op de
-                telefoon van de ander.
+                Tot {formatBytes(maxVideoBytes())}. Hij komt ook op de telefoon van de ander.
               </span>
               <input
                 ref={input}

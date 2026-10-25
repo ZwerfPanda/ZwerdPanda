@@ -3,17 +3,14 @@ import { getContent, updateContent } from '../../data/store';
 import { getAuthor } from '../../data/people';
 import type { VaultItem } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
-import {
-  MAX_VIDEO_BYTES,
-  formatBytes,
-  getMediaBlob,
-  prepareImage,
-  putMedia,
-} from '../../lib/media';
+import { maxVideoBytes, formatBytes, getMediaBlob, prepareImage, putMedia } from '../../lib/media';
 import { captureStill } from '../cinema/cinema';
 import { decryptBytes, encryptBytes, openJson, sealJson } from './crypto';
 
 /** What's inside an item's sealed box. */
+/** The vault locks a whole file at once in memory: keep it to what a phone handles. */
+const vaultVideoBytes = () => Math.min(maxVideoBytes(), 300 * 1024 * 1024);
+
 export interface ItemMeta {
   kind: 'image' | 'video';
   mime: string;
@@ -153,9 +150,9 @@ export async function addToVault(
       let full: Blob = file;
       let meta: ItemMeta;
       if (video) {
-        if (file.size > MAX_VIDEO_BYTES)
+        if (file.size > vaultVideoBytes())
           throw new Error(
-            `“${file.name}” is ${formatBytes(file.size)} — filmpjes tot ${formatBytes(MAX_VIDEO_BYTES)} passen hier.`,
+            `“${file.name}” is ${formatBytes(file.size)} — filmpjes tot ${formatBytes(vaultVideoBytes())} passen hier.`,
           );
         meta = { kind: 'video', mime: file.type || 'video/mp4', category };
       } else if (file.type.startsWith('image/') || /\.(heic|heif)$/i.test(file.name)) {

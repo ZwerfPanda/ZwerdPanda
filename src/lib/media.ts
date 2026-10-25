@@ -187,6 +187,19 @@ export function useMediaUrl(id: string | undefined): MediaUrlState {
 
 /** The free Supabase plan takes files up to 50 MB. */
 export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+/** Sealed photos travel in 8 MB pieces, so a file can be (much) bigger. */
+export const SEALED_VIDEO_BYTES = 2 * 1024 * 1024 * 1024;
+let sealedOn = false;
+
+/** Set by the sync connection once this phone seals our photos. */
+export function setSealedUploads(on: boolean) {
+  sealedOn = on;
+}
+
+/** How big a video may be right now. */
+export function maxVideoBytes(): number {
+  return sealedOn ? SEALED_VIDEO_BYTES : MAX_VIDEO_BYTES;
+}
 export const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
 const MAX_IMAGE_EDGE = 2000;
 

@@ -10,6 +10,7 @@ import {
 } from './merge';
 import { CONTENT_SCHEMA } from '../data/defaults';
 import {
+  KeyNeededError,
   OfflineError,
   type Account,
   type LiveLine,
@@ -474,6 +475,8 @@ export class SyncEngine {
           } catch (error) {
             // No connection: stop and try everything again later.
             if (error instanceof OfflineError) throw error;
+            // This phone can't seal yet (no code): keep them all here for now.
+            if (error instanceof KeyNeededError) break;
             // One photo the server refuses (too big, say) mustn't hold up all the others.
             this.uploadFailed.add(id);
           }

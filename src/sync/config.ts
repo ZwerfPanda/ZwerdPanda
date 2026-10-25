@@ -11,6 +11,13 @@ export interface SyncConfig {
   url: string;
   anonKey: string;
   source: 'build' | 'file' | 'device';
+  /** Where our (sealed) photos and videos go: the Supabase bucket, or Cloudflare R2. */
+  mediaStore?: 'supabase' | 'r2';
+}
+
+/** R2 is switched on with VITE_MEDIA_STORE=r2 (or "mediaStore": "r2" in universe-config.json). */
+function mediaStoreFrom(value: unknown): SyncConfig['mediaStore'] {
+  return value === 'r2' ? 'r2' : 'supabase';
 }
 
 const DEVICE_KEY = 'olu:sync:config:v1';
@@ -54,14 +61,24 @@ function clean(url: string, anonKey: string, source: SyncConfig['source']): Sync
 export async function resolveSyncConfig(): Promise<SyncConfig | null> {
   const env = import.meta.env;
   if (isValidConfig(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY)) {
-    return clean(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY!, 'build');
+    return {
+      ...clean(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY!, 'build'),
+      mediaStore: mediaStoreFrom(env.VITE_MEDIA_STORE),
+    };
   }
   try {
     const response = await fetch('./universe-config.json', { cache: 'no-cache' });
     if (response.ok) {
-      const file = (await response.json()) as { supabaseUrl?: string; supabaseAnonKey?: string };
+      const file = (await response.json()) as {
+        supabaseUrl?: string;
+        supabaseAnonKey?: string;
+        mediaStore?: string;
+      };
       if (isValidConfig(file.supabaseUrl, file.supabaseAnonKey)) {
-        return clean(file.supabaseUrl, file.supabaseAnonKey!, 'file');
+        return {
+          ...clean(file.supabaseUrl, file.supabaseAnonKey!, 'file'),
+          mediaStore: mediaStoreFrom(file.mediaStore),
+        };
       }
     }
   } catch {

@@ -23,6 +23,31 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-7',
+    when: 'oktober 2026',
+    title: 'Privé-opslag: alleen voor ons twee',
+    items: [
+      {
+        emoji: '🔐',
+        title: 'Versleuteld op je telefoon',
+        text: 'Foto’s en video’s worden op je telefoon op slot gezet voordat ze vertrekken. Alleen wij twee kunnen ze zien.',
+        path: '/settings',
+      },
+      {
+        emoji: '🔑',
+        title: 'Onze code',
+        text: 'Heb je een code van mij gekregen? Vul hem in bij Instellingen → Samen → Privé-opslag.',
+        path: '/settings',
+      },
+      {
+        emoji: '🎬',
+        title: 'Grote video’s',
+        text: 'Met privé-opslag aan passen video’s tot 2 GB.',
+        path: '/cinema',
+      },
+    ],
+  },
+  {
     id: '2026-10-6',
     when: 'oktober 2026',
     title: 'Coco’s hoekje, helemaal opnieuw',

@@ -2,6 +2,7 @@ import { createClient, type User } from '@supabase/supabase-js';
 import type { SyncConfig } from './config';
 import { kvStore } from './kvStore';
 import { OfflineError, type Account, type SyncBackend } from './types';
+import { r2Store, type ObjectStore } from './objects';
 
 /**
  * The shared universe on Supabase (see supabase/schema.sql).
@@ -89,7 +90,75 @@ export function createSupabaseBackend(config: SyncConfig): SyncBackend {
     return result.data;
   };
 
+  /** The Supabase bucket as plain file storage. */
+  const bucket: ObjectStore = {
+    async put(path, data, options) {
+      // As a Blob, exactly like our photos always went up.
+      const body =
+        data instanceof Blob
+          ? data
+          : new Blob([data as BlobPart], { type: 'application/octet-stream' });
+      const { error } = await client.storage.from(BUCKET).upload(path, body, {
+        upsert: !options?.create,
+        contentType: 'application/octet-stream',
+        cacheControl: '31536000',
+      });
+      if (!error) return true;
+      const e = error as { statusCode?: string | number; message?: string };
+      if (
+        options?.create &&
+        (String(e.statusCode) === '409' || /duplicate|already exists/i.test(e.message ?? ''))
+      )
+        return false;
+      throw toError(error);
+    },
+    async get(path) {
+      const { data, error } = await client.storage.from(BUCKET).download(path);
+      if (error) {
+        const converted = toError(error);
+        if (converted instanceof OfflineError) throw converted;
+        return null;
+      }
+      return new Uint8Array(await data.arrayBuffer());
+    },
+    async list(folder) {
+      const all: { name: string; createdAt: string | null }[] = [];
+      for (let offset = 0; ; offset += 1000) {
+        const page = (await call(
+          client.storage.from(BUCKET).list(folder, { limit: 1000, offset }),
+        )) as { name: string; id: string | null; created_at?: string | null }[];
+        // Folders come back too (without an id): only files count.
+        all.push(
+          ...page
+            .filter((p) => p.id)
+            .map((p) => ({ name: p.name, createdAt: p.created_at ?? null })),
+        );
+        if (page.length < 1000) break;
+      }
+      return all;
+    },
+    async remove(paths) {
+      for (let i = 0; i < paths.length; i += 1000) {
+        const batch = paths.slice(i, i + 1000);
+        if (batch.length) await call(client.storage.from(BUCKET).remove(batch));
+      }
+    },
+  };
+
+  const sealedObjects =
+    config.mediaStore === 'r2'
+      ? r2Store({
+          functionUrl: `${config.url}/functions/v1/media-r2`,
+          anonKey: config.anonKey,
+          token: async () => (await client.auth.getSession()).data.session?.access_token ?? null,
+          spaceOf: (path) => path.split('/')[0],
+        })
+      : bucket;
+
   return {
+    objects: bucket,
+    sealedObjects,
+
     async getAccount() {
       const { data } = await client.auth.getSession();
       return toAccount(data.session?.user);
@@ -263,8 +332,13 @@ export function createSupabaseBackend(config: SyncConfig): SyncBackend {
       const all: { id: string; createdAt: string | null }[] = [];
       for (let offset = 0; ; offset += 1000) {
         const page = await call(client.storage.from(BUCKET).list(spaceId, { limit: 1000, offset }));
-        const items = page as { name: string; created_at?: string | null }[];
-        all.push(...items.map((item) => ({ id: item.name, createdAt: item.created_at ?? null })));
+        const items = page as { name: string; id?: string | null; created_at?: string | null }[];
+        // Our sealed photos live in subfolders (e2e/, key/): those aren't plain photos.
+        all.push(
+          ...items
+            .filter((item) => item.id !== null)
+            .map((item) => ({ id: item.name, createdAt: item.created_at ?? null })),
+        );
         if (items.length < 1000) break;
       }
       return all;

@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL?: string;
   /** Supabase "anon public" key (optional; safe to expose). */
   readonly VITE_SUPABASE_ANON_KEY?: string;
+  readonly VITE_MEDIA_STORE?: string;
 }
 
 interface ImportMeta {

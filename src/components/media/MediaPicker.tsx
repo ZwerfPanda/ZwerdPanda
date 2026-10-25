@@ -1,7 +1,7 @@
 import { useId, useRef, useState } from 'react';
 import { ImagePlus, Loader2, X } from 'lucide-react';
 import type { MediaSource } from '../../data/types';
-import { MAX_VIDEO_BYTES, formatBytes, prepareImage, putMedia } from '../../lib/media';
+import { maxVideoBytes, formatBytes, prepareImage, putMedia } from '../../lib/media';
 import { MediaView } from './MediaView';
 import './media.css';
 
@@ -41,9 +41,9 @@ export function MediaPicker({
         if (file.type.startsWith('video/')) {
           if (!allowVideo)
             throw new Error(`“${file.name}” is een video — hier passen alleen foto’s.`);
-          if (file.size > MAX_VIDEO_BYTES) {
+          if (file.size > maxVideoBytes()) {
             throw new Error(
-              `“${file.name}” is ${formatBytes(file.size)}. Filmpjes tot ${formatBytes(MAX_VIDEO_BYTES)} passen hier.`,
+              `“${file.name}” is ${formatBytes(file.size)}. Filmpjes tot ${formatBytes(maxVideoBytes())} passen hier.`,
             );
           }
           const mediaId = await putMedia(file, file.name);

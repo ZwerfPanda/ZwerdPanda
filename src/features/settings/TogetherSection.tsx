@@ -26,6 +26,7 @@ import {
 } from '../../sync/sync';
 import { isValidConfig, looksLikeSecretKey } from '../../sync/config';
 import { SyncCheck } from './SyncCheck';
+import { PrivateStorage } from './PrivateStorage';
 import { timeAgo } from '../../lib/dates';
 import type { SyncState } from '../../sync/types';
 
@@ -579,6 +580,8 @@ function Connected({ sync }: { sync: SyncState }) {
           </p>
         </>
       )}
+
+      <PrivateStorage />
 
       <SyncCheck sync={sync} />
 

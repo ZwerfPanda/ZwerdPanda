@@ -189,6 +189,81 @@ precies zien wat je op dát apparaat moet doen:
 De app opent dan schermvullend met een eigen icoon, en werkt ook offline. Een App Store
 of Play Store is niet nodig.
 
+## Stap 8: zet privé-opslag aan
+
+Hiermee wordt elke foto en video **op jullie telefoon versleuteld** voordat hij vertrekt.
+Supabase (en later Cloudflare) krijgt alleen onleesbare data: zij, hackers of wie dan ook
+kunnen niet zien wat erop staat. Alleen jullie twee telefoons hebben de sleutel.
+
+1. Werk eerst **allebei** de app bij (gewoon openen; hij werkt zichzelf bij).
+2. Op jouw telefoon: **Instellingen → Samen → Privé-opslag → Zet privé-opslag aan**.
+3. Je krijgt een code van 20 tekens, zoals `ABCD-EFGH-JKMN-PQRS-TVWX`. **Schrijf hem op
+   papier** en bewaar hem op een veilige plek. Vink aan dat je hem hebt opgeschreven.
+4. Op haar telefoon: **Instellingen → Samen → Privé-opslag**, vul de code in en tik
+   **Koppelen**. Hoofdletters, spaties en streepjes maken niet uit.
+5. Klaar. Foto's die al online stonden worden vanzelf versleuteld, en de onversleutelde
+   versie wordt verwijderd. Je ziet de voortgang op hetzelfde kaartje; als het klaar is
+   staat er **Alles online is versleuteld**.
+
+Goed om te weten:
+- **De code is de enige sleutel.** Raken jullie allebei je telefoon kwijt én de code, dan
+  kan niemand de foto's nog openen — ook niet met hulp. Op een telefoon die al gekoppeld
+  is zie je hem terug via **Toon onze code**.
+- Een nieuwe telefoon koppel je op dezelfde manier: inloggen en de code invullen.
+- Zolang een telefoon de code nog niet heeft, houdt die nieuwe foto's even bij zich in
+  plaats van ze onversleuteld te versturen. Na het koppelen gaan ze alsnog.
+- Wat Supabase/Cloudflare nog wél kan zien: hoeveel bestanden er zijn, hoe groot ze zijn
+  en wanneer ze zijn geüpload. Niet wat erop staat.
+- De foto's op jullie telefoon zelf (en in je fotogalerij of iCloud/Google Foto's) zijn
+  gewoon zichtbaar voor wie je ontgrendelde telefoon heeft.
+
+## Meer ruimte: Cloudflare R2 (optioneel)
+
+Supabase gratis geeft ongeveer 1 GB. Wil je meer, dan kunnen de (versleutelde) foto's en
+video's naar Cloudflare R2: de eerste 10 GB zijn gratis, daarna ongeveer $0,015 per GB
+per maand, en bekijken/downloaden kost niets. Zet eerst privé-opslag aan (stap 8).
+
+**A. Cloudflare**
+1. Maak een account op [dash.cloudflare.com](https://dash.cloudflare.com) en open
+   **R2 Object Storage**. Cloudflare vraagt een betaalmethode, ook voor het gratis deel.
+2. **Create bucket**, bijvoorbeeld `ons-universe`. Kies als locatie/jurisdictie **EU**
+   als dat wordt aangeboden.
+3. Open de bucket → **Settings → CORS policy → Add/Edit** en plak (met jullie eigen
+   site-adres):
+   ```json
+   [
+     {
+       "AllowedOrigins": ["https://jullie-site.netlify.app"],
+       "AllowedMethods": ["GET", "PUT"],
+       "AllowedHeaders": ["content-type"],
+       "MaxAgeSeconds": 3600
+     }
+   ]
+   ```
+4. Terug in **R2** → **Manage API tokens → Create API token**. Rechten: **Object Read &
+   Write**, alleen voor deze bucket. Je krijgt een **Access Key ID** en een **Secret
+   Access Key**. Je **Account ID** staat op de R2-pagina.
+
+**B. Supabase (de sleutel blijft hier, nooit in de app)**
+1. **Edge Functions → Deploy a new function → Via Editor**. Naam: `media-r2`.
+2. Plak de hele inhoud van `supabase/functions/media-r2/index.ts` uit deze repository en
+   klik **Deploy**. Laat "Verify JWT" aan staan.
+3. **Edge Functions → Secrets**, voeg toe:
+   - `R2_ACCOUNT_ID` — je Account ID
+   - `R2_ACCESS_KEY_ID` — de Access Key ID
+   - `R2_SECRET_ACCESS_KEY` — de Secret Access Key
+   - `R2_BUCKET` — de naam van de bucket, bijvoorbeeld `ons-universe`
+
+**C. Netlify**
+1. **Site configuration → Environment variables → Add a variable**:
+   `VITE_MEDIA_STORE` = `r2`. (Zet hier **nooit** de Secret Access Key: alles wat met
+   `VITE_` begint komt in de website zelf.)
+2. **Deploys → Trigger deploy → Deploy site**.
+
+Daarna gaan nieuwe foto's en video's naar R2. Wat al versleuteld in Supabase stond,
+verhuist vanzelf mee (zie het kaartje Privé-opslag). De functie geeft alleen
+ingelogde leden van jullie universe korte, tijdelijke links, alleen voor jullie eigen map.
+
 ---
 
 ## Goed om te weten
@@ -274,9 +349,10 @@ kunt; met **Bewerken** pas je weer aan. Shenaya ziet jouw versie op haar telefoo
 
 **Onze bioscoop**
 
-Filmpjes in de bioscoop mogen tot 50 MB zijn (de grens van het gratis Supabase-plan), ongeveer 45 seconden in HD. Ze gaan net als
-foto's naar de privé-map in Supabase en komen zo ook op de andere telefoon. Filmpjes
-nemen het snelst de gratis ruimte van ongeveer 1 GB in beslag.
+Zonder privé-opslag mogen filmpjes tot 50 MB zijn (de grens van het gratis
+Supabase-plan). Met privé-opslag aan (stap 8) gaan ze in versleutelde stukjes en mogen
+ze tot 2 GB zijn. Filmpjes nemen het snelst de gratis ruimte van ongeveer 1 GB in
+beslag; voor meer ruimte zie **Meer ruimte: Cloudflare R2** hieronder.
 
 **Ons geheimpje**
 

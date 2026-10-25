@@ -504,7 +504,10 @@ export function carryForward(shared: AppContent, ours: AppContent, writer: numbe
       pet: {
         ...out.pet,
         decor: ours.pet.decor,
-        log: [...out.pet.log, ...ours.pet.log.filter((e) => e.action === 'decor' && !known.has(e.id))]
+        log: [
+          ...out.pet.log,
+          ...ours.pet.log.filter((e) => e.action === 'decor' && !known.has(e.id)),
+        ]
           .sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0))
           .slice(0, PET_LOG_LIMIT),
       },

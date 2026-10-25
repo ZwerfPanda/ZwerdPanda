@@ -598,3 +598,144 @@
   justify-content: space-between;
   text-transform: capitalize;
 }
+
+/* ------------------------------------------------------- private storage */
+
+.private-store {
+  display: grid;
+  gap: 12px;
+  margin: 8px 0 4px;
+  padding: 16px;
+  border-radius: 20px;
+  background: linear-gradient(160deg, var(--accent-wash), transparent 70%), var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.private-store h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.private-store h3 svg {
+  width: 20px;
+  height: 20px;
+  color: var(--accent-strong);
+}
+
+.private-store__on {
+  margin-left: auto;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #dff0de;
+  color: #2f6b3a;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.private-store .field__hint,
+.private-store__lead {
+  margin: 0;
+}
+
+.private-store__lead {
+  font-weight: 700;
+}
+
+.private-store__code-box {
+  display: grid;
+  gap: 12px;
+}
+
+.private-store__code {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 8px;
+  margin: 0;
+  padding: 14px 10px;
+  border-radius: 16px;
+  background: var(--surface-raised);
+  box-shadow: inset 0 0 0 1.5px var(--accent-soft);
+}
+
+.private-store__code span {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+}
+
+.private-store__points {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.private-store__check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.private-store__check input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+
+.private-store__join {
+  display: grid;
+  gap: 10px;
+}
+
+.private-store__input {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.private-store__wrong {
+  margin: 0;
+  color: #b3263f;
+  font-weight: 700;
+}
+
+.private-store__progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.private-store__progress svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+.private-store__progress.is-done {
+  color: #2f6b3a;
+  font-weight: 700;
+}
+
+[data-theme='midnight'] .private-store__on {
+  background: rgba(111, 174, 127, 0.2);
+  color: #a9dbb3;
+}
+
+[data-theme='midnight'] .private-store__progress.is-done {
+  color: #a9dbb3;
+}
+
+[data-theme='midnight'] .private-store__wrong {
+  color: #ff9fb0;
+}
