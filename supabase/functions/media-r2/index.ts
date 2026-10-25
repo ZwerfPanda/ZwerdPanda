@@ -270,10 +270,30 @@ export async function handle(
     signAt(host, method, key, query, expires);
 
   if (body.op === 'check') {
-    return reply(
-      200,
-      resolved.problem ? { ok: false, problem: resolved.problem } : { ok: true, host },
-    );
+    if (resolved.problem) return reply(200, { ok: false, problem: resolved.problem });
+    // From here (no browser, so no CORS): a tiny file in, out and away again.
+    const probe = `${space}/e2e/_server-check.0`;
+    try {
+      const put = await fetcher(await sign('PUT', probe, undefined, 60), {
+        method: 'PUT',
+        body: 'ok',
+      });
+      if (!put.ok)
+        return reply(200, {
+          ok: false,
+          problem: `Schrijven naar R2 lukt niet: ${explain(put.status, await put.text(), env)}`,
+        });
+      const got = await fetcher(await sign('GET', probe, undefined, 60));
+      await fetcher(await sign('DELETE', probe, undefined, 60), { method: 'DELETE' });
+      if (!got.ok)
+        return reply(200, {
+          ok: false,
+          problem: `Lezen uit R2 lukt niet: ${explain(got.status, await got.text(), env)}`,
+        });
+    } catch {
+      return reply(200, { ok: false, problem: `R2 (${host}) is niet bereikbaar.` });
+    }
+    return reply(200, { ok: true, host, server: 'ok' });
   }
 
   if (body.op === 'sign') {

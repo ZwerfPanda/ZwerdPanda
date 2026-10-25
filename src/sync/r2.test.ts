@@ -142,7 +142,7 @@ describe('finding the bucket', () => {
     }) as typeof fetch;
     const euEnv = { ...env, R2_ACCOUNT_ID: 'acct-eu' };
     const res = await handle(post({ op: 'check', space: SPACE }), euEnv, eu);
-    expect(await res.json()).toEqual({ ok: true, host: 'acct-eu.eu.r2.cloudflarestorage.com' });
+    expect(await res.json()).toMatchObject({ ok: true, host: 'acct-eu.eu.r2.cloudflarestorage.com' });
     const signed = await handle(
       post({ op: 'sign', space: SPACE, method: 'PUT', paths: [`${SPACE}/e2e/a.0`] }),
       euEnv,

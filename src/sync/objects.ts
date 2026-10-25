@@ -24,7 +24,7 @@ export interface ObjectStore {
 
 /** The function answered, but the browser wasn't allowed to talk to R2 itself. */
 export const CORS_PROBLEM =
-  'Je browser mag niet bij Cloudflare R2. Controleer de CORS-regel van de bucket: daar moet precies dit adres in staan:';
+  'De opslag zelf werkt, maar je browser mag niet bij Cloudflare R2. Controleer de CORS-regel van de bucket (AllowedHeaders ["*"], methodes GET en PUT); daar moet precies dit adres in staan:';
 
 function bodyOf(data: Blob | Uint8Array): Blob {
   return data instanceof Blob
