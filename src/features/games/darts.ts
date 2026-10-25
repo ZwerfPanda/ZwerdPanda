@@ -53,3 +53,57 @@ export function cocoDarts(random = Math.random): Hit[] {
     return scoreAt(x, y);
   });
 }
+
+/* ------------------------------------------------------------ the throw */
+
+/**
+ * A real throw: you hold the dart on the board (your hand sways, more the
+ * longer you hold), then flick up. The flick's speed decides the height —
+ * too soft and the dart drops, too hard and it flies high — and a slanted
+ * flick pulls it sideways. So pointing at the bullseye isn't enough.
+ */
+export interface Flick {
+  /** Upward speed, in board widths per second. */
+  speed: number;
+  /** Sideways per upward (0 is straight). */
+  slant: number;
+}
+
+/** The sweet spot for a flick's speed (board widths per second). */
+export const IDEAL_FLICK = 4.2;
+const SPEED_TOLERANCE = 0.45;
+
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+/** How far the hand sways at `t` seconds after picking up the dart. */
+export function swayAt(t: number, calm = false): { x: number; y: number } {
+  // Steady for a breath, then the arm gets tired.
+  const tired = t < 1.4 ? 0 : Math.min(0.1, (t - 1.4) * 0.05);
+  const a = (calm ? 0.05 : 0.075) + tired;
+  return {
+    x: a * Math.sin(t * 2.3) + a * 0.55 * Math.sin(t * 5.9 + 1),
+    y: a * Math.cos(t * 1.9) + a * 0.55 * Math.sin(t * 4.7 + 2),
+  };
+}
+
+export type Power = 'soft' | 'good' | 'hard';
+
+/** Where a dart lands: the aim, the sway when it left the hand, and the flick. */
+export function dartLanding(
+  aim: { x: number; y: number },
+  sway: { x: number; y: number },
+  flick: Flick,
+  random = Math.random,
+): { x: number; y: number; power: Power } {
+  const off = (IDEAL_FLICK - flick.speed) / IDEAL_FLICK; // >0: too soft
+  // Within the sweet spot only a little drift; outside it grows fast.
+  const beyond = Math.sign(off) * Math.max(0, Math.abs(off) - 0.06);
+  const dy = clamp(beyond * 1.15, -0.7, 0.9);
+  const dx = clamp(flick.slant * 0.55, -0.6, 0.6);
+  const jitter = 0.02 + Math.abs(off) * 0.04;
+  return {
+    x: aim.x + sway.x + dx + gauss(random) * jitter,
+    y: aim.y + sway.y + dy + gauss(random) * jitter,
+    power: off > SPEED_TOLERANCE / 3 ? 'soft' : off < -SPEED_TOLERANCE / 3 ? 'hard' : 'good',
+  };
+}

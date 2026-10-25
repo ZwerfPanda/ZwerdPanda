@@ -25,11 +25,14 @@ import type { VaultItem } from '../../data/types';
 import { createLock, unlock } from './crypto';
 import {
   addToVault,
+  isPicking,
   lockVault,
   removeCategory,
   removeItems,
   saveCategory,
   setVaultKey,
+  startPicking,
+  stopPicking,
   updateItemMeta,
   useOpened,
   useVaultKey,
@@ -52,7 +55,10 @@ function useAutoLock() {
     let timer = 0;
     const onVis = () => {
       window.clearTimeout(timer);
-      if (document.hidden) timer = window.setTimeout(lockVault, 20_000);
+      // Choosing photos isn't leaving: the picker covers the app for a while.
+      if (document.hidden && !isPicking()) timer = window.setTimeout(lockVault, 20_000);
+      // Back without choosing anything (a cancelled picker): normal locking again soon.
+      if (!document.hidden && isPicking()) timer = window.setTimeout(stopPicking, 60_000);
     };
     document.addEventListener('visibilitychange', onVis);
     return () => {
@@ -369,6 +375,12 @@ function Gallery({ k }: { k: CryptoKey }) {
   const [catForm, setCatForm] = useState<{ open: boolean; id?: string }>({ open: false });
   const [busy, setBusy] = useState<{ done: number; of: number } | null>(null);
   const input = useRef<HTMLInputElement>(null);
+  // Closing the picker without choosing.
+  useEffect(() => {
+    const el = input.current;
+    el?.addEventListener('cancel', stopPicking);
+    return () => el?.removeEventListener('cancel', stopPicking);
+  }, []);
 
   const shown = useMemo(
     () =>
@@ -391,19 +403,29 @@ function Gallery({ k }: { k: CryptoKey }) {
   const videos = metas.size - photos;
 
   const add = async (files: FileList | null) => {
+    stopPicking();
     if (!files?.length) return;
     const list = Array.from(files);
+    // Right away, so it's clear the photos arrived (sealing a video takes a moment).
     setBusy({ done: 0, of: list.length });
     const category = cat !== 'all' && cat !== 'fav' && cat !== 'none' ? cat : undefined;
-    const problems = await addToVault(k, list, category, (done) =>
-      setBusy({ done, of: list.length }),
-    );
-    setBusy(null);
-    if (input.current) input.current.value = '';
-    if (problems.length) toast(problems[0], { tone: 'error' });
-    else {
-      playSfx('seal', true);
-      toast(`${list.length === 1 ? 'Verzegeld' : `${list.length} stuks verzegeld`} 🔒`);
+    try {
+      const problems = await addToVault(k, list, category, (done) =>
+        setBusy({ done, of: list.length }),
+      );
+      if (problems.length === list.length) toast(problems[0], { tone: 'error' });
+      else {
+        playSfx('seal', true);
+        const ok = list.length - problems.length;
+        toast(
+          `${ok === 1 ? 'Verzegeld' : `${ok} stuks verzegeld`} 🔒${problems.length ? ` · ${problems[0]}` : ''}`,
+        );
+      }
+    } catch (e) {
+      toast(e instanceof Error ? e.message : 'Toevoegen lukte niet.', { tone: 'error' });
+    } finally {
+      setBusy(null);
+      if (input.current) input.current.value = '';
     }
   };
 
@@ -548,22 +570,24 @@ function Gallery({ k }: { k: CryptoKey }) {
         </ul>
       )}
 
-      <button
-        type="button"
-        className="vault-btn vault-add"
-        onClick={() => input.current?.click()}
-        disabled={Boolean(busy)}
+      {/* A real label around the input: the phone opens its picker by itself,
+          which iPhones trust more than a button that clicks a hidden input. */}
+      <label
+        className={`vault-btn vault-add${busy ? ' is-busy' : ''}`}
+        aria-disabled={Boolean(busy)}
       >
         {busy ? `Verzegelen… ${busy.done}/${busy.of}` : '+ Toevoegen'}
-      </button>
-      <input
-        ref={input}
-        type="file"
-        accept="image/*,video/*"
-        multiple
-        hidden
-        onChange={(e) => void add(e.target.files)}
-      />
+        <input
+          ref={input}
+          type="file"
+          accept="image/*,video/*"
+          multiple
+          className="visually-hidden"
+          disabled={Boolean(busy)}
+          onClick={startPicking}
+          onChange={(e) => void add(e.target.files)}
+        />
+      </label>
 
       <p className="vault-note">
         🔒 Versleuteld met jullie wachtwoord · vergrendelt vanzelf als je de app wegzet of deze

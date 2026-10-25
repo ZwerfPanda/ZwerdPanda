@@ -9,7 +9,22 @@ import { useReducedMotion } from '../../hooks/useMotion';
 import { addScore, startMatch, updateMatch, useBest, useMatch } from './gameData';
 import { recordResult } from './gameStats';
 import { GameShell, ScoreBoard, TurnBanner, WhoAreYou, type PlayMode } from './GameShell';
-import { DARTS_PER_TURN, RINGS, SEGMENTS, TURNS, cocoDarts, scoreAt, type Hit } from './darts';
+import {
+  DARTS_PER_TURN,
+  IDEAL_FLICK,
+  RINGS,
+  SEGMENTS,
+  TURNS,
+  cocoDarts,
+  dartLanding,
+  scoreAt,
+  swayAt,
+  type Hit,
+  type Power,
+} from './darts';
+
+const HOW_TO_THROW =
+  'Houd je vinger op het bord om te mikken — je hand zwaait, hoe langer je wacht hoe meer. Veeg dan recht omhoog om te gooien: niet te zacht, niet te hard.';
 
 /** A dart thudding into the board (or bouncing off), with a cheer for the big ones. */
 function dartSound(score: number) {
@@ -113,6 +128,161 @@ function toBoard(svg: SVGSVGElement, clientX: number, clientY: number) {
   };
 }
 
+/* ------------------------------------------------------------ the hand */
+
+interface Sample {
+  x: number;
+  y: number;
+  t: number;
+}
+
+/**
+ * Holding and throwing a dart: put your finger on the board to pick it up
+ * (move slowly to aim — your hand sways), then flick up to throw. How hard
+ * and how straight you flick decides where it really goes.
+ */
+function useDartHand(
+  svg: React.RefObject<SVGSVGElement | null>,
+  enabled: boolean,
+  reduce: boolean,
+  onThrow: (x: number, y: number, power: Power, speed: number) => void,
+) {
+  const [aim, setAim] = useState<{ x: number; y: number } | null>(null);
+  const [sway, setSway] = useState({ x: 0, y: 0 });
+  const [flying, setFlying] = useState(false);
+  const [hint, setHint] = useState<string | null>(null);
+  const held = useRef<{ start: number; samples: Sample[]; flickAt: number | null } | null>(null);
+  const swayNow = useRef({ x: 0, y: 0 });
+
+  // The hand is never completely still.
+  useEffect(() => {
+    if (!aim) return;
+    let raf = 0;
+    const tick = (now: number) => {
+      const start = held.current?.start ?? now;
+      const next = swayAt((now - start) / 1000, reduce);
+      // Once the flick starts the dart has left your hand: it stops swaying.
+      if (held.current?.flickAt == null) {
+        swayNow.current = next;
+        setSway(next);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [aim !== null, reduce]);
+
+  const fingerAim = (e: React.PointerEvent) => {
+    const p = toBoard(svg.current!, e.clientX, e.clientY);
+    // A finger covers what it touches: hold the dart a little above it.
+    return { x: p.x, y: p.y - (e.pointerType === 'touch' ? 0.22 : 0) };
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (!enabled || flying) return;
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+    held.current = {
+      start: performance.now(),
+      samples: [{ x: e.clientX, y: e.clientY, t: performance.now() }],
+      flickAt: null,
+    };
+    setHint(null);
+    setAim(fingerAim(e));
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    const h = held.current;
+    if (!h) return;
+    const now = performance.now();
+    h.samples.push({ x: e.clientX, y: e.clientY, t: now });
+    if (h.samples.length > 60) h.samples.splice(0, h.samples.length - 60);
+    if (h.flickAt != null) return;
+    // A quick move up starts the throw; anything slower just aims.
+    const recent = h.samples.filter((s) => now - s.t < 70);
+    const first = recent[0];
+    const up = first ? first.y - e.clientY : 0;
+    const width = svg.current?.getBoundingClientRect().width || 300;
+    if (first && up > width * 0.035 && up / Math.max(8, now - first.t) > width * 0.0012) {
+      h.flickAt = h.samples.indexOf(first);
+      return;
+    }
+    setAim(fingerAim(e));
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    const h = held.current;
+    held.current = null;
+    if (!h || !aim) return setAim(null);
+    if (h.flickAt == null) {
+      setAim(null);
+      setHint('Veeg omhoog om te gooien ↑ — een rustige, rechte veeg');
+      return;
+    }
+    const from = h.samples[h.flickAt];
+    const end = { x: e.clientX, y: e.clientY, t: performance.now() };
+    const width = svg.current?.getBoundingClientRect().width || 300;
+    const up = Math.max(1, from.y - end.y);
+    const seconds = Math.max(0.016, (end.t - from.t) / 1000);
+    const speed = up / width / seconds;
+    const slant = (end.x - from.x) / up;
+    const land = dartLanding(aim, swayNow.current, { speed, slant });
+    setAim(null);
+    setFlying(true);
+    playSfx('whoosh', true);
+    window.setTimeout(
+      () => {
+        setFlying(false);
+        onThrow(land.x, land.y, land.power, speed);
+      },
+      reduce ? 60 : 220,
+    );
+  };
+
+  const onPointerCancel = () => {
+    held.current = null;
+    setAim(null);
+  };
+
+  return {
+    aim: aim && { x: aim.x + sway.x, y: aim.y + sway.y },
+    hint,
+    handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel },
+  };
+}
+
+/** Where the dart is pointing, swaying with your hand. */
+function AimMark({ at }: { at: { x: number; y: number } | null }) {
+  if (!at) return null;
+  return (
+    <g transform={`translate(${at.x * R} ${at.y * R})`} className="darts__aim" pointerEvents="none">
+      <circle r="9" fill="none" stroke="#5ff3ff" strokeWidth="1.6" />
+      <circle r="1.6" fill="#5ff3ff" />
+      <path d="M-14 0h8M6 0h8M0 -14v8M0 6v8" stroke="#5ff3ff" strokeWidth="1.6" />
+    </g>
+  );
+}
+
+/** After a throw: how hard it was, against the sweet spot. */
+function FlickMeter({ last }: { last: { power: Power; speed: number } | null }) {
+  if (!last) return null;
+  const pos = Math.max(0, Math.min(100, (last.speed / (IDEAL_FLICK * 2)) * 100));
+  return (
+    <div className="darts-flick" aria-live="polite">
+      <span className="darts-flick__bar" aria-hidden="true">
+        <span className="darts-flick__sweet" />
+        <span className="darts-flick__you" style={{ left: `${pos}%` }} />
+      </span>
+      <span>
+        {last.power === 'good'
+          ? 'Mooie worp ✨'
+          : last.power === 'soft'
+            ? 'Te zacht — hij zakte ↓'
+            : 'Te hard — hij vloog omhoog ↑'}
+      </span>
+    </div>
+  );
+}
+
 export function Darts() {
   const me = useMe();
   const profile = useContent((c) => c.profile);
@@ -120,14 +290,13 @@ export function Darts() {
   const reduce = useReducedMotion();
   const [mode, setMode] = useState<PlayMode>('remote');
   const svg = useRef<SVGSVGElement>(null);
-  const [aim, setAim] = useState<{ x: number; y: number } | null>(null);
-  const [wobble, setWobble] = useState({ x: 0, y: 0 });
   const [darts, setDarts] = useState<Dart[]>([]);
   const [totals, setTotals] = useState<Partial<Record<Player, number>>>({});
   const [throwsDone, setThrowsDone] = useState(0);
   const [flash, setFlash] = useState<{ key: number; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<string | null>(null);
+  const [lastFlick, setLastFlick] = useState<{ power: Power; speed: number } | null>(null);
   const counter = useRef(0);
 
   // Two on one phone take turns; against Coco, she throws after each of your turns.
@@ -140,24 +309,6 @@ export function Darts() {
     p === 'coco' ? 'Coco' : mode === 'coco' && p === me ? 'Jij' : nameOf(p, profile);
   const total = (p: Player) => totals[p] ?? 0;
   const lastRound = mode === 'coco' ? TURNS : TURNS * 2;
-
-  // The hand is never completely still.
-  useEffect(() => {
-    if (!aim) return;
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const t = (now - start) / 1000;
-      const a = reduce ? 0.05 : 0.09;
-      setWobble({
-        x: a * Math.sin(t * 2.1) + a * 0.5 * Math.sin(t * 5.3 + 1),
-        y: a * Math.cos(t * 1.7) + a * 0.5 * Math.sin(t * 4.1),
-      });
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [aim !== null, reduce]);
 
   const land = (who: Player, x: number, y: number, hit: Hit) => {
     counter.current += 1;
@@ -211,11 +362,9 @@ export function Darts() {
     });
   };
 
-  const throwDart = () => {
-    if (!aim || busy || done) return;
-    const x = aim.x + wobble.x;
-    const y = aim.y + wobble.y;
-    setAim(null);
+  const throwDart = (x: number, y: number, power: Power, speed: number) => {
+    if (busy || done) return;
+    setLastFlick({ power, speed });
     const hit = scoreAt(x, y);
     land(shooter, x, y, hit);
     const nextThrows = throwsDone + 1;
@@ -239,8 +388,10 @@ export function Darts() {
     setThrowsDone(0);
     setBusy(false);
     setDone(null);
-    setAim(null);
+    setLastFlick(null);
   };
+
+  const hand = useDartHand(svg, !busy && !done, reduce, throwDart);
 
   const status = done
     ? done
@@ -300,20 +451,8 @@ export function Darts() {
               viewBox="-130 -130 260 260"
               className="darts__board"
               role="img"
-              aria-label="Dartbord: sleep om te mikken en laat los om te gooien"
-              onPointerDown={(e) => {
-                if (busy || done) return;
-                (e.target as Element).setPointerCapture?.(e.pointerId);
-                const p = toBoard(svg.current!, e.clientX, e.clientY);
-                setAim({ x: p.x, y: p.y - (e.pointerType === 'touch' ? 0.22 : 0) });
-              }}
-              onPointerMove={(e) => {
-                if (!aim) return;
-                const p = toBoard(svg.current!, e.clientX, e.clientY);
-                setAim({ x: p.x, y: p.y - (e.pointerType === 'touch' ? 0.22 : 0) });
-              }}
-              onPointerUp={throwDart}
-              onPointerCancel={() => setAim(null)}
+              aria-label="Dartbord: houd je vinger op het bord om te mikken en veeg omhoog om te gooien"
+              {...hand.handlers}
             >
               <defs>
                 <radialGradient id="darts-light" cx="0.4" cy="0.3" r="0.8">
@@ -328,17 +467,7 @@ export function Darts() {
                   <DartPin key={d.key} dart={d} reduce={reduce} />
                 ))}
               </AnimatePresence>
-              {aim && (
-                <g
-                  transform={`translate(${(aim.x + wobble.x) * R} ${(aim.y + wobble.y) * R})`}
-                  className="darts__aim"
-                  pointerEvents="none"
-                >
-                  <circle r="9" fill="none" stroke="#5ff3ff" strokeWidth="1.6" />
-                  <circle r="1.6" fill="#5ff3ff" />
-                  <path d="M-14 0h8M6 0h8M0 -14v8M0 6v8" stroke="#5ff3ff" strokeWidth="1.6" />
-                </g>
-              )}
+              <AimMark at={hand.aim} />
             </svg>
             <AnimatePresence>
               {flash && (
@@ -355,10 +484,8 @@ export function Darts() {
               )}
             </AnimatePresence>
           </div>
-          <p className="game-hint">
-            Zet je vinger op het bord, sleep om te mikken en laat los om te gooien. Je hand trilt
-            een beetje — net als echt.
-          </p>
+          <FlickMeter last={lastFlick} />
+          <p className="game-hint">{hand.hint ?? HOW_TO_THROW}</p>
           {(done || throwsDone > 0) && (
             <button type="button" className="neon-btn" onClick={restart}>
               {done ? 'Nog een potje' : 'Opnieuw beginnen'}
@@ -401,28 +528,6 @@ const throwsOf = (state: unknown): Thrown[] => {
   return Array.isArray(t) ? (t as Thrown[]) : [];
 };
 
-/** The hand is never completely still. */
-function useWobble(aiming: boolean, reduce: boolean) {
-  const [wobble, setWobble] = useState({ x: 0, y: 0 });
-  useEffect(() => {
-    if (!aiming) return;
-    let raf = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const t = (now - start) / 1000;
-      const a = reduce ? 0.05 : 0.09;
-      setWobble({
-        x: a * Math.sin(t * 2.1) + a * 0.5 * Math.sin(t * 5.3 + 1),
-        y: a * Math.cos(t * 1.7) + a * 0.5 * Math.sin(t * 4.1),
-      });
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [aiming, reduce]);
-  return wobble;
-}
-
 /** Darts with each of us on our own phone: three darts each, five rounds. */
 function RemoteDarts() {
   const me = useMe();
@@ -431,8 +536,7 @@ function RemoteDarts() {
   const reduce = useReducedMotion();
   const match = useMatch('darts');
   const svg = useRef<SVGSVGElement>(null);
-  const [aim, setAim] = useState<{ x: number; y: number } | null>(null);
-  const wobble = useWobble(aim !== null, reduce);
+  const [lastFlick, setLastFlick] = useState<{ power: Power; speed: number } | null>(null);
   const heard = useRef(-1);
   const throws = throwsOf(match?.state);
   const theirName = nameOf(them, profile);
@@ -462,11 +566,9 @@ function RemoteDarts() {
 
   const start = () => startMatch('darts', { throws: [] }, me, me);
 
-  const throwDart = () => {
-    if (!aim || !match || !mine) return;
-    const x = aim.x + wobble.x;
-    const y = aim.y + wobble.y;
-    setAim(null);
+  const throwDart = (x: number, y: number, power: Power, speed: number) => {
+    if (!match || !mine) return;
+    setLastFlick({ power, speed });
     const hit = scoreAt(x, y);
     dartSound(hit.score);
     const all = [...throws, { ...hit, who: me, x, y }];
@@ -489,6 +591,8 @@ function RemoteDarts() {
       addScore('darts', sum('partner'), 'partner');
     }
   };
+
+  const hand = useDartHand(svg, mine, reduce, throwDart);
 
   if (!match) {
     return (
@@ -538,20 +642,8 @@ function RemoteDarts() {
           viewBox="-130 -130 260 260"
           className="darts__board"
           role="img"
-          aria-label="Dartbord: sleep om te mikken en laat los om te gooien"
-          onPointerDown={(e) => {
-            if (!mine) return;
-            (e.target as Element).setPointerCapture?.(e.pointerId);
-            const p = toBoard(svg.current!, e.clientX, e.clientY);
-            setAim({ x: p.x, y: p.y - (e.pointerType === 'touch' ? 0.22 : 0) });
-          }}
-          onPointerMove={(e) => {
-            if (!aim) return;
-            const p = toBoard(svg.current!, e.clientX, e.clientY);
-            setAim({ x: p.x, y: p.y - (e.pointerType === 'touch' ? 0.22 : 0) });
-          }}
-          onPointerUp={throwDart}
-          onPointerCancel={() => setAim(null)}
+          aria-label="Dartbord: houd je vinger op het bord om te mikken en veeg omhoog om te gooien"
+          {...hand.handlers}
         >
           <Board />
           <AnimatePresence>
@@ -563,19 +655,11 @@ function RemoteDarts() {
               />
             ))}
           </AnimatePresence>
-          {aim && (
-            <g
-              transform={`translate(${(aim.x + wobble.x) * R} ${(aim.y + wobble.y) * R})`}
-              className="darts__aim"
-              pointerEvents="none"
-            >
-              <circle r="9" fill="none" stroke="#5ff3ff" strokeWidth="1.6" />
-              <circle r="1.6" fill="#5ff3ff" />
-              <path d="M-14 0h8M6 0h8M0 -14v8M0 6v8" stroke="#5ff3ff" strokeWidth="1.6" />
-            </g>
-          )}
+          <AimMark at={hand.aim} />
         </svg>
       </div>
+      <FlickMeter last={lastFlick} />
+      {mine && <p className="game-hint">{hand.hint ?? HOW_TO_THROW}</p>}
       {match.winner && (
         <button type="button" className="neon-btn" onClick={start}>
           Nog een potje

@@ -4059,3 +4059,43 @@ button.sea__cell:focus-visible {
     animation: none;
   }
 }
+
+/* ---------------------------------------------------------- darts: the flick */
+.darts-flick {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  margin: 6px auto 0;
+  max-width: 18rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+}
+.darts-flick__bar {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #5ff3ff, #ffd75e 50%, #ff5fa2);
+  opacity: 0.9;
+}
+.darts-flick__sweet {
+  position: absolute;
+  left: 44%;
+  width: 12%;
+  top: -3px;
+  bottom: -3px;
+  border: 2px solid #fff;
+  border-radius: 6px;
+}
+.darts-flick__you {
+  position: absolute;
+  top: -5px;
+  width: 4px;
+  height: 20px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: 0 0 6px #000;
+  transition: left 0.3s ease;
+}

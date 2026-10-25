@@ -44,6 +44,20 @@ export function setVaultKey(next: CryptoKey | null) {
 
 export const lockVault = () => setVaultKey(null);
 
+/*
+ * While the photo picker is open, the app is "in the background" as far as
+ * the page can tell. Locking then would pull the room (and the picker's
+ * target) away right as the photos arrive, so we wait until it's closed.
+ */
+let pickingUntil = 0;
+export const startPicking = () => {
+  pickingUntil = Date.now() + 10 * 60_000;
+};
+export const stopPicking = () => {
+  pickingUntil = 0;
+};
+export const isPicking = () => Date.now() < pickingUntil;
+
 export function useVaultKey(): CryptoKey | null {
   return useSyncExternalStore(
     (l) => {

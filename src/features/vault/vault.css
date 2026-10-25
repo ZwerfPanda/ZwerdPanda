@@ -961,3 +961,18 @@ html[data-secret] {
 [data-motion='reduce'] .vault-empty__lid {
   animation: none;
 }
+
+.vault-add.vault-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.vault-add.is-busy {
+  pointer-events: none;
+  opacity: 0.85;
+}
+.vault-add:focus-within {
+  outline: 3px solid #f7dc8f;
+  outline-offset: 3px;
+}

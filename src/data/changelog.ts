@@ -23,6 +23,25 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-9',
+    when: 'oktober 2026',
+    title: 'Darten en bowlen, echter',
+    items: [
+      {
+        emoji: '🎯',
+        title: 'Darten: echt gooien',
+        text: 'Mik met je vinger op het bord (je hand zwaait) en veeg recht omhoog. Te zacht en hij zakt, te hard en hij vliegt omhoog.',
+        path: '/games',
+      },
+      {
+        emoji: '🎳',
+        title: 'Bowlen: een nieuwe baan',
+        text: 'Stevige kegels die omvallen, rollen en elkaar meenemen. Raak de pocket voor een strike; een veegarm ruimt op.',
+        path: '/games',
+      },
+    ],
+  },
+  {
     id: '2026-10-8',
     when: 'oktober 2026',
     title: 'Nieuw in de Arcade Hall',
