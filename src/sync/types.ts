@@ -36,6 +36,11 @@ export interface RemoteHistoryEntry {
   savedAt: string;
 }
 
+export interface LiveLine {
+  send(message: unknown): void;
+  close(): void;
+}
+
 export interface SyncBackend {
   getAccount(): Promise<Account | null>;
   onAccountChange(listener: (account: Account | null) => void): () => void;
@@ -56,6 +61,11 @@ export interface SyncBackend {
   saveContent(spaceId: string, expectedVersion: number, content: unknown): Promise<SaveResult>;
   /** Calls back when the shared copy changes; returns an unsubscribe function. */
   subscribe(spaceId: string, onChange: () => void): () => void;
+  /**
+   * A quick private line between the two phones (a move in a game), next to
+   * the saved copy: messages arrive in a moment but are never stored.
+   */
+  live?(spaceId: string, onMessage: (message: unknown) => void): LiveLine;
 
   uploadMedia(spaceId: string, mediaId: string, blob: Blob): Promise<void>;
   downloadMedia(spaceId: string, mediaId: string): Promise<Blob | null>;

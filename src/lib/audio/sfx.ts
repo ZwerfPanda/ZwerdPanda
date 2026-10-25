@@ -5,6 +5,18 @@
  */
 
 export type Sfx =
+  | 'splash'
+  | 'splat'
+  | 'horn'
+  | 'flip'
+  | 'roll'
+  | 'pins'
+  | 'clunk'
+  | 'card'
+  | 'thunk'
+  | 'drop'
+  | 'puck'
+  | 'whirr'
   | 'tap'
   | 'pop'
   | 'toggle'
@@ -121,6 +133,75 @@ function noise(
 }
 
 const SOUNDS: Record<Sfx, (ac: AudioContext, t: number) => void> = {
+  // A pancake into the canal: a plop, then the water closing over it.
+  splash: (ac, t) => {
+    tone(ac, 520, t, 0.08, { to: 160, gain: 0.32 });
+    noise(ac, t + 0.02, 0.45, { filter: 'lowpass', freq: 1800, to: 400, gain: 0.22 });
+    noise(ac, t + 0.12, 0.3, { filter: 'highpass', freq: 3000, gain: 0.05 });
+  },
+  // A pancake on a deck: a soft, sticky splat.
+  splat: (ac, t) => {
+    noise(ac, t, 0.16, { filter: 'lowpass', freq: 900, gain: 0.4 });
+    tone(ac, 180, t, 0.14, { to: 90, gain: 0.35 });
+    noise(ac, t + 0.08, 0.2, { freq: 2200, gain: 0.08, q: 2 });
+  },
+  // A boat's horn: two low, warm blasts.
+  horn: (ac, t) => {
+    for (const d of [0, 0.55]) {
+      tone(ac, 147, t + d, 0.45, { type: 'sawtooth', gain: 0.1, attack: 0.05 });
+      tone(ac, 220, t + d, 0.45, { type: 'triangle', gain: 0.12, attack: 0.05 });
+    }
+  },
+  // A pancake flipped into the air.
+  flip: (ac, t) => {
+    noise(ac, t, 0.18, { freq: 700, to: 2600, gain: 0.1, q: 1.2 });
+    tone(ac, 300, t, 0.16, { to: 700, type: 'triangle', gain: 0.12 });
+  },
+  // A heavy ball rolling down a wooden lane.
+  roll: (ac, t) => {
+    noise(ac, t, 1.4, { filter: 'lowpass', freq: 220, to: 140, gain: 0.3 });
+    tone(ac, 70, t, 1.4, { gain: 0.12, attack: 0.15 });
+  },
+  // Pins going down: a crack and a clatter.
+  pins: (ac, t) => {
+    noise(ac, t, 0.12, { filter: 'highpass', freq: 1800, gain: 0.35 });
+    [0.05, 0.13, 0.2, 0.31, 0.42].forEach((d, i) =>
+      noise(ac, t + d, 0.09, { freq: 1400 + i * 260, gain: 0.18, q: 3 }),
+    );
+    tone(ac, 260, t, 0.2, { to: 120, gain: 0.18 });
+  },
+  // A card slapped onto the pile.
+  card: (ac, t) => {
+    noise(ac, t, 0.06, { filter: 'highpass', freq: 2200, gain: 0.3 });
+    noise(ac, t + 0.01, 0.1, { filter: 'lowpass', freq: 900, gain: 0.18 });
+  },
+  // A dart sinking into the board.
+  thunk: (ac, t) => {
+    noise(ac, t, 0.05, { filter: 'highpass', freq: 2600, gain: 0.25 });
+    tone(ac, 210, t, 0.12, { to: 110, gain: 0.3 });
+  },
+  // A disc dropping down the grid and settling.
+  drop: (ac, t) => {
+    tone(ac, 900, t, 0.06, { to: 600, type: 'triangle', gain: 0.18 });
+    [0.09, 0.15].forEach((d, i) =>
+      noise(ac, t + d, 0.05, { freq: 1500 - i * 300, gain: 0.2 - i * 0.07, q: 3 }),
+    );
+  },
+  // A puck off a mallet.
+  puck: (ac, t) => {
+    tone(ac, 1400, t, 0.04, { to: 700, type: 'square', gain: 0.07 });
+    noise(ac, t, 0.05, { freq: 3000, gain: 0.18, q: 2 });
+  },
+  // The claw machine's little motor.
+  whirr: (ac, t) => {
+    tone(ac, 180, t, 0.5, { type: 'sawtooth', to: 240, gain: 0.05, attack: 0.05 });
+    noise(ac, t, 0.5, { filter: 'bandpass', freq: 900, gain: 0.04, q: 4 });
+  },
+  // A ball dropping into a hole.
+  clunk: (ac, t) => {
+    tone(ac, 140, t, 0.18, { to: 70, gain: 0.35 });
+    noise(ac, t, 0.08, { filter: 'lowpass', freq: 700, gain: 0.25 });
+  },
   tap: (ac, t) => tone(ac, 1200, t, 0.05, { to: 900, gain: 0.18 }),
   pop: (ac, t) => tone(ac, 420, t, 0.09, { to: 980, gain: 0.4 }),
   toggle: (ac, t) => {

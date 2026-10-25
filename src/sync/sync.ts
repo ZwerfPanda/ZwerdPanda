@@ -8,6 +8,7 @@ import { SyncEngine, type EngineDeps } from './engine';
 import { reportAfterSync } from './report';
 import { clearDeviceConfig, resolveSyncConfig, saveDeviceConfig, type SyncConfig } from './config';
 import type { SyncState } from './types';
+import { connectLive } from './live';
 
 /**
  * The app-wide connection to the shared universe. With no server configured
@@ -110,7 +111,12 @@ export async function startSync() {
   try {
     const { createSupabaseBackend } = await loadBackend();
     engine = new SyncEngine(createSupabaseBackend(config), deps);
-    unsubscribeEngine = engine.subscribe(() => setState(engine!.getState()));
+    const offState = engine.subscribe(() => setState(engine!.getState()));
+    const offLive = connectLive(engine);
+    unsubscribeEngine = () => {
+      offState();
+      offLive();
+    };
     setState(engine.getState());
     await engine.start();
   } catch (error) {

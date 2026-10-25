@@ -37,6 +37,8 @@ body:has(.arcade-zone)::after {
 .arcade-zone {
   position: relative;
   color: var(--ink);
+  /* quick taps in a game (two shots in zeeslag…) must never zoom the page in */
+  touch-action: manipulation;
 }
 
 /* ------------------------------------------------------------ the hall */
@@ -2259,6 +2261,10 @@ body:has(.arcade-zone)::after {
 
 .sea__grid {
   position: relative;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 2px;
@@ -3214,5 +3220,193 @@ button.sea__cell:focus-visible {
   .memory__inner {
     animation: none !important;
     transition: none;
+  }
+}
+
+/* ------------------------------------------- zeeslag: pannenkoekenboten op de gracht */
+
+.sea__quay {
+  display: block;
+  width: 100%;
+  height: 54px;
+  margin-bottom: -6px;
+  border-radius: 14px 14px 0 0;
+}
+
+.sea:not(.sea--small) .sea__grid {
+  border-radius: 0 0 14px 14px;
+}
+
+.sea__grid {
+  background:
+    radial-gradient(ellipse 30% 8% at 30% 20%, rgba(255, 255, 255, 0.16), transparent 70%),
+    radial-gradient(ellipse 25% 6% at 70% 65%, rgba(255, 255, 255, 0.12), transparent 70%),
+    repeating-linear-gradient(170deg, rgba(255, 255, 255, 0.05) 0 6px, transparent 6px 16px),
+    linear-gradient(180deg, #2c6e6a, #174a52);
+  background-size:
+    100% 100%,
+    100% 100%,
+    200% 200%,
+    auto;
+  box-shadow:
+    0 0 0 4px #8a4b32,
+    0 0 0 7px #5d2f1f,
+    0 12px 26px rgba(0, 0, 0, 0.45);
+}
+
+.sea__cell {
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 0 0 1px rgba(200, 255, 240, 0.1);
+}
+
+button.sea__cell:hover,
+button.sea__cell:focus-visible {
+  background: rgba(255, 215, 94, 0.2);
+  box-shadow:
+    inset 0 0 0 2px #ffd75e,
+    0 0 10px rgba(255, 215, 94, 0.5);
+}
+
+.sea__boats {
+  position: absolute;
+  inset: 6px;
+  width: calc(100% - 12px);
+  height: calc(100% - 12px);
+  pointer-events: none;
+  overflow: visible;
+}
+
+.boat {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: boat-bob 3.2s ease-in-out infinite;
+}
+
+@keyframes boat-bob {
+  50% {
+    translate: 0 0.04px;
+    rotate: 1.2deg;
+  }
+}
+
+.boat.is-sunk {
+  animation: boat-sink 1.4s 0.5s ease-in forwards;
+}
+
+@keyframes boat-sink {
+  to {
+    translate: 0 0.12px;
+    rotate: 6deg;
+    opacity: 0.7;
+    filter: saturate(0.55) brightness(0.8);
+  }
+}
+
+/* the old markers are replaced by pancakes */
+.sea__cell.is-miss::after,
+.sea__cell.is-hit::after {
+  content: none;
+}
+
+.sea__mark {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.95em;
+  pointer-events: none;
+}
+
+.sea__cell.is-miss .sea__mark {
+  opacity: 0.55;
+  filter: saturate(0.6);
+  scale: 0.7;
+}
+
+/* a ripple where it plopped into the canal */
+.sea__cell.is-miss::before {
+  content: '';
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(220, 255, 245, 0.55);
+}
+
+.sea__cell.is-miss.is-new::before {
+  animation: canal-ripple 1s 0.45s ease-out both;
+}
+
+@keyframes canal-ripple {
+  from {
+    inset: 40%;
+    opacity: 1;
+  }
+  to {
+    inset: -10%;
+    opacity: 0;
+  }
+}
+
+/* a syrupy splat on a boat */
+.sea__cell.is-hit {
+  background: radial-gradient(circle at 50% 55%, rgba(201, 120, 30, 0.85) 0 32%, transparent 34%);
+}
+
+.sea__cell.is-hit .sea__mark {
+  z-index: 2;
+  filter: drop-shadow(0 1px 0 #7a3f1d);
+}
+
+.sea__cell.is-new .sea__mark {
+  animation: pancake-land 0.5s 0.42s both;
+}
+
+@keyframes pancake-land {
+  from {
+    scale: 0;
+  }
+  60% {
+    scale: 1.4;
+  }
+}
+
+/* the pancake flying in from our side */
+.sea__fly {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  font-size: 1.4em;
+  pointer-events: none;
+  animation: pancake-fly 0.45s cubic-bezier(0.25, 0.6, 0.4, 1) both;
+}
+
+@keyframes pancake-fly {
+  0% {
+    transform: translate(0, 320%) scale(1.8) rotate(0deg);
+    opacity: 1;
+  }
+  60% {
+    transform: translate(0, -40%) scale(1.3) rotate(400deg);
+  }
+  100% {
+    transform: translate(0, 0) scale(0.6) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.sea__cell.is-sunk {
+  filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boat,
+  .boat.is-sunk,
+  .sea__fly,
+  .sea__cell.is-new .sea__mark,
+  .sea__cell.is-miss.is-new::before {
+    animation: none;
   }
 }

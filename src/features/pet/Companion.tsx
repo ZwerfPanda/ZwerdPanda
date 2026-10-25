@@ -46,7 +46,8 @@ const REST = 50;
 export function CocoCompanion() {
   const { companion } = usePrefs();
   const { path } = useRoute();
-  if (!companion || path === '/coco') return null;
+  // Not in her own hutch, and not in our secret place (she gives us some privacy).
+  if (!companion || path === '/coco' || path === '/secret') return null;
   return <Companion path={path} />;
 }
 

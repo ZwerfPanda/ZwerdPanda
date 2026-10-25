@@ -50,6 +50,7 @@ const pages = {
     import('../features/flowers/FlowersPage').then((m) => ({ default: m.FlowersPage })),
   agenda: () => import('../features/agenda/AgendaPage').then((m) => ({ default: m.AgendaPage })),
   cinema: () => import('../features/cinema/CinemaPage').then((m) => ({ default: m.CinemaPage })),
+  secret: () => import('../features/vault/VaultPage').then((m) => ({ default: m.VaultPage })),
   settings: () =>
     import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 };
@@ -70,6 +71,7 @@ const GamesPage = lazy(pages.games);
 const FlowersPage = lazy(pages.flowers);
 const AgendaPage = lazy(pages.agenda);
 const CinemaPage = lazy(pages.cinema);
+const VaultPage = lazy(pages.secret);
 const SettingsPage = lazy(pages.settings);
 
 const PAGES: Record<RoutePath, () => React.ReactNode> = {
@@ -91,6 +93,7 @@ const PAGES: Record<RoutePath, () => React.ReactNode> = {
   '/flowers': () => <FlowersPage />,
   '/agenda': () => <AgendaPage />,
   '/cinema': () => <CinemaPage />,
+  '/secret': () => <VaultPage />,
   '/settings': () => <SettingsPage />,
 };
 

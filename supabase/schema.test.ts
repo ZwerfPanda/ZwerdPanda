@@ -80,6 +80,15 @@ beforeAll(async () => {
     create function storage.foldername(name text) returns text[] language sql immutable as
       $$ select (string_to_array(name, '/'))[1:array_length(string_to_array(name, '/'), 1) - 1] $$;
     create publication supabase_realtime;
+    create schema realtime;
+    create table realtime.messages (id serial primary key, topic text, extension text, payload jsonb);
+    alter table realtime.messages enable row level security;
+    create function realtime.topic() returns text language sql stable as
+      $$ select current_setting('realtime.topic', true) $$;
+    grant usage on schema realtime to authenticated;
+    grant select, insert on realtime.messages to authenticated;
+    grant usage on sequence realtime.messages_id_seq to authenticated;
+    grant execute on function realtime.topic() to authenticated;
     grant usage on schema public, auth, storage to anon, authenticated;
     grant select, insert, update, delete on storage.objects to authenticated;
     grant execute on function auth.uid(), auth.jwt() to anon, authenticated;
@@ -341,5 +350,26 @@ describe('supabase/schema.sql', () => {
     // He can still change them.
     expect(await save(people.valencio, { hello: 'his', texts: [] })).toBe(true);
     expect((await stored()).texts).toEqual([]);
+  });
+
+  it('lets only the two of us on the live line of our universe', async () => {
+    const speak = async (who: Person, topic: string) => {
+      await db.query(`select set_config('realtime.topic', $1, false)`, [topic]);
+      return as(
+        who,
+        `insert into realtime.messages (topic, extension, payload) values ($1, 'broadcast', '{}') returning id`,
+        [topic],
+      );
+    };
+    const ours = `universe-live-${space}`;
+    expect((await speak(people.valencio, ours)).error).toBeUndefined();
+    expect((await speak(people.shenaya, ours)).error).toBeUndefined();
+    expect((await speak(people.stranger, ours)).error).toMatch(/row-level security/);
+    expect((await speak(people.valencio, 'universe-live-someone-else')).error).toMatch(
+      /row-level security/,
+    );
+    await db.query(`select set_config('realtime.topic', $1, false)`, [ours]);
+    const heard = await as(people.stranger, `select count(*)::int as n from realtime.messages`);
+    expect(first(heard).n).toBe(0);
   });
 });

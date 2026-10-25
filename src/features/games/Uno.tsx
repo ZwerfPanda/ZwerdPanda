@@ -114,7 +114,9 @@ function Table({
       playSfx('error', true);
       return;
     }
-    playSfx(card.value === 'draw2' || card.value === 'wild4' ? 'whoosh' : 'pop', true);
+    playSfx('card', true);
+    if (card.value === 'draw2' || card.value === 'wild4')
+      window.setTimeout(() => playSfx('whoosh', true), 120);
     if (next.winner) {
       playSfx('success', true);
       window.setTimeout(() => celebrateFrom(document.querySelector('.uno-pile')), 300);

@@ -9,7 +9,13 @@ import {
   writerSchema,
 } from './merge';
 import { CONTENT_SCHEMA } from '../data/defaults';
-import { OfflineError, type Account, type SyncBackend, type SyncState } from './types';
+import {
+  OfflineError,
+  type Account,
+  type LiveLine,
+  type SyncBackend,
+  type SyncState,
+} from './types';
 
 /**
  * Keeps this device and the shared universe in step.
@@ -98,6 +104,8 @@ export class SyncEngine {
   private pushTimer: ReturnType<typeof setTimeout> | null = null;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private cleanups: (() => void)[] = [];
+  private line: LiveLine | null = null;
+  private liveListeners = new Set<(message: unknown) => void>();
   private accountCleanups: (() => void)[] = [];
 
   constructor(
@@ -215,6 +223,16 @@ export class SyncEngine {
       this.deps.onLocalChange(() => this.localChanged()),
       this.backend.subscribe(spaceId, () => void this.pull()),
     );
+    if (this.backend.live) {
+      const line = this.backend.live(spaceId, (message) =>
+        this.liveListeners.forEach((listener) => listener(message)),
+      );
+      this.line = line;
+      this.cleanups.push(() => {
+        line.close();
+        if (this.line === line) this.line = null;
+      });
+    }
     if (this.deps.watchConnectivity)
       this.cleanups.push(this.deps.watchConnectivity(() => void this.syncNow()));
     const interval = this.deps.pollInterval ?? 90_000;
@@ -256,6 +274,19 @@ export class SyncEngine {
     this.deps.storage.removeItem(META_KEY);
     this.deps.storage.removeItem(BASE_KEY);
     this.deps.storage.removeItem(UPLOADED_KEY);
+  }
+
+  // ---------------------------------------------------------------- live
+
+  /** Sends something to the other phone right away (if it's listening). */
+  sendLive(message: unknown) {
+    this.line?.send(message);
+  }
+
+  /** What the other phone sends right away. */
+  onLive(listener: (message: unknown) => void): () => void {
+    this.liveListeners.add(listener);
+    return () => this.liveListeners.delete(listener);
   }
 
   // ------------------------------------------------------------- syncing

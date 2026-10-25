@@ -51,9 +51,9 @@ const GAMES = [
   { id: 'skeeball', emoji: '🎯', title: 'Skeeball', blurb: 'Mik op de 100', tint: '#e0ebd4' },
   {
     id: 'zeeslag',
-    emoji: '🚢',
-    title: 'Zeeslag',
-    blurb: 'Zoek elkaars vloot',
+    emoji: '🥞',
+    title: 'Pannenkoekenslag',
+    blurb: 'Zeeslag op de gracht: gooi pannenkoeken naar elkaars boten',
     tint: '#c9e4f5',
     kind: 'zeeslag',
   },

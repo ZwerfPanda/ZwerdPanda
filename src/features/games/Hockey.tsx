@@ -138,7 +138,7 @@ function Table({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void }) {
         if (now > pausedUntil.current) {
           const { rink: moved, event } = step(r, dt);
           rink.current = moved;
-          if (event === 'hit') playSfx('pop', true);
+          if (event === 'hit') playSfx('puck', true);
           if (event === 'goal-top' || event === 'goal-bottom') {
             const bottomScored = event === 'goal-top';
             playSfx(vsCoco && !bottomScored ? 'boing' : 'success', true);

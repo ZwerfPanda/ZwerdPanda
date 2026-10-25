@@ -654,7 +654,7 @@ export interface Quiz {
 
 /* ---------------------------------------------------------------- games */
 
-export type MatchKind = 'c4' | 'hangman' | 'uno' | 'zeeslag';
+export type MatchKind = 'c4' | 'hangman' | 'uno' | 'zeeslag' | 'memory' | 'darts';
 
 /** A game we play together, turn by turn, each on our own phone. */
 export interface GameMatch {
@@ -780,6 +780,47 @@ export interface AppContent {
   cinema: Cinema;
   /** His own wording for texts on the site (only he can change these). */
   texts: TextEdit[];
+  /** Our secret place: everything in it is encrypted with our password. */
+  vault: Vault;
+}
+
+/**
+ * Our secret place. Nothing in here is readable without the password: the
+ * photos, clips, captions and even the names of the categories are encrypted
+ * on the phone (AES-GCM) before they're stored or synced.
+ */
+export interface Vault {
+  /** Set once: a salt and an encrypted check — never the password itself. */
+  lock?: VaultLock;
+  items: VaultItem[];
+  categories: VaultCategory[];
+}
+
+export interface VaultLock {
+  salt: string;
+  iterations: number;
+  /** A known value, encrypted: decrypting it proves the password is right. */
+  check: string;
+  createdAt: string;
+}
+
+export interface VaultItem {
+  id: ID;
+  /** The encrypted file (stored and synced like any photo). */
+  media: ID;
+  /** A small encrypted preview. */
+  thumb?: ID;
+  /** Encrypted JSON: what it is, its category, caption, favourite… */
+  box: string;
+  by?: Person;
+  createdAt: string;
+}
+
+export interface VaultCategory {
+  id: ID;
+  /** Encrypted JSON: its name and emoji. */
+  box: string;
+  createdAt: string;
 }
 
 export type FilmGenre =

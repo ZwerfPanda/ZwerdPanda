@@ -1,15 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useContent } from '../../data/store';
-import { nameOf, useMe } from '../../data/people';
-import type { Player } from '../../data/types';
+import { nameOf, otherPerson, useMe } from '../../data/people';
+import type { Person, Player } from '../../data/types';
 import { playSfx } from '../../lib/audio/sfx';
 import { celebrateFrom } from '../../components/ui/feedback';
 import { useReducedMotion } from '../../hooks/useMotion';
-import { addScore, useBest } from './gameData';
+import { addScore, startMatch, updateMatch, useBest, useMatch } from './gameData';
 import { recordResult } from './gameStats';
-import { GameShell, ScoreBoard, type PlayMode } from './GameShell';
+import { GameShell, ScoreBoard, TurnBanner, WhoAreYou, type PlayMode } from './GameShell';
 import { DARTS_PER_TURN, RINGS, SEGMENTS, TURNS, cocoDarts, scoreAt, type Hit } from './darts';
+
+/** A dart thudding into the board (or bouncing off), with a cheer for the big ones. */
+function dartSound(score: number) {
+  if (score === 0) return playSfx('boing', true);
+  playSfx('thunk', true);
+  if (score >= 50) window.setTimeout(() => playSfx('star', true), 120);
+}
 
 /** Board units: the double ring's outer edge is at 100. */
 const R = 100;
@@ -111,7 +118,7 @@ export function Darts() {
   const profile = useContent((c) => c.profile);
   const best = useBest('darts');
   const reduce = useReducedMotion();
-  const [mode, setMode] = useState<PlayMode>('local');
+  const [mode, setMode] = useState<PlayMode>('remote');
   const svg = useRef<SVGSVGElement>(null);
   const [aim, setAim] = useState<{ x: number; y: number } | null>(null);
   const [wobble, setWobble] = useState({ x: 0, y: 0 });
@@ -156,7 +163,7 @@ export function Darts() {
     counter.current += 1;
     setDarts((d) => [...d, { ...hit, x, y, who, key: counter.current }]);
     setTotals((t) => ({ ...t, [who]: (t[who] ?? 0) + hit.score }));
-    playSfx(hit.score === 0 ? 'boing' : hit.score >= 50 ? 'star' : 'pop', true);
+    dartSound(hit.score);
     if (hit.score >= 50 || hit.label.startsWith('T')) {
       setFlash({ key: counter.current, text: hit.label === 'BULLSEYE' ? 'BULLSEYE!' : hit.label });
     }
@@ -250,7 +257,7 @@ export function Darts() {
         setMode(m);
         restart();
       }}
-      modes={['local', 'coco']}
+      modes={['remote', 'local', 'coco']}
       labels={{ local: '📱 Samen op één telefoon' }}
       score={
         <ScoreBoard
@@ -267,89 +274,97 @@ export function Darts() {
         />
       }
     >
-      <div className="darts-totals">
-        {players.map((p) => (
-          <span
-            key={p}
-            className={`darts-total darts-total--${p} ${p === shooter && !done ? 'is-up' : ''}`}
-          >
-            <small>{label(p)}</small>
-            <strong>{total(p)}</strong>
-          </span>
-        ))}
-      </div>
-      <p className={`game-turn ${done ? 'game-turn--done' : 'is-mine'}`} aria-live="polite">
-        {status}
-      </p>
-      <div className="darts">
-        <svg
-          ref={svg}
-          viewBox="-130 -130 260 260"
-          className="darts__board"
-          role="img"
-          aria-label="Dartbord: sleep om te mikken en laat los om te gooien"
-          onPointerDown={(e) => {
-            if (busy || done) return;
-            (e.target as Element).setPointerCapture?.(e.pointerId);
-            const p = toBoard(svg.current!, e.clientX, e.clientY);
-            setAim({ x: p.x, y: p.y - (e.pointerType === 'touch' ? 0.22 : 0) });
-          }}
-          onPointerMove={(e) => {
-            if (!aim) return;
-            const p = toBoard(svg.current!, e.clientX, e.clientY);
-            setAim({ x: p.x, y: p.y - (e.pointerType === 'touch' ? 0.22 : 0) });
-          }}
-          onPointerUp={throwDart}
-          onPointerCancel={() => setAim(null)}
-        >
-          <defs>
-            <radialGradient id="darts-light" cx="0.4" cy="0.3" r="0.8">
-              <stop offset="0" stopColor="#fff" stopOpacity="0.18" />
-              <stop offset="1" stopColor="#fff" stopOpacity="0" />
-            </radialGradient>
-          </defs>
-          <Board />
-          <circle r="128" fill="url(#darts-light)" pointerEvents="none" />
-          <AnimatePresence>
-            {darts.map((d) => (
-              <DartPin key={d.key} dart={d} reduce={reduce} />
+      {mode === 'remote' ? (
+        <WhoAreYou>
+          <RemoteDarts />
+        </WhoAreYou>
+      ) : (
+        <>
+          <div className="darts-totals">
+            {players.map((p) => (
+              <span
+                key={p}
+                className={`darts-total darts-total--${p} ${p === shooter && !done ? 'is-up' : ''}`}
+              >
+                <small>{label(p)}</small>
+                <strong>{total(p)}</strong>
+              </span>
             ))}
-          </AnimatePresence>
-          {aim && (
-            <g
-              transform={`translate(${(aim.x + wobble.x) * R} ${(aim.y + wobble.y) * R})`}
-              className="darts__aim"
-              pointerEvents="none"
+          </div>
+          <p className={`game-turn ${done ? 'game-turn--done' : 'is-mine'}`} aria-live="polite">
+            {status}
+          </p>
+          <div className="darts">
+            <svg
+              ref={svg}
+              viewBox="-130 -130 260 260"
+              className="darts__board"
+              role="img"
+              aria-label="Dartbord: sleep om te mikken en laat los om te gooien"
+              onPointerDown={(e) => {
+                if (busy || done) return;
+                (e.target as Element).setPointerCapture?.(e.pointerId);
+                const p = toBoard(svg.current!, e.clientX, e.clientY);
+                setAim({ x: p.x, y: p.y - (e.pointerType === 'touch' ? 0.22 : 0) });
+              }}
+              onPointerMove={(e) => {
+                if (!aim) return;
+                const p = toBoard(svg.current!, e.clientX, e.clientY);
+                setAim({ x: p.x, y: p.y - (e.pointerType === 'touch' ? 0.22 : 0) });
+              }}
+              onPointerUp={throwDart}
+              onPointerCancel={() => setAim(null)}
             >
-              <circle r="9" fill="none" stroke="#5ff3ff" strokeWidth="1.6" />
-              <circle r="1.6" fill="#5ff3ff" />
-              <path d="M-14 0h8M6 0h8M0 -14v8M0 6v8" stroke="#5ff3ff" strokeWidth="1.6" />
-            </g>
+              <defs>
+                <radialGradient id="darts-light" cx="0.4" cy="0.3" r="0.8">
+                  <stop offset="0" stopColor="#fff" stopOpacity="0.18" />
+                  <stop offset="1" stopColor="#fff" stopOpacity="0" />
+                </radialGradient>
+              </defs>
+              <Board />
+              <circle r="128" fill="url(#darts-light)" pointerEvents="none" />
+              <AnimatePresence>
+                {darts.map((d) => (
+                  <DartPin key={d.key} dart={d} reduce={reduce} />
+                ))}
+              </AnimatePresence>
+              {aim && (
+                <g
+                  transform={`translate(${(aim.x + wobble.x) * R} ${(aim.y + wobble.y) * R})`}
+                  className="darts__aim"
+                  pointerEvents="none"
+                >
+                  <circle r="9" fill="none" stroke="#5ff3ff" strokeWidth="1.6" />
+                  <circle r="1.6" fill="#5ff3ff" />
+                  <path d="M-14 0h8M6 0h8M0 -14v8M0 6v8" stroke="#5ff3ff" strokeWidth="1.6" />
+                </g>
+              )}
+            </svg>
+            <AnimatePresence>
+              {flash && (
+                <motion.span
+                  key={flash.key}
+                  className="darts__flash"
+                  initial={{ scale: 0.3, opacity: 0 }}
+                  animate={{ scale: [0.3, 1.25, 1], opacity: [0, 1, 1, 0] }}
+                  transition={{ duration: 1.2, times: [0, 0.3, 0.8, 1] }}
+                  onAnimationComplete={() => setFlash(null)}
+                >
+                  {flash.text}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
+          <p className="game-hint">
+            Zet je vinger op het bord, sleep om te mikken en laat los om te gooien. Je hand trilt
+            een beetje — net als echt.
+          </p>
+          {(done || throwsDone > 0) && (
+            <button type="button" className="neon-btn" onClick={restart}>
+              {done ? 'Nog een potje' : 'Opnieuw beginnen'}
+            </button>
           )}
-        </svg>
-        <AnimatePresence>
-          {flash && (
-            <motion.span
-              key={flash.key}
-              className="darts__flash"
-              initial={{ scale: 0.3, opacity: 0 }}
-              animate={{ scale: [0.3, 1.25, 1], opacity: [0, 1, 1, 0] }}
-              transition={{ duration: 1.2, times: [0, 0.3, 0.8, 1] }}
-              onAnimationComplete={() => setFlash(null)}
-            >
-              {flash.text}
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </div>
-      <p className="game-hint">
-        Zet je vinger op het bord, sleep om te mikken en laat los om te gooien. Je hand trilt een
-        beetje — net als echt.
-      </p>
-      {(done || throwsDone > 0) && (
-        <button type="button" className="neon-btn" onClick={restart}>
-          {done ? 'Nog een potje' : 'Opnieuw beginnen'}
-        </button>
+        </>
       )}
     </GameShell>
   );
@@ -371,4 +386,201 @@ function spotFor(hit: Hit): { x: number; y: number } {
         : 0.35 + Math.random() * 0.15;
   const a = ((i * 18 + (Math.random() - 0.5) * 10) * Math.PI) / 180;
   return { x: Math.sin(a) * r, y: -Math.cos(a) * r };
+}
+
+/* ------------------------------------------------- each on our own phone */
+
+interface Thrown extends Hit {
+  who: Person;
+  x: number;
+  y: number;
+}
+
+const throwsOf = (state: unknown): Thrown[] => {
+  const t = (state as { throws?: unknown } | undefined)?.throws;
+  return Array.isArray(t) ? (t as Thrown[]) : [];
+};
+
+/** The hand is never completely still. */
+function useWobble(aiming: boolean, reduce: boolean) {
+  const [wobble, setWobble] = useState({ x: 0, y: 0 });
+  useEffect(() => {
+    if (!aiming) return;
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = (now - start) / 1000;
+      const a = reduce ? 0.05 : 0.09;
+      setWobble({
+        x: a * Math.sin(t * 2.1) + a * 0.5 * Math.sin(t * 5.3 + 1),
+        y: a * Math.cos(t * 1.7) + a * 0.5 * Math.sin(t * 4.1),
+      });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [aiming, reduce]);
+  return wobble;
+}
+
+/** Darts with each of us on our own phone: three darts each, five rounds. */
+function RemoteDarts() {
+  const me = useMe();
+  const them = otherPerson(me);
+  const profile = useContent((c) => c.profile);
+  const reduce = useReducedMotion();
+  const match = useMatch('darts');
+  const svg = useRef<SVGSVGElement>(null);
+  const [aim, setAim] = useState<{ x: number; y: number } | null>(null);
+  const wobble = useWobble(aim !== null, reduce);
+  const heard = useRef(-1);
+  const throws = throwsOf(match?.state);
+  const theirName = nameOf(them, profile);
+  const order: Person[] = match ? [match.startedBy, otherPerson(match.startedBy)] : [me, them];
+  const visit = Math.floor(throws.length / DARTS_PER_TURN);
+  const shooter = order[visit % 2];
+  const total = (p: Person) => throws.filter((t) => t.who === p).reduce((n, t) => n + t.score, 0);
+  const mine = Boolean(match && !match.winner && shooter === me);
+  // On the board: this visit's darts, or the last full visit until the next dart.
+  const shown =
+    throws.length % DARTS_PER_TURN === 0
+      ? throws.slice(-DARTS_PER_TURN)
+      : throws.slice(visit * DARTS_PER_TURN);
+
+  // Their darts land with a sound as they arrive.
+  useEffect(() => {
+    if (heard.current >= 0 && throws.length > heard.current) {
+      const t = throws[throws.length - 1];
+      if (t.who === them) dartSound(t.score);
+    }
+    heard.current = throws.length;
+  }, [throws.length]);
+
+  useEffect(() => {
+    if (match?.winner === me) celebrateFrom(svg.current);
+  }, [match?.winner]);
+
+  const start = () => startMatch('darts', { throws: [] }, me, me);
+
+  const throwDart = () => {
+    if (!aim || !match || !mine) return;
+    const x = aim.x + wobble.x;
+    const y = aim.y + wobble.y;
+    setAim(null);
+    const hit = scoreAt(x, y);
+    dartSound(hit.score);
+    const all = [...throws, { ...hit, who: me, x, y }];
+    const over = all.length >= TURNS * 2 * DARTS_PER_TURN;
+    const sum = (p: Person) => all.filter((t) => t.who === p).reduce((n, t) => n + t.score, 0);
+    updateMatch(match.id, (m) => ({
+      ...m,
+      state: { throws: all },
+      turn: order[Math.floor(all.length / DARTS_PER_TURN) % 2],
+      winner: over
+        ? sum('you') === sum('partner')
+          ? 'draw'
+          : sum('you') > sum('partner')
+            ? 'you'
+            : 'partner'
+        : undefined,
+    }));
+    if (over) {
+      addScore('darts', sum('you'), 'you');
+      addScore('darts', sum('partner'), 'partner');
+    }
+  };
+
+  if (!match) {
+    return (
+      <div className="game-panel">
+        <p>
+          Vijf rondes van drie pijlen, elk op je eigen telefoon. Je ziet de pijlen van de ander
+          meteen landen.
+        </p>
+        <button type="button" className="neon-btn" onClick={start}>
+          Daag {theirName} uit
+        </button>
+      </div>
+    );
+  }
+
+  const label = (p: Person) => (p === me ? 'Jij' : theirName);
+  return (
+    <>
+      <div className="darts-totals">
+        {order.map((p) => (
+          <span
+            key={p}
+            className={`darts-total darts-total--${p} ${p === shooter && !match.winner ? 'is-up' : ''}`}
+          >
+            <small>{label(p)}</small>
+            <strong>{total(p)}</strong>
+          </span>
+        ))}
+      </div>
+      <TurnBanner
+        mine={mine}
+        name={theirName}
+        note={`Jouw beurt ✨ · ronde ${Math.min(Math.floor(visit / 2) + 1, TURNS)} van ${TURNS} · pijl ${(throws.length % DARTS_PER_TURN) + 1} van ${DARTS_PER_TURN}`}
+        done={
+          match.winner
+            ? match.winner === 'draw'
+              ? `Gelijk! ${total('you')}–${total('partner')}`
+              : match.winner === me
+                ? `Jij wint met ${total(me)} punten! 🎯🎉`
+                : `${theirName} wint met ${total(them)} punten 💕`
+            : undefined
+        }
+      />
+      <div className="darts">
+        <svg
+          ref={svg}
+          viewBox="-130 -130 260 260"
+          className="darts__board"
+          role="img"
+          aria-label="Dartbord: sleep om te mikken en laat los om te gooien"
+          onPointerDown={(e) => {
+            if (!mine) return;
+            (e.target as Element).setPointerCapture?.(e.pointerId);
+            const p = toBoard(svg.current!, e.clientX, e.clientY);
+            setAim({ x: p.x, y: p.y - (e.pointerType === 'touch' ? 0.22 : 0) });
+          }}
+          onPointerMove={(e) => {
+            if (!aim) return;
+            const p = toBoard(svg.current!, e.clientX, e.clientY);
+            setAim({ x: p.x, y: p.y - (e.pointerType === 'touch' ? 0.22 : 0) });
+          }}
+          onPointerUp={throwDart}
+          onPointerCancel={() => setAim(null)}
+        >
+          <Board />
+          <AnimatePresence>
+            {shown.map((d, i) => (
+              <DartPin
+                key={`${throws.length - shown.length + i}`}
+                dart={{ ...d, key: i }}
+                reduce={reduce}
+              />
+            ))}
+          </AnimatePresence>
+          {aim && (
+            <g
+              transform={`translate(${(aim.x + wobble.x) * R} ${(aim.y + wobble.y) * R})`}
+              className="darts__aim"
+              pointerEvents="none"
+            >
+              <circle r="9" fill="none" stroke="#5ff3ff" strokeWidth="1.6" />
+              <circle r="1.6" fill="#5ff3ff" />
+              <path d="M-14 0h8M6 0h8M0 -14v8M0 6v8" stroke="#5ff3ff" strokeWidth="1.6" />
+            </g>
+          )}
+        </svg>
+      </div>
+      {match.winner && (
+        <button type="button" className="neon-btn" onClick={start}>
+          Nog een potje
+        </button>
+      )}
+    </>
+  );
 }

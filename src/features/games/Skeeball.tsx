@@ -8,48 +8,390 @@ import { useReducedMotion } from '../../hooks/useMotion';
 import { addScore, useBest } from './gameData';
 import { recordResult } from './gameStats';
 import { GameShell, ScoreBoard, type PlayMode } from './GameShell';
+import {
+  BALLS,
+  BOARD_Q,
+  CORNERS,
+  MIN_POWER,
+  RINGS,
+  RING_CENTER,
+  cocoRolls,
+  landing,
+  meterAt,
+  strokeSpeed,
+  powerOfFlick,
+  type Landing,
+} from './skee';
 
-const BALLS = 9;
+/* -------------------------------------------------------------- the view */
 
-/** The holes on the target board, in board units (board is 100 × 100). */
-const HOLES = [
-  { v: 100, x: 12, y: 12, r: 6 },
-  { v: 100, x: 88, y: 12, r: 6 },
-  { v: 50, x: 50, y: 14, r: 7 },
-  { v: 40, x: 50, y: 32, r: 9 },
-  { v: 30, x: 50, y: 52, r: 11 },
-  { v: 20, x: 50, y: 72, r: 13 },
-];
+/** A camera behind the player, looking up the lane. World: x across (lane is 2 wide), z up the lane, y up. */
+const LANE_Z = 3;
+const rise = (z: number) => Math.min(z, LANE_Z) * 0.12;
+const BALL_R = 0.16;
 
-/** Where a ball with this push lands, and what it scores. */
-export function landing(power: number, aim: number): { x: number; y: number; value: number } {
-  const y = 100 - power * 100;
-  const x = 50 + aim * 46;
-  if (power < 0.18) return { x, y: 110, value: 0 };
-  for (const h of HOLES) if (Math.hypot(x - h.x, y - h.y) <= h.r) return { ...h, value: h.v };
-  return { x, y: Math.max(y, 86), value: 10 };
+function camera(w: number, h: number) {
+  const z0 = 2.1;
+  const camH = 2.3;
+  const f = (w * 0.46 * z0) / 1;
+  const hy = h * 0.97 - (camH * f) / z0;
+  return (x: number, y: number, z: number) => {
+    const s = f / (z + z0);
+    return { x: w / 2 + x * s, y: hy + (camH - y) * s, s };
+  };
 }
 
-/**
- * How far a swipe goes, from its upward speed in px/ms: a soft flick (~0.25)
- * reaches the 20, ~0.4 the 30, ~0.75 the 40 and a firm one (~1.0) the top row.
- */
-export const powerOf = (vy: number) => Math.min(1.02, Math.max(0, 0.12 + vy / 1.45));
+/** A point on the target board (u across, q up the board) in world coordinates. */
+const board = (u: number, q: number) => {
+  const t = q / BOARD_Q;
+  return { x: u, z: LANE_Z + 0.2 + t * 0.6, y: rise(LANE_Z) + 0.14 + t * 3.1 };
+};
 
-/** Coco's nine balls: she aims for the middle and mostly gets 20–40. */
-export function cocoRolls(random = Math.random): number[] {
-  return Array.from(
-    { length: BALLS },
-    () => landing(0.3 + random() * 0.62, (random() - 0.5) * 0.5).value,
-  );
-}
+type Phase = 'ready' | 'roll' | 'air' | 'drop' | 'back';
 
-interface Shot {
-  t: number;
+interface Throw {
+  start: number;
   power: number;
-  aim: number;
-  land: { x: number; y: number; value: number };
+  from: number;
+  land: Landing | null;
 }
+
+/** Where the ball is at time `ms` into a throw, and which part of the throw that is. */
+function ballAt(th: Throw, ms: number) {
+  const tRoll = 820 - Math.min(1, th.power) * 360;
+  const tAir = 380;
+  const tDrop = 420;
+  if (!th.land) {
+    // too soft: up the lane, and back down to us
+    const top = LANE_Z * 0.85 * Math.max(0.15, th.power / MIN_POWER);
+    const k = Math.min(1, ms / (tRoll * 1.8));
+    const z = top * Math.sin(k * Math.PI);
+    return {
+      phase: (k >= 1 ? 'ready' : 'back') as Phase,
+      x: th.from,
+      y: rise(z) + BALL_R,
+      z,
+      done: k >= 1,
+    };
+  }
+  const land = th.land;
+  const lb = board(land.u, land.q);
+  if (ms < tRoll) {
+    const k = ms / tRoll;
+    const z = LANE_Z * (1 - (1 - k) ** 1.7);
+    const x = th.from + (land.u - th.from) * k * 0.7;
+    return { phase: 'roll' as Phase, x, y: rise(z) + BALL_R, z, done: false };
+  }
+  if (ms < tRoll + tAir) {
+    const k = (ms - tRoll) / tAir;
+    const sx = th.from + (land.u - th.from) * 0.7;
+    const x = sx + (land.u - sx) * k;
+    const z = LANE_Z + (lb.z - LANE_Z) * k;
+    const y = rise(LANE_Z) + BALL_R + (lb.y - rise(LANE_Z)) * k + Math.sin(k * Math.PI) * 0.55;
+    return { phase: 'air' as Phase, x, y, z, done: false };
+  }
+  const k = Math.min(1, (ms - tRoll - tAir) / tDrop);
+  const hole = board(land.hole.u, land.hole.q);
+  const e = 1 - (1 - k) ** 2;
+  return {
+    phase: 'drop' as Phase,
+    x: lb.x + (hole.x - lb.x) * e,
+    y: lb.y + (hole.y - lb.y) * e + BALL_R * (1 - k),
+    z: lb.z + (hole.z - lb.z) * e,
+    done: k >= 1,
+    sink: Math.max(0, (k - 0.6) / 0.4),
+  };
+}
+
+const RING_COLORS: Record<number, [string, string]> = {
+  10: ['#ff8cc0', '#7a1f45'],
+  20: ['#ff5fa2', '#5c1236'],
+  30: ['#b07bff', '#3e1d70'],
+  40: ['#5ff3ff', '#0f4a5c'],
+  50: ['#ffd75e', '#6b4a0a'],
+  100: ['#ffd75e', '#6b4a0a'],
+};
+
+/** A circle on the board, drawn in perspective. */
+function boardCircle(
+  ctx: CanvasRenderingContext2D,
+  P: ReturnType<typeof camera>,
+  cu: number,
+  cq: number,
+  r: number,
+) {
+  ctx.beginPath();
+  for (let i = 0; i <= 40; i++) {
+    const a = (i / 40) * Math.PI * 2;
+    const b = board(cu + Math.cos(a) * r, cq + Math.sin(a) * r);
+    const p = P(b.x, b.y, b.z);
+    if (i === 0) ctx.moveTo(p.x, p.y);
+    else ctx.lineTo(p.x, p.y);
+  }
+  ctx.closePath();
+}
+
+function drawMachine(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  now: number,
+  reduce: boolean,
+) {
+  const P = camera(w, h);
+  // the arcade behind
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, '#120720');
+  bg.addColorStop(1, '#2a1240');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+
+  // the cabinet walls along the lane
+  const wall = (side: -1 | 1) => {
+    const a = P(side * 1.18, 0, 0);
+    const b = P(side * 1.18, rise(LANE_Z) + 3.6, LANE_Z + 0.85);
+    const c = P(side * 1.18, rise(LANE_Z) + 0.3, LANE_Z + 0.85);
+    const g = ctx.createLinearGradient(a.x, 0, w / 2, 0);
+    g.addColorStop(0, '#3b1a5c');
+    g.addColorStop(1, '#1d0c30');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(side < 0 ? 0 : w, h);
+    ctx.lineTo(a.x, a.y);
+    ctx.lineTo(c.x, c.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.lineTo(side < 0 ? 0 : w, 0);
+    ctx.closePath();
+    ctx.fill();
+    // chasing bulbs along the top rail
+    for (let i = 0; i <= 10; i++) {
+      const k = i / 10;
+      const p = P(side * 1.18, 0.75 + (rise(LANE_Z) + 0.3 - 0.75) * k, LANE_Z * k + 0.85 * k);
+      const on = reduce ? i % 2 === 0 : Math.floor(now / 140 + i) % 3 === 0;
+      ctx.fillStyle = on ? '#ffd75e' : '#5a4630';
+      ctx.shadowColor = '#ffd75e';
+      ctx.shadowBlur = on ? 12 : 0;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, Math.max(1.6, p.s * 0.05), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+  };
+  wall(-1);
+  wall(1);
+
+  // the marquee
+  const top = P(0, rise(LANE_Z) + 3.6, LANE_Z + 0.85);
+  ctx.save();
+  ctx.font = `900 ${Math.round(w * 0.085)}px system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const flicker = reduce || Math.sin(now / 900) > -0.95 ? 1 : 0.4;
+  ctx.globalAlpha = flicker;
+  ctx.fillStyle = '#fff';
+  ctx.shadowColor = '#ff5fa2';
+  ctx.shadowBlur = 18;
+  ctx.fillText('SKEE·BALL ♡', w / 2, Math.max(h * 0.06, top.y - h * 0.09));
+  ctx.restore();
+
+  // the net behind the board
+  const n1 = P(-1.1, rise(LANE_Z) + 3.6, LANE_Z + 0.9);
+  const n2 = P(1.1, rise(LANE_Z) + 0.2, LANE_Z + 0.9);
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 1;
+  for (let x = n1.x; x <= n2.x; x += 8) {
+    ctx.beginPath();
+    ctx.moveTo(x, n1.y);
+    ctx.lineTo(x, n2.y);
+    ctx.stroke();
+  }
+
+  // the target board
+  const corners = [board(-1, 0), board(1, 0), board(1, BOARD_Q), board(-1, BOARD_Q)].map((b) =>
+    P(b.x, b.y, b.z),
+  );
+  const bg2 = ctx.createLinearGradient(0, corners[2].y, 0, corners[0].y);
+  bg2.addColorStop(0, '#2a1446');
+  bg2.addColorStop(1, '#43205f');
+  ctx.fillStyle = bg2;
+  ctx.beginPath();
+  corners.forEach((c, i) => (i ? ctx.lineTo(c.x, c.y) : ctx.moveTo(c.x, c.y)));
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#ff5fa2';
+  ctx.shadowColor = '#ff5fa2';
+  ctx.shadowBlur = 10;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // rings, outer to inner, each a glowing band with its number
+  const label = (text: string, u: number, q: number, color: string, size = 0.2) => {
+    const b = board(u, q);
+    const p = P(b.x, b.y, b.z);
+    ctx.font = `900 ${Math.max(8, Math.round(p.s * size))}px system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = color;
+    ctx.fillText(text, p.x, p.y);
+  };
+  // the big 10 trough at the bottom
+  boardCircle(ctx, P, 0, 0.42, 0.34);
+  ctx.fillStyle = '#1a0a24';
+  ctx.fill();
+  ctx.strokeStyle = RING_COLORS[10][0];
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  label('10', -0.62, 0.42, RING_COLORS[10][0]);
+  label('10', 0.62, 0.42, RING_COLORS[10][0]);
+  for (const ring of [...RINGS].reverse()) {
+    const [glow, deep] = RING_COLORS[ring.v];
+    boardCircle(ctx, P, RING_CENTER.u, RING_CENTER.q, ring.r);
+    ctx.fillStyle = deep;
+    ctx.fill();
+    ctx.strokeStyle = glow;
+    ctx.shadowColor = glow;
+    ctx.shadowBlur = 8;
+    ctx.lineWidth = 2.2;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+  // the holes, dark and deep
+  const hole = (u: number, q: number, r: number) => {
+    boardCircle(ctx, P, u, q, r);
+    const p = P(board(u, q).x, board(u, q).y, board(u, q).z);
+    const g = ctx.createRadialGradient(p.x, p.y - 2, 1, p.x, p.y, Math.max(2, r * p.s));
+    g.addColorStop(0, '#000');
+    g.addColorStop(1, '#2b1424');
+    ctx.fillStyle = g;
+    ctx.fill();
+  };
+  RINGS.forEach((ring, i) => {
+    const inner = i ? RINGS[i - 1].r : 0;
+    const q = RING_CENTER.q - (ring.v === 50 ? 0 : (inner + ring.r) / 2);
+    hole(0, q, ring.v === 50 ? 0.13 : 0.08);
+    // the number on both sides of its band, like on a real machine
+    if (ring.v === 50) label('50', 0, RING_CENTER.q + 0.15, '#fff7d6');
+    else
+      for (const side of [-1, 1])
+        label(
+          String(ring.v),
+          side * ((inner + ring.r) / 2),
+          RING_CENTER.q,
+          RING_COLORS[ring.v][0],
+          0.12,
+        );
+  });
+  hole(0, 0.42, 0.1);
+  for (const c of CORNERS) {
+    boardCircle(ctx, P, c.u, c.q, c.r + 0.04);
+    ctx.fillStyle = RING_COLORS[100][1];
+    ctx.fill();
+    ctx.strokeStyle = RING_COLORS[100][0];
+    ctx.shadowColor = RING_COLORS[100][0];
+    ctx.shadowBlur = reduce ? 6 : 6 + 6 * Math.abs(Math.sin(now / 300));
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    hole(c.u, c.q, c.r - 0.03);
+    label('100', c.u, c.q - c.r - 0.12, RING_COLORS[100][0]);
+  }
+
+  // the lane: wooden planks rising to the hump
+  const l0 = P(-1, 0, 0);
+  const l1 = P(1, 0, 0);
+  const l2 = P(1, rise(LANE_Z), LANE_Z);
+  const l3 = P(-1, rise(LANE_Z), LANE_Z);
+  const wood = ctx.createLinearGradient(0, l3.y, 0, l0.y);
+  wood.addColorStop(0, '#8a4f22');
+  wood.addColorStop(1, '#e8a95e');
+  ctx.fillStyle = wood;
+  ctx.beginPath();
+  ctx.moveTo(l0.x, l0.y);
+  ctx.lineTo(l1.x, l1.y);
+  ctx.lineTo(l2.x, l2.y);
+  ctx.lineTo(l3.x, l3.y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(70,30,10,0.35)';
+  ctx.lineWidth = 1;
+  for (let i = 1; i < 8; i++) {
+    const x = -1 + (i / 8) * 2;
+    const a = P(x, 0, 0);
+    const b = P(x, rise(LANE_Z), LANE_Z);
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+  // a soft shine down the middle
+  const shine = ctx.createLinearGradient(l0.x, 0, l1.x, 0);
+  shine.addColorStop(0, 'rgba(255,255,255,0)');
+  shine.addColorStop(0.5, 'rgba(255,240,220,0.22)');
+  shine.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = shine;
+  ctx.fill();
+  // neon rails
+  ctx.strokeStyle = '#5ff3ff';
+  ctx.shadowColor = '#5ff3ff';
+  ctx.shadowBlur = 10;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(l0.x, l0.y);
+  ctx.lineTo(l3.x, l3.y);
+  ctx.moveTo(l1.x, l1.y);
+  ctx.lineTo(l2.x, l2.y);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  // the hump
+  const h0 = P(-1, rise(LANE_Z) + 0.12, LANE_Z);
+  const h1 = P(1, rise(LANE_Z) + 0.12, LANE_Z);
+  ctx.fillStyle = '#6b3618';
+  ctx.fillRect(h0.x, h0.y, h1.x - h0.x, Math.max(4, l3.y - h0.y));
+  ctx.fillStyle = 'rgba(255,220,180,0.35)';
+  ctx.fillRect(h0.x, h0.y, h1.x - h0.x, 2);
+  return P;
+}
+
+function drawBall(
+  ctx: CanvasRenderingContext2D,
+  P: ReturnType<typeof camera>,
+  x: number,
+  y: number,
+  z: number,
+  spin: number,
+  sink = 0,
+) {
+  const p = P(x, y, z);
+  const ground = P(x, z <= LANE_Z ? rise(z) : y - BALL_R, z);
+  const r = Math.max(2, BALL_R * p.s * (1 - sink * 0.8));
+  ctx.save();
+  ctx.globalAlpha = 1 - sink * 0.7;
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath();
+  ctx.ellipse(ground.x, ground.y, r, r * 0.32, 0, 0, Math.PI * 2);
+  ctx.fill();
+  const g = ctx.createRadialGradient(p.x - r / 3, p.y - r / 3, 1, p.x, p.y, r);
+  g.addColorStop(0, '#fff6fb');
+  g.addColorStop(0.55, '#ff8fc0');
+  g.addColorStop(1, '#9c2456');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+  ctx.fill();
+  // a little heart on the ball, turning as it rolls
+  const hy = Math.sin(spin) * r * 0.45;
+  if (Math.cos(spin) > 0) {
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.font = `${Math.round(r * 0.8)}px system-ui`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('♥', p.x, p.y + hy);
+  }
+  ctx.restore();
+  return p;
+}
+
+const HINT = 'Veeg de bal omhoog ↑ — of houd vast en laat los als de meter goed staat';
 
 export function Skeeball() {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -61,16 +403,19 @@ export function Skeeball() {
   const [mode, setMode] = useState<PlayMode>('remote');
   const [left, setLeft] = useState(BALLS);
   const [score, setScore] = useState(0);
-  const [last, setLast] = useState('Veeg de bal omhoog ↑ — harder is verder');
+  const [last, setLast] = useState(HINT);
   const [pops, setPops] = useState<{ id: number; v: number; x: number; y: number }[]>([]);
   const [tickets, setTickets] = useState<number | null>(null);
   const [cocoScore, setCocoScore] = useState<number | null>(null);
-  const [meter, setMeter] = useState(0);
-  const shot = useRef<Shot | null>(null);
+  const shot = useRef<Throw | null>(null);
+  const aim = useRef(0);
   const drag = useRef<{ x: number; y: number; t: number }[]>([]);
+  const hold = useRef<number | null>(null);
   const size = useRef({ w: 300, h: 480 });
   const scoreRef = useRef(0);
   scoreRef.current = score;
+  const leftRef = useRef(left);
+  leftRef.current = left;
 
   useEffect(() => {
     const resize = () => {
@@ -78,7 +423,7 @@ export function Skeeball() {
       const box = wrap.current;
       if (!c || !box) return;
       const w = box.clientWidth;
-      const h = Math.min(window.innerHeight * 0.56, w * 1.45);
+      const h = Math.min(window.innerHeight * 0.62, w * 1.5);
       const dpr = window.devicePixelRatio || 1;
       c.width = w * dpr;
       c.height = h * dpr;
@@ -95,200 +440,83 @@ export function Skeeball() {
 
   useEffect(() => {
     let raf = 0;
+    let spin = 0;
     const draw = (now: number) => {
       const ctx = canvas.current?.getContext('2d');
       if (!ctx) return;
       const { w, h } = size.current;
       ctx.clearRect(0, 0, w, h);
-      const boardTop = h * 0.05;
-      const boardH = h * 0.34;
-      const boardW = w * 0.6;
-      const bx = (w - boardW) / 2;
-      const toBoard = (x: number, y: number) => ({
-        x: bx + (x / 100) * boardW,
-        y: boardTop + (y / 100) * boardH,
-      });
+      const P = drawMachine(ctx, w, h, now, reduce);
+      const th = shot.current;
 
-      // cabinet
-      const cab = ctx.createLinearGradient(0, 0, 0, h);
-      cab.addColorStop(0, '#1b0f2b');
-      cab.addColorStop(1, '#2d1645');
-      ctx.fillStyle = cab;
-      ctx.fillRect(0, 0, w, h);
-      // chasing bulbs on the side rails
-      const bulbs = 12;
-      for (let i = 0; i < bulbs; i++) {
-        const on = reduce ? i % 2 === 0 : Math.floor(now / 160 + i) % 3 === 0;
-        const y = h * 0.08 + (i / (bulbs - 1)) * h * 0.86;
-        for (const x of [w * 0.05, w * 0.95]) {
-          ctx.fillStyle = on ? '#ffd75e' : '#5a4630';
-          ctx.shadowColor = '#ffd75e';
-          ctx.shadowBlur = on ? 10 : 0;
-          ctx.beginPath();
-          ctx.arc(x, y, 3.2, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-      ctx.shadowBlur = 0;
-
-      // ramp
-      const rampTop = boardTop + boardH;
-      const ramp = ctx.createLinearGradient(0, rampTop, 0, h);
-      ramp.addColorStop(0, '#a8662f');
-      ramp.addColorStop(1, '#e3a25b');
-      ctx.fillStyle = ramp;
-      ctx.beginPath();
-      ctx.moveTo(w * 0.14, h);
-      ctx.lineTo(w * 0.86, h);
-      ctx.lineTo(bx + boardW, rampTop);
-      ctx.lineTo(bx, rampTop);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-      ctx.lineWidth = 1;
-      for (let i = 1; i < 5; i++) {
-        const t = i / 5;
-        ctx.beginPath();
-        ctx.moveTo(w * 0.14 + (bx - w * 0.14) * 0 + w * 0.72 * t, h);
-        ctx.lineTo(bx + boardW * t, rampTop);
-        ctx.stroke();
-      }
-      // neon edges of the ramp
-      ctx.strokeStyle = '#ff5fa2';
-      ctx.shadowColor = '#ff5fa2';
-      ctx.shadowBlur = 8;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(w * 0.14, h);
-      ctx.lineTo(bx, rampTop);
-      ctx.moveTo(w * 0.86, h);
-      ctx.lineTo(bx + boardW, rampTop);
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-      // the hump
-      ctx.fillStyle = '#7a3f1d';
-      ctx.fillRect(bx, rampTop - 7, boardW, 9);
-      ctx.fillStyle = 'rgba(255,255,255,0.18)';
-      ctx.fillRect(bx, rampTop - 7, boardW, 2);
-
-      // board
-      const board = ctx.createLinearGradient(0, boardTop, 0, rampTop);
-      board.addColorStop(0, '#2a1840');
-      board.addColorStop(1, '#3d2457');
-      ctx.fillStyle = board;
-      ctx.fillRect(bx, boardTop, boardW, boardH);
-      // the big 10 ring at the bottom
-      const big = toBoard(50, 90);
-      ctx.fillStyle = '#e0457b';
-      ctx.beginPath();
-      ctx.ellipse(big.x, big.y, boardW * 0.46, boardH * 0.11, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#7a1f45';
-      ctx.beginPath();
-      ctx.ellipse(big.x, big.y + 1, boardW * 0.42, boardH * 0.07, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.font = `bold ${Math.round(boardH * 0.07)}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('10', big.x - boardW * 0.32, big.y);
-      ctx.fillText('10', big.x + boardW * 0.32, big.y);
-      for (const hole of HOLES) {
-        const p = toBoard(hole.x, hole.y);
-        const rx = (hole.r / 100) * boardW;
-        const ry = (hole.r / 100) * boardH;
-        const rim =
-          hole.v === 100
-            ? '#ffd75e'
-            : hole.v === 50
-              ? '#b07bff'
-              : hole.v === 40
-                ? '#7fc8ff'
-                : '#ff8cc0';
-        ctx.fillStyle = rim;
-        ctx.shadowColor = rim;
-        ctx.shadowBlur = 6;
-        ctx.beginPath();
-        ctx.ellipse(p.x, p.y, rx + 4, ry + 4, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        const hole3d = ctx.createRadialGradient(p.x, p.y - ry * 0.3, 1, p.x, p.y, rx);
-        hole3d.addColorStop(0, '#000');
-        hole3d.addColorStop(1, '#2b1424');
-        ctx.fillStyle = hole3d;
-        ctx.beginPath();
-        ctx.ellipse(p.x, p.y, rx, ry, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#fff';
-        ctx.font = `bold ${Math.round(Math.max(9, Math.min(rx, ry * 1.6) * 0.75))}px sans-serif`;
-        ctx.fillText(String(hole.v), p.x, p.y + 1);
-      }
-
-      // the ball
-      const s = shot.current;
-      let ball = { x: w / 2, y: h - 34, r: 17, hidden: false };
-      if (s) {
-        const t = Math.min(1, (now - s.t) / 1150);
-        const land = toBoard(s.land.x, Math.min(s.land.y, 100));
-        const start = { x: w / 2, y: h - 34 };
-        if (s.land.value === 0) {
-          const up = Math.sin(t * Math.PI) * h * 0.35 * Math.max(s.power, 0.12) * 3;
-          ball = {
-            x: start.x + s.aim * 20 * t,
-            y: start.y - up,
-            r: 17 - 5 * Math.sin(t * Math.PI),
-            hidden: false,
-          };
-        } else {
-          const e = 1 - (1 - Math.min(t / 0.85, 1)) ** 2;
-          const hop = Math.sin(Math.min(1, Math.max(0, (t - 0.45) / 0.4)) * Math.PI) * 32;
-          const sink = t > 0.85 ? (t - 0.85) / 0.15 : 0;
-          ball = {
-            x: start.x + (land.x - start.x) * e,
-            y: start.y + (land.y - start.y) * e - hop,
-            r: (17 - 10 * e) * (1 - sink * 0.8),
-            hidden: false,
-          };
-        }
-        if (t >= 1) {
+      if (th) {
+        const b = ballAt(th, now - th.start);
+        spin += b.phase === 'roll' || b.phase === 'back' ? 0.35 : 0.1;
+        const p = drawBall(ctx, P, b.x, b.y, b.z, spin, 'sink' in b ? b.sink : 0);
+        if (b.done) {
           shot.current = null;
-          const v = s.land.value;
+          const v = th.land?.value ?? 0;
           setScore((n) => n + v);
           if (v > 0)
-            setPops((p) => [...p, { id: now, v, x: (land.x / w) * 100, y: (land.y / h) * 100 }]);
+            setPops((all) => [...all, { id: now, v, x: (p.x / w) * 100, y: (p.y / h) * 100 }]);
+          const pct = Math.round(Math.min(1.3, th.power) * 100);
           setLast(
-            v === 0 ? 'Te zacht… 🙃' : v >= 100 ? '100!!! 🤯✨' : v >= 50 ? `${v}! 🎯` : `${v}`,
+            v === 0
+              ? `Te zacht (${pct}%) — hij rolde terug 🙃`
+              : `${v >= 100 ? '100!!! 🤯✨' : v >= 50 ? `${v}! 🎯` : `${v}`} · kracht ${pct}%`,
           );
-          playSfx(v >= 50 ? 'star' : v === 0 ? 'boing' : 'coin', true);
+          playSfx(v === 0 ? 'boing' : 'clunk', true);
+          if (v > 0) window.setTimeout(() => playSfx(v >= 50 ? 'star' : 'coin', true), 140);
           if (v >= 50) celebrateFrom(canvas.current);
         }
-      }
-      if ((left > 0 || s) && !ball.hidden) {
-        ctx.fillStyle = 'rgba(0,0,0,0.3)';
-        ctx.beginPath();
-        ctx.ellipse(ball.x + 2, ball.y + ball.r * 0.8, ball.r, ball.r * 0.35, 0, 0, Math.PI * 2);
-        ctx.fill();
-        const g = ctx.createRadialGradient(
-          ball.x - ball.r / 3,
-          ball.y - ball.r / 3,
-          1,
-          ball.x,
-          ball.y,
-          Math.max(1, ball.r),
-        );
-        g.addColorStop(0, '#fff6fb');
-        g.addColorStop(0.6, '#f2a7c4');
-        g.addColorStop(1, '#b0325f');
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(ball.x, ball.y, Math.max(2, ball.r), 0, Math.PI * 2);
-        ctx.fill();
+      } else if (leftRef.current > 0) {
+        // the next ball, waiting at our end of the lane
+        const p0 = drawBall(ctx, P, aim.current, BALL_R, 0.15, spin);
+        // where it will go
+        if (drag.current.length) {
+          ctx.strokeStyle = 'rgba(95,243,255,0.55)';
+          ctx.setLineDash([4, 5]);
+          ctx.lineWidth = 2;
+          const far = P(aim.current * 0.85, rise(LANE_Z), LANE_Z);
+          ctx.beginPath();
+          ctx.moveTo(p0.x, p0.y);
+          ctx.lineTo(far.x, far.y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        // the hold-and-release meter
+        if (hold.current !== null) {
+          const m = meterAt(now - hold.current);
+          const mx = w - 26;
+          const mh = h * 0.42;
+          const my = h * 0.5;
+          ctx.fillStyle = 'rgba(0,0,0,0.45)';
+          ctx.fillRect(mx - 8, my - mh / 2, 16, mh);
+          const g = ctx.createLinearGradient(0, my + mh / 2, 0, my - mh / 2);
+          g.addColorStop(0, '#5ff3ff');
+          g.addColorStop(0.55, '#ffd75e');
+          g.addColorStop(1, '#ff5fa2');
+          ctx.fillStyle = g;
+          ctx.fillRect(mx - 6, my + mh / 2 - m * mh, 12, m * mh);
+          // the sweet spot for the 50
+          const sweet = (0.539 - 0.05) / 0.95;
+          ctx.strokeStyle = '#fff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(mx - 11, my + mh / 2 - sweet * mh);
+          ctx.lineTo(mx + 11, my + mh / 2 - sweet * mh);
+          ctx.stroke();
+          ctx.fillStyle = '#fff';
+          ctx.font = '700 10px system-ui';
+          ctx.textAlign = 'right';
+          ctx.fillText('50', mx - 13, my + mh / 2 - sweet * mh + 3);
+        }
       }
       raf = requestAnimationFrame(draw);
     };
     raf = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(raf);
-  }, [left, reduce]);
+  }, [reduce]);
 
   // When the last ball has landed: tickets, the record, and Coco's turn.
   const finished = useRef(false);
@@ -328,7 +556,7 @@ export function Skeeball() {
           );
         }
       }, 380);
-    }, 1400);
+    }, 1800);
     return () => window.clearTimeout(t);
   }, [left, mode, me]);
 
@@ -337,25 +565,68 @@ export function Skeeball() {
     return { x: e.clientX - r.left, y: e.clientY - r.top, t: performance.now() };
   };
 
-  const onUp = () => {
+  /** Where the finger is across the lane, as an aim (-0.85 … 0.85). */
+  const aimAt = (x: number) => {
+    const { w, h } = size.current;
+    const p = camera(w, h)(0, 0, 0.15);
+    return Math.max(-0.85, Math.min(0.85, (x - p.x) / p.s));
+  };
+
+  const throwBall = (power: number, drift: number) => {
+    const from = aim.current;
+    const land = landing(power, from + drift, Math.random() * 2 - 1);
+    shot.current = { start: performance.now(), power, from, land };
+    setLeft((n) => n - 1);
+    playSfx('roll', true);
+  };
+
+  const onDown = (e: React.PointerEvent) => {
+    if (shot.current || left <= 0) return;
+    (e.target as Element).setPointerCapture(e.pointerId);
+    const p = pos(e);
+    drag.current = [p];
+    aim.current = aimAt(p.x);
+    // still holding after a moment: the power meter starts
+    const t0 = p.t;
+    window.setTimeout(() => {
+      const d = drag.current;
+      if (d.length && d[0].t === t0 && d[0].y - d[d.length - 1].y < 14)
+        hold.current = performance.now();
+    }, 320);
+  };
+
+  const onMove = (e: React.PointerEvent) => {
+    const d = drag.current;
+    if (!d.length) return;
+    const p = pos(e);
+    d.push(p);
+    if (d.length > 80) d.splice(1, 1);
+    // slide sideways to aim, until the flick starts
+    if (d[0].y - p.y < 12 || hold.current !== null) aim.current = aimAt(p.x);
+  };
+
+  const onUp = (e: React.PointerEvent) => {
     const d = drag.current;
     drag.current = [];
-    if (d.length < 2 || shot.current || left <= 0) return;
-    const lastP = d[d.length - 1];
-    const from = d.find((p) => lastP.t - p.t < 160) ?? d[0];
-    const dt = Math.max(16, lastP.t - from.t);
-    const vy = (from.y - lastP.y) / dt;
-    const vx = (lastP.x - from.x) / dt;
-    if (vy < 0.15) {
-      setLast('Veeg omhoog ↑');
-      return;
+    const held = hold.current;
+    hold.current = null;
+    if (!d.length || shot.current || left <= 0) return;
+    d.push(pos(e));
+    const up = d[0].y - d[d.length - 1].y;
+    const speed = strokeSpeed(d, size.current.h);
+    if (up > 24 && speed > 0.8) {
+      const lastP = d[d.length - 1];
+      const mid = d[Math.max(0, d.length - 6)];
+      const drift = Math.max(
+        -0.5,
+        Math.min(0.5, ((lastP.x - mid.x) / Math.max(20, mid.y - lastP.y)) * 0.6),
+      );
+      throwBall(powerOfFlick(speed), drift);
+    } else if (held !== null) {
+      throwBall(0.05 + meterAt(performance.now() - held) * 0.95, 0);
+    } else {
+      setLast(HINT);
     }
-    const power = powerOf(vy);
-    const aim = Math.max(-1, Math.min(1, (vx / Math.max(vy, 0.4)) * 1.4));
-    setMeter(0);
-    shot.current = { t: performance.now(), power, aim, land: landing(power, aim) };
-    setLeft((n) => n - 1);
-    playSfx('whoosh', true);
   };
 
   const restart = () => {
@@ -364,8 +635,9 @@ export function Skeeball() {
     setPops([]);
     setTickets(null);
     setCocoScore(null);
+    shot.current = null;
     finished.current = false;
-    setLast('Veeg de bal omhoog ↑ — harder is verder');
+    setLast(HINT);
   };
 
   return (
@@ -415,33 +687,16 @@ export function Skeeball() {
         <canvas
           ref={canvas}
           className="skee__canvas"
-          onPointerDown={(e) => {
-            (e.target as Element).setPointerCapture(e.pointerId);
-            drag.current = [pos(e)];
-          }}
-          onPointerMove={(e) => {
-            const d = drag.current;
-            if (!d.length) return;
-            const p = pos(e);
-            d.push(p);
-            const from = d.find((q) => p.t - q.t < 160) ?? d[0];
-            setMeter(powerOf((from.y - p.y) / Math.max(16, p.t - from.t)));
-          }}
+          onPointerDown={onDown}
+          onPointerMove={onMove}
           onPointerUp={onUp}
           onPointerCancel={() => {
             drag.current = [];
-            setMeter(0);
+            hold.current = null;
           }}
           role="img"
-          aria-label="Skeeball: veeg omhoog om de bal te rollen. Harder vegen is verder."
+          aria-label="Skeeball: schuif opzij om te mikken, veeg omhoog om te gooien, of houd vast en laat los bij de juiste kracht."
         />
-        <span className="skee-meter" aria-hidden="true">
-          <span className="skee-meter__fill" style={{ height: `${Math.min(100, meter * 98)}%` }} />
-          <i style={{ bottom: '28%' }}>20</i>
-          <i style={{ bottom: '48%' }}>30</i>
-          <i style={{ bottom: '68%' }}>40</i>
-          <i style={{ bottom: '86%' }}>★</i>
-        </span>
         <AnimatePresence>
           {pops.map((p) => (
             <motion.span
@@ -481,6 +736,9 @@ export function Skeeball() {
           )}
         </AnimatePresence>
       </div>
+      <p className="game-hint">
+        Tip: schuif je vinger opzij om te mikken. De 100 zit in de hoeken bovenaan.
+      </p>
       <button type="button" className="neon-btn" onClick={restart}>
         {left === 0 ? 'Nog een keer' : 'Opnieuw beginnen'}
       </button>

@@ -78,3 +78,21 @@
   flex: 1 1 220px;
   margin: 0;
 }
+
+/* the little lock in the footer */
+.site-footer__lock {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-top: 4px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  opacity: 0.55;
+}
+
+.site-footer__lock:hover,
+.site-footer__lock:focus-visible {
+  opacity: 1;
+}

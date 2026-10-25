@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { GameMatch, Person } from '../../data/types';
+import { startMatch, updateMatch, useMatch } from './gameData';
 import { useContent } from '../../data/store';
 import { nameOf, otherPerson, useMe } from '../../data/people';
 import type { Player } from '../../data/types';
@@ -6,13 +8,13 @@ import { MediaView } from '../../components/media/MediaView';
 import { playSfx } from '../../lib/audio/sfx';
 import { celebrateFrom } from '../../components/ui/feedback';
 import { headToHead, recordResult } from './gameStats';
-import { GameShell, ScoreBoard, TurnBanner, type PlayMode } from './GameShell';
-import { cocoPick, deck, facesFrom, type Card } from './memory';
+import { GameShell, ScoreBoard, TurnBanner, WhoAreYou, type PlayMode } from './GameShell';
+import { cocoPick, deck, facesFrom, type Card, type Face } from './memory';
 
 const PAIRS = 8;
 
 export function Memory() {
-  const [mode, setMode] = useState<PlayMode>('local');
+  const [mode, setMode] = useState<PlayMode>('remote');
   const [round, setRound] = useState(0);
   const results = useContent((c) => c.games.results);
   const profile = useContent((c) => c.profile);
@@ -28,7 +30,7 @@ export function Memory() {
         setMode(m);
         setRound((r) => r + 1);
       }}
-      modes={['local', 'coco']}
+      modes={['remote', 'local', 'coco']}
       labels={{ local: '📱 Samen op één telefoon' }}
       score={
         mode === 'coco' ? (
@@ -50,11 +52,17 @@ export function Memory() {
         )
       }
     >
-      <Board
-        key={`${mode}-${round}`}
-        vsCoco={mode === 'coco'}
-        onAgain={() => setRound((r) => r + 1)}
-      />
+      {mode === 'remote' ? (
+        <WhoAreYou>
+          <RemoteBoard />
+        </WhoAreYou>
+      ) : (
+        <Board
+          key={`${mode}-${round}`}
+          vsCoco={mode === 'coco'}
+          onAgain={() => setRound((r) => r + 1)}
+        />
+      )}
     </GameShell>
   );
 }
@@ -84,7 +92,7 @@ function Board({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void }) {
 
   const flip = (id: number) => {
     if (busy || done || open.includes(id) || matched.has(id)) return;
-    playSfx('pop', true);
+    playSfx('flip', true);
     remember(id);
     const next = [...open, id];
     setOpen(next);
@@ -189,6 +197,193 @@ function Board({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void }) {
       </ul>
       {done && (
         <button type="button" className="neon-btn" onClick={onAgain}>
+          Nog een potje
+        </button>
+      )}
+    </>
+  );
+}
+
+/* ------------------------------------------------- each on our own phone */
+
+interface MemoryState {
+  faces: Face[];
+  /** Which face each card shows. */
+  order: number[];
+  open: number[];
+  matched: number[];
+  pairs: Record<Person, number>;
+}
+
+function readState(state: unknown): MemoryState | null {
+  const s = state as Partial<MemoryState> | undefined;
+  if (!s || !Array.isArray(s.faces) || !Array.isArray(s.order)) return null;
+  return {
+    faces: s.faces,
+    order: s.order,
+    open: Array.isArray(s.open) ? s.open : [],
+    matched: Array.isArray(s.matched) ? s.matched : [],
+    pairs: { you: s.pairs?.you ?? 0, partner: s.pairs?.partner ?? 0 },
+  };
+}
+
+/** Turn the two open cards back, or keep them when they're a pair. */
+function resolve(match: GameMatch, me: Person) {
+  updateMatch(match.id, (m) => {
+    const s = readState(m.state);
+    if (!s || s.open.length < 2 || m.turn !== me) return m;
+    const [a, b] = s.open;
+    const pair = s.order[a] === s.order[b];
+    const matched = pair ? [...s.matched, a, b] : s.matched;
+    const pairs = pair ? { ...s.pairs, [me]: s.pairs[me] + 1 } : s.pairs;
+    const done = matched.length === s.order.length;
+    const other: Person = me === 'you' ? 'partner' : 'you';
+    return {
+      ...m,
+      state: { ...s, open: [], matched, pairs },
+      turn: pair ? me : other,
+      winner: done
+        ? pairs.you === pairs.partner
+          ? 'draw'
+          : pairs.you > pairs.partner
+            ? 'you'
+            : 'partner'
+        : undefined,
+    };
+  });
+}
+
+function RemoteBoard() {
+  const content = useContent((c) => c);
+  const me = useMe();
+  const them = otherPerson(me);
+  const match = useMatch('memory');
+  const s = readState(match?.state);
+  const heard = useRef('');
+  const theirName = nameOf(them, content.profile);
+
+  // A sound for every card the other turns, as it arrives.
+  useEffect(() => {
+    if (!match || !s) return;
+    const key = `${match.id}:${s.open.join(',')}:${s.matched.length}`;
+    if (heard.current && heard.current !== key && match.turn === them) playSfx('flip', true);
+    heard.current = key;
+  }, [match?.updatedAt]);
+
+  // Two cards open on my turn: look a moment, then turn them (also after a reload).
+  useEffect(() => {
+    if (!match || !s || match.winner || match.turn !== me || s.open.length < 2) return;
+    const pair = s.order[s.open[0]] === s.order[s.open[1]];
+    const t = window.setTimeout(
+      () => {
+        playSfx(pair ? 'sparkle' : 'whoosh', true);
+        resolve(match, me);
+      },
+      pair ? 700 : 1200,
+    );
+    return () => window.clearTimeout(t);
+  }, [match?.updatedAt]);
+
+  useEffect(() => {
+    if (match?.winner && match.winner !== 'draw' && match.winner === me)
+      celebrateFrom(document.querySelector('.memory'));
+  }, [match?.winner]);
+
+  const start = () => {
+    const faces = facesFrom(content, PAIRS);
+    const order = deck(faces).map((c) => faces.findIndex((f) => f.key === c.key));
+    playSfx('sparkle', true);
+    startMatch(
+      'memory',
+      { faces, order, open: [], matched: [], pairs: { you: 0, partner: 0 } },
+      me,
+      me,
+    );
+  };
+
+  if (!match || !s) {
+    return (
+      <div className="game-panel">
+        <p>
+          Om de beurt twee kaartjes omdraaien — elk op je eigen telefoon. Wie de meeste paartjes
+          vindt, wint.
+        </p>
+        <button type="button" className="neon-btn" onClick={start}>
+          Daag {theirName} uit
+        </button>
+      </div>
+    );
+  }
+
+  const mine = !match.winner && match.turn === me;
+  const flip = (id: number) => {
+    if (!mine || s.open.length >= 2 || s.open.includes(id) || s.matched.includes(id)) return;
+    playSfx('flip', true);
+    updateMatch(match.id, (m) => {
+      const cur = readState(m.state);
+      if (!cur || cur.open.length >= 2 || cur.open.includes(id)) return m;
+      return { ...m, state: { ...cur, open: [...cur.open, id] } };
+    });
+  };
+  const label = (p: Person) => (p === me ? 'Jij' : theirName);
+
+  return (
+    <>
+      <div className="darts-totals">
+        {(['you', 'partner'] as Person[]).map((p) => (
+          <span
+            key={p}
+            className={`darts-total darts-total--${p} ${match.turn === p && !match.winner ? 'is-up' : ''}`}
+          >
+            <small>{label(p)}</small>
+            <strong>{s.pairs[p]}</strong>
+          </span>
+        ))}
+      </div>
+      <TurnBanner
+        mine={mine}
+        name={theirName}
+        note="Jouw beurt — draai twee kaartjes om"
+        done={
+          match.winner
+            ? match.winner === 'draw'
+              ? `Gelijkspel! ${s.pairs.you}–${s.pairs.partner}`
+              : match.winner === me
+                ? `Jij wint met ${s.pairs[me]} paartjes! 🎉`
+                : `${theirName} wint met ${s.pairs[them]} paartjes 💕`
+            : undefined
+        }
+      />
+      <ul className="memory" aria-label="Memory-kaartjes">
+        {s.order.map((face, id) => {
+          const f = s.faces[face];
+          const matched = s.matched.includes(id);
+          const up = s.open.includes(id) || matched;
+          return (
+            <li key={id}>
+              <button
+                type="button"
+                className={`memory__card ${up ? 'is-up' : ''} ${matched ? 'is-matched' : ''}`}
+                onClick={() => flip(id)}
+                disabled={!mine || up || s.open.length >= 2}
+                aria-label={up ? (f?.emoji ?? 'foto') : 'Omgedraaid kaartje'}
+                data-sfx="none"
+              >
+                <span className="memory__inner">
+                  <span className="memory__back" aria-hidden="true">
+                    ♥
+                  </span>
+                  <span className="memory__front" aria-hidden="true">
+                    {f?.media ? <MediaView source={f.media} alt="" /> : <span>{f?.emoji}</span>}
+                  </span>
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {match.winner && (
+        <button type="button" className="neon-btn" onClick={start}>
           Nog een potje
         </button>
       )}

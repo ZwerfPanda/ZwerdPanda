@@ -116,6 +116,16 @@ export function retryMissingMedia() {
   });
 }
 
+/** A stored file itself (fetched from the other phone's uploads when needed). */
+export async function getMediaBlob(id: string): Promise<Blob | null> {
+  const record = await getMedia(id).catch(() => undefined);
+  if (record) return record.blob;
+  if (!remoteFetcher) return null;
+  const blob = await remoteFetcher(id).catch(() => null);
+  if (blob) await putMedia(blob, 'shared', id).catch(() => undefined);
+  return blob;
+}
+
 async function loadMediaUrl(id: string): Promise<string | null> {
   const record = await getMedia(id);
   if (record) return URL.createObjectURL(record.blob);
@@ -175,7 +185,8 @@ export function useMediaUrl(id: string | undefined): MediaUrlState {
 
 // --- Preparing files ----------------------------------------------------------
 
-export const MAX_VIDEO_BYTES = 60 * 1024 * 1024;
+/** The free Supabase plan takes files up to 50 MB. */
+export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 export const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
 const MAX_IMAGE_EDGE = 2000;
 

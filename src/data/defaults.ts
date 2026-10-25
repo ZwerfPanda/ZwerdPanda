@@ -583,8 +583,9 @@ export function cloneUs(us: UsContent): UsContent {
  *       hearts on nail sets, care days, Memory and air hockey
  *   3 — our shared agenda (our own events)
  *   4 — our cinema, and his own wording for texts on the site
+ *   5 — Memory and darts together on two phones, and our secret place
  */
-export const CONTENT_SCHEMA = 4;
+export const CONTENT_SCHEMA = 5;
 
 export function createDefaultContent(): AppContent {
   return {
@@ -631,6 +632,7 @@ export function createDefaultContent(): AppContent {
     agenda: [],
     cinema: { films: [], ratings: [], nights: [] },
     texts: [],
+    vault: { items: [], categories: [] },
   };
 }
 

@@ -3,10 +3,11 @@ import type { Person } from '../../data/types';
 /** Zeeslag on an 8 × 8 sea: small enough to tap on a phone. */
 export const SIZE = 8;
 export const FLEET = [4, 3, 3, 2, 2] as const;
+/** Our fleet: the pancake boats of the Amsterdam canals. */
 export const SHIP_NAMES: Record<number, string> = {
-  4: 'het slagschip',
-  3: 'een kruiser',
-  2: 'een bootje',
+  4: 'de Grote Pannenkoekenboot',
+  3: 'een Stroopwafelboot',
+  2: 'een Poffertjesbootje',
 };
 
 export interface Ship {

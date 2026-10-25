@@ -4,6 +4,8 @@ import type {
   AppContent,
   CocoPet,
   GameId,
+  MatchKind,
+  VaultLock,
   HerSpace,
   OurList,
   StarHunt,
@@ -344,8 +346,17 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
       nights: mergeList(base.cinema.nights, local.cinema.nights, remote.cinema.nights),
     },
     texts: mergeList(base.texts, local.texts, remote.texts),
+    vault: {
+      // The lock is set once; whichever phone set it first keeps it.
+      lock: earliestLock(local.vault.lock, remote.vault.lock),
+      items: mergeList(base.vault.items, local.vault.items, remote.vault.items),
+      categories: mergeList(base.vault.categories, local.vault.categories, remote.vault.categories),
+    },
   };
 }
+
+const earliestLock = (a?: VaultLock, b?: VaultLock) =>
+  !a ? b : !b ? a : a.createdAt <= b.createdAt ? a : b;
 
 /** The more recent of two reports (each phone only writes its own). */
 function newest<T extends { at: string }>(a?: T, b?: T): T | undefined {
@@ -439,6 +450,18 @@ export function mergeFirstJoin(
       nights: addPlain(local.cinema.nights, remote.cinema.nights),
     },
     texts: addPlain(local.texts, remote.texts),
+    vault: {
+      lock: earliestLock(local.vault.lock, remote.vault.lock),
+      // Our things only travel when they were locked with the shared password.
+      items:
+        !local.vault.lock || local.vault.lock.salt === remote.vault.lock?.salt || !remote.vault.lock
+          ? addPlain(local.vault.items, remote.vault.items)
+          : remote.vault.items,
+      categories:
+        !local.vault.lock || local.vault.lock.salt === remote.vault.lock?.salt || !remote.vault.lock
+          ? addPlain(local.vault.categories, remote.vault.categories)
+          : remote.vault.categories,
+    },
     lists: addPlain(
       local.lists.filter((l) => l.items.length > 0 || !remote.lists.some((r) => r.id === l.id)),
       remote.lists,
@@ -460,6 +483,7 @@ export function writerSchema(raw: unknown): number {
 }
 
 const GAMES_SINCE_2: readonly GameId[] = ['memory', 'hockey'];
+const MATCHES_SINCE_5: readonly MatchKind[] = ['memory', 'darts'];
 
 /**
  * Content saved by an older app is missing whatever that app didn't know yet.
@@ -469,8 +493,18 @@ const GAMES_SINCE_2: readonly GameId[] = ['memory', 'hockey'];
  */
 export function carryForward(shared: AppContent, ours: AppContent, writer: number): AppContent {
   if (writer >= CONTENT_SCHEMA) return shared;
+  // Schema 5 added Memory and darts on two phones (and our secret place).
+  let out = shared;
+  if (writer < 5) {
+    out = { ...out, vault: ours.vault };
+    const known = new Set(shared.games.matches.map((m) => m.id));
+    const kept = ours.games.matches.filter(
+      (m) => MATCHES_SINCE_5.includes(m.kind) && !known.has(m.id),
+    );
+    out = { ...out, games: { ...out.games, matches: [...out.games.matches, ...kept] } };
+  }
   // Schema 4 added our cinema and his own wording for texts.
-  let out = writer < 4 ? { ...shared, cinema: ours.cinema, texts: ours.texts } : shared;
+  if (writer < 4) out = { ...out, cinema: ours.cinema, texts: ours.texts };
   // Schema 3 added our shared agenda; an older app saves without it.
   if (writer < 3) out = { ...out, agenda: ours.agenda };
   if (writer >= 2) return out;
@@ -534,6 +568,11 @@ export function contentMediaIds(content: AppContent): string[] {
   content.cinema.films.forEach((f) => {
     add(f.video);
     add(f.poster);
+  });
+  // Our secret place travels encrypted.
+  content.vault.items.forEach((v) => {
+    ids.add(v.media);
+    if (v.thumb) ids.add(v.thumb);
   });
   return [...ids];
 }

@@ -23,6 +23,43 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-5',
+    when: 'oktober 2026',
+    title: 'Pannenkoekenslag, 3D-bowlen en een nieuw bloemenwinkeltje',
+    items: [
+      {
+        emoji: '🥞',
+        title: 'Pannenkoekenslag',
+        text: 'Zeeslag op de gracht: pannenkoekenboten, en je gooit pannenkoeken. Plons, splat, toeter!',
+        path: '/games',
+      },
+      {
+        emoji: '🎳',
+        title: 'Bowlen in 3D',
+        text: 'Nu van achter de bal, met een camera die meerolt en kegels die echt omvallen.',
+        path: '/games',
+      },
+      {
+        emoji: '🎯',
+        title: 'Skeeball, Memory & darts samen',
+        text: 'Skeeball gooit veel beter (of houd vast voor de meter), en Memory en darten kunnen nu elk op je eigen telefoon.',
+        path: '/games',
+      },
+      {
+        emoji: '⚡',
+        title: 'Snellere beurten',
+        text: 'Een zet staat in een tel op de andere telefoon — UNO en de rest wachten niet meer op de sync.',
+        path: '/games',
+      },
+      {
+        emoji: '💐',
+        title: 'Een nieuw bloemenwinkeltje',
+        text: 'Met een echte winkelpui, zelf boeketten binden, water geven en wat je bloemen betekenen.',
+        path: '/flowers',
+      },
+    ],
+  },
+  {
     id: '2026-10-4',
     when: 'oktober 2026',
     title: 'Onze eigen bioscoop',

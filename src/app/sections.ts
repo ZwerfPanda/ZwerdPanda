@@ -2,6 +2,7 @@ import {
   BookHeart,
   CalendarDays,
   Clapperboard,
+  Lock,
   TrainFront,
   Flower,
   Flower2,
@@ -249,6 +250,15 @@ export const SECTIONS: Section[] = [
     icon: TrainFront,
     tint: '#ffd75e',
     secret: true,
+  },
+  {
+    // Not in any menu: reached through the little lock at the bottom of a page.
+    path: '/secret',
+    label: 'Ons geheimpje',
+    short: 'Geheimpje',
+    blurb: 'Alleen voor ons twee',
+    icon: Lock,
+    tint: '#2c0b22',
   },
   {
     path: '/settings',

@@ -16,6 +16,8 @@ import {
 import { TEXT_FROM_MAX, TEXT_TO_MAX, TEXTS_LIMIT, textId, textKeyOf } from './texts';
 import type {
   Cinema,
+  GameMatch,
+  Vault,
   Film,
   FilmGenre,
   FilmNight,
@@ -941,28 +943,31 @@ function normalizeMuseum(v: unknown): Museum {
   return { stops: list(v.stops, normalizeStop).slice(0, 120), foundAt: optStamp(v.foundAt) };
 }
 
-const MATCH_KINDS: readonly MatchKind[] = ['c4', 'hangman', 'uno', 'zeeslag'];
+const MATCH_KINDS: readonly MatchKind[] = ['c4', 'hangman', 'uno', 'zeeslag', 'memory', 'darts'];
 const SCORE_GAMES: readonly ScoreGame[] = ['bowling', 'skeeball', 'darts'];
+
+/** One game in progress between the two of us (also as it arrives live). */
+export function normalizeMatch(m: unknown, i = 0): GameMatch | null {
+  if (!isObj(m) || !MATCH_KINDS.includes(m.kind as MatchKind) || !isObj(m.state)) return null;
+  const startedBy = person(m.startedBy);
+  // A game's state is small; anything huge is not ours.
+  if (!startedBy || JSON.stringify(m.state).length > 60_000) return null;
+  return {
+    id: id(m.id, 'match', i),
+    kind: m.kind as MatchKind,
+    state: m.state,
+    turn: person(m.turn),
+    winner: m.winner === 'draw' ? ('draw' as const) : person(m.winner),
+    startedBy,
+    createdAt: stamp(m.createdAt),
+    updatedAt: stamp(m.updatedAt),
+  };
+}
 
 function normalizeGames(v: unknown): Games {
   if (!isObj(v)) return { matches: [], scores: [], results: [] };
   return {
-    matches: list(v.matches, (m, i) => {
-      if (!isObj(m) || !MATCH_KINDS.includes(m.kind as MatchKind) || !isObj(m.state)) return null;
-      const startedBy = person(m.startedBy);
-      // A game's state is small; anything huge is not ours.
-      if (!startedBy || JSON.stringify(m.state).length > 60_000) return null;
-      return {
-        id: id(m.id, 'match', i),
-        kind: m.kind as MatchKind,
-        state: m.state,
-        turn: person(m.turn),
-        winner: m.winner === 'draw' ? ('draw' as const) : person(m.winner),
-        startedBy,
-        createdAt: stamp(m.createdAt),
-        updatedAt: stamp(m.updatedAt),
-      };
-    }).slice(-100),
+    matches: list(v.matches, normalizeMatch).slice(-100),
     scores: list(v.scores, (s, i) => {
       const who = isObj(s) ? (s.who === 'coco' ? ('coco' as const) : person(s.who)) : undefined;
       if (!isObj(s) || !who || !SCORE_GAMES.includes(s.game as ScoreGame)) return null;
@@ -1168,6 +1173,51 @@ function normalizeCinema(v: unknown): Cinema {
   };
 }
 
+/** Base64 (with the URL-safe letters too), and not absurdly long. */
+const b64 = (v: unknown, max: number): string | undefined =>
+  typeof v === 'string' && v.length > 0 && v.length <= max && /^[A-Za-z0-9+/=_-]+$/.test(v)
+    ? v
+    : undefined;
+
+function normalizeVault(v: unknown): Vault {
+  const raw = isObj(v) ? v : {};
+  const lockRaw = isObj(raw.lock) ? raw.lock : null;
+  const salt = lockRaw ? b64(lockRaw.salt, 64) : undefined;
+  const check = lockRaw ? b64(lockRaw.check, 400) : undefined;
+  const lock =
+    lockRaw && salt && check
+      ? {
+          salt,
+          check,
+          iterations: Math.round(clampNumber(lockRaw.iterations, 100_000, 2_000_000, 310_000)),
+          createdAt: stamp(lockRaw.createdAt),
+        }
+      : undefined;
+  return {
+    lock,
+    items: list(raw.items, (it, i) => {
+      if (!isObj(it)) return null;
+      const box = b64(it.box, 4000);
+      const media = optStr(it.media, 120);
+      if (!box || !media) return null;
+      return {
+        id: id(it.id, 'vault', i),
+        media,
+        thumb: optStr(it.thumb, 120),
+        box,
+        by: person(it.by),
+        createdAt: stamp(it.createdAt),
+      };
+    }).slice(-3000),
+    categories: list(raw.categories, (cat, i) => {
+      if (!isObj(cat)) return null;
+      const box = b64(cat.box, 1000);
+      if (!box) return null;
+      return { id: id(cat.id, 'vcat', i), box, createdAt: stamp(cat.createdAt) };
+    }).slice(0, 60),
+  };
+}
+
 function normalizeTextEdit(v: unknown): TextEdit | null {
   if (!isObj(v) || typeof v.from !== 'string' || typeof v.to !== 'string') return null;
   const from = textKeyOf(v.from).slice(0, TEXT_FROM_MAX);
@@ -1260,6 +1310,7 @@ export function normalizeContent(raw: unknown): AppContent {
     agenda: list(raw.agenda, normalizeAgendaItem).slice(-800),
     cinema: normalizeCinema(raw.cinema),
     texts: list(raw.texts, normalizeTextEdit).slice(-TEXTS_LIMIT),
+    vault: normalizeVault(raw.vault),
   });
 }
 

@@ -169,7 +169,7 @@ export function FilmForm({
                 </button>
               </div>
               <span className="field__hint">
-                Tot {formatBytes(MAX_VIDEO_BYTES)} — ongeveer een minuut in HD. Hij komt ook op de
+                Tot {formatBytes(MAX_VIDEO_BYTES)} — ongeveer 45 seconden in HD. Hij komt ook op de
                 telefoon van de ander.
               </span>
               <input

@@ -84,7 +84,7 @@ function Board({
   );
 }
 
-const dropSound = () => playSfx('pop', true);
+const dropSound = () => playSfx('drop', true);
 
 /** Against Coco, or two on one phone. */
 function LocalGame({ vsCoco }: { vsCoco: boolean }) {

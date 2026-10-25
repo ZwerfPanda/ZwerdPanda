@@ -363,10 +363,40 @@ exception
 end;
 $$;
 
+-- A quick private line between our two phones (a move in a game arrives in a
+-- moment). Only members of a universe may listen or speak on its channel,
+-- "universe-live-<space id>"; nothing on it is stored.
+do $$
+begin
+  if exists (select 1 from pg_tables where schemaname = 'realtime' and tablename = 'messages') then
+    execute 'drop policy if exists "members hear their universe" on realtime.messages';
+    execute $p$
+      create policy "members hear their universe" on realtime.messages
+        for select to authenticated
+        using (
+          realtime.messages.extension = 'broadcast'
+          and realtime.topic() like 'universe-live-%'
+          and public.is_member_text(substring(realtime.topic() from 15))
+        )
+    $p$;
+    execute 'drop policy if exists "members speak in their universe" on realtime.messages';
+    execute $p$
+      create policy "members speak in their universe" on realtime.messages
+        for insert to authenticated
+        with check (
+          realtime.messages.extension = 'broadcast'
+          and realtime.topic() like 'universe-live-%'
+          and public.is_member_text(substring(realtime.topic() from 15))
+        )
+    $p$;
+  end if;
+end;
+$$;
+
 -- --------------------------------------------------- Private photo storage
 
 insert into storage.buckets (id, name, public, file_size_limit)
-values ('universe-media', 'universe-media', false, 62914560)
+values ('universe-media', 'universe-media', false, 52428800)
 on conflict (id) do nothing;
 
 drop policy if exists "universe members read media" on storage.objects;

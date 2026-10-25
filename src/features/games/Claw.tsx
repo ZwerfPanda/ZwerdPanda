@@ -121,7 +121,7 @@ export function Claw() {
   const grab = async () => {
     if (phase !== 'idle' || !capsules.length) return;
     move.current = 0;
-    playSfx('whoosh', true);
+    playSfx('whirr', true);
     setPhase('down');
     setLine('Daar gaat ie…');
     // The capsule nearest the claw, front row first.

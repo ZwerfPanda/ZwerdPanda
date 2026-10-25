@@ -221,6 +221,24 @@ export function createSupabaseBackend(config: SyncConfig): SyncBackend {
       };
     },
 
+    live(spaceId, onMessage) {
+      // A private channel: the server only lets members of this universe in
+      // (see the realtime policies in supabase/schema.sql).
+      const channel = client
+        .channel(`universe-live-${spaceId}`, {
+          config: { private: true, broadcast: { self: false } },
+        })
+        .on('broadcast', { event: 'live' }, ({ payload }) => onMessage(payload))
+        .subscribe();
+      return {
+        send: (message) =>
+          void channel
+            .send({ type: 'broadcast', event: 'live', payload: message })
+            .catch(() => undefined),
+        close: () => void client.removeChannel(channel),
+      };
+    },
+
     async uploadMedia(spaceId, mediaId, blob) {
       await call(
         client.storage.from(BUCKET).upload(`${spaceId}/${mediaId}`, blob, {

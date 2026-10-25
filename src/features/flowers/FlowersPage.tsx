@@ -15,7 +15,22 @@ import { useReducedMotion } from '../../hooks/useMotion';
 import { createId, nowIso } from '../../lib/id';
 import { formatDate } from '../../lib/dates';
 import { playSfx } from '../../lib/audio/sfx';
-import { FLOWER_KINDS, OCCASIONS, VASES, byDate, byYear, emojiFor, shopStats } from './flowers';
+import {
+  FLOWER_KINDS,
+  OCCASIONS,
+  VASES,
+  byDate,
+  byYear,
+  emojiFor,
+  isThirsty,
+  meaningOf,
+  readWatered,
+  shopStats,
+  water,
+} from './flowers';
+import { BouquetArt } from './FlowerArt';
+import { BouquetBuilder } from './BouquetBuilder';
+import { ShopFront } from './ShopFront';
 import { Vase } from './Vase';
 import './flowers.css';
 
@@ -36,6 +51,12 @@ export function FlowersPage() {
   const [form, setForm] = useState<{ open: boolean; bouquet: Bouquet | null; focusCard?: boolean }>(
     { open: false, bouquet: null },
   );
+  const [building, setBuilding] = useState(false);
+  const [watering, setWatering] = useState(false);
+  const [watered, setWatered] = useState(readWatered);
+  const thirsty = flowers.filter((b) => isThirsty(b, watered)).length;
+  // The shop bell, as we come in.
+  useEffect(() => playSfx('chime', true), []);
   const stats = shopStats(flowers);
   const sorted = byDate(flowers);
   const shown = view === 'favorites' ? sorted.filter((b) => b.favorite) : sorted;
@@ -43,30 +64,15 @@ export function FlowersPage() {
 
   return (
     <div className="page flowers">
-      <header className="shop-front">
-        <div className="shop-front__awning" aria-hidden="true" />
-        <div className="shop-front__body">
-          <p className="shop-front__eyebrow hand">
-            {hers ? 'van jou, voor altijd' : 'al jouw bloemen voor haar'}
-          </p>
-          <h1 className="shop-front__name">
-            {profile.partnerName}’s <em>Bloemenwinkeltje</em>
-          </h1>
-          <motion.span
-            className="shop-front__open"
-            aria-hidden="true"
-            animate={{ rotate: [-4, 4, -4] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            OPEN ♡
-          </motion.span>
-          <p className="shop-front__stats">
-            {stats.count === 0
-              ? `Nog geen boeketten op de plank`
-              : `${stats.count} ${stats.count === 1 ? 'boeket' : 'boeketten'} van ${sweetName('you', me, petNames, profile)}${stats.since ? ` · sinds ${formatDate(stats.since)}` : ''}${stats.topFlower ? ` · meestal ${stats.topFlower.toLowerCase()} ${emojiFor(stats.topFlower)}` : ''}`}
-          </p>
-        </div>
-      </header>
+      <ShopFront
+        name={`${profile.partnerName}’s Bloemenwinkeltje`}
+        eyebrow={hers ? 'van jou, voor altijd' : 'al jouw bloemen voor haar'}
+        stats={
+          stats.count === 0
+            ? 'Nog geen boeketten op de plank'
+            : `${stats.count} ${stats.count === 1 ? 'boeket' : 'boeketten'} van ${sweetName('you', me, petNames, profile)}${stats.since ? ` · sinds ${formatDate(stats.since)}` : ''}${stats.topFlower ? ` · meestal ${stats.topFlower.toLowerCase()} ${emojiFor(stats.topFlower)}` : ''}`
+        }
+      />
 
       <div className="flowers__bar">
         <div className="chip-row" role="tablist" aria-label="Hoe bekijken we ze?">
@@ -89,14 +95,40 @@ export function FlowersPage() {
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          className="btn btn--primary"
-          onClick={() => setForm({ open: true, bouquet: null })}
-        >
-          <Plus aria-hidden="true" /> Boeket toevoegen
-        </button>
+        <div className="flowers__tools">
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={() => setForm({ open: true, bouquet: null })}
+          >
+            <Plus aria-hidden="true" /> Boeket toevoegen
+          </button>
+          <button type="button" className="btn btn--soft" onClick={() => setBuilding(true)}>
+            🎀 Boeket binden
+          </button>
+          {flowers.length > 0 && (
+            <button
+              type="button"
+              className="btn btn--ghost"
+              aria-pressed={watering}
+              onClick={() => {
+                playSfx('splash', true);
+                setWatering((w) => !w);
+              }}
+            >
+              <Droplets aria-hidden="true" /> {watering ? 'Klaar met water geven' : 'Water geven'}
+            </button>
+          )}
+        </div>
       </div>
+      {watering && (
+        <p className="flowers__hint" aria-live="polite">
+          💧 Tik op een boeket om het water te geven
+          {thirsty
+            ? ` — ${thirsty} ${thirsty === 1 ? 'heeft' : 'hebben'} dorst`
+            : ' — ze staan er allemaal fris bij'}
+        </p>
+      )}
 
       {flowers.length === 0 ? (
         <EmptyShop
@@ -112,7 +144,17 @@ export function FlowersPage() {
           Nog geen favorieten. Tik op een boeket en geef het een hartje.
         </p>
       ) : (
-        <Shelves flowers={shown} onOpen={setOpen} />
+        <Shelves
+          flowers={shown}
+          onOpen={setOpen}
+          watering={watering}
+          watered={watered}
+          onWater={(b, el) => {
+            setWatered(water(b.id));
+            playSfx('splash', true);
+            celebrateFrom(el);
+          }}
+        />
       )}
 
       <BouquetCard
@@ -123,6 +165,7 @@ export function FlowersPage() {
           setForm({ open: true, bouquet: b, focusCard });
         }}
       />
+      <BouquetBuilder open={building} onClose={() => setBuilding(false)} />
       <BouquetForm
         open={form.open}
         bouquet={form.bouquet}
@@ -167,42 +210,69 @@ function EmptyShop({
 }
 
 /** The shop shelves: a vase per bouquet, three to a plank. */
-function Shelves({ flowers, onOpen }: { flowers: Bouquet[]; onOpen: (b: Bouquet) => void }) {
+function Shelves({
+  flowers,
+  onOpen,
+  watering,
+  watered,
+  onWater,
+}: {
+  flowers: Bouquet[];
+  onOpen: (b: Bouquet) => void;
+  watering: boolean;
+  watered: Record<string, string>;
+  onWater: (b: Bouquet, el: Element) => void;
+}) {
   const reduce = useReducedMotion();
   return (
-    <ul className="shelves">
-      {flowers.map((b, i) => (
-        <motion.li
-          key={b.id}
-          className="shelf-slot"
-          initial={reduce ? false : { opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: Math.min(i, 9) * 0.05 }}
-        >
-          <button
-            type="button"
-            className="bouquet"
-            style={{ '--sway-delay': `${(i % 5) * -0.7}s` } as React.CSSProperties}
-            onClick={() => {
-              playSfx('chime', true);
-              onOpen(b);
-            }}
-            aria-label={`Boeket${b.occasion ? ` voor ${b.occasion.toLowerCase()}` : ''}${b.date ? `, ${formatDate(b.date)}` : ''}`}
+    <div className={`shop-inside${watering ? ' is-watering' : ''}`}>
+      <div className="shop-inside__lights" aria-hidden="true">
+        {Array.from({ length: 9 }, (_, i) => (
+          <span key={i} style={{ animationDelay: `${(i % 3) * 0.6}s` }} />
+        ))}
+      </div>
+      {!reduce && (
+        <div className="shop-inside__petals" aria-hidden="true">
+          {Array.from({ length: 7 }, (_, i) => (
+            <span key={i} style={{ left: `${8 + i * 13}%`, animationDelay: `${i * 1.7}s` }} />
+          ))}
+        </div>
+      )}
+      <ul className="shelves">
+        {flowers.map((b, i) => (
+          <motion.li
+            key={b.id}
+            className="shelf-slot"
+            initial={reduce ? false : { opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: Math.min(i, 9) * 0.05 }}
           >
-            <BouquetHead bouquet={b} />
-            <Vase index={b.vase} />
-            {b.favorite && (
-              <span className="bouquet__fav" aria-hidden="true">
-                ★
+            <button
+              type="button"
+              className={`bouquet${isThirsty(b, watered) ? ' is-thirsty' : ''}`}
+              style={{ '--sway-delay': `${(i % 5) * -0.7}s` } as React.CSSProperties}
+              onClick={(e) => {
+                if (watering) return onWater(b, e.currentTarget);
+                playSfx('chime', true);
+                onOpen(b);
+              }}
+              aria-label={`Boeket${b.occasion ? ` voor ${b.occasion.toLowerCase()}` : ''}${b.date ? `, ${formatDate(b.date)}` : ''}`}
+            >
+              <BouquetHead bouquet={b} />
+              <Vase index={b.vase} />
+              {b.favorite && (
+                <span className="bouquet__fav" aria-hidden="true">
+                  ★
+                </span>
+              )}
+              <span className="bouquet__tag">
+                {b.date ? formatDate(b.date, 'short') : (b.occasion ?? 'Boeket')}
               </span>
-            )}
-            <span className="bouquet__tag">
-              {b.date ? formatDate(b.date, 'short') : (b.occasion ?? 'Boeket')}
-            </span>
-          </button>
-        </motion.li>
-      ))}
-    </ul>
+            </button>
+          </motion.li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -210,41 +280,51 @@ function Shelves({ flowers, onOpen }: { flowers: Bouquet[]; onOpen: (b: Bouquet)
 function BouquetHead({ bouquet }: { bouquet: Bouquet }) {
   return (
     <span className="bouquet__head">
-      <svg className="bouquet__leaves" viewBox="0 0 100 100" aria-hidden="true">
-        <g fill="#6fa868">
-          <ellipse cx="16" cy="66" rx="17" ry="7" transform="rotate(-32 16 66)" />
-          <ellipse cx="84" cy="66" rx="17" ry="7" transform="rotate(32 84 66)" />
-          <ellipse cx="10" cy="44" rx="14" ry="6" transform="rotate(-62 10 44)" fill="#5f9b5a" />
-          <ellipse cx="90" cy="44" rx="14" ry="6" transform="rotate(62 90 44)" fill="#5f9b5a" />
-          <ellipse cx="30" cy="86" rx="14" ry="6" transform="rotate(-12 30 86)" fill="#7bb373" />
-          <ellipse cx="70" cy="86" rx="14" ry="6" transform="rotate(12 70 86)" fill="#7bb373" />
-        </g>
-        <g fill="#fff">
-          {[
-            [8, 30],
-            [92, 30],
-            [4, 56],
-            [96, 56],
-            [20, 18],
-            [80, 18],
-          ].map(([x, y]) => (
-            <circle key={`${x}-${y}`} cx={x} cy={y} r="2.6" />
-          ))}
-        </g>
-      </svg>
       {bouquet.media ? (
-        <span className="bouquet__photo">
-          <MediaView source={bouquet.media} alt="" />
-        </span>
+        <>
+          <svg className="bouquet__leaves" viewBox="0 0 100 100" aria-hidden="true">
+            <g fill="#6fa868">
+              <ellipse cx="16" cy="66" rx="17" ry="7" transform="rotate(-32 16 66)" />
+              <ellipse cx="84" cy="66" rx="17" ry="7" transform="rotate(32 84 66)" />
+              <ellipse
+                cx="10"
+                cy="44"
+                rx="14"
+                ry="6"
+                transform="rotate(-62 10 44)"
+                fill="#5f9b5a"
+              />
+              <ellipse cx="90" cy="44" rx="14" ry="6" transform="rotate(62 90 44)" fill="#5f9b5a" />
+              <ellipse
+                cx="30"
+                cy="86"
+                rx="14"
+                ry="6"
+                transform="rotate(-12 30 86)"
+                fill="#7bb373"
+              />
+              <ellipse cx="70" cy="86" rx="14" ry="6" transform="rotate(12 70 86)" fill="#7bb373" />
+            </g>
+            <g fill="#fff">
+              {[
+                [8, 30],
+                [92, 30],
+                [4, 56],
+                [96, 56],
+                [20, 18],
+                [80, 18],
+              ].map(([x, y]) => (
+                <circle key={`${x}-${y}`} cx={x} cy={y} r="2.6" />
+              ))}
+            </g>
+          </svg>
+          <span className="bouquet__photo">
+            <MediaView source={bouquet.media} alt="" />
+          </span>
+        </>
       ) : (
-        <span className="bouquet__emoji" aria-hidden="true">
-          {(bouquet.flowers.length ? bouquet.flowers : ['Gemengd'])
-            .slice(0, 3)
-            .flatMap((f) => [emojiFor(f), emojiFor(f)])
-            .slice(0, 5)
-            .map((e, i) => (
-              <span key={i}>{e}</span>
-            ))}
+        <span className="bouquet__drawn">
+          <BouquetArt flowers={bouquet.flowers} bare />
         </span>
       )}
     </span>
@@ -374,6 +454,18 @@ function BouquetCard({
             <Heart />
           </button>
         </div>
+        {b.flowers.some((f) => meaningOf(f)) && (
+          <ul className="bouquet-view__meanings" aria-label="Wat je bloemen zeggen">
+            {[...new Set(b.flowers)]
+              .filter((f) => meaningOf(f))
+              .map((f) => (
+                <li key={f}>
+                  <span aria-hidden="true">{emojiFor(f)}</span> <strong>{f}</strong> —{' '}
+                  {meaningOf(f)}
+                </li>
+              ))}
+          </ul>
+        )}
         {b.note && (
           <p className="bouquet-view__note">
             <small>Over dit boeket{b.by ? ` · ${nameOf(b.by, profile)}` : ''}</small>
@@ -384,7 +476,7 @@ function BouquetCard({
           <div className="flower-card" aria-label="Het kaartje">
             <span className="flower-card__string" aria-hidden="true" />
             <p>{b.card}</p>
-            <small>— {sweetName('you', me, petNames, profile)}</small>
+            <small>— {b.by === me ? 'jij' : sweetName(b.by ?? 'you', me, petNames, profile)}</small>
           </div>
         ) : (
           me === 'you' && (
@@ -398,7 +490,8 @@ function BouquetCard({
           className="btn btn--ghost btn--small bouquet-view__water"
           onClick={(e) => {
             setWatered((n) => n + 1);
-            playSfx('sparkle', true);
+            water(b.id);
+            playSfx('splash', true);
             celebrateFrom(e.currentTarget);
           }}
         >

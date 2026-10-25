@@ -391,6 +391,9 @@ describe('an older app on the other phone', () => {
     c.games.results = c.games.results.filter(
       (r: { game: string }) => !['memory', 'hockey'].includes(r.game),
     );
+    c.games.matches = c.games.matches.filter(
+      (m: { kind: string }) => !['memory', 'darts'].includes(m.kind),
+    );
     return c;
   };
   /** The other phone, still on the old app, saves something it does know about. */
@@ -445,6 +448,17 @@ describe('an older app on the other phone', () => {
       games: {
         ...c.games,
         results: [{ id: 'r-1', game: 'memory', players: ['you', 'coco'], winner: 'you', at: now }],
+        matches: [
+          {
+            id: 'm-1',
+            kind: 'darts',
+            state: { throws: [] },
+            turn: 'you',
+            startedBy: 'you',
+            createdAt: now,
+            updatedAt: now,
+          },
+        ],
       },
     }));
     await valencio.engine.syncNow();
@@ -470,9 +484,10 @@ describe('an older app on the other phone', () => {
     expect(c.her.nails.saved[0].loved).toBe(now);
     expect(c.pet.careDays).toEqual(['2026-10-24']);
     expect(c.games.results.map((r) => r.id)).toEqual(['r-1']);
+    expect(c.games.matches.map((m) => m.id)).toEqual(['m-1']);
     // …and the server has them again, saved by the new app.
     const stored = JSON.parse([...server.rows.values()][0].json);
-    expect(stored.schema).toBe(4);
+    expect(stored.schema).toBe(5);
     expect(stored.cinema.films).toHaveLength(1);
     expect(stored.flowers).toHaveLength(1);
     expect(stored.profile.subtitle).toBe('From the old app');

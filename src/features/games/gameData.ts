@@ -3,6 +3,7 @@ import { getAuthor } from '../../data/people';
 import type { GameMatch, MatchKind, Person, Player, ScoreGame } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
 import { getSyncEngine } from '../../sync/sync';
+import { sendMatch } from '../../sync/live';
 import { recordResult } from './gameStats';
 
 /** The newest match of a kind (finished or not). */
@@ -41,6 +42,7 @@ export function startMatch(
       matches: [...c.games.matches.filter((m) => m.kind !== kind || m.winner), match].slice(-100),
     },
   }));
+  sendMatch(match);
   pushNow();
   return match;
 }
@@ -59,6 +61,8 @@ export function updateMatch(id: string, recipe: (m: GameMatch) => GameMatch) {
       }),
     },
   }));
+  const now = getContent().games.matches.find((m) => m.id === id);
+  if (now) sendMatch(now);
   const done = finished as GameMatch | null;
   if (done?.winner) recordResult(done.kind, ['you', 'partner'], done.winner, done.id);
   pushNow();

@@ -64,3 +64,58 @@ export function shopStats(flowers: Bouquet[]) {
   const top = [...counts.entries()].sort((a, b) => b[1] - a[1])[0];
   return { count: flowers.length, since: dates[0], topFlower: top?.[0] };
 }
+
+/** What each flower says, in the language of flowers. */
+export const MEANINGS: Record<string, string> = {
+  Rozen: 'ik hou van je — rood is liefde, roze is dankjewel',
+  Tulpen: 'perfecte liefde, en de lente in Nederland',
+  Pioenrozen: 'geluk, en een lang en mooi leven samen',
+  Zonnebloemen: 'ik kijk alleen naar jou, zoals zij naar de zon',
+  Lelies: 'pure, eerlijke liefde',
+  'Gerbera’s': 'vrolijkheid — jij maakt alles lichter',
+  Hortensia: 'dankjewel dat je me begrijpt',
+  Lavendel: 'rust en toewijding, altijd',
+  Gemengd: 'een beetje van alles, net als wij',
+};
+
+export const meaningOf = (flower: string) =>
+  MEANINGS[FLOWER_KINDS.find((f) => f.name.toLowerCase() === flower.toLowerCase())?.name ?? ''];
+
+/** The flower on the chalkboard today: a different one every day. */
+export function flowerOfDay(date: Date = new Date()) {
+  const day = Math.floor(date.getTime() / 86_400_000);
+  const kinds = FLOWER_KINDS.filter((f) => f.name !== 'Gemengd');
+  const k = kinds[((day % kinds.length) + kinds.length) % kinds.length];
+  return { ...k, meaning: MEANINGS[k.name] };
+}
+
+/* ------------------------------------------------ watering, on this phone */
+
+const WATER_KEY = 'olu:flowers-watered:v1';
+/** After this many days without water, a bouquet starts to droop a little. */
+export const FRESH_DAYS = 3;
+
+export function readWatered(): Record<string, string> {
+  try {
+    const raw = JSON.parse(localStorage.getItem(WATER_KEY) ?? '{}');
+    return raw && typeof raw === 'object' ? raw : {};
+  } catch {
+    return {};
+  }
+}
+
+export function water(id: string, at = new Date()): Record<string, string> {
+  const next = { ...readWatered(), [id]: at.toISOString() };
+  try {
+    localStorage.setItem(WATER_KEY, JSON.stringify(next));
+  } catch {
+    // Fine: they'll just want water again next time.
+  }
+  return next;
+}
+
+/** True when a bouquet could use some water (never watered counts from when it was added). */
+export function isThirsty(b: Bouquet, watered: Record<string, string>, now = new Date()) {
+  const last = watered[b.id] ?? b.createdAt;
+  return now.getTime() - Date.parse(last) > FRESH_DAYS * 86_400_000;
+}

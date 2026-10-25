@@ -47,7 +47,8 @@ een update van het bestand: er gaat niets verloren.
 > niets verloren. Eerdere updates voegden `space_history` toe: online geschiedenis van
 > jullie universe (zie *Zo raak je niets kwijt* hieronder). De nieuwste versie zet de
 > **teksten van de site op slot**: alleen het account dat het universum heeft gemaakt kan
-> ze aanpassen (zie *Jouw eigen teksten* hieronder).
+> ze aanpassen (zie *Jouw eigen teksten* hieronder). En hij opent een **snelle privélijn**
+> tussen jullie twee telefoons, zodat een zet in een spel meteen bij de ander staat.
 - Onder **Storage** staat `universe-media`, gemarkeerd als *Private*.
 
 ## Stap 3: maak jullie twee accounts aan
@@ -273,9 +274,23 @@ kunt; met **Bewerken** pas je weer aan. Shenaya ziet jouw versie op haar telefoo
 
 **Onze bioscoop**
 
-Filmpjes in de bioscoop mogen tot 60 MB zijn, ongeveer een minuut in HD. Ze gaan net als
+Filmpjes in de bioscoop mogen tot 50 MB zijn (de grens van het gratis Supabase-plan), ongeveer 45 seconden in HD. Ze gaan net als
 foto's naar de privé-map in Supabase en komen zo ook op de andere telefoon. Filmpjes
 nemen het snelst de gratis ruimte van ongeveer 1 GB in beslag.
+
+**Ons geheimpje**
+
+Onderaan bijna elke pagina staat een klein slotje 🔒. Daarachter zit een plekje voor
+alleen jullie twee, met categorieën voor foto's en filmpjes.
+
+- De eerste keer kies je het wachtwoord. Daarmee wordt alles **op de telefoon zelf
+  versleuteld** (AES-256), voordat het wordt opgeslagen of naar Supabase gaat. Ook de
+  namen van de categorieën en de bijschriften zijn versleuteld. De server en iemand met
+  alleen je telefoon zien niets.
+- Het wachtwoord zelf wordt nergens bewaard, ook niet in de code van de site. Vergeet hem
+  dus niet: zonder het wachtwoord kan niemand erbij, wij ook niet.
+- Het plekje gaat vanzelf weer op slot als je de pagina verlaat of de app een tijdje
+  wegzet. Met **Waas** zijn de plaatjes in het overzicht wazig tot je erop tikt.
 
 **Uitloggen** op een apparaat laat de kopie op dat apparaat staan, maar het krijgt geen
 nieuwe dingen meer tot je weer inlogt.
