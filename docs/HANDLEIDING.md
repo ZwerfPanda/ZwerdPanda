@@ -357,7 +357,7 @@ kunt; met **Bewerken** pas je weer aan. Shenaya ziet jouw versie op haar telefoo
 
 Zonder privé-opslag mogen filmpjes tot 50 MB zijn (de grens van het gratis
 Supabase-plan). Met privé-opslag aan (stap 8) gaan ze in versleutelde stukjes en mogen
-ze tot 2 GB zijn. Filmpjes nemen het snelst de gratis ruimte van ongeveer 1 GB in
+ze tot 2 GB zijn — ook in ons geheimpje. Filmpjes nemen het snelst de gratis ruimte van ongeveer 1 GB in
 beslag; voor meer ruimte zie **Meer ruimte: Cloudflare R2** hieronder.
 
 **Ons geheimpje**

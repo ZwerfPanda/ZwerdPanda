@@ -5,12 +5,12 @@ import type { VaultItem } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
 import { maxVideoBytes, formatBytes, getMediaBlob, prepareImage, putMedia } from '../../lib/media';
 import { captureStill } from '../cinema/cinema';
-import { decryptBytes, encryptBytes, openJson, sealJson } from './crypto';
+import { openBlob, openJson, sealBlob, sealJson } from './crypto';
+
+/** Sealed piece by piece now, so videos can be as big as anywhere else in the app. */
+const vaultVideoBytes = () => maxVideoBytes();
 
 /** What's inside an item's sealed box. */
-/** The vault locks a whole file at once in memory: keep it to what a phone handles. */
-const vaultVideoBytes = () => Math.min(maxVideoBytes(), 300 * 1024 * 1024);
-
 export interface ItemMeta {
   kind: 'image' | 'video';
   mime: string;
@@ -63,8 +63,7 @@ export function vaultUrl(k: CryptoKey, mediaId: string, mime: string): Promise<s
     url = (async () => {
       const blob = await getMediaBlob(mediaId);
       if (!blob) return null;
-      const plain = await decryptBytes(k, new Uint8Array(await blob.arrayBuffer()));
-      return URL.createObjectURL(new Blob([plain], { type: mime }));
+      return URL.createObjectURL(await openBlob(k, blob, mime));
     })().catch(() => null);
     urls.set(mediaId, url);
     void url.then((u) => {
@@ -130,8 +129,7 @@ async function shrink(source: Blob): Promise<Blob | null> {
 }
 
 async function sealAndStore(k: CryptoKey, blob: Blob, name: string): Promise<string> {
-  const sealed = await encryptBytes(k, await blob.arrayBuffer());
-  return putMedia(new Blob([sealed as BlobPart], { type: 'application/octet-stream' }), name);
+  return putMedia(await sealBlob(k, blob), name);
 }
 
 /** Seals photos and clips and puts them in our secret place. Returns any problems. */
