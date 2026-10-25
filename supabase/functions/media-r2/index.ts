@@ -171,13 +171,24 @@ async function askMember(env: Env, token: string, space: string, fetcher: typeof
 /** A short, readable reason for what R2 answered. */
 function explain(status: number, xml: string, env: Env): string {
   const code = /<Code>([^<]*)<\/Code>/.exec(xml)?.[1] ?? '';
-  if (code === 'NoSuchBucket' || status === 404)
-    return `Bucket “${env.R2_BUCKET}” niet gevonden. Klopt R2_BUCKET precies, en staat R2_ACCOUNT_ID goed?`;
-  if (/InvalidAccessKeyId|SignatureDoesNotMatch|InvalidArgument/.test(code) || status === 401)
-    return 'De R2-sleutels kloppen niet. Check R2_ACCESS_KEY_ID en R2_SECRET_ACCESS_KEY in Supabase (geen spaties ervoor of erachter).';
-  if (code === 'AccessDenied' || status === 403)
-    return `De R2-token mag niet bij bucket “${env.R2_BUCKET}”. Geef hem “Object Read & Write” voor deze bucket.`;
-  return `R2 antwoordde ${status}${code ? ` (${code})` : ''}.`;
+  const said = /<Message>([^<]*)<\/Message>/.exec(xml)?.[1] ?? '';
+  // Which key the function is using (the ID is not secret; the last 4 are enough to compare).
+  const keyHint = `sleutel-ID in Supabase eindigt op …${env.R2_ACCESS_KEY_ID.trim().slice(-4)}`;
+  const raw = ` [Cloudflare: ${status}${code ? ` ${code}` : ''}${said ? ` — ${said}` : ''}]`;
+  let why: string;
+  if (code === 'NoSuchBucket' || (status === 404 && !code))
+    why = `Bucket “${env.R2_BUCKET}” niet gevonden. Klopt R2_BUCKET precies, en staat R2_ACCOUNT_ID goed?`;
+  else if (
+    /InvalidAccessKeyId|SignatureDoesNotMatch|InvalidArgument|Unauthorized/.test(code) ||
+    status === 401
+  )
+    why = `De R2-sleutels in Supabase kloppen niet (${keyHint}). Zet R2_ACCESS_KEY_ID en R2_SECRET_ACCESS_KEY van dezelfde, huidige token opnieuw in Supabase, zonder spaties.`;
+  else if (code === 'RequestTimeTooSkewed')
+    why = 'De klok van de server loopt niet gelijk met Cloudflare. Probeer het zo nog eens.';
+  else if (code === 'AccessDenied')
+    why = `Cloudflare weigert deze sleutel voor bucket “${env.R2_BUCKET}” (${keyHint}). Is dat de ID van de token met “Object Read & Write”? Een verwijderde of oude token geeft ook deze fout.`;
+  else why = 'Cloudflare gaf een fout.';
+  return why + raw;
 }
 
 let knownHost: string | null = null;

@@ -164,7 +164,7 @@ describe('finding the bucket', () => {
       { ...env, R2_ACCOUNT_ID: 'acct-wrong' },
       badKeys,
     );
-    expect((await wrong.json()).problem).toMatch(/R2-sleutels kloppen niet/);
+    expect((await wrong.json()).problem).toMatch(/R2-sleutels in Supabase kloppen niet .*…AKID.*InvalidAccessKeyId/);
 
     const missing = await handle(
       post({ op: 'check', space: SPACE }),
