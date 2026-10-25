@@ -235,6 +235,34 @@ export function formatDuration(seconds: number): string {
 }
 
 /**
+ * A picture that's (nearly) one flat colour: a phone handed over an empty or
+ * black frame instead of the real one.
+ */
+export function isBlankPicture(source: CanvasImageSource): boolean {
+  const c = document.createElement('canvas');
+  c.width = 16;
+  c.height = 16;
+  const ctx = c.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return false;
+  try {
+    ctx.drawImage(source, 0, 0, 16, 16);
+    const d = ctx.getImageData(0, 0, 16, 16).data;
+    let lo = 255;
+    let hi = 0;
+    let alpha = 0;
+    for (let i = 0; i < d.length; i += 4) {
+      const y = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
+      lo = Math.min(lo, y);
+      hi = Math.max(hi, y);
+      alpha = Math.max(alpha, d[i + 3]);
+    }
+    return alpha < 10 || hi - lo < 12;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Takes a still from a video (a third of the way in) for its poster. Resolves
  * to null when this browser can't decode the clip, so a poster photo is
  * always optional.
@@ -264,7 +292,10 @@ export function captureStill(blob: Blob): Promise<Blob | null> {
       // Close to the start: the phone only has to read a little of a long video.
       video.currentTime = Number.isFinite(d) && d > 0 ? Math.min(d / 10, 0.6) : 0.01;
     };
-    video.onseeked = () => {
+    // A phone may say it's there before the frame is really drawn: try a few
+    // times, and never keep an empty (black) picture.
+    const attempt = (n: number) => {
+      if (done) return;
       const w = video.videoWidth;
       const h = video.videoHeight;
       if (!w || !h) return finish(null);
@@ -276,11 +307,17 @@ export function captureStill(blob: Blob): Promise<Blob | null> {
       if (!ctx) return finish(null);
       try {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        if (isBlankPicture(canvas)) {
+          if (n < 4) window.setTimeout(() => attempt(n + 1), [200, 400, 800, 1500][n]);
+          else finish(null);
+          return;
+        }
         canvas.toBlob((b) => finish(b), 'image/jpeg', 0.85);
       } catch {
         finish(null);
       }
     };
+    video.onseeked = () => attempt(0);
     video.src = url;
     video.load();
   });

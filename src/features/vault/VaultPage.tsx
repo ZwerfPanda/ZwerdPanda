@@ -26,6 +26,8 @@ import { createLock, unlock } from './crypto';
 import {
   addThumb,
   addToVault,
+  markBlankThumb,
+  needsThumb,
   isPicking,
   lockVault,
   removeCategory,
@@ -41,6 +43,7 @@ import {
   type CategoryMeta,
   type ItemMeta,
 } from './vault';
+import { isBlankPicture } from '../cinema/cinema';
 import './vault.css';
 
 const EMOJIS = ['🔥', '💋', '🌙', '🍒', '🖤', '✨', '🛁', '🫦', '🌹', '🎀', '💌', '🍓'];
@@ -685,6 +688,7 @@ function Tile({
   onOpen: () => void;
 }) {
   const url = useVaultUrl(k, item.thumb, 'image/jpeg');
+  const [blank, setBlank] = useState(false);
   return (
     <button
       type="button"
@@ -692,9 +696,20 @@ function Tile({
       onClick={onOpen}
       aria-label={meta.caption || (meta.kind === 'video' ? 'Filmpje' : 'Foto')}
     >
-      {url ? (
-        <img src={url} alt="" />
-      ) : meta.kind === 'video' && !item.thumb ? (
+      {url && !blank ? (
+        <img
+          src={url}
+          alt=""
+          onLoad={(e) => {
+            // An old video picture that came out black: show the film card, and
+            // make a new one the next time it's watched.
+            if (meta.kind === 'video' && isBlankPicture(e.currentTarget)) {
+              markBlankThumb(item.id);
+              setBlank(true);
+            }
+          }}
+        />
+      ) : meta.kind === 'video' && (!item.thumb || blank) ? (
         // No picture yet: it's made the first time the video is watched.
         <span className="vault-tile__film" aria-hidden="true">
           🎬
@@ -836,8 +851,8 @@ function Viewer({
             onTimeUpdate={(e) => {
               // A video without a picture: take one from what's playing.
               const v = e.currentTarget;
-              if (item?.thumb || shot.current === item?.id || v.currentTime < 0.3) return;
-              shot.current = item?.id ?? null;
+              if (!item || !needsThumb(item) || shot.current === item.id || v.currentTime < 0.3)
+                return;
               const scale = Math.min(1, 900 / Math.max(v.videoWidth, v.videoHeight, 1));
               const c = document.createElement('canvas');
               c.width = Math.round(v.videoWidth * scale);
@@ -845,7 +860,10 @@ function Viewer({
               if (!c.width || !c.height) return;
               try {
                 c.getContext('2d')?.drawImage(v, 0, 0, c.width, c.height);
-                c.toBlob((b) => b && item && void addThumb(k, item.id, b), 'image/jpeg', 0.85);
+                // still black: try again a moment later in the video
+                if (isBlankPicture(c)) return;
+                shot.current = item.id;
+                c.toBlob((b) => b && void addThumb(k, item.id, b), 'image/jpeg', 0.85);
               } catch {
                 // no picture this time
               }

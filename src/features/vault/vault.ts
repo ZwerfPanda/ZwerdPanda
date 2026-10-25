@@ -146,16 +146,22 @@ async function sealAndStore(k: CryptoKey, blob: Blob, name: string): Promise<str
   return putMedia(await sealBlob(k, blob), name);
 }
 
-/** A video that came in without a picture gets one later, from its own frames. */
+/** Videos whose picture turned out empty (black), seen on this phone. */
+const blankThumbs = new Set<string>();
+export const markBlankThumb = (itemId: string) => blankThumbs.add(itemId);
+export const needsThumb = (item: VaultItem) => !item.thumb || blankThumbs.has(item.id);
+
+/** A video without a (proper) picture gets one later, from its own frames. */
 export async function addThumb(k: CryptoKey, itemId: string, frame: Blob) {
   const small = await shrink(frame);
   if (!small) return;
   const thumb = await sealAndStore(k, small, 'secret-thumb');
+  blankThumbs.delete(itemId);
   updateContent((c) => ({
     ...c,
     vault: {
       ...c.vault,
-      items: c.vault.items.map((it) => (it.id === itemId && !it.thumb ? { ...it, thumb } : it)),
+      items: c.vault.items.map((it) => (it.id === itemId ? { ...it, thumb } : it)),
     },
   }));
 }
