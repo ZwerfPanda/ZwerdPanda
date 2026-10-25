@@ -146,6 +146,20 @@ async function sealAndStore(k: CryptoKey, blob: Blob, name: string): Promise<str
   return putMedia(await sealBlob(k, blob), name);
 }
 
+/** A video that came in without a picture gets one later, from its own frames. */
+export async function addThumb(k: CryptoKey, itemId: string, frame: Blob) {
+  const small = await shrink(frame);
+  if (!small) return;
+  const thumb = await sealAndStore(k, small, 'secret-thumb');
+  updateContent((c) => ({
+    ...c,
+    vault: {
+      ...c.vault,
+      items: c.vault.items.map((it) => (it.id === itemId && !it.thumb ? { ...it, thumb } : it)),
+    },
+  }));
+}
+
 /** Seals photos and clips and puts them in our secret place. Returns any problems. */
 export async function addToVault(
   k: CryptoKey,

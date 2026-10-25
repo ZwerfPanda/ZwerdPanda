@@ -253,14 +253,16 @@ export function captureStill(blob: Blob): Promise<Blob | null> {
       video.removeAttribute('src');
       resolve(out);
     };
-    const timer = window.setTimeout(() => finish(null), 8000);
+    // Long videos take a while to open on a phone.
+    const timer = window.setTimeout(() => finish(null), 15000);
     video.muted = true;
     video.playsInline = true;
     video.preload = 'auto';
     video.onerror = () => finish(null);
     video.onloadedmetadata = () => {
       const d = video.duration;
-      video.currentTime = Number.isFinite(d) && d > 0 ? Math.min(d / 3, 4) : 0;
+      // Close to the start: the phone only has to read a little of a long video.
+      video.currentTime = Number.isFinite(d) && d > 0 ? Math.min(d / 10, 0.6) : 0.01;
     };
     video.onseeked = () => {
       const w = video.videoWidth;
@@ -280,5 +282,6 @@ export function captureStill(blob: Blob): Promise<Blob | null> {
       }
     };
     video.src = url;
+    video.load();
   });
 }

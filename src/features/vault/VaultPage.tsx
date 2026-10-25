@@ -24,6 +24,7 @@ import { playSfx } from '../../lib/audio/sfx';
 import type { VaultItem } from '../../data/types';
 import { createLock, unlock } from './crypto';
 import {
+  addThumb,
   addToVault,
   isPicking,
   lockVault,
@@ -693,6 +694,11 @@ function Tile({
     >
       {url ? (
         <img src={url} alt="" />
+      ) : meta.kind === 'video' && !item.thumb ? (
+        // No picture yet: it's made the first time the video is watched.
+        <span className="vault-tile__film" aria-hidden="true">
+          🎬
+        </span>
       ) : (
         <span className="vault-tile__wait" aria-hidden="true">
           {url === null ? '⏳' : ''}
@@ -738,6 +744,7 @@ function Viewer({
   const root = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const touch = useRef<number | null>(null);
+  const shot = useRef<string | null>(null);
   const [caption, setCaption] = useState(meta?.caption ?? '');
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -820,7 +827,30 @@ function Viewer({
         ) : url === null ? (
           <p className="vault-viewer__wait">Nog niet op deze telefoon — hij komt vanzelf binnen.</p>
         ) : meta.kind === 'video' ? (
-          <video key={url} src={url} controls playsInline className="vault-viewer__media" />
+          <video
+            key={url}
+            src={url}
+            controls
+            playsInline
+            className="vault-viewer__media"
+            onTimeUpdate={(e) => {
+              // A video without a picture: take one from what's playing.
+              const v = e.currentTarget;
+              if (item?.thumb || shot.current === item?.id || v.currentTime < 0.3) return;
+              shot.current = item?.id ?? null;
+              const scale = Math.min(1, 900 / Math.max(v.videoWidth, v.videoHeight, 1));
+              const c = document.createElement('canvas');
+              c.width = Math.round(v.videoWidth * scale);
+              c.height = Math.round(v.videoHeight * scale);
+              if (!c.width || !c.height) return;
+              try {
+                c.getContext('2d')?.drawImage(v, 0, 0, c.width, c.height);
+                c.toBlob((b) => b && item && void addThumb(k, item.id, b), 'image/jpeg', 0.85);
+              } catch {
+                // no picture this time
+              }
+            }}
+          />
         ) : (
           <img src={url} alt={meta.caption ?? ''} className="vault-viewer__media" />
         )}
