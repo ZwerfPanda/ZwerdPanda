@@ -68,8 +68,9 @@ function Counter() {
         ]}
       />
       <p className="game-hint">
-        Je verdient tickets door potjes tegen elkaar te spelen in de Arcade Hall (winnen geeft
-        meer). Potjes tegen Coco tellen niet mee. Totaal verdiend: {ticketsEarned(content, me)} 🎟️
+        Je verdient tickets door potjes tegen elkaar te spelen, elk op je eigen telefoon (📱↔📱
+        Samen) — winnen geeft meer. Potjes tegen Coco of op één telefoon tellen niet mee. Totaal
+        verdiend: {ticketsEarned(content, me)} 🎟️
       </p>
 
       <section className="prize-section" aria-labelledby="prize-shelf">

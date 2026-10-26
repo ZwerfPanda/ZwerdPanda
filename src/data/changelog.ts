@@ -23,6 +23,25 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-11',
+    when: 'oktober 2026',
+    title: 'Go Fish, helemaal af',
+    items: [
+      {
+        emoji: '🎣',
+        title: 'Elke zet in beeld',
+        text: 'Vragen in een tekstballon, kaarten die overvliegen, vissen gaat vanzelf, en een feestje bij elk book.',
+        path: '/games',
+      },
+      {
+        emoji: '🎟️',
+        title: 'Tickets alleen samen',
+        text: 'Tickets en gewonnen potjes tellen alleen als je echt tegen elkaar speelt, elk op je eigen telefoon.',
+        path: '/games',
+      },
+    ],
+  },
+  {
     id: '2026-10-10',
     when: 'oktober 2026',
     title: 'Go Fish!',

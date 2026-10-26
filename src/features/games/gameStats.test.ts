@@ -7,7 +7,7 @@ import { cocoGame } from './Bowling';
 import { totalScore } from './bowlingScore';
 
 const result = (r: Partial<GameResult>): GameResult => ({
-  id: Math.random().toString(36),
+  id: `match-${Math.random().toString(36)}`,
   game: 'uno',
   players: ['you', 'partner'],
   winner: 'you',

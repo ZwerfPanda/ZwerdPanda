@@ -6,7 +6,7 @@ import { cocoPick, deck, facesFrom } from './memory';
 import { PUCK_R, RINK_H, startRink, step, clampPaddle, cocoTarget } from './hockey';
 
 const r = (p: Partial<GameResult>): GameResult => ({
-  id: Math.random().toString(36),
+  id: `match-${Math.random().toString(36)}`,
   game: 'uno',
   players: ['you', 'partner'],
   winner: 'you',
@@ -33,6 +33,19 @@ describe('arcade tickets', () => {
     // Only the you-vs-partner game counts.
     expect(ticketsEarned(c, 'you')).toBe(10);
     expect(ticketsEarned(c, 'partner')).toBe(4);
+  });
+
+  it('does not pay for games on one phone, where one of us could play both sides', () => {
+    const c = base();
+    c.games.results = [
+      ...Array.from({ length: 10 }, () =>
+        r({ id: `result-${Math.random()}`, game: 'bingo', winner: 'partner' }),
+      ),
+      r({ game: 'kwartet', winner: 'partner' }),
+    ];
+    // Only the game on two phones counts — for tickets and for the month's champion.
+    expect(ticketsEarned(c, 'partner')).toBe(10);
+    expect(tournament(c.games.results)[0].partner).toBe(1);
   });
 
   it('spending a prize from the other comes off the balance', () => {

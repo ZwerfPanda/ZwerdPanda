@@ -1,7 +1,7 @@
 import { updateContent } from '../../data/store';
 import type { AppContent, GameId, GameResult, Person, Player, ScoreGame } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
-import { monthName, tournament } from './tickets';
+import { monthName, playedTogether, tournament } from './tickets';
 
 export const GAME_NAMES: Record<GameId, string> = {
   uno: 'UNO',
@@ -38,8 +38,14 @@ export function headToHead(
   a: Player,
   b: Player,
 ): { a: number; b: number; draws: number } {
+  // Between the two of us, only games really played against each other count.
+  const us = (a === 'you' || a === 'partner') && (b === 'you' || b === 'partner');
   const between = results.filter(
-    (r) => (game === 'all' || r.game === game) && r.players.includes(a) && r.players.includes(b),
+    (r) =>
+      (game === 'all' || r.game === game) &&
+      r.players.includes(a) &&
+      r.players.includes(b) &&
+      (!us || playedTogether(r)),
   );
   return {
     a: between.filter((r) => r.winner === a).length,

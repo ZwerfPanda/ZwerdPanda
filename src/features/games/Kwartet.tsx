@@ -9,6 +9,7 @@ import { useReducedMotion } from '../../hooks/useMotion';
 import { startMatch, updateMatch, useMatch } from './gameData';
 import { headToHead, recordResult } from './gameStats';
 import { GameShell, ScoreBoard, WhoAreYou, type PlayMode } from './GameShell';
+import { Scene, useScenes } from './goFishScenes';
 import {
   CREATURE,
   SUIT_SIGN,
@@ -154,65 +155,42 @@ function eventText(e: GoFishEvent, viewer: Player, across: Player, label: (p: Pl
     : `${who} viste een kaart.`;
 }
 
-function eventSound(e: GoFishEvent | undefined) {
-  if (!e) return;
-  if (e.type === 'book') return playSfx('success', true);
-  if (e.type === 'fish') return playSfx('splash', true);
-  playSfx(e.got ? 'card' : 'boing', true);
-}
-
 /** The table, from one seat: the other across, the pond, your fan of cards. */
 function Table({
   s,
   viewer,
   canAct,
+  scene,
   label,
   avatar,
   onAsk,
-  onFish,
 }: {
   s: GoFishState;
   viewer: Player;
   canAct: boolean;
+  scene: ReturnType<typeof useScenes>['scene'];
   label: (p: Player) => string;
   avatar: (p: Player) => string;
   onAsk: (rank: Rank) => void;
-  onFish: () => void;
 }) {
   const reduce = useReducedMotion();
   const [picked, setPicked] = useState<Rank | null>(null);
   const other = opponent(s, viewer);
   const hand = sortHand(s.hands[viewer] ?? []);
   const theirs = (s.hands[other] ?? []).length;
-  const asking = canAct && s.phase === 'ask';
-  const fishing = canAct && s.phase === 'fish';
-  const last = s.log[s.log.length - 1];
+  const asking = canAct && !scene && s.phase === 'ask';
   const now = current(s);
-
-  // "GO FISH!" when an ask comes back empty.
-  const [banner, setBanner] = useState(0);
-  const seen = useRef(s.log.length);
-  useEffect(() => {
-    if (s.log.length === seen.current && last?.type !== 'ask') return;
-    seen.current = s.log.length;
-    if (last?.type === 'ask' && last.got === 0) setBanner(Date.now());
-  }, [s.log.length, last?.type, s.phase]);
 
   useEffect(() => {
     if (!asking) setPicked(null);
   }, [asking]);
 
-  const message = s.winner
-    ? null
-    : asking
-      ? picked
-        ? `Vraag ${label(other)} om ${rankName(picked)}?`
-        : `${last && last.who !== viewer ? `${eventText(last, viewer, other, label)} ` : ''}Kies een kaart om naar te vragen`
-      : fishing
-        ? `${last?.type === 'ask' && s.asked ? `${label(other)} heeft geen ${rankName(s.asked)}. ` : ''}Tik op de stapel om te vissen 🎣`
-        : last
-          ? eventText(last, viewer, other, label)
-          : `${label(now)} is aan de beurt…`;
+  // Cards that arrive in your hand fly in (from the other, or from the pond).
+  const known = useRef<Set<string> | null>(null);
+  const fresh = known.current ? hand.filter((c) => !known.current!.has(c)) : [];
+  useEffect(() => {
+    known.current = new Set(hand);
+  });
 
   // The fan always fits: the more cards, the more they overlap.
   const fanRef = useRef<HTMLDivElement>(null);
@@ -226,8 +204,24 @@ function Table({
   const CARD = 66;
   const overlap =
     hand.length > 1 ? Math.min(-18, -(CARD - (room - CARD - 8) / (hand.length - 1))) : 0;
+
+  const message = s.winner
+    ? null
+    : scene
+      ? null
+      : asking
+        ? picked
+          ? `Vraag ${label(other)} om ${rankName(picked)}?`
+          : 'Jouw beurt — tik op een kaart om ernaar te vragen'
+        : canAct && s.phase === 'fish'
+          ? 'Je vist… 🎣'
+          : other === 'coco'
+            ? 'Coco denkt na… 🐰🤔'
+            : `${label(now)} is aan de beurt…`;
+
   return (
-    <div className="gf-table">
+    <div className={`gf-table ${now === other && !s.winner ? 'is-their-turn' : ''}`}>
+      <span className="gf-light" aria-hidden="true" />
       <span className="gf-bubbles" aria-hidden="true">
         {Array.from({ length: 9 }, (_, i) => (
           <span
@@ -241,6 +235,10 @@ function Table({
           />
         ))}
       </span>
+      <span className="gf-swimmers" aria-hidden="true">
+        <span style={{ top: '30%', animationDelay: '-3s' }}>🐟</span>
+        <span style={{ top: '58%', animationDelay: '-11s' }}>🐠</span>
+      </span>
 
       <div className="gf-them">
         <span className="gf-them__fan" aria-label={`${theirs} kaarten`} role="img">
@@ -248,7 +246,10 @@ function Table({
             <Back key={i} className="is-tiny" />
           ))}
         </span>
-        <span className="gf-avatar" aria-hidden="true">
+        <span
+          className={`gf-avatar ${now === other && !s.winner ? 'is-turn' : ''}`}
+          aria-hidden="true"
+        >
           {avatar(other)}
         </span>
         <strong className="gf-name">{label(other)}</strong>
@@ -258,56 +259,29 @@ function Table({
       <div className="gf-middle">
         <div className="gf-ask-slot">
           {asking && picked && (
-            <button
+            <motion.button
               type="button"
               className="gf-ask"
               data-sfx="none"
+              initial={reduce ? false : { scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               onClick={() => {
                 setPicked(null);
                 onAsk(picked);
               }}
             >
               VRAAG
-            </button>
+            </motion.button>
           )}
         </div>
-        <button
-          type="button"
-          className={`gf-pond ${fishing ? 'is-fishing' : ''}`}
-          disabled={!fishing}
-          onClick={onFish}
-          data-sfx="none"
-          aria-label={
-            fishing ? 'Vissen: pak een kaart van de stapel' : `De stapel: ${s.pond.length} kaarten`
-          }
-        >
+        <span className="gf-pond" aria-label={`De stapel: ${s.pond.length} kaarten`} role="img">
           <span className="gf-pond__stack" aria-hidden="true">
-            <Back />
+            {s.pond.length > 2 && <Back className="is-under is-2" />}
+            {s.pond.length > 1 && <Back className="is-under" />}
+            {s.pond.length > 0 && <Back />}
           </span>
           {s.pond.length > 0 && <span className="gf-pond__count">{s.pond.length}</span>}
-        </button>
-        <AnimatePresence>
-          {banner > 0 && (
-            <motion.div
-              key={banner}
-              className="gf-banner"
-              aria-hidden="true"
-              initial={reduce ? { opacity: 0 } : { scale: 0.3, opacity: 0, rotate: -8 }}
-              animate={
-                reduce
-                  ? { opacity: [0, 1, 1, 0] }
-                  : { scale: [0.3, 1.15, 1, 1], opacity: [0, 1, 1, 0], rotate: [-8, 3, 0, 0] }
-              }
-              transition={{ duration: 1.6, times: [0, 0.25, 0.8, 1] }}
-              onAnimationComplete={() => setBanner(0)}
-            >
-              <span className="gf-banner__fish">🐟</span>
-              <span className="gf-banner__go">GO</span>
-              <span className="gf-banner__fish is-flip">🐟</span>
-              <span className="gf-banner__word">FISH!</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        </span>
         {message && (
           <p className="gf-message" aria-live="polite">
             {message}
@@ -316,33 +290,46 @@ function Table({
       </div>
 
       <div className="gf-hand" role="group" aria-label="Jouw kaarten" ref={fanRef}>
-        {hand.map((card, i) => {
-          const rank = rankOf(card);
-          const up = picked === rank;
-          return (
-            <button
-              key={card}
-              type="button"
-              className={`gf-hand__card ${up ? 'is-up' : ''}`}
-              style={{ marginLeft: i ? overlap : 0, zIndex: i }}
-              disabled={!asking}
-              onClick={() => {
-                playSfx('tap', true);
-                setPicked(up ? null : rank);
-              }}
-              aria-pressed={asking ? up : undefined}
-              data-sfx="none"
-            >
-              <Card card={card} />
-            </button>
-          );
-        })}
-        {!hand.length && <p className="gf-message">Geen kaarten meer in je hand.</p>}
+        <AnimatePresence initial={false}>
+          {hand.map((card, i) => {
+            const rank = rankOf(card);
+            const up = picked === rank;
+            const isNew = fresh.includes(card);
+            return (
+              <motion.button
+                key={card}
+                type="button"
+                layout={!reduce}
+                className={`gf-hand__card ${up ? 'is-up' : ''}`}
+                style={{ marginLeft: i ? overlap : 0, zIndex: i }}
+                disabled={!asking}
+                initial={
+                  isNew && !reduce ? { y: -260, opacity: 0, rotate: -15, scale: 0.8 } : false
+                }
+                animate={{ y: up ? -26 : 0, opacity: 1, rotate: 0, scale: 1 }}
+                exit={reduce ? { opacity: 0 } : { y: -300, opacity: 0, rotate: 10 }}
+                transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+                onClick={() => {
+                  playSfx('tap', true);
+                  setPicked(up ? null : rank);
+                }}
+                aria-pressed={asking ? up : undefined}
+                data-sfx="none"
+              >
+                <Card card={card} />
+              </motion.button>
+            );
+          })}
+        </AnimatePresence>
+        {!hand.length && <p className="gf-message">Geen kaarten in je hand.</p>}
       </div>
 
       <div className="gf-me">
         <Books s={s} seat={viewer} />
-        <span className="gf-avatar is-me" aria-hidden="true">
+        <span
+          className={`gf-avatar is-me ${now === viewer && !s.winner ? 'is-turn' : ''}`}
+          aria-hidden="true"
+        >
           {avatar(viewer)}
         </span>
         <span className={`gf-pill ${now === viewer && !s.winner ? 'is-on' : ''}`}>
@@ -350,6 +337,18 @@ function Table({
         </span>
       </div>
       <Wreck />
+      <AnimatePresence>
+        {scene && (
+          <Scene
+            key={scene.key}
+            scene={scene}
+            viewer={viewer}
+            across={other}
+            label={label}
+            reduce={reduce}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -423,6 +422,7 @@ function endText(s: GoFishState, viewer: Player, label: (p: Player) => string) {
 function HereGoFish({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void }) {
   const me = useMe();
   const profile = useContent((c) => c.profile);
+  const reduce = useReducedMotion();
   const seats: Player[] = vsCoco ? [me, 'coco'] : [me, otherPerson(me)];
   const [s, setS] = useState<GoFishState>(() => newGoFish(seats));
   const [shown, setShown] = useState<Player | null>(vsCoco ? me : null);
@@ -433,45 +433,44 @@ function HereGoFish({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void 
     p === 'coco' ? 'Coco' : vsCoco && p === me ? 'Jij' : nameOf(p, profile);
   const avatar = (p: Player) => (p === 'coco' ? '🐰' : nameOf(p, profile).charAt(0).toUpperCase());
   const viewer: Player = vsCoco ? me : (shown ?? now);
+  const { scene, view, busy } = useScenes(s, viewer, reduce);
 
-  const apply = (next: GoFishState) => {
-    eventSound(next.log[next.log.length - 1]);
-    setS(next);
-  };
   /** A tap from the table: only for whoever's turn it really is now. */
   const move = (recipe: (cur: GoFishState) => GoFishState) =>
-    setS((cur) => {
-      if (cur.winner || current(cur) === 'coco') return cur;
-      const next = recipe(cur);
-      if (next !== cur) eventSound(next.log[next.log.length - 1]);
-      return next;
-    });
+    setS((cur) => (cur.winner || current(cur) === 'coco' ? cur : recipe(cur)));
 
-  // Coco plays her own turn.
+  // Nothing to get? The pond comes to you by itself.
   useEffect(() => {
-    if (!vsCoco || now !== 'coco' || s.winner) return;
+    if (busy || s.winner || s.phase !== 'fish' || now === 'coco') return;
+    const t = window.setTimeout(() => move(fish), 350);
+    return () => window.clearTimeout(t);
+  }, [busy, s]);
+
+  // Coco plays her own turn (once the last move has played out).
+  useEffect(() => {
+    if (!vsCoco || now !== 'coco' || s.winner || busy) return;
     const t = window.setTimeout(
       () => {
-        if (s.phase === 'fish') return apply(fish(s));
+        if (s.phase === 'fish') return setS(fish(s));
         const rank = cocoAsk(s);
-        apply(rank ? ask(s, rank) : fish({ ...s, phase: 'fish' }));
+        setS(rank ? ask(s, rank) : fish({ ...s, phase: 'fish' }));
       },
-      s.phase === 'fish' ? 1100 : 1700,
+      s.phase === 'fish' ? 350 : 900,
     );
     return () => window.clearTimeout(t);
-  }, [vsCoco, now, s]);
+  }, [vsCoco, now, s, busy]);
 
   useEffect(() => {
-    if (!s.winner || recorded.current) return;
+    if (!s.winner || recorded.current || busy) return;
     recorded.current = true;
     recordResult('kwartet', seats, s.winner);
     playSfx(s.winner === 'coco' ? 'boing' : 'success', true);
     if (s.winner !== 'coco') celebrateFrom(box.current);
-  }, [s.winner]);
+  }, [s.winner, busy]);
 
   // Two of us on one phone: the hand stays hidden until it's handed over.
-  const curtain = !vsCoco && !s.winner && shown !== now;
-  const end = endText(s, viewer, label);
+  const curtain = !vsCoco && !s.winner && !busy && shown !== now;
+  const end = busy ? null : endText(s, viewer, label);
 
   return (
     <div className="gofish" ref={box}>
@@ -493,16 +492,16 @@ function HereGoFish({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void 
         </div>
       ) : (
         <Table
-          s={s}
+          s={view ?? s}
           viewer={viewer}
-          canAct={!s.winner && now === viewer}
+          canAct={!s.winner && !busy && now === viewer}
+          scene={scene}
           label={label}
           avatar={avatar}
           onAsk={(rank) => move((cur) => ask(cur, rank))}
-          onFish={() => move(fish)}
         />
       )}
-      {s.winner && (
+      {s.winner && !busy && (
         <button type="button" className="neon-btn" onClick={onAgain}>
           Nog een potje
         </button>
@@ -517,37 +516,27 @@ function RemoteGoFish() {
   const me = useMe();
   const them = otherPerson(me);
   const profile = useContent((c) => c.profile);
+  const reduce = useReducedMotion();
   const match = useMatch('kwartet');
   const s = readGoFish(match?.state);
   const box = useRef<HTMLDivElement>(null);
-  const heard = useRef<string | null>(null);
   const theirName = nameOf(them, profile);
   const label = (p: Player) => (p === me ? 'Jij' : nameOf(p as Person, profile));
   const avatar = (p: Player) =>
     nameOf(p as Person, profile)
       .charAt(0)
       .toUpperCase();
-
-  // What they do arrives with a sound.
-  useEffect(() => {
-    if (!s || !match) return;
-    const last = s.log[s.log.length - 1];
-    if (heard.current !== null && match.updatedAt !== heard.current && last?.who === them)
-      eventSound(last);
-    heard.current = match.updatedAt;
-  }, [match?.updatedAt]);
+  const { scene, view, busy } = useScenes(s, me, reduce, match?.id);
 
   useEffect(() => {
-    if (match?.winner === me) celebrateFrom(box.current);
-  }, [match?.winner]);
+    if (match?.winner === me && !busy) celebrateFrom(box.current);
+  }, [match?.winner, busy]);
 
-  const act = (m: GameMatch, recipe: (s: GoFishState) => GoFishState) => {
-    let made: GoFishState | null = null;
+  const act = (m: GameMatch, recipe: (s: GoFishState) => GoFishState) =>
     updateMatch(m.id, (x) => {
       const cur = readGoFish(x.state);
       if (!cur || x.winner || current(cur) !== me) return x;
       const next = recipe(cur);
-      made = next;
       return {
         ...x,
         state: next as unknown as Record<string, unknown>,
@@ -555,9 +544,14 @@ function RemoteGoFish() {
         winner: next.winner as Person | 'draw' | undefined,
       };
     });
-    const done = made as GoFishState | null;
-    if (done) eventSound(done.log[done.log.length - 1]);
-  };
+
+  // Nothing to get? The pond comes to you by itself.
+  const fishing = Boolean(match && s && !match.winner && current(s) === me && s.phase === 'fish');
+  useEffect(() => {
+    if (!fishing || busy || !match) return;
+    const t = window.setTimeout(() => act(match, fish), 350);
+    return () => window.clearTimeout(t);
+  }, [fishing, busy, match?.updatedAt]);
 
   const start = () => {
     playSfx('splash', true);
@@ -578,21 +572,21 @@ function RemoteGoFish() {
     );
   }
 
-  const mine = !match.winner && current(s) === me;
-  const end = endText(s, me, label);
+  const mine = !match.winner && !busy && current(s) === me;
+  const end = busy ? null : endText(s, me, label);
   return (
     <div className="gofish" ref={box}>
       {end && <p className="game-turn game-turn--done">{end}</p>}
       <Table
-        s={s}
+        s={view ?? s}
         viewer={me}
         canAct={mine}
+        scene={scene}
         label={label}
         avatar={avatar}
         onAsk={(rank) => act(match, (cur) => ask(cur, rank))}
-        onFish={() => act(match, fish)}
       />
-      {match.winner && (
+      {match.winner && !busy && (
         <button type="button" className="neon-btn" onClick={start}>
           Nog een potje
         </button>

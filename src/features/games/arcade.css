@@ -3853,18 +3853,18 @@ button.sea__cell:focus-visible {
   border: 0;
   border-radius: 10px;
   padding: 10px 44px;
-  background: #7cc142;
+  background: #2e7614;
   color: #fff;
   font: inherit;
   font-weight: 900;
   font-size: 1.15rem;
   letter-spacing: 0.04em;
-  box-shadow: 0 4px 0 #4f8a22;
+  box-shadow: 0 4px 0 #285d12;
   cursor: pointer;
 }
 .gf-ask:active {
   transform: translateY(2px);
-  box-shadow: 0 2px 0 #4f8a22;
+  box-shadow: 0 2px 0 #285d12;
 }
 .gf-pond {
   position: relative;
@@ -3976,13 +3976,9 @@ button.sea__cell:focus-visible {
   padding: 0;
   background: transparent;
   border-radius: 10px;
-  transition: transform 0.18s ease;
 }
 .gf-hand__card:not(:disabled) {
   cursor: pointer;
-}
-.gf-hand__card.is-up {
-  transform: translateY(-24px);
 }
 .gf-hand__card.is-up .gf-card {
   box-shadow:
@@ -4062,7 +4058,7 @@ button.sea__cell:focus-visible {
   font-weight: 800;
 }
 .gf-pill.is-on {
-  background: #2f8ff0;
+  background: #1f68c4;
   box-shadow: 0 3px 0 #1d5fb0;
 }
 .gf-wreck {
@@ -4185,4 +4181,310 @@ button.sea__cell:focus-visible {
   background: #fff;
   box-shadow: 0 0 6px #000;
   transition: left 0.3s ease;
+}
+
+/* ------------------------------------------------- go fish: finishing touches */
+.gf-light {
+  position: absolute;
+  inset: -20% -10% 30%;
+  background:
+    linear-gradient(100deg, transparent 20%, rgba(160, 210, 255, 0.1) 26%, transparent 32%),
+    linear-gradient(80deg, transparent 50%, rgba(160, 210, 255, 0.08) 56%, transparent 62%),
+    linear-gradient(95deg, transparent 70%, rgba(160, 210, 255, 0.07) 74%, transparent 78%);
+  animation: gf-light 9s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.gf-swimmers span {
+  position: absolute;
+  left: -40px;
+  font-size: 1.3rem;
+  opacity: 0.35;
+  filter: saturate(0.6);
+  animation: gf-swim 22s linear infinite;
+  pointer-events: none;
+}
+.gf-avatar {
+  transition: box-shadow 0.3s ease;
+}
+.gf-avatar.is-turn {
+  box-shadow:
+    0 0 0 4px rgba(255, 215, 94, 0.9),
+    0 0 22px rgba(255, 215, 94, 0.7);
+  animation: gf-turn 1.6s ease-in-out infinite;
+}
+/* the pond: a little stack with depth */
+.gf-pond {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 128px;
+  padding: 0;
+}
+.gf-pond__stack {
+  position: relative;
+  width: 86px;
+  height: 120px;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.45));
+}
+.gf-pond__stack .gf-back {
+  position: absolute;
+  inset: 0;
+  width: 86px;
+  height: 120px;
+}
+.gf-pond__stack .gf-back.is-under {
+  transform: translate(3px, 4px);
+  filter: brightness(0.8);
+}
+.gf-pond__stack .gf-back.is-under.is-2 {
+  transform: translate(6px, 8px);
+  filter: brightness(0.65);
+}
+/* card backs: purple scales with a starfish */
+.gf-back {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 38%, rgba(0, 0, 0, 0.18) 100%),
+    radial-gradient(circle at 50% 0, #6c46c4 30%, transparent 31%) 0 0 / 14px 10px,
+    radial-gradient(circle at 50% 0, #5a35ad 30%, transparent 31%) 7px 5px / 14px 10px,
+    #4b2b8f;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+.gf-back.is-flying {
+  width: 66px;
+  height: 92px;
+  border-radius: 9px;
+}
+.gf-back.is-flying {
+  font-size: 2rem;
+  color: #ff6b8b;
+  text-shadow: 0 0 2px #ffd1dc;
+}
+/* cards: a soft inner frame and the creature in a little pool of colour */
+.gf-card {
+  background: linear-gradient(170deg, #ffffff 60%, #f1f4ff);
+  box-shadow:
+    inset 0 0 0 1.5px #e3e7f5,
+    -2px 0 6px rgba(0, 0, 0, 0.18),
+    0 4px 10px rgba(0, 0, 0, 0.3);
+}
+.gf-card__creature {
+  right: -2px;
+  bottom: 4px;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(70, 140, 230, 0.16), transparent 70%);
+  font-size: 2.3rem;
+}
+.gf-card.is-red .gf-card__creature {
+  background: radial-gradient(circle, rgba(255, 95, 130, 0.16), transparent 70%);
+}
+.gf-card.is-big {
+  width: 92px;
+  height: 132px;
+}
+.gf-card.is-big .gf-card__corner b {
+  font-size: 1.7rem;
+}
+.gf-card.is-big .gf-card__creature {
+  width: 70px;
+  height: 70px;
+  font-size: 3.3rem;
+}
+/* scenes play over the table */
+.gf-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.gf-scene > * {
+  grid-area: 1 / 1;
+}
+.gf-scene.is-book {
+  background: radial-gradient(circle at 50% 48%, rgba(10, 16, 50, 0.55), transparent 70%);
+}
+.gf-bubble {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  min-width: 220px;
+  max-width: 86%;
+  padding: 14px 18px 16px;
+  border-radius: 22px;
+  background: #fffdf6;
+  color: #1d2450;
+  text-align: center;
+  box-shadow:
+    0 0 0 4px rgba(255, 215, 94, 0.9),
+    0 14px 34px rgba(0, 0, 0, 0.45);
+}
+.gf-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  background: #fffdf6;
+  transform: translateX(-50%) rotate(45deg);
+  box-shadow: 4px 4px 0 0 rgba(255, 215, 94, 0.9);
+}
+.gf-bubble.is-theirs::after {
+  top: -11px;
+  box-shadow: -4px -4px 0 0 rgba(255, 215, 94, 0.9);
+}
+.gf-bubble.is-mine::after {
+  bottom: -11px;
+}
+.gf-bubble__who {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7a6aa8;
+}
+.gf-bubble__q {
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.gf-bubble__q b {
+  color: #e8202e;
+}
+.gf-bubble__answer {
+  padding: 4px 16px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 1.15rem;
+  color: #fff;
+}
+.gf-bubble__answer.is-yes {
+  background: #3fae58;
+  box-shadow: 0 3px 0 #2a7c3c;
+}
+.gf-bubble__answer.is-no {
+  background: #e8762e;
+  box-shadow: 0 3px 0 #a84f18;
+}
+.gf-flyer {
+  position: relative;
+  z-index: 6;
+}
+.gf-flyer.is-fished {
+  width: 66px;
+  height: 92px;
+}
+.gf-flip__back,
+.gf-flip__front {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.gf-flip__front {
+  transform: rotateY(180deg);
+}
+.gf-caption {
+  margin: 0;
+  transform: translateY(-120px);
+  z-index: 7;
+  padding: 8px 16px;
+  border-radius: 14px;
+  background: rgba(10, 16, 50, 0.75);
+  font-weight: 800;
+  font-size: 1.05rem;
+  text-align: center;
+  max-width: 88%;
+}
+.gf-caption.is-lucky {
+  background: #3fae58;
+}
+.gf-rays {
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    rgba(255, 215, 94, 0.32) 0 10deg,
+    transparent 10deg 24deg
+  );
+  mask-image: radial-gradient(circle, #000 20%, transparent 68%);
+  -webkit-mask-image: radial-gradient(circle, #000 20%, transparent 68%);
+}
+.gf-book__fan {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.gf-book__card {
+  grid-area: 1 / 1;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.45));
+}
+.gf-book__title {
+  margin-top: 230px;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+.gf-book__title b {
+  font-size: 3.2rem;
+  font-style: italic;
+  font-weight: 900;
+  line-height: 1;
+  background: linear-gradient(180deg, #fff6c8, #ffd75e 45%, #ff9a2a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 2px #4a2408;
+  paint-order: stroke fill;
+  filter: drop-shadow(0 4px 0 #4a2408);
+}
+.gf-book__title span {
+  margin-top: 4px;
+  padding: 3px 14px;
+  border-radius: 999px;
+  background: rgba(10, 16, 50, 0.75);
+  font-weight: 800;
+}
+.gf-spark {
+  font-size: 1.3rem;
+  color: #ffd75e;
+  text-shadow: 0 0 10px rgba(255, 215, 94, 0.9);
+}
+.gf-scene .gf-banner {
+  position: relative;
+  inset: auto;
+  margin-top: 40px;
+}
+@keyframes gf-light {
+  to {
+    transform: translateX(8%) skewX(-6deg);
+  }
+}
+@keyframes gf-swim {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(560px);
+  }
+}
+@keyframes gf-turn {
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(255, 215, 94, 0.5),
+      0 0 30px rgba(255, 215, 94, 0.9);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gf-light,
+  .gf-swimmers span,
+  .gf-avatar.is-turn {
+    animation: none;
+  }
 }

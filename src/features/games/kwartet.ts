@@ -78,12 +78,15 @@ const MANY: Record<Rank, string> = {
 export const rankName = (rank: Rank, n?: number) =>
   n === undefined ? MANY[rank] : n === 1 ? `een ${ONE[rank]}` : `${n} ${MANY[rank]}`;
 
-export type GoFishEvent =
-  /** Asked the other for a rank; how many they handed over (0: go fish). */
-  | { type: 'ask'; who: Player; rank: Rank; got: number }
+export type GoFishEvent = /** Asked the other for a rank; how many they handed over (0: go fish). */
+(| { type: 'ask'; who: Player; rank: Rank; got: number }
   /** Took one from the pond (lucky: the very rank they asked for). */
   | { type: 'fish'; who: Player; card: string; lucky: boolean }
-  | { type: 'book'; who: Player; rank: Rank };
+  | { type: 'book'; who: Player; rank: Rank }
+) & {
+  /** Numbered from the start of the game, so both phones play them back in order. */
+  n?: number;
+};
 
 export interface GoFishState {
   v: 2;
@@ -100,6 +103,8 @@ export interface GoFishState {
   asked?: Rank;
   /** The last few things that happened, newest last. */
   log: GoFishEvent[];
+  /** How many things have happened so far. */
+  count?: number;
   winner?: Player | 'draw';
 }
 
@@ -118,10 +123,10 @@ export const current = (s: GoFishState) => s.seats[s.turn % s.seats.length];
 export const opponent = (s: GoFishState, seat: Player) => s.seats.find((p) => p !== seat)!;
 
 const LOG = 8;
-const logged = (s: GoFishState, e: GoFishEvent): GoFishState => ({
-  ...s,
-  log: [...s.log, e].slice(-LOG),
-});
+const logged = (s: GoFishState, e: GoFishEvent): GoFishState => {
+  const count = (s.count ?? s.log.length) + 1;
+  return { ...s, count, log: [...s.log, { ...e, n: count }].slice(-LOG) };
+};
 
 /** Four of a rank leave the hand and become a book. */
 function layDown(s: GoFishState, seat: Player): GoFishState {
@@ -282,6 +287,7 @@ export function readGoFish(raw: unknown): GoFishState | null {
     phase: s.phase === 'fish' ? 'fish' : 'ask',
     asked: RANKS.includes(s.asked as Rank) ? s.asked : undefined,
     log: Array.isArray(s.log) ? s.log.slice(-LOG) : [],
+    count: typeof s.count === 'number' ? s.count : undefined,
     winner: s.winner,
   };
 }

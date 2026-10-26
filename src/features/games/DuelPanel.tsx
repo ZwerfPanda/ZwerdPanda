@@ -66,13 +66,10 @@ export function useDuelRound(kind: DuelKind, mode: PlayMode) {
       const loser = otherPerson(winner === 'draw' ? me : winner);
       const end: RoundEnd =
         winner === 'draw'
-          ? {
-              text: `Gelijk! ${first}–${total} · allebei ${TICKETS.draw} 🎟️`,
-              tickets: TICKETS.draw,
-            }
+          ? { text: `Gelijk! ${first}–${total}`, tickets: null }
           : {
-              text: `${nameOf(winner, profile)} wint ${scores[winner]}–${scores[loser]}! +${TICKETS.win} 🎟️ (en +${TICKETS.played} voor ${nameOf(loser, profile)})`,
-              tickets: TICKETS.win,
+              text: `${nameOf(winner, profile)} wint ${scores[winner]}–${scores[loser]}! 🏆`,
+              tickets: null,
             };
       setResult(end.text);
       return end;
@@ -158,7 +155,7 @@ export function DuelPanel({
   if (mode === 'coco')
     return (
       <p className="duel-panel">
-        Tegen Coco speel je voor de eer 🐰 Tickets verdien je samen, in een duel.
+        Tegen Coco speel je voor de eer 🐰 Tickets verdien je in een duel, elk op je eigen telefoon.
       </p>
     );
 
@@ -169,8 +166,9 @@ export function DuelPanel({
           <p>🏁 {result}</p>
         ) : first === null ? (
           <p>
-            Eerst <strong>{nameOf(me, profile)}</strong>, dan <strong>{theirs}</strong>. De winnaar
-            krijgt {TICKETS.win} 🎟️, de ander {TICKETS.played}.
+            Eerst <strong>{nameOf(me, profile)}</strong>, dan <strong>{theirs}</strong>. Op één
+            telefoon spelen jullie voor de eer — tickets verdien je in een duel, elk op je eigen
+            telefoon.
           </p>
         ) : (
           <p>

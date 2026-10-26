@@ -7,9 +7,17 @@ import type { AppContent, GameResult, Person } from '../../data/types';
  */
 export const TICKETS = { win: 10, draw: 6, played: 4 } as const;
 
-/** A game the two of us played against each other (not against Coco, not solo). */
-const headToHead = (r: GameResult) =>
-  r.players.includes('you') && r.players.includes('partner') && !r.players.includes('coco');
+/**
+ * A game the two of us really played against each other: each on our own
+ * phone (its result carries the match's id). Not against Coco, and not on one
+ * phone — there one of us could play both sides alone.
+ */
+export const playedTogether = (r: GameResult) =>
+  r.players.includes('you') &&
+  r.players.includes('partner') &&
+  !r.players.includes('coco') &&
+  r.id.startsWith('match-');
+const headToHead = playedTogether;
 
 export function ticketsEarned(c: AppContent, who: Person): number {
   let total = 0;
@@ -63,7 +71,7 @@ export interface MonthStanding {
 export function tournament(results: GameResult[]): MonthStanding[] {
   const months = new Map<string, MonthStanding>();
   for (const r of results) {
-    if (!r.players.includes('you') || !r.players.includes('partner')) continue;
+    if (!playedTogether(r)) continue;
     const month = r.at.slice(0, 7);
     const m = months.get(month) ?? { month, you: 0, partner: 0, champion: null };
     if (r.winner === 'you') m.you++;
