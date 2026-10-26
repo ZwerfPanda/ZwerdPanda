@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pencil, RotateCcw } from 'lucide-react';
 import { useContent } from '../../data/store';
+import { isSettingsText } from '../games/ticketRules';
 import { resetTextEdit } from '../../data/actions';
 import { sweetName } from '../../data/people';
 import { navigate } from '../../lib/router';
@@ -9,7 +10,8 @@ import { setEditMode } from './TextEditor';
 
 /** In Instellingen, for him only: switch the editor on and see what he changed. */
 export function OwnTexts() {
-  const texts = useContent((c) => c.texts);
+  const all_ = useContent((c) => c.texts);
+  const texts = all_.filter((t) => !isSettingsText(t));
   const profile = useContent((c) => c.profile);
   const petNames = useContent((c) => c.us.petNames);
   const [all, setAll] = useState(false);

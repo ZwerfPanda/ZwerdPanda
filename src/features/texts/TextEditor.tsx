@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { Check, Eye, Pencil, RotateCcw } from 'lucide-react';
 import { useContent } from '../../data/store';
+import { isSettingsText } from '../games/ticketRules';
 import { setTextEdit } from '../../data/actions';
 import { sweetName } from '../../data/people';
 import { textId, textKeyOf, TEXT_TO_MAX } from '../../data/texts';
@@ -53,7 +54,7 @@ export function TextsHost() {
   const current = useEditMode();
   const [editing, setEditing] = useState<{ from: string } | null>(null);
 
-  useEffect(() => setWording(texts), [texts]);
+  useEffect(() => setWording(texts.filter((t) => !isSettingsText(t))), [texts]);
 
   // Never left on for someone who isn't (or is no longer) the owner.
   useEffect(() => {

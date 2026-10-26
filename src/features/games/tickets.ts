@@ -1,27 +1,38 @@
 import type { AppContent, GameId, GameResult, Person } from '../../data/types';
-import { GOLDEN_FACTOR, isGolden } from './golden';
+import { isGolden } from './golden';
+import { DEFAULT_RULES, rulesAt, ticketSettings, type TicketSettings } from './ticketRules';
+import { getContent } from '../../data/store';
 
 /**
  * Arcade tickets, worked out from what we actually played — so both phones
  * always agree and nothing can be counted twice. Winning gives more, but
  * every game played earns something.
  */
-export const TICKETS = { win: 10, draw: 6, played: 4 } as const;
+export const TICKETS = {
+  win: DEFAULT_RULES.win,
+  draw: DEFAULT_RULES.draw,
+  played: DEFAULT_RULES.played,
+} as const;
 
 /** Games that take a while to play earn a little more. */
 export const LONG_GAMES: readonly GameId[] = ['kwartet', 'zeeslag', 'uno', 'bowling', 'bingo'];
-export const LONG_BONUS = 4;
+export const LONG_BONUS = DEFAULT_RULES.long;
 
-/** What one game is worth to `who` (double on Gouden Woensdag). */
+/**
+ * What one game is worth to `who`, by the values that counted then (and more
+ * on Gouden Woensdag).
+ */
 export function ticketsFor(
   game: GameId,
   winner: Person | 'draw',
   who: Person,
   at: string | number = Date.now(),
+  settings: TicketSettings = ticketSettings(getContent()),
 ): number {
-  const base = winner === who ? TICKETS.win : winner === 'draw' ? TICKETS.draw : TICKETS.played;
-  const worth = base + (LONG_GAMES.includes(game) ? LONG_BONUS : 0);
-  return isGolden(at) ? worth * GOLDEN_FACTOR : worth;
+  const r = rulesAt(settings, at);
+  const base = winner === who ? r.win : winner === 'draw' ? r.draw : r.played;
+  const worth = base + (LONG_GAMES.includes(game) ? r.long : 0);
+  return isGolden(at) ? worth * r.golden : worth;
 }
 
 /**
@@ -37,16 +48,20 @@ export const playedTogether = (r: GameResult) =>
 const headToHead = playedTogether;
 
 export function ticketsEarned(c: AppContent, who: Person): number {
-  let total = 0;
+  const settings = ticketSettings(c);
+  let total = settings.adjust[who];
   // Only potjes against each other earn tickets — playing Coco doesn't count.
   for (const r of c.games.results) {
     if (!headToHead(r) || !r.players.includes(who)) continue;
-    total += ticketsFor(r.game, r.winner as Person | 'draw', who, r.at);
+    total += ticketsFor(r.game, r.winner as Person | 'draw', who, r.at, settings);
   }
   // Wie kent wie is a game show about each other, so it counts too.
   for (const a of c.quiz.answers)
-    if (a.who === who && a.self && a.guess) total += isGolden(a.at) ? 2 * GOLDEN_FACTOR : 2;
-  return total;
+    if (a.who === who && a.self && a.guess) {
+      const r = rulesAt(settings, a.at);
+      total += isGolden(a.at) ? r.quiz * r.golden : r.quiz;
+    }
+  return Math.max(0, total);
 }
 
 /** Tickets spent on prizes from the prize counter. */

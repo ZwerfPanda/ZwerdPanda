@@ -4,6 +4,7 @@ import { useContent } from '../../data/store';
 import { useMe } from '../../data/people';
 import { useReducedMotion } from '../../hooks/useMotion';
 import { ticketsEarned } from './tickets';
+import { currentRules } from './ticketRules';
 import { Dialog } from '../../components/ui/Dialog';
 import { celebrate } from '../../components/ui/feedback';
 import { navigate, href } from '../../lib/router';
@@ -36,8 +37,16 @@ export function countdown(ms: number) {
   return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
 }
 
+/** What Gouden Woensdag multiplies by right now (he can change it). */
+export function useGoldenFactor() {
+  return useContent((c) => currentRules(c).golden);
+}
+/** "dubbel", or "×3" when he made it more. */
+export const timesWord = (f: number) => (f === 2 ? 'dubbel' : `×${f}`);
+
 /** A golden ticket, with ×2 on it. */
 export function GoldenTicket({ size = 1 }: { size?: number }) {
+  const factor = useGoldenFactor();
   return (
     <svg
       className="golden-ticket"
@@ -101,7 +110,7 @@ export function GoldenTicket({ size = 1 }: { size?: number }) {
         GOUDEN WOENSDAG
       </text>
       <text x="110" y="90" textAnchor="middle" fontSize="34" fontWeight="900" fill="#6b4300">
-        🎟️ ×2
+        🎟️ ×{factor}
       </text>
     </svg>
   );
@@ -113,6 +122,7 @@ export function GoldenHost() {
   const { entries, browsing } = useNews();
   const welcomeDue = useWelcomeDue();
   const [open, setOpen] = useState(false);
+  const factor = useGoldenFactor();
   const key = `olu:golden-seen:${ourDay(now)}`;
 
   useEffect(() => {
@@ -187,8 +197,8 @@ export function GoldenHost() {
         </span>
         <GoldenTicket />
         <p className="golden-card__lead">
-          Vandaag tellen <strong>alle tickets dubbel</strong>. Elk potje tegen elkaar, elk antwoord
-          in Wie kent wie — alles ×2.
+          Vandaag tellen <strong>alle tickets {timesWord(factor)}</strong>. Elk potje tegen elkaar,
+          elk antwoord in Wie kent wie — alles ×{factor}.
         </p>
         <p className="golden-card__clock" role="timer">
           Nog <strong>{countdown(goldenLeft(now))}</strong> tot middernacht
@@ -202,12 +212,13 @@ export function GoldenHost() {
 export function GoldenBanner() {
   const { golden, now } = useGoldenNow();
   const days = daysUntilGolden(now);
+  const factor = useGoldenFactor();
   const ref = useRef<HTMLDivElement>(null);
   if (!golden)
     return (
       <p className="golden-teaser">
         ✨ Gouden Woensdag {days === 1 ? 'is morgen' : `over ${days} dagen`} — dan tellen alle
-        tickets dubbel
+        tickets {timesWord(factor)}
       </p>
     );
   return (
@@ -222,7 +233,7 @@ export function GoldenBanner() {
       <GoldenTicket size={0.62} />
       <div className="golden-banner__text">
         <strong>Gouden Woensdag</strong>
-        <span>Alle tickets ×2 — vandaag!</span>
+        <span>Alle tickets ×{factor} — vandaag!</span>
         <span className="golden-banner__clock">
           nog <b>{countdown(goldenLeft(now))}</b>
         </span>
@@ -234,10 +245,11 @@ export function GoldenBanner() {
 /** A small badge in the games themselves, when playing together counts double. */
 export function GoldenBadge() {
   const { golden } = useGoldenNow();
+  const factor = useGoldenFactor();
   if (!golden) return null;
   return (
     <a className="golden-badge" href={href('/games', { g: 'prizes' })}>
-      ✨ Gouden Woensdag · tickets ×2
+      ✨ Gouden Woensdag · tickets ×{factor}
     </a>
   );
 }
@@ -253,6 +265,7 @@ export function TicketRain() {
   const earned = useContent((c) => ticketsEarned(c, me));
   const reduce = useReducedMotion();
   const last = useRef<number | null>(null);
+  const factor = useGoldenFactor();
   const [shower, setShower] = useState<{ key: number; gain: number; golden: boolean } | null>(null);
 
   useEffect(() => {
@@ -304,7 +317,7 @@ export function TicketRain() {
             transition={{ duration: 0.7 }}
           >
             <b>+{shower.gain} 🎟️</b>
-            {shower.golden && <span>Gouden Woensdag · ×2 ✨</span>}
+            {shower.golden && <span>Gouden Woensdag · ×{factor} ✨</span>}
           </motion.div>
         </motion.div>
       )}

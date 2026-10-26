@@ -11,6 +11,9 @@ import { formatTimestamp } from '../../lib/dates';
 import { playSfx } from '../../lib/audio/sfx';
 import { GameShell, ScoreBoard, WhoAreYou } from './GameShell';
 import { ticketBalance, ticketsEarned } from './tickets';
+import { timesWord, useGoldenFactor } from './GoldenDay';
+import { useIsOwner } from '../texts/TextEditor';
+import { href } from '../../lib/router';
 
 /** Ideas to tap — what goes on a coupon is entirely up to whoever makes it. */
 const SUGGESTIONS: { emoji: string; title: string }[] = [
@@ -39,6 +42,8 @@ export function Prizes() {
 
 function Counter() {
   const content = useContent((c) => c);
+  const golden = useGoldenFactor();
+  const owner = useIsOwner();
   const me = useMe();
   const them = otherPerson(me);
   const theirName = sweetName(them, me, content.us.petNames, content.profile);
@@ -70,7 +75,14 @@ function Counter() {
       <p className="game-hint">
         Je verdient tickets door potjes tegen elkaar te spelen, elk op je eigen telefoon (📱↔📱
         Samen) — winnen geeft meer. Potjes tegen Coco of op één telefoon tellen niet mee. Op Gouden
-        Woensdag tellen alle tickets dubbel ✨ Totaal verdiend: {ticketsEarned(content, me)} 🎟️
+        Woensdag tellen alle tickets {timesWord(golden)} ✨ Totaal verdiend:{' '}
+        {ticketsEarned(content, me)} 🎟️
+        {owner && (
+          <>
+            {' '}
+            <a href={href('/settings')}>Ticketwaarden aanpassen →</a>
+          </>
+        )}
       </p>
 
       <section className="prize-section" aria-labelledby="prize-shelf">

@@ -40,6 +40,7 @@ import { validateStartDate } from '../home/StartDateDialog';
 import { TogetherSection } from './TogetherSection';
 import { OwnTexts } from '../texts/OwnTexts';
 import { useIsOwner } from '../texts/TextEditor';
+import { TicketAdmin } from '../games/TicketAdmin';
 import { disconnectBeforeReset, isSharing } from '../../sync/sync';
 import { useInstall } from '../../pwa/install';
 import { openInstallSheet } from '../../pwa/InstallSheet';
@@ -67,6 +68,7 @@ export function SettingsPage() {
       <div className="settings-grid">
         <ProfileSection />
         <TextsSection />
+        <TicketsSection />
         <TogetherSection />
         <WelcomeSection />
         <AppSection />
@@ -110,6 +112,16 @@ function TextsSection() {
   return (
     <Section id="texts" title="Jouw teksten" kicker="in your own words">
       <OwnTexts />
+    </Section>
+  );
+}
+
+function TicketsSection() {
+  const owner = useIsOwner();
+  if (!owner) return null;
+  return (
+    <Section id="tickets" title="Tickets van de arcade" kicker="only for you">
+      <TicketAdmin />
     </Section>
   );
 }
