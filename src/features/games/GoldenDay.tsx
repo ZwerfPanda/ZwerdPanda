@@ -1,4 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { useContent } from '../../data/store';
+import { useMe } from '../../data/people';
+import { useReducedMotion } from '../../hooks/useMotion';
+import { ticketsEarned } from './tickets';
 import { Dialog } from '../../components/ui/Dialog';
 import { celebrate } from '../../components/ui/feedback';
 import { navigate, href } from '../../lib/router';
@@ -164,6 +169,22 @@ export function GoldenHost() {
     >
       <div className="golden-card">
         <div className="golden-card__rays" aria-hidden="true" />
+        <span className="golden-card__burst" aria-hidden="true">
+          {Array.from({ length: 10 }, (_, i) => (
+            <span
+              key={i}
+              style={
+                {
+                  '--x': `${Math.cos((i / 10) * Math.PI * 2) * 160}px`,
+                  '--y': `${Math.sin((i / 10) * Math.PI * 2) * 120}px`,
+                  animationDelay: `${0.8 + (i % 3) * 0.08}s`,
+                } as React.CSSProperties
+              }
+            >
+              🪙
+            </span>
+          ))}
+        </span>
         <GoldenTicket />
         <p className="golden-card__lead">
           Vandaag tellen <strong>alle tickets dubbel</strong>. Elk potje tegen elkaar, elk antwoord
@@ -218,5 +239,118 @@ export function GoldenBadge() {
     <a className="golden-badge" href={href('/games', { g: 'prizes' })}>
       ✨ Gouden Woensdag · tickets ×2
     </a>
+  );
+}
+
+/* -------------------------------------------------- tickets coming in */
+
+/**
+ * Whenever tickets come in (the other phone's move settles a game, or your
+ * own), they rain down for a moment: golden and ×2 on a Wednesday.
+ */
+export function TicketRain() {
+  const me = useMe();
+  const earned = useContent((c) => ticketsEarned(c, me));
+  const reduce = useReducedMotion();
+  const last = useRef<number | null>(null);
+  const [shower, setShower] = useState<{ key: number; gain: number; golden: boolean } | null>(null);
+
+  useEffect(() => {
+    const before = last.current;
+    last.current = earned;
+    // Not on first sight, not when it goes down (a prize was won), and not for a
+    // big catch-up (a first sync brings in everything at once).
+    if (before === null || earned <= before || earned - before > 60) return;
+    const golden = isGolden(Date.now());
+    setShower({ key: Date.now(), gain: earned - before, golden });
+    playSfx('coin', true);
+    window.setTimeout(() => playSfx(golden ? 'star' : 'sparkle', true), 350);
+    const t = window.setTimeout(() => setShower(null), reduce ? 1600 : 3000);
+    return () => window.clearTimeout(t);
+  }, [earned]);
+
+  return (
+    <AnimatePresence>
+      {shower && (
+        <motion.div
+          key={shower.key}
+          className={`ticket-rain ${shower.golden ? 'is-golden' : ''}`}
+          aria-live="polite"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {!reduce &&
+            Array.from({ length: shower.golden ? 22 : 12 }, (_, i) => (
+              <motion.span
+                key={i}
+                className="ticket-rain__drop"
+                style={{ left: `${(i * 47) % 100}%` }}
+                initial={{ y: -80, rotate: (i % 2 ? -1 : 1) * 30, opacity: 0 }}
+                animate={{ y: '110vh', rotate: (i % 2 ? 1 : -1) * 220, opacity: [0, 1, 1, 0.8] }}
+                transition={{
+                  duration: 1.8 + (i % 5) * 0.25,
+                  delay: (i % 7) * 0.12,
+                  ease: 'easeIn',
+                }}
+              >
+                🎟️
+              </motion.span>
+            ))}
+          <motion.div
+            className="ticket-rain__gain"
+            initial={{ scale: 0.2, rotate: -10 }}
+            animate={{ scale: [0.2, 1.25, 1], rotate: [-10, 4, 0] }}
+            transition={{ duration: 0.7 }}
+          >
+            <b>+{shower.gain} 🎟️</b>
+            {shower.golden && <span>Gouden Woensdag · ×2 ✨</span>}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+/** A number that counts up to its new value. */
+export function useCountUp(value: number, ms = 900) {
+  const [shown, setShown] = useState(value);
+  const from = useRef(value);
+  useEffect(() => {
+    const start = performance.now();
+    const a = from.current;
+    let raf = 0;
+    const tick = (now: number) => {
+      const k = Math.min(1, (now - start) / ms);
+      from.current = Math.round(a + (value - a) * (1 - (1 - k) ** 3));
+      setShown(from.current);
+      if (k < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+  return shown;
+}
+
+/** Gold coins drifting down through the hall on a golden day. */
+export function GoldenCoins() {
+  const { golden } = useGoldenNow();
+  if (!golden) return null;
+  return (
+    <span className="golden-coins" aria-hidden="true">
+      {Array.from({ length: 14 }, (_, i) => (
+        <span
+          key={i}
+          style={{
+            left: `${(i * 29) % 100}%`,
+            animationDelay: `${-(i * 1.3)}s`,
+            animationDuration: `${9 + (i % 4) * 2}s`,
+            fontSize: `${0.9 + (i % 3) * 0.3}rem`,
+          }}
+        >
+          {i % 3 ? '🪙' : '✨'}
+        </span>
+      ))}
+    </span>
   );
 }

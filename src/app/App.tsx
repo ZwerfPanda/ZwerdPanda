@@ -17,7 +17,7 @@ import { InstallSheetHost } from '../pwa/InstallSheet';
 import { PingCatcher } from '../features/home/Together';
 import { DatePlannerHost } from '../features/dates/DatePlanner';
 import { NewsHost } from '../features/news/NewsSheet';
-import { GoldenHost } from '../features/games/GoldenDay';
+import { GoldenHost, TicketRain } from '../features/games/GoldenDay';
 import { startSync } from '../sync/sync';
 import { HomePage } from '../features/home/HomePage';
 import { PageLoading } from './PageLoading';
@@ -227,6 +227,7 @@ export function App() {
           {!introOpen && <PingCatcher />}
           {!introOpen && <NewsHost />}
           {!introOpen && <GoldenHost />}
+          {!introOpen && <TicketRain />}
           <AnimatePresence>
             {introOpen && <Intro key="intro" onEnter={closeIntro} />}
           </AnimatePresence>

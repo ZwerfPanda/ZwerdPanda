@@ -23,7 +23,7 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
-    id: '2026-10-14',
+    id: '2026-10-15',
     when: 'oktober 2026',
     title: 'Gouden Woensdag ✨',
     items: [
@@ -31,6 +31,12 @@ export const CHANGELOG: ChangeEntry[] = [
         emoji: '🎟️',
         title: 'Elke woensdag dubbele tickets',
         text: 'Op woensdag tellen alle tickets die je wint dubbel. De Arcade Hall wordt goud, met een klok die aftelt tot middernacht.',
+        path: '/games',
+      },
+      {
+        emoji: '🪙',
+        title: 'Een regen van tickets',
+        text: 'Win je tickets, dan regenen ze over je scherm. Op woensdag in goud, en in de Arcade dwarrelen muntjes naar beneden.',
         path: '/games',
       },
     ],

@@ -9,7 +9,7 @@ import type { Player, ScoreGame } from '../../data/types';
 import { headToHead } from './gameStats';
 import { monthName, ticketBalance, tournament } from './tickets';
 import './arcade.css';
-import { GoldenBanner, useGoldenNow } from './GoldenDay';
+import { GoldenBanner, GoldenCoins, useCountUp, useGoldenNow } from './GoldenDay';
 
 const ConnectFour = lazy(() => import('./ConnectFour').then((m) => ({ default: m.ConnectFour })));
 const Uno = lazy(() => import('./Uno').then((m) => ({ default: m.Uno })));
@@ -166,7 +166,7 @@ function Arcade() {
   const me = useMe();
   const [inserting, setInserting] = useState<string | null>(null);
   const content = useContent((c) => c);
-  const myTickets = ticketBalance(content, me);
+  const myTickets = useCountUp(ticketBalance(content, me));
   useAmbience('arcade');
   const { golden } = useGoldenNow();
 
@@ -201,6 +201,7 @@ function Arcade() {
 
   return (
     <div className={`page arcade-zone arcade-hall${golden ? ' is-golden' : ''}`}>
+      <GoldenCoins />
       <div className="hall__lights" aria-hidden="true">
         {Array.from({ length: 7 }, (_, i) => (
           <span key={i} style={{ animationDelay: `${i * 0.37}s` }} />

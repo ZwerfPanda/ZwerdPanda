@@ -189,3 +189,130 @@
     animation: none;
   }
 }
+
+/* the ticket turns in, coins burst out */
+.golden-card .golden-ticket {
+  animation: golden-flip 1.2s 0.35s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+.golden-card__burst span {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  font-size: 1.8rem;
+  opacity: 0;
+  animation: golden-burst 1.7s ease-out both;
+}
+/* coins drifting down in the hall */
+.golden-coins {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.golden-coins span {
+  position: absolute;
+  top: -40px;
+  opacity: 0.55;
+  animation: golden-fall 11s linear infinite;
+}
+.golden-banner .golden-ticket {
+  animation: golden-sway 3s ease-in-out infinite;
+}
+/* tickets raining in */
+.ticket-rain {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  overflow: hidden;
+}
+.ticket-rain__drop {
+  position: absolute;
+  top: 0;
+  font-size: 1.8rem;
+}
+.ticket-rain.is-golden .ticket-rain__drop {
+  filter: sepia(1) saturate(4) hue-rotate(5deg) drop-shadow(0 0 6px rgba(255, 215, 94, 0.9));
+}
+.ticket-rain__gain {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  translate: -50% 0;
+  padding: 14px 26px;
+  border-radius: 22px;
+  background: rgba(30, 14, 50, 0.88);
+  border: 2px solid #ff8cc0;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  color: #fff;
+  text-align: center;
+}
+.ticket-rain__gain b {
+  font-size: 2.2rem;
+  font-weight: 900;
+}
+.ticket-rain.is-golden .ticket-rain__gain {
+  background: linear-gradient(135deg, #5a3a00, #8a5a06);
+  border-color: #ffd75e;
+  box-shadow:
+    0 0 0 4px rgba(255, 215, 94, 0.25),
+    0 0 40px rgba(255, 215, 94, 0.6);
+}
+.ticket-rain.is-golden .ticket-rain__gain b {
+  color: #ffe58a;
+  text-shadow: 0 0 14px rgba(255, 215, 94, 0.9);
+}
+.ticket-rain__gain span {
+  white-space: nowrap;
+  font-weight: 800;
+  color: #ffe58a;
+}
+@keyframes golden-flip {
+  from {
+    transform: perspective(600px) rotateY(-180deg) scale(0.4);
+    opacity: 0;
+  }
+  60% {
+    transform: perspective(600px) rotateY(20deg) scale(1.08);
+    opacity: 1;
+  }
+}
+@keyframes golden-burst {
+  0% {
+    transform: translate(-50%, 0) scale(0.3);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--x)), var(--y)) scale(1) rotate(200deg);
+    opacity: 0;
+  }
+}
+@keyframes golden-fall {
+  to {
+    transform: translateY(110vh) rotate(360deg);
+  }
+}
+@keyframes golden-sway {
+  50% {
+    transform: rotate(-4deg) translateY(-3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .golden-card .golden-ticket,
+  .golden-card__burst span,
+  .golden-coins span,
+  .golden-banner .golden-ticket {
+    animation: none;
+  }
+  .golden-coins,
+  .golden-card__burst {
+    display: none;
+  }
+}
