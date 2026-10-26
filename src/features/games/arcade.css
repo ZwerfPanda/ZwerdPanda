@@ -4358,19 +4358,9 @@ button.sea__cell:focus-visible {
   color: #e8202e;
 }
 .gf-bubble__answer {
-  padding: 4px 16px;
-  border-radius: 999px;
   font-weight: 900;
-  font-size: 1.15rem;
-  color: #fff;
-}
-.gf-bubble__answer.is-yes {
-  background: #3fae58;
-  box-shadow: 0 3px 0 #2a7c3c;
-}
-.gf-bubble__answer.is-no {
-  background: #e8762e;
-  box-shadow: 0 3px 0 #a84f18;
+  font-size: 1.2rem;
+  color: #23803a;
 }
 .gf-flyer {
   position: relative;
@@ -4459,7 +4449,10 @@ button.sea__cell:focus-visible {
 .gf-scene .gf-banner {
   position: relative;
   inset: auto;
-  margin-top: 40px;
+  margin: 0;
+  padding: 26px 44px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(10, 16, 50, 0.7) 30%, transparent 72%);
 }
 @keyframes gf-light {
   to {

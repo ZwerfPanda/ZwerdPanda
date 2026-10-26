@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import type { Player } from '../../data/types';
 import { playSfx } from '../../lib/audio/sfx';
 import {
@@ -203,30 +203,41 @@ export function Scene({
     const to = mine ? THEM_Y : ME_Y; // the one asked
     return (
       <div className="gf-scene" aria-live="assertive">
-        <motion.div
-          className={`gf-bubble ${mine ? 'is-mine' : 'is-theirs'}`}
-          initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.4, y: from * 0.55 }}
-          animate={{ opacity: 1, scale: 1, y: from * 0.42 }}
-          transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-        >
-          <span className="gf-bubble__who">{mine ? 'Jij vraagt' : `${label(e.who)} vraagt`}</span>
-          <span className="gf-bubble__q">
-            Heb {mine ? `jij, ${label(across)},` : 'jij'} <b>{rankName(e.rank)}</b>?
-          </span>
-          <FaceCard rank={e.rank} big />
-          {revealed && (
-            <motion.span
-              className={`gf-bubble__answer ${e.got ? 'is-yes' : 'is-no'}`}
-              initial={{ scale: 0.3, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', stiffness: 420, damping: 14 }}
+        {/* No luck: the question makes way for GO FISH! by itself. */}
+        <AnimatePresence>
+          {!(revealed && !e.got) && (
+            <motion.div
+              key="bubble"
+              className={`gf-bubble ${mine ? 'is-mine' : 'is-theirs'}`}
+              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.4, y: from * 0.55 }}
+              animate={{ opacity: 1, scale: 1, y: from * 0.42 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.6, y: from * 0.55 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 18 }}
             >
-              {e.got
-                ? `Ja! ${e.got === 1 ? `Eén ${rankName(e.rank, 1).replace('een ', '')}` : `${e.got} ${rankName(e.rank)}`}`
-                : 'Nee!'}
-            </motion.span>
+              <span className="gf-bubble__who">
+                {mine ? 'Jij vraagt' : `${label(e.who)} vraagt`}
+              </span>
+              <span className="gf-bubble__q">
+                Heb {mine ? `jij, ${label(across)},` : 'jij'} <b>{rankName(e.rank)}</b>?
+              </span>
+              <FaceCard rank={e.rank} big />
+              {revealed && e.got > 0 && (
+                <motion.span
+                  className="gf-bubble__answer"
+                  initial={{ scale: 0.6, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 16 }}
+                >
+                  Ja!{' '}
+                  {e.got === 1
+                    ? `Eén ${rankName(e.rank, 1).replace('een ', '')}`
+                    : `${e.got} ${rankName(e.rank)}`}{' '}
+                  🎉
+                </motion.span>
+              )}
+            </motion.div>
           )}
-        </motion.div>
+        </AnimatePresence>
         {/* the cards go over to the one who asked */}
         {revealed &&
           e.got > 0 &&
