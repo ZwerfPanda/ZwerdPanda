@@ -5,6 +5,7 @@ import { getAuthor, setMe } from '../../data/people';
 import { href } from '../../lib/router';
 import { playSfx } from '../../lib/audio/sfx';
 import { refreshNow } from './gameData';
+import { GoldenBadge } from './GoldenDay';
 import './arcade.css';
 
 export type PlayMode = 'remote' | 'coco' | 'local';
@@ -84,6 +85,7 @@ export function GameShell({
           ))}
         </div>
       )}
+      {mode === 'remote' && <GoldenBadge />}
       {score}
       {children}
     </div>

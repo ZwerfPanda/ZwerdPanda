@@ -53,6 +53,9 @@ const duel = (id: string, scores: Partial<Record<Person, number>>, at: string): 
 
 describe('skeeball and bowling duels', () => {
   beforeEach(() => {
+    // A Monday: no Gouden Woensdag in these sums.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-26T12:00:00Z'));
     vi.stubGlobal('window', { setTimeout: () => 0 });
     replaceContent(createDefaultContent(), 'remote');
   });

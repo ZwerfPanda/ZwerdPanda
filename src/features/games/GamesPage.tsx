@@ -9,6 +9,7 @@ import type { Player, ScoreGame } from '../../data/types';
 import { headToHead } from './gameStats';
 import { monthName, ticketBalance, tournament } from './tickets';
 import './arcade.css';
+import { GoldenBanner, useGoldenNow } from './GoldenDay';
 
 const ConnectFour = lazy(() => import('./ConnectFour').then((m) => ({ default: m.ConnectFour })));
 const Uno = lazy(() => import('./Uno').then((m) => ({ default: m.Uno })));
@@ -167,6 +168,7 @@ function Arcade() {
   const content = useContent((c) => c);
   const myTickets = ticketBalance(content, me);
   useAmbience('arcade');
+  const { golden } = useGoldenNow();
 
   // What scrolls along the LED ticker: records and wins (Coco's too).
   const best = (game: ScoreGame, who: Player) => {
@@ -198,7 +200,7 @@ function Arcade() {
   };
 
   return (
-    <div className="page arcade-zone arcade-hall">
+    <div className={`page arcade-zone arcade-hall${golden ? ' is-golden' : ''}`}>
       <div className="hall__lights" aria-hidden="true">
         {Array.from({ length: 7 }, (_, i) => (
           <span key={i} style={{ animationDelay: `${i * 0.37}s` }} />
@@ -231,6 +233,8 @@ function Arcade() {
           <span aria-hidden="true">{ticker}</span>
         </div>
       </div>
+
+      <GoldenBanner />
 
       <p className="hall__tickets">
         🎟️ Jouw tickets: <strong>{myTickets}</strong>

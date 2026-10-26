@@ -1,0 +1,191 @@
+/* ------------------------------------------------------ Gouden Woensdag */
+
+.golden-ticket {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  filter: drop-shadow(0 8px 18px rgba(233, 169, 32, 0.45));
+}
+.golden-ticket__shine {
+  animation: golden-shine 2.8s ease-in-out infinite;
+}
+
+.golden-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 8px 0 4px;
+  text-align: center;
+  overflow: hidden;
+}
+.golden-card .golden-ticket {
+  position: relative;
+  animation: golden-pop 0.9s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+.golden-card__rays {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  width: 380px;
+  height: 380px;
+  margin-left: -190px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(rgba(255, 215, 94, 0.28) 0 9deg, transparent 9deg 22deg);
+  mask-image: radial-gradient(circle, #000 15%, transparent 65%);
+  -webkit-mask-image: radial-gradient(circle, #000 15%, transparent 65%);
+  animation: golden-spin 18s linear infinite;
+  pointer-events: none;
+}
+.golden-card__lead,
+.golden-card__clock {
+  position: relative;
+  margin: 0;
+}
+.golden-card__clock strong {
+  font-variant-numeric: tabular-nums;
+  color: #9a6a08;
+}
+.btn.golden-go {
+  background: linear-gradient(135deg, #ffe58a, #e9a920);
+  color: #4a2e00;
+  border-color: #c98a10;
+}
+
+/* the banner in the Arcade Hall */
+.golden-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 0 auto 14px;
+  max-width: 34rem;
+  padding: 12px 16px;
+  border-radius: 20px;
+  background: radial-gradient(ellipse at 20% 0%, rgba(255, 243, 176, 0.35), transparent 60%),
+    linear-gradient(135deg, #5a3a00, #8a5a06 45%, #5a3a00);
+  border: 2px solid #ffd75e;
+  box-shadow:
+    0 0 0 4px rgba(255, 215, 94, 0.18),
+    0 0 34px rgba(255, 215, 94, 0.45);
+  color: #fff6d6;
+  overflow: hidden;
+  animation: golden-breathe 2.4s ease-in-out infinite;
+}
+.golden-banner__text {
+  display: grid;
+  gap: 2px;
+}
+.golden-banner__text strong {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #ffe58a;
+  text-shadow: 0 0 12px rgba(255, 215, 94, 0.8);
+}
+.golden-banner__clock b {
+  font-variant-numeric: tabular-nums;
+  color: #ffe58a;
+}
+.golden-banner__sparkles span {
+  position: absolute;
+  top: 100%;
+  color: #ffe58a;
+  font-size: 0.9rem;
+  animation: golden-rise 3.2s linear infinite;
+  pointer-events: none;
+}
+.golden-teaser {
+  margin: 0 auto 12px;
+  max-width: 34rem;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px dashed rgba(255, 215, 94, 0.55);
+  color: #ffe9a8;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* the whole hall turns golden on the day */
+.arcade-hall.is-golden .cab {
+  --cab-glow: #ffd75e;
+}
+.arcade-hall.is-golden .hall__tickets {
+  border-color: #ffd75e;
+  box-shadow: 0 0 22px rgba(255, 215, 94, 0.45);
+}
+.arcade-hall.is-golden .hall__tickets strong {
+  color: #ffe58a;
+}
+.arcade-hall.is-golden .hall__title {
+  text-shadow:
+    0 0 10px rgba(255, 215, 94, 0.9),
+    0 0 30px rgba(255, 170, 40, 0.6);
+}
+
+/* in the games */
+.golden-badge {
+  display: block;
+  width: fit-content;
+  margin: -4px auto 10px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffe58a, #e9a920);
+  color: #4a2e00;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 0 16px rgba(255, 215, 94, 0.6);
+}
+
+@keyframes golden-shine {
+  0%,
+  30% {
+    transform: translateX(0);
+  }
+  70%,
+  100% {
+    transform: translateX(380px);
+  }
+}
+@keyframes golden-pop {
+  from {
+    transform: scale(0.3) rotate(-12deg);
+    opacity: 0;
+  }
+}
+@keyframes golden-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes golden-breathe {
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(255, 215, 94, 0.3),
+      0 0 46px rgba(255, 215, 94, 0.7);
+  }
+}
+@keyframes golden-rise {
+  from {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-90px);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .golden-ticket__shine,
+  .golden-card .golden-ticket,
+  .golden-card__rays,
+  .golden-banner,
+  .golden-banner__sparkles span {
+    animation: none;
+  }
+}

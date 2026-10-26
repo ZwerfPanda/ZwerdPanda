@@ -69,8 +69,8 @@ function Counter() {
       />
       <p className="game-hint">
         Je verdient tickets door potjes tegen elkaar te spelen, elk op je eigen telefoon (📱↔📱
-        Samen) — winnen geeft meer. Potjes tegen Coco of op één telefoon tellen niet mee. Totaal
-        verdiend: {ticketsEarned(content, me)} 🎟️
+        Samen) — winnen geeft meer. Potjes tegen Coco of op één telefoon tellen niet mee. Op Gouden
+        Woensdag tellen alle tickets dubbel ✨ Totaal verdiend: {ticketsEarned(content, me)} 🎟️
       </p>
 
       <section className="prize-section" aria-labelledby="prize-shelf">
