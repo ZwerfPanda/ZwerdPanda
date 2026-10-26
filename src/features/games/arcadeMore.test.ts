@@ -7,7 +7,7 @@ import { PUCK_R, RINK_H, startRink, step, clampPaddle, cocoTarget } from './hock
 
 const r = (p: Partial<GameResult>): GameResult => ({
   id: `match-${Math.random().toString(36)}`,
-  game: 'uno',
+  game: 'c4',
   players: ['you', 'partner'],
   winner: 'you',
   at: '2026-10-05T10:00:00.000Z',
@@ -19,8 +19,19 @@ describe('arcade tickets', () => {
   it('pays for each potje we play against each other, more for a win', () => {
     const c = base();
     c.games.results = [r({ winner: 'you' }), r({ winner: 'partner' }), r({ winner: 'draw' })];
-    expect(ticketsEarned(c, 'you')).toBe(20 + 8 + 12);
-    expect(ticketsEarned(c, 'partner')).toBe(8 + 20 + 12);
+    expect(ticketsEarned(c, 'you')).toBe(10 + 4 + 6);
+    expect(ticketsEarned(c, 'partner')).toBe(4 + 10 + 6);
+  });
+
+  it('pays 4 more for the long games', () => {
+    const c = base();
+    c.games.results = [
+      r({ game: 'kwartet', winner: 'you' }),
+      r({ game: 'zeeslag', winner: 'partner' }),
+      r({ game: 'bingo', winner: 'draw' }),
+    ];
+    expect(ticketsEarned(c, 'you')).toBe(14 + 8 + 10);
+    expect(ticketsEarned(c, 'partner')).toBe(8 + 14 + 10);
   });
 
   it('does not pay for games against Coco', () => {
@@ -31,8 +42,8 @@ describe('arcade tickets', () => {
       r({ game: 'c4', players: ['you', 'partner'], winner: 'you' }),
     ];
     // Only the you-vs-partner game counts.
-    expect(ticketsEarned(c, 'you')).toBe(20);
-    expect(ticketsEarned(c, 'partner')).toBe(8);
+    expect(ticketsEarned(c, 'you')).toBe(10);
+    expect(ticketsEarned(c, 'partner')).toBe(4);
   });
 
   it('does not pay for games on one phone, where one of us could play both sides', () => {
@@ -44,7 +55,7 @@ describe('arcade tickets', () => {
       r({ game: 'kwartet', winner: 'partner' }),
     ];
     // Only the game on two phones counts — for tickets and for the month's champion.
-    expect(ticketsEarned(c, 'partner')).toBe(20);
+    expect(ticketsEarned(c, 'partner')).toBe(14);
     expect(tournament(c.games.results)[0].partner).toBe(1);
   });
 
@@ -70,9 +81,9 @@ describe('arcade tickets', () => {
         createdAt: '2026-10-01T10:00:00.000Z',
       },
     ];
-    expect(ticketBalance(c, 'partner')).toBe(200 - 60);
+    expect(ticketBalance(c, 'partner')).toBe(100 - 60);
     // His own coupons never cost him anything.
-    expect(ticketBalance(c, 'you')).toBe(80);
+    expect(ticketBalance(c, 'you')).toBe(40);
   });
 });
 

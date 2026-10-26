@@ -78,7 +78,7 @@ describe('skeeball and bowling duels', () => {
     expect(playDuelRound('skeeball', 'you', 300)).toEqual({ type: 'practice', mine: 230 });
 
     const out = playDuelRound('skeeball', 'partner', 180);
-    expect(out).toMatchObject({ type: 'settled', winner: 'you', tickets: 8 });
+    expect(out).toMatchObject({ type: 'settled', winner: 'you', tickets: 4 });
     c = getContent();
     expect(c.games.results).toHaveLength(1);
     expect(c.games.results[0]).toMatchObject({
@@ -86,16 +86,16 @@ describe('skeeball and bowling duels', () => {
       players: ['you', 'partner'],
       winner: 'you',
     });
-    expect(ticketsEarned(c, 'you')).toBe(20);
-    expect(ticketsEarned(c, 'partner')).toBe(8);
+    expect(ticketsEarned(c, 'you')).toBe(10);
+    expect(ticketsEarned(c, 'partner')).toBe(4);
     // A new round starts a new duel.
     expect(playDuelRound('skeeball', 'partner', 90)).toEqual({ type: 'started' });
   });
 
   it('is a draw on equal scores', () => {
     playDuelRound('bowling', 'partner', 120);
-    expect(playDuelRound('bowling', 'you', 120)).toMatchObject({ winner: 'draw', tickets: 12 });
-    expect(ticketsEarned(getContent(), 'partner')).toBe(12);
+    expect(playDuelRound('bowling', 'you', 120)).toMatchObject({ winner: 'draw', tickets: 10 });
+    expect(ticketsEarned(getContent(), 'partner')).toBe(10);
   });
 
   it('folds two duels started at the same moment into one, counted once', () => {

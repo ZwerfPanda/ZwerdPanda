@@ -1,7 +1,7 @@
 import { getContent, updateContent } from '../../data/store';
 import type { GameMatch, Person } from '../../data/types';
 import { startMatch, updateMatch } from './gameData';
-import { TICKETS } from './tickets';
+import { ticketsFor } from './tickets';
 
 /**
  * A duel at skeeball or bowling: each of us plays one round, whenever and on
@@ -59,8 +59,8 @@ export function planDuel(matches: GameMatch[], kind: DuelKind, me: Person): Duel
 }
 
 /** What a duel's result is worth to `me`. */
-export const ticketsFor = (winner: Person | 'draw', me: Person) =>
-  winner === me ? TICKETS.win : winner === 'draw' ? TICKETS.draw : TICKETS.played;
+export const duelTickets = (kind: DuelKind, winner: Person | 'draw', me: Person) =>
+  ticketsFor(kind, winner, me);
 
 export type DuelOutcome =
   | { type: 'started' }
@@ -79,7 +79,8 @@ export function playDuelRound(kind: DuelKind, me: Person, score: number): DuelOu
   updateMatch(plan.id, (m) => {
     const scores = { ...duelScores(m), [me]: score };
     const winner = duelWinner(scores);
-    if (winner) settled = { type: 'settled', winner, scores, tickets: ticketsFor(winner, me) };
+    if (winner)
+      settled = { type: 'settled', winner, scores, tickets: duelTickets(kind, winner, me) };
     return { ...m, state: { scores }, turn: undefined, winner };
   });
   return settled;

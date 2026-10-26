@@ -7,7 +7,6 @@ import { celebrateFrom } from '../../components/ui/feedback';
 import { addScore } from './gameData';
 import { recordResult } from './gameStats';
 import type { PlayMode } from './GameShell';
-import { TICKETS } from './tickets';
 import {
   duelScores,
   duelWinner,
@@ -15,7 +14,7 @@ import {
   foldPlan,
   planDuel,
   playDuelRound,
-  ticketsFor,
+  duelTickets,
   type DuelKind,
 } from './duel';
 
@@ -81,7 +80,7 @@ export function useDuelRound(kind: DuelKind, mode: PlayMode) {
     const theirs = nameOf(them, profile);
     if (out.type === 'started')
       return {
-        text: `${total} punten! Nu is ${theirs} aan de beurt — de winnaar krijgt ${TICKETS.win} 🎟️`,
+        text: `${total} punten! Nu is ${theirs} aan de beurt — de winnaar krijgt ${duelTickets(kind, me, me)} 🎟️`,
         tickets: null,
       };
     if (out.type === 'practice')
@@ -200,14 +199,14 @@ export function DuelPanel({
       ) : (
         <p>
           ⚔️ Speel je rondje, dan is {theirs} aan de beurt (ook later, op de eigen telefoon). De
-          winnaar krijgt {TICKETS.win} 🎟️, de ander {TICKETS.played}.
+          winnaar krijgt {duelTickets(kind, me, me)} 🎟️, de ander {duelTickets(kind, them, me)}.
         </p>
       )}
       {last && lastWinner && (
         <p className="duel-panel__last">
           Vorig duel: jij {lastScores[me] ?? '–'} · {theirs} {lastScores[them] ?? '–'} —{' '}
           {lastWinner === 'draw' ? 'gelijk' : lastWinner === me ? 'jij won 🏆' : `${theirs} won`} (+
-          {ticketsFor(lastWinner, me)} 🎟️)
+          {duelTickets(kind, lastWinner, me)} 🎟️)
         </p>
       )}
     </div>

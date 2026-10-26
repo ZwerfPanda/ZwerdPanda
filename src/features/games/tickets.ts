@@ -1,11 +1,21 @@
-import type { AppContent, GameResult, Person } from '../../data/types';
+import type { AppContent, GameId, GameResult, Person } from '../../data/types';
 
 /**
  * Arcade tickets, worked out from what we actually played — so both phones
  * always agree and nothing can be counted twice. Winning gives more, but
  * every game played earns something.
  */
-export const TICKETS = { win: 20, draw: 12, played: 8 } as const;
+export const TICKETS = { win: 10, draw: 6, played: 4 } as const;
+
+/** Games that take a while to play earn a little more. */
+export const LONG_GAMES: readonly GameId[] = ['kwartet', 'zeeslag', 'uno', 'bowling', 'bingo'];
+export const LONG_BONUS = 4;
+
+/** What one game is worth to `who`. */
+export function ticketsFor(game: GameId, winner: Person | 'draw', who: Person): number {
+  const base = winner === who ? TICKETS.win : winner === 'draw' ? TICKETS.draw : TICKETS.played;
+  return base + (LONG_GAMES.includes(game) ? LONG_BONUS : 0);
+}
 
 /**
  * A game the two of us really played against each other: each on our own
@@ -24,7 +34,7 @@ export function ticketsEarned(c: AppContent, who: Person): number {
   // Only potjes against each other earn tickets — playing Coco doesn't count.
   for (const r of c.games.results) {
     if (!headToHead(r) || !r.players.includes(who)) continue;
-    total += r.winner === who ? TICKETS.win : r.winner === 'draw' ? TICKETS.draw : TICKETS.played;
+    total += ticketsFor(r.game, r.winner as Person | 'draw', who);
   }
   // Wie kent wie is a game show about each other, so it counts too.
   total += c.quiz.answers.filter((a) => a.who === who && a.self && a.guess).length * 2;
