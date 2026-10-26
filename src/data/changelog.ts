@@ -23,6 +23,19 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-12',
+    when: 'oktober 2026',
+    title: 'Meer tickets',
+    items: [
+      {
+        emoji: '🎟️',
+        title: 'Dubbel zoveel',
+        text: 'Een potje tegen elkaar winnen geeft nu 20 tickets, verliezen 8 (gelijkspel 12) — ook voor alles wat jullie al speelden.',
+        path: '/games',
+      },
+    ],
+  },
+  {
     id: '2026-10-11',
     when: 'oktober 2026',
     title: 'Go Fish, helemaal af',
@@ -93,7 +106,7 @@ export const CHANGELOG: ChangeEntry[] = [
       {
         emoji: '⚔️',
         title: 'Skeeball en bowlen: duel om tickets',
-        text: 'Speel allebei een rondje, ook op je eigen telefoon wanneer het uitkomt. De hoogste score wint 10 tickets, de ander krijgt er 4.',
+        text: 'Speel allebei een rondje, ook op je eigen telefoon wanneer het uitkomt. De hoogste score wint 20 tickets, de ander krijgt er 8.',
         path: '/games',
       },
     ],

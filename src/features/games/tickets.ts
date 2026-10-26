@@ -5,7 +5,7 @@ import type { AppContent, GameResult, Person } from '../../data/types';
  * always agree and nothing can be counted twice. Winning gives more, but
  * every game played earns something.
  */
-export const TICKETS = { win: 10, draw: 6, played: 4 } as const;
+export const TICKETS = { win: 20, draw: 12, played: 8 } as const;
 
 /**
  * A game the two of us really played against each other: each on our own
