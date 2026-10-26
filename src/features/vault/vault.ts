@@ -3,9 +3,17 @@ import { getContent, updateContent } from '../../data/store';
 import { getAuthor } from '../../data/people';
 import type { VaultItem } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
-import { maxVideoBytes, formatBytes, getMediaBlob, prepareImage, putMedia } from '../../lib/media';
+import {
+  deleteMedia,
+  formatBytes,
+  getMedia,
+  getMediaBlob,
+  maxVideoBytes,
+  prepareImage,
+  putMedia,
+} from '../../lib/media';
 import { captureStill } from '../cinema/cinema';
-import { openBlob, openJson, sealBlob, sealJson } from './crypto';
+import { SPILL_BYTES, openBlob, openJson, sealBlob, sealJson } from './crypto';
 
 /** Sealed piece by piece now, so videos can be as big as anywhere else in the app. */
 const vaultVideoBytes = () => maxVideoBytes();
@@ -143,7 +151,20 @@ async function shrink(source: Blob): Promise<Blob | null> {
 }
 
 async function sealAndStore(k: CryptoKey, blob: Blob, name: string): Promise<string> {
-  return putMedia(await sealBlob(k, blob), name);
+  if (blob.size <= SPILL_BYTES) return putMedia(await sealBlob(k, blob), name);
+  // A long video: sealed batches go to the phone's storage straight away, and
+  // the whole is put together from there — never all of it in memory at once.
+  const parts: string[] = [];
+  const spill = async (batch: Blob) => {
+    const id = await putMedia(batch, 'secret-part');
+    parts.push(id);
+    return (await getMedia(id))?.blob ?? batch;
+  };
+  try {
+    return await putMedia(await sealBlob(k, blob, spill), name);
+  } finally {
+    for (const id of parts) await deleteMedia(id).catch(() => undefined);
+  }
 }
 
 /** Videos whose picture turned out empty (black), seen on this phone. */

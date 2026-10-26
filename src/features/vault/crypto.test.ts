@@ -59,6 +59,20 @@ describe('big files, piece by piece', () => {
     expect(await print(got)).toBe(await print(data));
   });
 
+  it('a long video sealed in batches (spilled to storage) opens the same', async () => {
+    const k = await key();
+    const data = new Uint8Array(VAULT_PIECE * 3 + 123).map((_, i) => (i * 13) % 256);
+    let spilled = 0;
+    const sealed = await sealBlob(k, new Blob([data]), async (batch) => {
+      spilled++;
+      // as if written to disk and read back
+      return new Blob([await batch.arrayBuffer()]);
+    });
+    expect(spilled).toBeGreaterThan(0);
+    const got = await bytes(await openBlob(k, sealed, 'video/mp4'));
+    expect(await print(got)).toBe(await print(data));
+  });
+
   it('items sealed the old way still open', async () => {
     const k = await key();
     const old = await encryptBytes(k, new TextEncoder().encode('van vroeger'));

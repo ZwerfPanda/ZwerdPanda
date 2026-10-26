@@ -127,16 +127,41 @@ async function sealPiece(key: CryptoKey, data: ArrayBuffer, label: string): Prom
   return out;
 }
 
-export async function sealBlob(key: CryptoKey, blob: Blob): Promise<Blob> {
+/**
+ * Seals a file piece by piece. For a long video, `spill` takes the sealed
+ * pieces in batches and puts them somewhere on disk (handing back a Blob that
+ * points there), so memory never holds more than one batch.
+ */
+export async function sealBlob(
+  key: CryptoKey,
+  blob: Blob,
+  spill?: (batch: Blob) => Promise<Blob>,
+): Promise<Blob> {
   const total = Math.max(1, Math.ceil(blob.size / VAULT_PIECE));
   const parts: BlobPart[] = [MAGIC as BlobPart];
+  let batch: Blob[] = [];
+  let held = 0;
   for (let n = 0; n < total; n++) {
     const piece = await blob.slice(n * VAULT_PIECE, (n + 1) * VAULT_PIECE).arrayBuffer();
     // Each sealed piece becomes its own Blob, so the browser may keep it on disk.
-    parts.push(new Blob([(await sealPiece(key, piece, `olv2:${n}:${total}`)) as BlobPart]));
+    const sealed = new Blob([(await sealPiece(key, piece, `olv2:${n}:${total}`)) as BlobPart]);
+    if (!spill) {
+      parts.push(sealed);
+      continue;
+    }
+    batch.push(sealed);
+    held += sealed.size;
+    if (held >= SPILL_BYTES || n === total - 1) {
+      parts.push(await spill(new Blob(batch)));
+      batch = [];
+      held = 0;
+    }
   }
   return new Blob(parts, { type: 'application/octet-stream' });
 }
+
+/** How much a long video may hold in memory while it's being sealed. */
+export const SPILL_BYTES = 64 * 1024 * 1024;
 
 export async function openBlob(key: CryptoKey, sealed: Blob, type: string): Promise<Blob> {
   const head = new Uint8Array(await sealed.slice(0, 4).arrayBuffer());
