@@ -518,7 +518,7 @@ function RemoteGame() {
 
 export function Zeeslag() {
   const [mode, setMode] = useState<PlayMode>('remote');
-  const results = useContent((c) => c.games.results);
+  const results = useContent((c) => c.games);
   const profile = useContent((c) => c.profile);
   const me: Person = useMe();
   const h = headToHead(results, 'zeeslag', 'you', 'partner');

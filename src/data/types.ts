@@ -723,6 +723,33 @@ export interface Games {
   matches: GameMatch[];
   scores: GameScore[];
   results: GameResult[];
+  /**
+   * The spaarpot: older results, added up, so the list stays small and nothing
+   * they were worth gets lost. Results from before `upTo` count only in here.
+   */
+  archive?: GamesArchive;
+}
+
+/** What a stretch of results added up to. */
+export interface ArcadeTally {
+  /** Games the two of us played against each other. */
+  together: number;
+  /** Tickets earned with them (weekly bonuses included). */
+  tickets: Record<Person, number>;
+  /** Wins per game and pair: "game|a|b" (a and b sorted) → wins each, and draws. */
+  pairs: Record<string, Partial<Record<Player | 'draw', number>>>;
+  /** Wins on a Gouden Woensdag. */
+  goldenWins: Record<Person, number>;
+  /** Weekly challenges done. */
+  weeks: number;
+  /** Month (YYYY-MM) → wins each, for the trophy shelf. */
+  months: Record<string, Record<Person, number>>;
+}
+
+export interface GamesArchive {
+  /** The first week (its Monday, YYYY-MM-DD) that is not in here. */
+  upTo: string;
+  tally: ArcadeTally;
 }
 
 /* -------------------------------------------------------------- star hunt */

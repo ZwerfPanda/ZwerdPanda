@@ -12,18 +12,14 @@ import { sectionFor } from './sections';
 import { MusicProvider } from '../components/music/MusicProvider';
 import { SpotifyProvider } from '../components/music/SpotifyProvider';
 import { CelebrationHost, ConfirmHost, Toaster, toast } from '../components/ui/feedback';
-import { Intro } from '../features/intro/Intro';
 import { InstallSheetHost } from '../pwa/InstallSheet';
 import { PingCatcher } from '../features/home/Together';
 import { DatePlannerHost } from '../features/dates/DatePlanner';
 import { NewsHost } from '../features/news/NewsSheet';
-import { GoldenHost, TicketRain } from '../features/games/GoldenDay';
 import { startSync } from '../sync/sync';
 import { HomePage } from '../features/home/HomePage';
 import { PageLoading } from './PageLoading';
-import { CocoCompanion } from '../features/pet/Companion';
 import { WelcomeHost } from '../features/welcome/Welcome';
-import { HiddenHutch } from '../features/pet/HiddenHutch';
 import { useCocoBow } from '../features/pet/cocoBow';
 import { installTapSounds, setSfxEnabled } from '../lib/audio/sfx';
 import { setAmbienceEnabled } from '../lib/audio/ambience';
@@ -52,9 +48,28 @@ const pages = {
   agenda: () => import('../features/agenda/AgendaPage').then((m) => ({ default: m.AgendaPage })),
   cinema: () => import('../features/cinema/CinemaPage').then((m) => ({ default: m.CinemaPage })),
   secret: () => import('../features/vault/VaultPage').then((m) => ({ default: m.VaultPage })),
+  jaar: () => import('../features/year/YearPage').then((m) => ({ default: m.YearPage })),
   settings: () =>
     import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 };
+// Not needed to open the app: loaded right after (or, the intro, only when it plays).
+const Intro = lazy(() => import('../features/intro/Intro').then((m) => ({ default: m.Intro })));
+const CocoCompanion = lazy(() =>
+  import('../features/pet/Companion').then((m) => ({ default: m.CocoCompanion })),
+);
+const HiddenHutch = lazy(() =>
+  import('../features/pet/HiddenHutch').then((m) => ({ default: m.HiddenHutch })),
+);
+const ArcadeHosts = lazy(() => import('../features/games/ArcadeHosts'));
+
+/** While the intro's code arrives: its night sky already, so nothing flashes. */
+const INTRO_SKY: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 1500,
+  background: 'radial-gradient(130% 90% at 50% 0%, #573466 0%, #2d172f 52%, #1a0d1f 100%)',
+};
+
 const StoryPage = lazy(pages.story);
 const MemoriesPage = lazy(pages.memories);
 const WorldPage = lazy(pages.world);
@@ -73,6 +88,7 @@ const FlowersPage = lazy(pages.flowers);
 const AgendaPage = lazy(pages.agenda);
 const CinemaPage = lazy(pages.cinema);
 const VaultPage = lazy(pages.secret);
+const YearPage = lazy(pages.jaar);
 const SettingsPage = lazy(pages.settings);
 
 const PAGES: Record<RoutePath, () => React.ReactNode> = {
@@ -95,6 +111,7 @@ const PAGES: Record<RoutePath, () => React.ReactNode> = {
   '/agenda': () => <AgendaPage />,
   '/cinema': () => <CinemaPage />,
   '/secret': () => <VaultPage />,
+  '/jaar': () => <YearPage />,
   '/settings': () => <SettingsPage />,
 };
 
@@ -215,8 +232,12 @@ export function App() {
           <TabBar />
           <MenuSheet open={menuOpen} onClose={() => setMenuOpen(false)} />
           <MiniPlayer />
-          {!introOpen && <CocoCompanion />}
-          {!introOpen && <HiddenHutch />}
+          {!introOpen && (
+            <Suspense fallback={null}>
+              <CocoCompanion />
+              <HiddenHutch />
+            </Suspense>
+          )}
           <Toaster />
           <ConfirmHost />
           <DatePlannerHost />
@@ -226,10 +247,17 @@ export function App() {
           {!introOpen && <WelcomeHost />}
           {!introOpen && <PingCatcher />}
           {!introOpen && <NewsHost />}
-          {!introOpen && <GoldenHost />}
-          {!introOpen && <TicketRain />}
+          {!introOpen && (
+            <Suspense fallback={null}>
+              <ArcadeHosts />
+            </Suspense>
+          )}
           <AnimatePresence>
-            {introOpen && <Intro key="intro" onEnter={closeIntro} />}
+            {introOpen && (
+              <Suspense key="intro" fallback={<div style={INTRO_SKY} aria-hidden="true" />}>
+                <Intro onEnter={closeIntro} />
+              </Suspense>
+            )}
           </AnimatePresence>
         </SpotifyProvider>
       </MusicProvider>

@@ -419,3 +419,42 @@ drop policy if exists "universe members remove media" on storage.objects;
 create policy "universe members remove media" on storage.objects
   for delete to authenticated
   using (bucket_id = 'universe-media' and public.is_member_text((storage.foldername(name))[1]));
+
+-- ------------------------------------------------- Notifications (Web Push)
+
+-- Where to send a notification for each of our phones. Each of us only sees
+-- and changes our own; the push function (with the server's key) reads the
+-- other one's to send them a message.
+create table if not exists public.push_subscriptions (
+  endpoint text primary key check (length(endpoint) between 10 and 1000),
+  p256dh text not null check (length(p256dh) <= 200),
+  auth text not null check (length(auth) <= 100),
+  space_id uuid not null references public.spaces (id) on delete cascade,
+  user_id uuid not null default auth.uid(),
+  created_at timestamptz not null default now()
+);
+
+alter table public.push_subscriptions enable row level security;
+revoke all on public.push_subscriptions from anon;
+grant select, insert, update, delete on public.push_subscriptions to authenticated;
+
+drop policy if exists "own phones: read" on public.push_subscriptions;
+create policy "own phones: read" on public.push_subscriptions
+  for select to authenticated
+  using (user_id = auth.uid());
+
+drop policy if exists "own phones: add" on public.push_subscriptions;
+create policy "own phones: add" on public.push_subscriptions
+  for insert to authenticated
+  with check (user_id = auth.uid() and public.is_member(space_id));
+
+drop policy if exists "own phones: change" on public.push_subscriptions;
+create policy "own phones: change" on public.push_subscriptions
+  for update to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid() and public.is_member(space_id));
+
+drop policy if exists "own phones: remove" on public.push_subscriptions;
+create policy "own phones: remove" on public.push_subscriptions
+  for delete to authenticated
+  using (user_id = auth.uid());

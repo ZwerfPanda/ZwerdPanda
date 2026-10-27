@@ -8,7 +8,7 @@ import { CocoFigure, SampleArt } from '../../components/art/SampleArt';
 import { StopScene } from '../museum/scenes';
 import { NSTrain } from '../museum/TrainRide';
 import { HeartScene } from '../home/HeartScene';
-import { usePetName } from '../her/HerNotes';
+import { usePetName } from '../her/petName';
 
 interface Chapter {
   key: string;

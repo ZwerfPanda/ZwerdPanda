@@ -27,7 +27,7 @@ const COLORS = { bottom: '#4f8bff', top: '#ff5fa2', coco: '#e6a35a' };
 export function Hockey() {
   const [mode, setMode] = useState<PlayMode>('local');
   const [round, setRound] = useState(0);
-  const results = useContent((c) => c.games.results);
+  const results = useContent((c) => c.games);
   const profile = useContent((c) => c.profile);
   const me = useMe();
   const us = headToHead(results, 'hockey', 'you', 'partner');

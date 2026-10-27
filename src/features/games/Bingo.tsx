@@ -33,7 +33,7 @@ import {
 export function Bingo() {
   const [mode, setMode] = useState<PlayMode>('remote');
   const [round, setRound] = useState(0);
-  const results = useContent((c) => c.games.results);
+  const results = useContent((c) => c.games);
   const profile = useContent((c) => c.profile);
   const me = useMe();
   const us = headToHead(results, 'bingo', 'you', 'partner');

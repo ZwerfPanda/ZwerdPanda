@@ -17,6 +17,7 @@ import {
   Puzzle,
   Rabbit,
   Settings2,
+  Sparkles,
   Telescope,
   UsersRound,
   type LucideIcon,
@@ -122,6 +123,15 @@ export const SECTIONS: Section[] = [
     blurb: 'De hoofdstukken tot nu toe',
     icon: BookHeart,
     tint: '#ebbfba',
+  },
+  {
+    path: '/jaar',
+    group: 'story',
+    label: 'Ons Jaar',
+    short: 'Ons jaar',
+    blurb: 'Ons jaar in kaartjes, tik voor tik',
+    icon: Sparkles,
+    tint: '#f3c6dc',
   },
   {
     path: '/memories',

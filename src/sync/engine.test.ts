@@ -1,3 +1,4 @@
+import { CONTENT_SCHEMA } from '../data/defaults';
 import { describe, expect, it } from 'vitest';
 import { createDefaultContent } from '../data/defaults';
 import { normalizeContent } from '../data/normalize';
@@ -281,6 +282,33 @@ describe('SyncEngine with two phones', () => {
     expect(shenaya.engine.getState().owner).toBe(valencio.engine.getState().account?.email);
   });
 
+  it('puts his texts back on her phone when she changes them', async () => {
+    const { valencio, shenaya } = await connectedPair();
+    await valencio.engine.syncNow();
+    await shenaya.engine.syncNow();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const his = [
+      { id: textId('Mini Us'), from: 'Mini Us', to: 'Mini Wij', at: '2026-10-24T10:00:00.000Z' },
+    ];
+    valencio.edit((c) => ({ ...c, texts: his }));
+    await valencio.engine.syncNow();
+    await shenaya.engine.syncNow();
+    expect(shenaya.content.texts).toEqual(his);
+    // Her phone changes them (and something of its own)…
+    shenaya.edit((c) => ({
+      ...c,
+      texts: [{ ...his[0], to: 'Hacked', at: '2026-10-25T10:00:00.000Z' }],
+      profile: { ...c.profile, subtitle: 'Van haar' },
+    }));
+    await shenaya.engine.syncNow();
+    // …the change of its own goes through, his texts are his again.
+    expect(shenaya.content.texts).toEqual(his);
+    expect(shenaya.content.profile.subtitle).toBe('Van haar');
+    await valencio.engine.syncNow();
+    expect(valencio.content.texts).toEqual(his);
+    expect(valencio.content.profile.subtitle).toBe('Van haar');
+  });
+
   it('merges edits made on both phones at the same time', async () => {
     const { valencio, shenaya } = await connectedPair();
     valencio.edit((c) => ({ ...c, memories: [memory('m-v', 'From Valencio'), ...c.memories] }));
@@ -393,6 +421,7 @@ describe('an older app on the other phone', () => {
     c.games.results = c.games.results.filter(
       (r: { game: string }) => !['memory', 'hockey', 'bingo', 'kwartet'].includes(r.game),
     );
+    delete c.games.archive;
     c.games.matches = c.games.matches.filter(
       (m: { kind: string }) =>
         !['memory', 'darts', 'skeeball', 'bowling', 'bingo', 'kwartet'].includes(m.kind),
@@ -455,6 +484,17 @@ describe('an older app on the other phone', () => {
       },
       games: {
         ...c.games,
+        archive: {
+          upTo: '2026-09-07',
+          tally: {
+            together: 1200,
+            tickets: { you: 9000, partner: 9100 },
+            pairs: { 'uno|partner|you': { you: 600, partner: 590, draw: 10 } },
+            goldenWins: { you: 80, partner: 85 },
+            weeks: 30,
+            months: { '2026-08': { you: 300, partner: 290 } },
+          },
+        },
         results: [
           { id: 'r-1', game: 'memory', players: ['you', 'coco'], winner: 'you', at: now },
           { id: 'r-2', game: 'kwartet', players: ['you', 'partner'], winner: 'you', at: now },
@@ -507,9 +547,11 @@ describe('an older app on the other phone', () => {
     expect(c.pet.log.map((e) => e.id)).toEqual(['care-d1']);
     expect(c.games.results.map((r) => r.id).sort()).toEqual(['r-1', 'r-2']);
     expect(c.games.matches.map((m) => m.id).sort()).toEqual(['m-1', 'm-2']);
+    expect(c.games.archive?.tally.tickets.you).toBe(9000);
     // …and the server has them again, saved by the new app.
     const stored = JSON.parse([...server.rows.values()][0].json);
-    expect(stored.schema).toBe(7);
+    expect(stored.schema).toBe(CONTENT_SCHEMA);
+    expect(stored.games.archive.upTo).toBe('2026-09-07');
     expect(stored.cinema.films).toHaveLength(1);
     expect(stored.flowers).toHaveLength(1);
     expect(stored.profile.subtitle).toBe('From the old app');

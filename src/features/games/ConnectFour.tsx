@@ -245,7 +245,7 @@ function RemoteGame() {
 
 export function ConnectFour() {
   const [mode, setMode] = useState<PlayMode>('remote');
-  const results = useContent((c) => c.games.results);
+  const results = useContent((c) => c.games);
   const profile = useContent((c) => c.profile);
   const me = useMe();
   const h = headToHead(results, 'c4', 'you', 'partner');

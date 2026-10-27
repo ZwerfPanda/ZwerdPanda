@@ -1,10 +1,11 @@
 import { getContent, updateContent, useContent } from '../../data/store';
-import { getAuthor } from '../../data/people';
+import { getAuthor, getMe, nameOf } from '../../data/people';
+import { notifyOther } from '../../lib/push';
 import type { GameMatch, MatchKind, Person, Player, ScoreGame } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
 import { getSyncEngine } from '../../sync/sync';
 import { sendMatch } from '../../sync/live';
-import { recordResult } from './gameStats';
+import { GAME_NAMES, recordResult } from './gameStats';
 
 /** The newest match of a kind (finished or not). */
 export function useMatch(kind: MatchKind): GameMatch | undefined {
@@ -44,11 +45,48 @@ export function startMatch(
   }));
   sendMatch(match);
   pushNow();
+  tellOther(undefined, match);
   return match;
+}
+
+/**
+ * A notification on the other phone: a new game, their turn, or how it ended.
+ * Turns in quick games buzz at most once a minute.
+ */
+function tellOther(before: GameMatch | undefined, after: GameMatch) {
+  const me = getMe();
+  const them: Person = me === 'you' ? 'partner' : 'you';
+  const c = getContent();
+  const name = nameOf(me, c.profile);
+  const game = GAME_NAMES[after.kind as keyof typeof GAME_NAMES] ?? after.kind;
+  const url = `#/games?g=${after.kind}`;
+  const tag = `match-${after.id}`;
+  if (after.winner && !before?.winner) {
+    const how =
+      after.winner === 'draw'
+        ? 'gelijkspel!'
+        : after.winner === me
+          ? `${name} heeft gewonnen 🏆`
+          : 'jij hebt gewonnen! 🏆';
+    notifyOther('match', { title: `${game}: ${how}`, url, tag });
+  } else if (!before && !after.winner)
+    notifyOther('match', {
+      title: `${name} daagt je uit: ${game} 🎮`,
+      body: 'Tik om mee te doen',
+      url,
+      tag,
+    });
+  else if (after.turn === them && before?.turn !== them)
+    notifyOther(
+      'turn',
+      { title: `Jouw beurt in ${game} 🎮`, body: `${name} heeft gezet`, url, tag },
+      60_000,
+    );
 }
 
 export function updateMatch(id: string, recipe: (m: GameMatch) => GameMatch) {
   let finished: GameMatch | null = null;
+  const before = getContent().games.matches.find((m) => m.id === id);
   updateContent((c) => ({
     ...c,
     games: {
@@ -63,6 +101,7 @@ export function updateMatch(id: string, recipe: (m: GameMatch) => GameMatch) {
   }));
   const now = getContent().games.matches.find((m) => m.id === id);
   if (now) sendMatch(now);
+  if (now && before) tellOther(before, now);
   const done = finished as GameMatch | null;
   if (done?.winner) recordResult(done.kind, ['you', 'partner'], done.winner, done.id);
   pushNow();

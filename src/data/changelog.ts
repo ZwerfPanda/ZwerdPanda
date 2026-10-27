@@ -23,6 +23,37 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-16',
+    when: 'oktober 2026',
+    title: 'Medailles, ons jaar en meldingen',
+    items: [
+      {
+        emoji: '🎖️',
+        title: 'Medaillekast',
+        text: 'Twintig medailles om samen en elk te verdienen. Win je er een, dan komt hij aanzwaaien.',
+        path: '/games',
+      },
+      {
+        emoji: '🎯',
+        title: 'Weekuitdaging',
+        text: 'Speel 5 potjes tegen elkaar in een week en jullie krijgen er allebei 20 tickets bij.',
+        path: '/games',
+      },
+      {
+        emoji: '📅',
+        title: 'Ons jaar',
+        text: 'Ons jaar in kaartjes: dagen samen, herinneringen, dates, potjes en meer, tik voor tik.',
+        path: '/jaar',
+      },
+      {
+        emoji: '🔔',
+        title: 'Seintjes, ook als de app dicht is',
+        text: 'Jouw beurt, een hartje of Gouden Woensdag: zet Meldingen aan bij Instellingen → De app.',
+        path: '/settings',
+      },
+    ],
+  },
+  {
     id: '2026-10-15',
     when: 'oktober 2026',
     title: 'Gouden Woensdag ✨',

@@ -587,8 +587,9 @@ export function cloneUs(us: UsContent): UsContent {
  *   5 — Memory and darts together on two phones, and our secret place
  *   6 — the things in Coco's room
  *   7 — skeeball and bowling duels, bingo and kwartet
+ *   8 — the arcade's spaarpot (older results, added up)
  */
-export const CONTENT_SCHEMA = 7;
+export const CONTENT_SCHEMA = 8;
 
 export function createDefaultContent(): AppContent {
   return {

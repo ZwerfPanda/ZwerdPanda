@@ -1,7 +1,15 @@
 import { updateContent } from '../../data/store';
-import type { AppContent, GameId, GameResult, Person, Player, ScoreGame } from '../../data/types';
+import type {
+  AppContent,
+  GameId,
+  GameResult,
+  Games,
+  Person,
+  Player,
+  ScoreGame,
+} from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
-import { monthName, playedTogether, tournament } from './tickets';
+import { liveResults, monthName, pairKey, playedTogether, tournament } from './tickets';
 
 export const GAME_NAMES: Record<GameId, string> = {
   uno: 'UNO',
@@ -27,17 +35,30 @@ export function recordResult(
   updateContent((c) => {
     if (c.games.results.some((r) => r.id === id)) return c;
     const result: GameResult = { id, game, players, winner, at: nowIso() };
-    return { ...c, games: { ...c.games, results: [...c.games.results, result].slice(-2000) } };
+    return { ...c, games: { ...c.games, results: [...c.games.results, result].slice(-3000) } };
   });
 }
 
 /** Wins of `a` and of `b` in games they played against each other. */
 export function headToHead(
-  results: GameResult[],
+  source: GameResult[] | Games,
   game: GameId | 'all',
   a: Player,
   b: Player,
 ): { a: number; b: number; draws: number } {
+  const games: Pick<Games, 'results' | 'archive'> = Array.isArray(source)
+    ? { results: source }
+    : source;
+  const results = liveResults(games);
+  // From the spaarpot: what these two won against each other before.
+  const old = { a: 0, b: 0, draws: 0 };
+  for (const [key, cell] of Object.entries(games.archive?.tally.pairs ?? {})) {
+    const [g, p, q] = key.split('|');
+    if ((game !== 'all' && g !== game) || pairKey(g as GameId, a, b) !== `${g}|${p}|${q}`) continue;
+    old.a += cell[a] ?? 0;
+    old.b += cell[b] ?? 0;
+    old.draws += cell.draw ?? 0;
+  }
   // Between the two of us, only games really played against each other count.
   const us = (a === 'you' || a === 'partner') && (b === 'you' || b === 'partner');
   const between = results.filter(
@@ -48,9 +69,9 @@ export function headToHead(
       (!us || playedTogether(r)),
   );
   return {
-    a: between.filter((r) => r.winner === a).length,
-    b: between.filter((r) => r.winner === b).length,
-    draws: between.filter((r) => r.winner === 'draw').length,
+    a: old.a + between.filter((r) => r.winner === a).length,
+    b: old.b + between.filter((r) => r.winner === b).length,
+    draws: old.draws + between.filter((r) => r.winner === 'draw').length,
   };
 }
 
@@ -96,7 +117,7 @@ export function gameBrag(
     'skeeball',
     'bowling',
   ] as GameId[]) {
-    const h = headToHead(c.games.results, game, 'you', 'partner');
+    const h = headToHead(c.games, game, 'you', 'partner');
     if (h.a + h.b === 0) continue;
     if (h.a === h.b) {
       options.push({
@@ -180,7 +201,7 @@ export function gameBrag(
   const prev = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1))
     .toISOString()
     .slice(0, 7);
-  const champ = tournament(c.games.results).find((m) => m.month === prev && m.champion);
+  const champ = tournament(c.games).find((m) => m.month === prev && m.champion);
   if (champ?.champion) {
     options.push({
       leader: champ.champion,
@@ -207,7 +228,7 @@ export function cocoGameTalk(c: AppContent, me: Person, name: string, rng: Rng):
     'bingo',
     'kwartet',
   ] as GameId[]) {
-    const h = headToHead(c.games.results, game, me, 'coco');
+    const h = headToHead(c.games, game, me, 'coco');
     if (h.a + h.b === 0) continue;
     const g = GAME_NAMES[game];
     if (h.b > h.a) lines.push(`Ik heb je al ${h.b} keer verslagen met ${g} 🐰👑`);

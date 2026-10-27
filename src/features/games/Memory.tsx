@@ -16,7 +16,7 @@ const PAIRS = 8;
 export function Memory() {
   const [mode, setMode] = useState<PlayMode>('remote');
   const [round, setRound] = useState(0);
-  const results = useContent((c) => c.games.results);
+  const results = useContent((c) => c.games);
   const profile = useContent((c) => c.profile);
   const me = useMe();
   const us = headToHead(results, 'memory', 'you', 'partner');

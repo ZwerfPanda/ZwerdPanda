@@ -23,6 +23,30 @@ export function isGolden(when: string | number | Date): boolean {
 /** The day, as YYYY-MM-DD in our time zone. */
 export const ourDay = (when: string | number | Date = Date.now()) => dayKey.format(new Date(when));
 
+const weeks = new Map<string, string>();
+/** The week, as the date of its Monday (YYYY-MM-DD, our time). */
+export function weekKey(when: string | number = Date.now()): string {
+  const key = String(when);
+  const hit = weeks.get(key);
+  if (hit) return hit;
+  const d = new Date(`${ourDay(when)}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+  const week = d.toISOString().slice(0, 10);
+  if (weeks.size > 20_000) weeks.clear();
+  weeks.set(key, week);
+  return week;
+}
+
+/** How long until this week is over (ms): Sunday midnight, our time. */
+export function weekLeft(now = Date.now()): number {
+  const week = weekKey(now);
+  let end = now;
+  for (let step = 86_400_000; step >= 60_000; step /= step === 86_400_000 ? 24 : 60) {
+    while (weekKey(end + step) === week) end += step;
+  }
+  return end + 60_000 - now;
+}
+
 /** How long until the golden day is over (ms), on a Wednesday. */
 export function goldenLeft(now = Date.now()): number {
   if (!isGolden(now)) return 0;

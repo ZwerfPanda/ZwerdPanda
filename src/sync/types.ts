@@ -63,6 +63,8 @@ export interface SyncBackend {
   invite(spaceId: string, email: string): Promise<void>;
   /** Members, open invites, and the email of whoever created the universe. */
   people(spaceId: string): Promise<{ members: string[]; invites: string[]; owner: string | null }>;
+  /** The signed-in session's token, for our own Edge Functions (notifications). */
+  accessToken?(): Promise<string | null>;
 
   fetchContent(spaceId: string): Promise<RemoteContent>;
   saveContent(spaceId: string, expectedVersion: number, content: unknown): Promise<SaveResult>;

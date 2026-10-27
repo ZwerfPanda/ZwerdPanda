@@ -1,7 +1,9 @@
 import { CARE_DAYS_LIMIT, CHAT_LIMIT, PET_LOG_LIMIT } from '../data/normalize';
 import { CONTENT_SCHEMA, createDefaultContent } from '../data/defaults';
+import { pickArchive } from '../data/archive';
 import type {
   AppContent,
+  GamesArchive,
   CocoPet,
   GameId,
   MatchKind,
@@ -323,6 +325,7 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
       matches: mergeList(base.games.matches, local.games.matches, remote.games.matches),
       scores: mergeList(base.games.scores, local.games.scores, remote.games.scores),
       results: mergeList(base.games.results, local.games.results, remote.games.results),
+      ...withArchive(pickArchive(local.games.archive, remote.games.archive)),
     },
     quiz: {
       custom: mergeList(base.quiz.custom, local.quiz.custom, remote.quiz.custom),
@@ -420,6 +423,7 @@ export function mergeFirstJoin(
       matches: addPlain(local.games.matches, remote.games.matches),
       scores: addPlain(local.games.scores, remote.games.scores),
       results: addPlain(local.games.results, remote.games.results),
+      ...withArchive(pickArchive(local.games.archive, remote.games.archive)),
     },
     quiz: {
       custom: addPlain(local.quiz.custom, remote.quiz.custom),
@@ -495,9 +499,16 @@ const GAMES_SINCE_7: readonly GameId[] = ['bingo', 'kwartet'];
  * them (`ours`: the last copy we agreed on). Everything the older app does
  * know about stays exactly as it saved it.
  */
+const withArchive = (archive: GamesArchive | undefined) => (archive ? { archive } : {});
+
 export function carryForward(shared: AppContent, ours: AppContent, writer: number): AppContent {
   if (writer >= CONTENT_SCHEMA) return shared;
   let out = shared;
+  // Schema 8 added the arcade's spaarpot; an older app saves without it.
+  if (writer < 8) {
+    const archive = pickArchive(out.games.archive, ours.games.archive);
+    out = { ...out, games: { ...out.games, ...withArchive(archive) } };
+  }
   // Schema 7 added duels for skeeball and bowling, bingo and kwartet.
   if (writer < 7) {
     const matches = new Set(out.games.matches.map((m) => m.id));

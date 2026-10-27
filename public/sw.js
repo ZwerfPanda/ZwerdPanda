@@ -91,6 +91,34 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+// A notification from the other phone (through our push function). It shows
+// even with the app closed; while the app is open and in view, the app itself
+// already shows what happened, so the banner is left out.
+self.addEventListener('push', (event) => {
+  let message = {};
+  try {
+    message = event.data ? event.data.json() : {};
+  } catch {
+    message = { title: event.data ? event.data.text() : '' };
+  }
+  const title = String(message.title || 'Our Little Universe ♡').slice(0, 80);
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+      const watching = windows.some((w) => w.visibilityState === 'visible' && w.focused);
+      // Turns and games: the app is already showing them.
+      if (watching && (message.kind === 'turn' || message.kind === 'match')) return undefined;
+      return self.registration.showNotification(title, {
+        body: String(message.body || '').slice(0, 160),
+        icon: './icons/icon-192.png',
+        badge: './icons/icon-192.png',
+        tag: String(message.tag || message.kind || 'olu'),
+        renotify: true,
+        data: { url: typeof message.url === 'string' ? message.url : './' },
+      });
+    }),
+  );
+});
+
 // Tapping one of our notifications opens the app (or brings it to the front)
 // at the place it's about.
 self.addEventListener('notificationclick', (event) => {

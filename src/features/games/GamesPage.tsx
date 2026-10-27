@@ -9,6 +9,7 @@ import type { Player, ScoreGame } from '../../data/types';
 import { headToHead } from './gameStats';
 import { monthName, ticketBalance, tournament } from './tickets';
 import './arcade.css';
+import { MedalCabinet, WeekChallenge } from './Medals';
 import { GoldenBanner, GoldenCoins, useCountUp, useGoldenNow } from './GoldenDay';
 
 const ConnectFour = lazy(() => import('./ConnectFour').then((m) => ({ default: m.ConnectFour })));
@@ -161,7 +162,7 @@ export function GamesPage() {
 function Arcade() {
   const matches = useContent((c) => c.games.matches);
   const scores = useContent((c) => c.games.scores);
-  const results = useContent((c) => c.games.results);
+  const results = useContent((c) => c.games);
   const profile = useContent((c) => c.profile);
   const me = useMe();
   const [inserting, setInserting] = useState<string | null>(null);
@@ -242,6 +243,7 @@ function Arcade() {
         <a href={href('/games', { g: 'prizes' })}>naar de prijzenkast →</a>
       </p>
 
+      <WeekChallenge />
       <Trophies />
 
       <ul className="hall__floor">
@@ -290,13 +292,14 @@ function Arcade() {
         Tik op een kast om een muntje in te gooien. Samen spelen kan elk op je eigen telefoon — de
         zetten gaan via de sync.
       </p>
+      <MedalCabinet />
     </div>
   );
 }
 
 /** Champion of the month: who won the most games against the other. */
 function Trophies() {
-  const results = useContent((c) => c.games.results);
+  const results = useContent((c) => c.games);
   const profile = useContent((c) => c.profile);
   const months = tournament(results);
   const thisMonth = new Date().toISOString().slice(0, 7);

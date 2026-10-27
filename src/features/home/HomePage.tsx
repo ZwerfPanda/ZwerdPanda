@@ -14,6 +14,7 @@ import { WhatsNew } from './WhatsNew';
 import { HuntChip } from '../hunt/HuntBoard';
 import { DailyThing } from './DailyThing';
 import { WrappedButton } from '../wrapped/Wrapped';
+import { YearButton } from '../year/YearButton';
 
 export function HomePage() {
   const profile = useContent((c) => c.profile);
@@ -49,6 +50,7 @@ export function HomePage() {
         </div>
         <div className="home__wrapped">
           <WrappedButton />
+          <YearButton />
         </div>
         <Explore />
         <DateMemories />

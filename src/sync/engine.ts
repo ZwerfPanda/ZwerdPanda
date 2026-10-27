@@ -121,6 +121,10 @@ export class SyncEngine {
 
   getState = (): SyncState => this.state;
 
+  /** For our own Edge Functions: who's signed in, as a token. */
+  accessToken = async (): Promise<string | null> =>
+    (await this.backend.accessToken?.()) ?? null;
+
   subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
@@ -362,10 +366,26 @@ export class SyncEngine {
     this.deps.retryMissingMedia();
   }
 
+  /**
+   * Only the person who made our universe can change his texts (the server
+   * keeps them as they were for anyone else). On the other phone they're put
+   * back to the server's copy before saving, so that phone never keeps showing
+   * a change that didn't get through.
+   */
+  private keepTexts() {
+    const { account, owner } = this.state;
+    const current = this.deps.getContent();
+    if (!this.base || !account || !owner) return current;
+    if (account.email.trim().toLowerCase() === owner.trim().toLowerCase()) return current;
+    if (stableEqual(current.texts, this.base.texts)) return current;
+    this.deps.applyRemote({ ...current, texts: this.base.texts });
+    return this.deps.getContent();
+  }
+
   private async pushOnce() {
     const meta = this.meta!;
     for (let attempt = 0; attempt < 5; attempt++) {
-      const snapshot = this.deps.getContent();
+      const snapshot = this.keepTexts();
       const result = await this.backend.saveContent(meta.spaceId, meta.baseVersion, snapshot);
       if (result.saved) {
         this.base = snapshot;

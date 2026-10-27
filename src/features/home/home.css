@@ -1723,6 +1723,7 @@
 
 .home__wrapped {
   display: grid;
+  gap: 10px;
   margin: -6px 0 26px;
 }
 

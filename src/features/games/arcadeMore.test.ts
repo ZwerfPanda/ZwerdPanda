@@ -81,9 +81,10 @@ describe('arcade tickets', () => {
         createdAt: '2026-10-01T10:00:00.000Z',
       },
     ];
-    expect(ticketBalance(c, 'partner')).toBe(100 - 60);
+    // Ten games in one week: the weekly challenge's 20 for both of us too.
+    expect(ticketBalance(c, 'partner')).toBe(100 + 20 - 60);
     // His own coupons never cost him anything.
-    expect(ticketBalance(c, 'you')).toBe(40);
+    expect(ticketBalance(c, 'you')).toBe(40 + 20);
   });
 });
 

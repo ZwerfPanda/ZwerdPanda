@@ -411,7 +411,7 @@ function Remote() {
 
 export function Uno() {
   const [mode, setMode] = useState<PlayMode>('remote');
-  const results = useContent((c) => c.games.results);
+  const results = useContent((c) => c.games);
   const profile = useContent((c) => c.profile);
   const me = useMe();
   const h = headToHead(results, 'uno', 'you', 'partner');

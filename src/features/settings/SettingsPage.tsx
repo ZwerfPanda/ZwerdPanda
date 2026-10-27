@@ -41,6 +41,8 @@ import { TogetherSection } from './TogetherSection';
 import { OwnTexts } from '../texts/OwnTexts';
 import { useIsOwner } from '../texts/TextEditor';
 import { TicketAdmin } from '../games/TicketAdmin';
+import { PushSetup } from './PushSetup';
+import { disablePush, enablePush, pushEnabled, pushSupport } from '../../lib/push';
 import { disconnectBeforeReset, isSharing } from '../../sync/sync';
 import { useInstall } from '../../pwa/install';
 import { openInstallSheet } from '../../pwa/InstallSheet';
@@ -65,10 +67,12 @@ export function SettingsPage() {
         }
         lede="Onze namen, onze datum, de woorden op de voorpagina, hoe alles eruitziet en klinkt — en backups, zodat er niets verloren gaat."
       />
+      <SettingsNav />
       <div className="settings-grid">
         <ProfileSection />
         <TextsSection />
         <TicketsSection />
+        <PushSection />
         <TogetherSection />
         <WelcomeSection />
         <AppSection />
@@ -79,6 +83,48 @@ export function SettingsPage() {
       </div>
       <SiteFooter />
     </div>
+  );
+}
+
+/** A row of chips to jump to each card: the page is long on a phone. */
+function SettingsNav() {
+  const [cards, setCards] = useState<{ id: string; label: string }[]>([]);
+  useEffect(() => {
+    const read = () =>
+      setCards(
+        [...document.querySelectorAll<HTMLElement>('.settings-grid > .settings-card')]
+          .map((card) => {
+            const title = card.querySelector('h2');
+            return { id: title?.id ?? '', label: title?.textContent?.trim() ?? '' };
+          })
+          .filter((c) => c.id && c.label),
+      );
+    read();
+    // Some cards only appear once the sync knows who's who.
+    const grid = document.querySelector('.settings-grid');
+    const watch = grid ? new MutationObserver(read) : null;
+    if (grid) watch!.observe(grid, { childList: true });
+    return () => watch?.disconnect();
+  }, []);
+  if (cards.length < 3) return null;
+  return (
+    <nav className="chip-row settings-nav" aria-label="Naar een onderdeel">
+      {cards.map((c) => (
+        <button
+          key={c.id}
+          type="button"
+          className="chip"
+          onClick={() =>
+            document
+              .getElementById(c.id)
+              ?.closest('section')
+              ?.scrollIntoView({ behavior: 'smooth' })
+          }
+        >
+          {c.label}
+        </button>
+      ))}
+    </nav>
   );
 }
 
@@ -112,6 +158,16 @@ function TextsSection() {
   return (
     <Section id="texts" title="Jouw teksten" kicker="in your own words">
       <OwnTexts />
+    </Section>
+  );
+}
+
+function PushSection() {
+  const owner = useIsOwner();
+  if (!owner) return null;
+  return (
+    <Section id="push-setup" title="Meldingen instellen" kicker="only for you">
+      <PushSetup />
     </Section>
   );
 }
@@ -500,6 +556,12 @@ function LookSection() {
 function NotifyToggle() {
   const prefs = usePrefs();
   const [permission, setPermission] = useState(notificationPermission());
+  const [pushOn, setPushOn] = useState(false);
+  const [pushProblem, setPushProblem] = useState<string | null>(null);
+  const sharing = isSharing();
+  useEffect(() => {
+    void pushEnabled().then(setPushOn);
+  }, []);
   if (permission === 'unsupported') {
     return (
       <p className="field__hint">
@@ -517,17 +579,33 @@ function NotifyToggle() {
           if (on) {
             const ok = await enableNotifications();
             setPermission(notificationPermission());
+            if (ok && sharing) {
+              try {
+                await enablePush();
+                setPushOn(true);
+                setPushProblem(null);
+              } catch (error) {
+                setPushProblem((error as Error).message);
+              }
+            }
             toast(ok ? 'Meldingen staan aan ♡' : 'Je telefoon staat meldingen nog niet toe.');
           } else {
             updatePrefs({ notify: false });
+            await disablePush().catch(() => undefined);
+            setPushOn(false);
           }
         }}
       />
       <p className="field__hint">
         {permission === 'denied'
           ? 'Meldingen zijn geblokkeerd in de instellingen van je telefoon of browser.'
-          : 'Je krijgt ze terwijl de app open is of op de achtergrond draait. Is de app helemaal dicht, dan zie je het nieuws zodra je hem weer opent.'}
+          : pushOn
+            ? 'Ook als de app helemaal dicht is: jouw beurt in een spelletje, een hartje of knuffel, en Gouden Woensdag.'
+            : pushSupport() === 'install-first' && sharing
+              ? 'Zet de app op je beginscherm en open hem daarvandaan, dan komen meldingen ook binnen als de app dicht is.'
+              : 'Je krijgt ze terwijl de app open is of op de achtergrond draait.'}
       </p>
+      {pushProblem && <p className="field__hint">Meldingen bij een dichte app: {pushProblem}</p>}
     </>
   );
 }

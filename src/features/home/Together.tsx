@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { getContent, updateContent, useContent } from '../../data/store';
-import { getAuthor, otherPerson, sweetName, useMe } from '../../data/people';
+import { getAuthor, nameOf, otherPerson, sweetName, useMe } from '../../data/people';
+import { notifyOther } from '../../lib/push';
 import type { DailyAnswer, Ping } from '../../data/types';
 import { createId, hashUnit, nowIso } from '../../lib/id';
 import { todayIso } from '../../lib/dates';
@@ -28,6 +29,12 @@ export function sendPing(kind: Ping['kind']): boolean {
     ...c,
     pings: [...c.pings, { id: createId('ping'), from, kind, at: nowIso() }].slice(-60),
   }));
+  const k = KINDS[kind];
+  notifyOther(
+    'ping',
+    { title: `${nameOf(from, getContent().profile)} ${k.got} ${k.emoji}`, url: '#/', tag: 'ping' },
+    10_000,
+  );
   return true;
 }
 

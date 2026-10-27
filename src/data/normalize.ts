@@ -13,6 +13,7 @@ import {
   defaultHer,
   defaultHunt,
 } from './defaults';
+import { normalizeArchive } from './archive';
 import { TEXT_FROM_MAX, TEXT_TO_MAX, TEXTS_LIMIT, textId, textKeyOf } from './texts';
 import type {
   Cinema,
@@ -984,7 +985,9 @@ export function normalizeMatch(m: unknown, i = 0): GameMatch | null {
 
 function normalizeGames(v: unknown): Games {
   if (!isObj(v)) return { matches: [], scores: [], results: [] };
+  const archive = normalizeArchive(v.archive);
   return {
+    ...(archive ? { archive } : {}),
     matches: list(v.matches, normalizeMatch).slice(-100),
     scores: list(v.scores, (s, i) => {
       const who = isObj(s) ? (s.who === 'coco' ? ('coco' as const) : person(s.who)) : undefined;
@@ -1016,7 +1019,7 @@ function normalizeGames(v: unknown): Games {
         winner,
         at: stamp(r.at),
       };
-    }).slice(-2000),
+    }).slice(-3000),
   };
 }
 

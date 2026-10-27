@@ -22,6 +22,8 @@ export interface TicketRules {
   golden: number;
   /** Per answer in Wie kent wie. */
   quiz: number;
+  /** Bonus for each of us when we play the weekly challenge's games together. */
+  weekly: number;
 }
 
 export interface TicketSettings {
@@ -43,6 +45,7 @@ export const DEFAULT_RULES: TicketRules = {
   long: 4,
   golden: 2,
   quiz: 2,
+  weekly: 20,
 };
 
 export const LIMITS: Record<Exclude<keyof TicketRules, 'at'>, [number, number]> = {
@@ -52,6 +55,7 @@ export const LIMITS: Record<Exclude<keyof TicketRules, 'at'>, [number, number]> 
   long: [0, 1000],
   golden: [1, 5],
   quiz: [0, 100],
+  weekly: [0, 1000],
 };
 export const ADJUST_MAX = 100_000;
 const KEEP = 12;

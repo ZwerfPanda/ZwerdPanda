@@ -168,6 +168,10 @@ export function createSupabaseBackend(config: SyncConfig): SyncBackend {
     objects: bucket,
     sealedObjects,
 
+    async accessToken() {
+      return (await client.auth.getSession()).data.session?.access_token ?? null;
+    },
+
     async getAccount() {
       const { data } = await client.auth.getSession();
       return toAccount(data.session?.user);

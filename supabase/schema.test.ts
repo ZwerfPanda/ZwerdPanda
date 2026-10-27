@@ -372,4 +372,34 @@ describe('supabase/schema.sql', () => {
     const heard = await as(people.stranger, `select count(*)::int as n from realtime.messages`);
     expect(first(heard).n).toBe(0);
   });
+  it("keeps each phone's notification address to its owner", async () => {
+    const add = (who: Person, endpoint: string, spaceId = space) =>
+      as(
+        who,
+        `insert into public.push_subscriptions (endpoint, p256dh, auth, space_id) values ($1, 'p', 'a', $2)`,
+        [endpoint, spaceId],
+      );
+    expect(
+      (await add(people.valencio, 'https://fcm.googleapis.com/fcm/send/his')).error,
+    ).toBeUndefined();
+    expect((await add(people.shenaya, 'https://web.push.apple.com/hers')).error).toBeUndefined();
+    // A stranger can't sign up for our universe's notifications.
+    expect((await add(people.stranger, 'https://fcm.googleapis.com/fcm/send/x')).error).toMatch(
+      /row-level security/,
+    );
+    // Each sees only their own.
+    const his = await as(people.valencio, `select endpoint from public.push_subscriptions`);
+    expect(his.rows?.map((r) => r.endpoint)).toEqual(['https://fcm.googleapis.com/fcm/send/his']);
+    // She can't remove or take over his.
+    await as(people.shenaya, `delete from public.push_subscriptions where endpoint like '%his'`);
+    await as(
+      people.shenaya,
+      `update public.push_subscriptions set user_id = $1 where endpoint like '%his'`,
+      [people.shenaya.id],
+    );
+    const still = await as(people.valencio, `select user_id from public.push_subscriptions`);
+    expect(still.rows).toEqual([{ user_id: people.valencio.id }]);
+    // Anonymous visitors get nothing at all.
+    expect((await as(null, `select * from public.push_subscriptions`)).error).toMatch(/denied/);
+  });
 });

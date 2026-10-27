@@ -270,6 +270,29 @@ editor van `media-r2` en klik **Deploy**. Wat al versleuteld in Supabase stond,
 verhuist vanzelf mee (zie het kaartje Privé-opslag). De functie geeft alleen
 ingelogde leden van jullie universe korte, tijdelijke links, alleen voor jullie eigen map.
 
+## Meldingen, ook als de app dicht is (optioneel)
+
+Dan krijgt de ander een echte melding op de telefoon: *jouw beurt* in een spelletje, een
+hartje/knuffel/kusje, en op woensdagochtend *Gouden Woensdag is begonnen*. De app zelf
+heeft daar niets geheims voor nodig; de privésleutel staat alleen in Supabase.
+
+1. **SQL Editor**: plak opnieuw de hele `supabase/schema.sql` en klik **Run** (er komt
+   een tabel `push_subscriptions` bij; elk van jullie ziet alleen de eigen telefoons).
+2. **Edge Functions → Deploy a new function → Via Editor**, naam `push`. Plak de hele
+   inhoud van `supabase/functions/push/index.ts`, zet **Verify JWT uit** (de functie
+   controleert zelf of je bent ingelogd en bij jullie universe hoort) en klik **Deploy**.
+3. Open in de app **Instellingen → Meldingen instellen** (alleen jij ziet dat) en tik
+   **Maak sleutels**. Zet bij **Edge Functions → Secrets**:
+   - `VAPID_PUBLIC_KEY` en `VAPID_PRIVATE_KEY` — uit de app
+   - `VAPID_SUBJECT` — `mailto:` plus je e-mailadres
+   - `CRON_SECRET` — uit de app
+4. Voor het seintje op woensdag: **Integrations → Cron** aanzetten en bij
+   **Database → Extensions** `pg_net`. Plak dan in de SQL Editor de opdracht die de app
+   onder *Meldingen instellen* laat zien (07:00 UTC op woensdag; de functie stuurt alleen
+   echt iets als het in Nederland woensdag is).
+5. Zet op elke telefoon **Instellingen → App → Meldingen** aan. Op een iPhone werkt dit
+   alleen voor de app op het beginscherm (iOS 16.4 of nieuwer).
+
 ---
 
 ## Goed om te weten

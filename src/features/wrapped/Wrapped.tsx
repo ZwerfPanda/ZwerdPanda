@@ -9,7 +9,7 @@ import { useReducedMotion } from '../../hooks/useMotion';
 import { playSfx } from '../../lib/audio/sfx';
 import { MediaView } from '../../components/media/MediaView';
 import { CocoFigure } from '../../components/art/SampleArt';
-import { usePetName } from '../her/HerNotes';
+import { usePetName } from '../her/petName';
 import './wrapped.css';
 
 interface Slide {

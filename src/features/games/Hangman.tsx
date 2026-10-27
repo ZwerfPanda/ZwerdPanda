@@ -435,7 +435,7 @@ function RemoteGame() {
 
 export function Hangman() {
   const [mode, setMode] = useState<PlayMode>('remote');
-  const results = useContent((c) => c.games.results);
+  const results = useContent((c) => c.games);
   const profile = useContent((c) => c.profile);
   const me = useMe();
   const h = headToHead(results, 'hangman', 'you', 'partner');

@@ -35,6 +35,7 @@ const FIELDS: { key: Key; label: string; hint?: string }[] = [
   },
   { key: 'quiz', label: 'Wie kent wie', hint: 'per antwoord' },
   { key: 'golden', label: 'Gouden Woensdag ×', hint: 'keer 1 tot 5' },
+  { key: 'weekly', label: 'Weekuitdaging', hint: 'bonus voor allebei' },
 ];
 
 const strip = ({ at: _at, ...v }: TicketRules): Values => v;
@@ -113,7 +114,7 @@ export function TicketAdmin() {
               const ok = await confirm({
                 title: 'Terug naar de standaard?',
                 message:
-                  'Winnen 10, gelijk 6, verliezen 4, lange spellen +4, Wie kent wie 2, woensdag ×2.',
+                  'Winnen 10, gelijk 6, verliezen 4, lange spellen +4, Wie kent wie 2, woensdag ×2, weekuitdaging 20.',
                 confirmLabel: 'Ja, standaard',
               });
               if (!ok) return;
