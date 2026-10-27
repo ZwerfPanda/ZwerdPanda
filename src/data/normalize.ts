@@ -16,6 +16,9 @@ import {
 import { normalizeArchive } from './archive';
 import { TEXT_FROM_MAX, TEXT_TO_MAX, TEXTS_LIMIT, textId, textKeyOf } from './texts';
 import type {
+  Karaoke,
+  KaraokeLine,
+  KaraokeVoice,
   Cinema,
   GameMatch,
   Vault,
@@ -1260,6 +1263,78 @@ function normalizeSyncReports(v: unknown): AppContent['syncReports'] {
   return out;
 }
 
+const voiceNote = (v: unknown) =>
+  isObj(v) && typeof v.mediaId === 'string' && v.mediaId
+    ? { mediaId: v.mediaId.slice(0, 120), seconds: clampNumber(v.seconds, 0, 3600) }
+    : undefined;
+
+function normalizeKaraoke(v: unknown): Karaoke {
+  if (!isObj(v)) return { songs: [], takes: [] };
+  const songs = list(v.songs, (s, i) => {
+    if (!isObj(s)) return null;
+    const track = voiceNote(s.track);
+    if (!track) return null;
+    const lines = arr(s.lines)
+      .map((l): KaraokeLine | null =>
+        isObj(l) && typeof l.text === 'string'
+          ? {
+              at: clampNumber(l.at, 0, 3600),
+              text: l.text.slice(0, 200),
+              part: oneOf(l.part, ['a', 'b', 'both'] as const, 'both'),
+            }
+          : null,
+      )
+      .filter((l): l is KaraokeLine => l !== null)
+      .slice(0, 400)
+      .sort((a, b) => a.at - b.at);
+    return {
+      id: id(s.id, 'song', i),
+      title: str(s.title, 'Ons nummer', 120) || 'Ons nummer',
+      artist: optStr(s.artist, 120),
+      track,
+      lines,
+      by: person(s.by),
+      createdAt: stamp(s.createdAt),
+    };
+  }).slice(-200);
+  const takes = list(v.takes, (t, i) => {
+    if (!isObj(t) || typeof t.song !== 'string') return null;
+    const voices = arr(t.voices)
+      .map((x): KaraokeVoice | null => {
+        if (!isObj(x) || typeof x.mediaId !== 'string' || !x.mediaId) return null;
+        const who = x.who === 'both' ? ('both' as const) : person(x.who);
+        if (!who) return null;
+        return {
+          who,
+          mediaId: x.mediaId.slice(0, 120),
+          seconds: clampNumber(x.seconds, 0, 3600),
+          delay: Math.round(clampNumber(x.delay, -1000, 1000)),
+          volume: clampNumber(x.volume, 0, 2, 1),
+        };
+      })
+      .filter((x): x is KaraokeVoice => x !== null)
+      .slice(0, 2);
+    const roles =
+      isObj(t.roles) && person(t.roles.a) && person(t.roles.b) && t.roles.a !== t.roles.b
+        ? { a: person(t.roles.a)!, b: person(t.roles.b)! }
+        : undefined;
+    return {
+      id: id(t.id, 'take', i),
+      song: t.song.slice(0, 120),
+      mode: oneOf(t.mode, ['solo', 'duet', 'together'] as const, 'solo'),
+      ...(roles ? { roles } : {}),
+      voices,
+      ...(voiceNote(t.mix) ? { mix: voiceNote(t.mix) } : {}),
+      music: clampNumber(t.music, 0, 2, 0.8),
+      echo: clampNumber(t.echo, 0, 1, 0.25),
+      by: person(t.by),
+      createdAt: stamp(t.createdAt),
+      doneAt: optStamp(t.doneAt),
+    };
+  }).slice(-300);
+  return { songs, takes };
+}
+
 function normalizeQuiz(v: unknown): Quiz {
   if (!isObj(v)) return { custom: [], answers: [] };
   return {
@@ -1334,6 +1409,7 @@ export function normalizeContent(raw: unknown): AppContent {
     cinema: normalizeCinema(raw.cinema),
     texts: list(raw.texts, normalizeTextEdit).slice(-TEXTS_LIMIT),
     vault: normalizeVault(raw.vault),
+    karaoke: normalizeKaraoke(raw.karaoke),
   });
 }
 

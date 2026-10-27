@@ -327,6 +327,10 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
       results: mergeList(base.games.results, local.games.results, remote.games.results),
       ...withArchive(pickArchive(local.games.archive, remote.games.archive)),
     },
+    karaoke: {
+      songs: mergeList(base.karaoke.songs, local.karaoke.songs, remote.karaoke.songs),
+      takes: mergeList(base.karaoke.takes, local.karaoke.takes, remote.karaoke.takes),
+    },
     quiz: {
       custom: mergeList(base.quiz.custom, local.quiz.custom, remote.quiz.custom),
       answers: mergeList(base.quiz.answers, local.quiz.answers, remote.quiz.answers),
@@ -425,6 +429,10 @@ export function mergeFirstJoin(
       results: addPlain(local.games.results, remote.games.results),
       ...withArchive(pickArchive(local.games.archive, remote.games.archive)),
     },
+    karaoke: {
+      songs: addPlain(local.karaoke.songs, remote.karaoke.songs),
+      takes: addPlain(local.karaoke.takes, remote.karaoke.takes),
+    },
     quiz: {
       custom: addPlain(local.quiz.custom, remote.quiz.custom),
       answers: addPlain(local.quiz.answers, remote.quiz.answers),
@@ -504,6 +512,8 @@ const withArchive = (archive: GamesArchive | undefined) => (archive ? { archive 
 export function carryForward(shared: AppContent, ours: AppContent, writer: number): AppContent {
   if (writer >= CONTENT_SCHEMA) return shared;
   let out = shared;
+  // Schema 9 added the karaoke room.
+  if (writer < 9) out = { ...out, karaoke: ours.karaoke };
   // Schema 8 added the arcade's spaarpot; an older app saves without it.
   if (writer < 8) {
     const archive = pickArchive(out.games.archive, ours.games.archive);
@@ -615,6 +625,11 @@ export function contentMediaIds(content: AppContent): string[] {
   // Voice messages travel the same way photos do.
   const voice = (v: { mediaId: string } | undefined) => v && ids.add(v.mediaId);
   content.letters.forEach((l) => voice(l.voice));
+  content.karaoke.songs.forEach((s) => voice(s.track));
+  content.karaoke.takes.forEach((t) => {
+    t.voices.forEach(voice);
+    voice(t.mix);
+  });
   content.museum.stops.forEach((s) => voice(s.voice));
   content.her.notes.forEach((n) => voice(n.voice));
   content.flowers.forEach((b) => add(b.media));

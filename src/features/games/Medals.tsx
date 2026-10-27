@@ -89,10 +89,11 @@ function MedalBadge({
 export function MedalCabinet() {
   const games = useContent((c) => c.games);
   const texts = useContent((c) => c.texts);
+  const karaoke = useContent((c) => c.karaoke);
   const profile = useContent((c) => c.profile);
   const me = useMe();
   const them: Person = me === 'you' ? 'partner' : 'you';
-  const stats = useMemo(() => medalStats({ games, texts }), [games, texts]);
+  const stats = useMemo(() => medalStats({ games, texts, karaoke }), [games, texts, karaoke]);
   const won = new Set(wonMedals(stats));
   const count = MEDALS.filter((m) => won.has(m.scope === 'us' ? m.id : `${m.id}:${me}`)).length;
 
@@ -173,7 +174,11 @@ export function MedalHost() {
     if (games.results.length > FOLD_AT) updateContent(foldResults);
   }, [games.results.length]);
 
-  const won = useMemo(() => wonMedals(medalStats({ games, texts })), [games, texts]);
+  const karaoke = useContent((c) => c.karaoke);
+  const won = useMemo(
+    () => wonMedals(medalStats({ games, texts, karaoke })),
+    [games, texts, karaoke],
+  );
   useEffect(() => {
     const seen = readSeen();
     // The first time: everything already won is simply there, no parade.

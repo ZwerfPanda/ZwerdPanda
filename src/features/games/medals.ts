@@ -20,6 +20,9 @@ export interface Medal {
 
 export interface MedalStats {
   tally: ArcadeTally;
+  /** Official karaoke recordings: all, and the ones we sang together. */
+  records: number;
+  duets: number;
   /** Months won (before this one). */
   monthsWon: Record<Person, number>;
 }
@@ -89,6 +92,24 @@ export const MEDALS: Medal[] = [
     scope: 'us',
     goal: 1,
     progress: (s) => draws(s.tally),
+  },
+  {
+    id: 'duet-1',
+    emoji: '🎤',
+    title: 'Eerste duet',
+    text: 'Samen een officiële karaoke-opname gemaakt',
+    scope: 'us',
+    goal: 1,
+    progress: (s) => s.duets,
+  },
+  {
+    id: 'album',
+    emoji: '💿',
+    title: 'Ons eigen album',
+    text: '10 officiële karaoke-opnames',
+    scope: 'us',
+    goal: 10,
+    progress: (s) => s.records,
   },
   {
     id: 'win-1',
@@ -191,12 +212,21 @@ export const MEDALS: Medal[] = [
   },
 ];
 
-export function medalStats(c: Pick<AppContent, 'games' | 'texts'>, now = Date.now()): MedalStats {
+export function medalStats(
+  c: Pick<AppContent, 'games' | 'texts'> & Partial<Pick<AppContent, 'karaoke'>>,
+  now = Date.now(),
+): MedalStats {
   const thisMonth = new Date(now).toISOString().slice(0, 7);
   const monthsWon = { you: 0, partner: 0 };
   for (const m of tournament(c.games))
     if (m.month < thisMonth && m.champion) monthsWon[m.champion]++;
-  return { tally: arcadeTally(c), monthsWon };
+  const official = (c.karaoke?.takes ?? []).filter((t) => t.doneAt && t.mix);
+  return {
+    tally: arcadeTally(c),
+    monthsWon,
+    records: official.length,
+    duets: official.filter((t) => t.mode !== 'solo').length,
+  };
 }
 
 /** Every medal won, as "id" (ours) or "id:who" (one of us). */

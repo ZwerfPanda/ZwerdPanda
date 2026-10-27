@@ -12,6 +12,7 @@ import {
   ListChecks,
   Images,
   Mail,
+  MicVocal,
   Music,
   Orbit,
   Puzzle,
@@ -177,6 +178,15 @@ export const SECTIONS: Section[] = [
     blurb: 'Expres verstopt',
     icon: Gift,
     tint: '#fbe0cd',
+  },
+  {
+    path: '/karaoke',
+    group: 'together',
+    label: 'Karaoke Kamer',
+    short: 'Karaoke',
+    blurb: 'Solo, samen of een duet om de beurt',
+    icon: MicVocal,
+    tint: '#f6c1e0',
   },
   {
     path: '/music',

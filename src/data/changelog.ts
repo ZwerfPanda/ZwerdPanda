@@ -23,6 +23,25 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-17',
+    when: 'oktober 2026',
+    title: 'De Karaoke Kamer 🎤',
+    items: [
+      {
+        emoji: '🎤',
+        title: 'Zingen, samen of om de beurt',
+        text: 'Solo, samen tegelijk op één telefoon, of een duet om de beurt: de een zingt in, de ander zingt erbij.',
+        path: '/karaoke',
+      },
+      {
+        emoji: '💿',
+        title: 'Officiële opnames',
+        text: 'Muziek en stemmen gemixt tot één opname, met de tekst die meeloopt als je terugluistert.',
+        path: '/karaoke',
+      },
+    ],
+  },
+  {
     id: '2026-10-16',
     when: 'oktober 2026',
     title: 'Medailles, ons jaar en meldingen',

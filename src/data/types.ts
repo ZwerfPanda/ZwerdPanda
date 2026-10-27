@@ -827,6 +827,64 @@ export interface AppContent {
   texts: TextEdit[];
   /** Our secret place: everything in it is encrypted with our password. */
   vault: Vault;
+  /** The karaoke room: our songs, and what we sang. */
+  karaoke: Karaoke;
+}
+
+/* -------------------------------------------------------------- karaoke */
+
+/** Who sings a line: the first voice, the second, or both of us. */
+export type KaraokePart = 'a' | 'b' | 'both';
+
+export interface KaraokeLine {
+  /** Seconds into the song. */
+  at: number;
+  text: string;
+  part: KaraokePart;
+}
+
+/** A song: the music (without vocals) and the words, on time. */
+export interface KaraokeSong {
+  id: ID;
+  title: string;
+  artist?: string;
+  track: VoiceNote;
+  lines: KaraokeLine[];
+  by?: Person;
+  createdAt: string;
+}
+
+export interface KaraokeVoice {
+  /** Who sang it ("both": the two of us at one phone). */
+  who: Person | 'both';
+  /** The voice alone (no music), lined up with the song's start. */
+  mediaId: ID;
+  seconds: number;
+  /** How much later than the music it was heard (ms); fixed when mixing. */
+  delay: number;
+  volume: number;
+}
+
+export interface KaraokeTake {
+  id: ID;
+  song: ID;
+  /** Solo, a duet sung one after the other, or together at one phone. */
+  mode: 'solo' | 'duet' | 'together';
+  /** In a duet: who sings the first voice, and who the second. */
+  roles?: { a: Person; b: Person };
+  voices: KaraokeVoice[];
+  /** The official recording: music and voices, mixed. */
+  mix?: VoiceNote;
+  music: number;
+  echo: number;
+  by?: Person;
+  createdAt: string;
+  doneAt?: string;
+}
+
+export interface Karaoke {
+  songs: KaraokeSong[];
+  takes: KaraokeTake[];
 }
 
 /**

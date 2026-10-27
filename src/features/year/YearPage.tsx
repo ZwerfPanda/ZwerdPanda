@@ -173,6 +173,18 @@ function cards(s: YearStats, names: Names): Card[] {
         s.cinema.nights && s.cinema.films ? `en ${s.cinema.films} nieuwe films op het doek` : '',
       ],
     });
+  if (s.karaoke.records > 0)
+    out.push({
+      key: 'karaoke',
+      theme: 'velvet',
+      emoji: '🎤',
+      eyebrow: 'de karaoke kamer',
+      number: s.karaoke.records,
+      unit: s.karaoke.records === 1 ? 'opname' : 'opnames',
+      lines: [
+        s.karaoke.duets ? `waarvan ${s.karaoke.duets} samen gezongen` : 'officieel opgenomen',
+      ],
+    });
   if (s.coco > 0)
     out.push({
       key: 'coco',
