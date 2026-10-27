@@ -694,3 +694,87 @@ body:has(.kar-page) {
     animation: none;
   }
 }
+
+/* looking a song up */
+.kar-search {
+  display: flex;
+  gap: 8px;
+}
+.kar-search .input {
+  flex: 1;
+  min-width: 0;
+}
+.kar-found {
+  display: grid;
+  gap: 6px;
+  max-height: 20rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.kar-found button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.kar-found button:hover,
+.kar-found button:focus-visible {
+  background: rgba(255, 111, 177, 0.2);
+}
+.kar-found span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.kar-found small {
+  opacity: 0.75;
+}
+.kar-found em {
+  flex: none;
+  font-style: normal;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+.kar-found em.is-synced {
+  color: #6dffb0;
+  opacity: 1;
+  font-weight: 800;
+}
+.kar-link {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #9fe8ff;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.kar-vocals {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 215, 94, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 215, 94, 0.35);
+}
+.kar-vocals p {
+  margin: 0;
+  font-weight: 800;
+}
+.kar-hint--warn {
+  color: #ffd75e;
+  opacity: 1;
+}
+.kar-editor .kar-row > .field {
+  flex: 1 1 12rem;
+}

@@ -93,3 +93,56 @@ export function isMine(part: KaraokePart, me: Person, roles?: { a: Person; b: Pe
   const who = singerOf(part, roles);
   return who === 'both' || who === me;
 }
+
+const normal = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N} ]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+/**
+ * A duet out of any song: lines that come back (the chorus) for both of us,
+ * the rest in turns, a verse each (a pause of a few seconds starts the next
+ * part; without pauses, two lines each).
+ */
+export function autoParts<T extends { at: number | null; text: string }>(
+  lines: T[],
+): (T & { part: KaraokePart })[] {
+  const count = new Map<string, number>();
+  for (const l of lines) count.set(normal(l.text), (count.get(normal(l.text)) ?? 0) + 1);
+  const chorus = (l: T) => (count.get(normal(l.text)) ?? 0) >= 2;
+  const gaps = lines.some(
+    (l, i) => i > 0 && l.at !== null && lines[i - 1].at !== null && l.at - lines[i - 1].at! >= 4,
+  );
+  let block = 0;
+  let inBlock = 0;
+  let prevChorus = false;
+  return lines.map((l, i) => {
+    if (chorus(l)) {
+      prevChorus = true;
+      return { ...l, part: 'both' as const };
+    }
+    const prev = lines[i - 1];
+    const newBlock =
+      i > 0 &&
+      (prevChorus ||
+        (gaps
+          ? l.at !== null && prev?.at !== null && prev !== undefined && l.at - prev.at! >= 4
+          : inBlock >= 2));
+    if (newBlock) {
+      block++;
+      inBlock = 0;
+    }
+    inBlock++;
+    prevChorus = false;
+    return { ...l, part: block % 2 ? ('b' as const) : ('a' as const) };
+  });
+}
+
+/** Every line a bit earlier or later (when the music starts differently). */
+export function shiftLines<T extends { at: number | null }>(lines: T[], by: number): T[] {
+  return lines.map((l) =>
+    l.at === null ? l : { ...l, at: Math.max(0, Math.round((l.at + by) * 100) / 100) },
+  );
+}

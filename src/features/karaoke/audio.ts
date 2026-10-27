@@ -481,3 +481,59 @@ export async function clapTest(stream: MediaStream, count = 8, gap = 0.6): Promi
     Array.from({ length: count }, (_, k) => 1 + k * gap),
   );
 }
+
+/* --------------------------------------------------- the vocals out */
+
+/**
+ * Takes the singing out of a normal stereo song. Vocals usually sit right in
+ * the middle, so left minus right cancels them (and whatever else is in the
+ * middle); the low end of the middle (bass, kick) is put back so it still
+ * grooves. Not as clean as a real karaoke version, but often close.
+ */
+export async function removeVocals(song: AudioBuffer): Promise<{ blob: Blob; seconds: number }> {
+  if (song.numberOfChannels < 2)
+    throw new Error('Dit bestand is mono: daar kan de zang niet uit. Zoek een stereoversie.');
+  const length = Math.ceil(song.duration * MIX_RATE);
+  const Offline =
+    window.OfflineAudioContext ??
+    (window as unknown as { webkitOfflineAudioContext: typeof OfflineAudioContext })
+      .webkitOfflineAudioContext;
+  const ctx = new Offline(1, length, MIX_RATE);
+  const source = ctx.createBufferSource();
+  source.buffer = song;
+  const split = ctx.createChannelSplitter(2);
+  source.connect(split);
+  // The sides: left minus right.
+  const left = ctx.createGain();
+  const right = ctx.createGain();
+  right.gain.value = -1;
+  split.connect(left, 0);
+  split.connect(right, 1);
+  const side = ctx.createGain();
+  side.gain.value = 0.9;
+  left.connect(side);
+  right.connect(side);
+  // The low middle: half of left plus right, only below the voice.
+  const midL = ctx.createGain();
+  const midR = ctx.createGain();
+  midL.gain.value = 0.5;
+  midR.gain.value = 0.5;
+  split.connect(midL, 0);
+  split.connect(midR, 1);
+  const low = ctx.createBiquadFilter();
+  low.type = 'lowpass';
+  low.frequency.value = 140;
+  low.Q.value = 0.7;
+  midL.connect(low);
+  midR.connect(low);
+  side.connect(ctx.destination);
+  low.connect(ctx.destination);
+  source.start(0);
+  const out = (await ctx.startRendering()).getChannelData(0);
+  let peak = 0;
+  for (let i = 0; i < out.length; i++) peak = Math.max(peak, Math.abs(out[i]));
+  if (peak < 0.01)
+    throw new Error('Na het weghalen bleef er bijna niks over: links en rechts zijn hier gelijk.');
+  if (peak > 0.98) for (let i = 0; i < out.length; i++) out[i] *= 0.98 / peak;
+  return { blob: encodeWav(out, MIX_RATE), seconds: song.duration };
+}
