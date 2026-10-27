@@ -146,3 +146,57 @@ export function shiftLines<T extends { at: number | null }>(lines: T[], by: numb
     l.at === null ? l : { ...l, at: Math.max(0, Math.round((l.at + by) * 100) / 100) },
   );
 }
+
+/* ------------------------------------------------- word by word */
+
+export interface SungWord {
+  text: string;
+  start: number;
+  end: number;
+}
+
+/**
+ * How long a line is sung: never into the next line, and not through a long
+ * instrumental pause either (estimated from how much there is to sing).
+ */
+export function lineDuration(lines: KaraokeLine[], i: number, songEnd: number): number {
+  const line = lines[i];
+  const gap = (lines[i + 1]?.at ?? songEnd) - line.at;
+  const letters = line.text.replace(/\s+/g, '').length;
+  const words = line.text.trim().split(/\s+/).length;
+  const estimate = Math.min(9, Math.max(1.4, letters * 0.075 + words * 0.12 + 0.4));
+  return Math.max(Math.min(0.8, gap), Math.min(gap - 0.15, estimate));
+}
+
+/** When each word of line `i` is sung (spread by length, like syllables). */
+export function wordsOf(lines: KaraokeLine[], i: number, songEnd: number): SungWord[] {
+  const line = lines[i];
+  const parts = line.text.trim().split(/\s+/);
+  const weights = parts.map((w) => w.replace(/[^\p{L}\p{N}]/gu, '').length + 1.5);
+  const total = weights.reduce((a, b) => a + b, 0);
+  const span = lineDuration(lines, i, songEnd);
+  let at = line.at;
+  return parts.map((text, k) => {
+    const len = (weights[k] / total) * span;
+    const word = { text, start: at, end: at + len };
+    at += len;
+    return word;
+  });
+}
+
+export type Moment =
+  | { kind: 'intro'; focus: number; wait: number }
+  | { kind: 'singing'; focus: number; words: SungWord[] }
+  | { kind: 'waiting'; focus: number; wait: number }
+  | { kind: 'end' };
+
+/** What to show at `t`: the line being sung, or the next one with a countdown. */
+export function momentAt(lines: KaraokeLine[], t: number, songEnd: number): Moment {
+  if (!lines.length) return { kind: 'end' };
+  const i = lineAt(lines, t);
+  if (i < 0) return { kind: 'intro', focus: 0, wait: lines[0].at - t };
+  const words = wordsOf(lines, i, songEnd);
+  if (t < words[words.length - 1].end) return { kind: 'singing', focus: i, words };
+  if (i + 1 < lines.length) return { kind: 'waiting', focus: i + 1, wait: lines[i + 1].at - t };
+  return { kind: 'end' };
+}

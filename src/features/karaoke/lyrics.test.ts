@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { isMine, lineAt, lineProgress, parseLyrics, toLrc, untilNext } from './lyrics';
-import { encodeWav, findClaps, medianDelay, resample } from './audio';
+import {
+  isMine,
+  lineAt,
+  lineDuration,
+  lineProgress,
+  momentAt,
+  parseLyrics,
+  toLrc,
+  untilNext,
+  wordsOf,
+} from './lyrics';
+import { encodeWav, findClaps, medianDelay, polishVoice, resample } from './audio';
 
 describe('karaoke lyrics', () => {
   it('reads plain lines with parts', () => {
@@ -69,5 +79,71 @@ describe('karaoke sound', () => {
     expect(medianDelay(claps, ticks)).toBeGreaterThan(170);
     expect(medianDelay(claps, ticks)).toBeLessThan(195);
     expect(medianDelay([], ticks)).toBeNull();
+  });
+});
+
+describe('word by word', () => {
+  const lines = [
+    { at: 2, text: 'Kort', part: 'a' as const },
+    {
+      at: 3,
+      text: 'Een hele lange zin die je zingt voor de muziek weer verder gaat',
+      part: 'b' as const,
+    },
+    { at: 30, text: 'Na de solo', part: 'both' as const },
+  ];
+
+  it('a line is sung until the next one, but not through a long pause', () => {
+    expect(lineDuration(lines, 0, 60)).toBeCloseTo(0.85);
+    const long = lineDuration(lines, 1, 60);
+    expect(long).toBeGreaterThan(4);
+    expect(long).toBeLessThan(9);
+  });
+
+  it('words follow each other, longer words take longer', () => {
+    const words = wordsOf(lines, 1, 60);
+    expect(words[0].start).toBe(3);
+    for (let k = 1; k < words.length; k++) expect(words[k].start).toBeCloseTo(words[k - 1].end);
+    const lange = words.find((w) => w.text === 'lange')!;
+    const de = words.find((w) => w.text === 'de')!;
+    expect(lange.end - lange.start).toBeGreaterThan(de.end - de.start);
+  });
+
+  it('line by line: singing, then the next line waits with a countdown', () => {
+    expect(momentAt(lines, 1, 60)).toMatchObject({ kind: 'intro', focus: 0, wait: 1 });
+    expect(momentAt(lines, 4, 60)).toMatchObject({ kind: 'singing', focus: 1 });
+    expect(momentAt(lines, 20, 60)).toMatchObject({ kind: 'waiting', focus: 2, wait: 10 });
+    expect(momentAt(lines, 59, 60)).toMatchObject({ kind: 'end' });
+  });
+});
+
+describe('a voice made ready', () => {
+  it('a quiet voice comes up, rumble goes out', () => {
+    const rate = 32000;
+    const quiet = new Float32Array(rate * 2);
+    for (let i = 0; i < quiet.length; i++)
+      quiet[i] =
+        0.05 * Math.sin((2 * Math.PI * 440 * i) / rate) +
+        0.05 * Math.sin((2 * Math.PI * 20 * i) / rate);
+    const out = polishVoice(quiet, rate);
+    let peak = 0;
+    for (const v of out) peak = Math.max(peak, Math.abs(v));
+    // Up to 8× louder (more would only blow up the noise).
+    expect(peak).toBeGreaterThan(0.4);
+    expect(peak).toBeLessThanOrEqual(1);
+    // the 20 Hz rumble is mostly gone: averaged over a 440 Hz cycle, little is left
+    const win = Math.round(rate / 440);
+    let low = 0;
+    for (let i = rate; i < rate + win * 20; i += win) {
+      let sum = 0;
+      for (let j = 0; j < win; j++) sum += out[i + j];
+      low = Math.max(low, Math.abs(sum / win));
+    }
+    expect(low).toBeLessThan(0.1);
+  });
+
+  it('silence stays silence (no noise blown up)', () => {
+    const out = polishVoice(new Float32Array(32000), 32000);
+    expect(Math.max(...out.map(Math.abs))).toBe(0);
   });
 });

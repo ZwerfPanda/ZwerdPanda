@@ -23,6 +23,25 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-19',
+    when: 'oktober 2026',
+    title: 'Karaoke, mooier en beter',
+    items: [
+      {
+        emoji: '✨',
+        title: 'Zin voor zin, woord voor woord',
+        text: 'Eén zin in beeld, de woorden lichten op terwijl je zingt, en de volgende zin telt af.',
+        path: '/karaoke',
+      },
+      {
+        emoji: '🎙️',
+        title: 'Je stem klinkt beter',
+        text: 'Scherpere opname, op volume gebracht en mooi in de mix. Kies je microfoon en hoor jezelf als je wilt.',
+        path: '/karaoke',
+      },
+    ],
+  },
+  {
     id: '2026-10-18',
     when: 'oktober 2026',
     title: 'Karaoke, nog makkelijker',

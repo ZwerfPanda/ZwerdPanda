@@ -22,6 +22,20 @@ export function audioContext(): AudioContext {
   return shared;
 }
 
+type SessionKind = 'auto' | 'playback' | 'play-and-record';
+/**
+ * iPhones (Safari 16.4+): say we play and record at once, so the music stays
+ * on the speaker or headphones (not the quiet earpiece) while the mic is on.
+ */
+export function audioSession(kind: SessionKind) {
+  const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+  try {
+    if (session) session.type = kind;
+  } catch {
+    // older phones: fine
+  }
+}
+
 export const canSing = () =>
   typeof window !== 'undefined' &&
   Boolean(navigator.mediaDevices?.getUserMedia) &&
@@ -155,6 +169,28 @@ function roomEcho(ctx: BaseAudioContext): ConvolverNode {
   return node;
 }
 
+/**
+ * How a voice sits in the music: evened out (soft parts up, loud parts held
+ * back) and a touch of presence, like a singer's microphone channel.
+ */
+function voiceChain(ctx: BaseAudioContext, input: AudioNode): AudioNode {
+  const comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -22;
+  comp.knee.value = 12;
+  comp.ratio.value = 3.5;
+  comp.attack.value = 0.008;
+  comp.release.value = 0.2;
+  const presence = ctx.createBiquadFilter();
+  presence.type = 'peaking';
+  presence.frequency.value = 3200;
+  presence.Q.value = 0.9;
+  presence.gain.value = 3;
+  const makeup = ctx.createGain();
+  makeup.gain.value = 1.3;
+  input.connect(comp).connect(presence).connect(makeup);
+  return makeup;
+}
+
 export interface Playback {
   /** Seconds into the song, as heard. */
   time(): number;
@@ -176,11 +212,12 @@ export function play(
   const dry = ctx.createGain();
   dry.connect(ctx.destination);
   const voiceBus = ctx.createGain();
-  voiceBus.connect(dry);
+  const voiceOut = voiceChain(ctx, voiceBus);
+  voiceOut.connect(dry);
   const echo = roomEcho(ctx);
   const wet = ctx.createGain();
   wet.gain.value = options.echo ?? 0;
-  voiceBus.connect(echo).connect(wet).connect(ctx.destination);
+  voiceOut.connect(echo).connect(wet).connect(ctx.destination);
   const m = schedule(ctx, [music], when, from, dry);
   const v = schedule(ctx, voices, when, from, voiceBus);
   const all = [...m.sources, ...v.sources];
@@ -216,23 +253,77 @@ export function play(
 export interface MicOptions {
   /** Through the phone's speaker: let the phone take the music out of the microphone. */
   speaker: boolean;
+  /** A chosen microphone (from listMics), or the phone's own choice. */
+  deviceId?: string;
 }
 
-export async function openMic({ speaker }: MicOptions): Promise<MediaStream> {
+export async function openMic({ speaker, deviceId }: MicOptions): Promise<MediaStream> {
+  audioSession('play-and-record');
+  const audio: MediaTrackConstraints = {
+    echoCancellation: speaker,
+    // With the music through the speaker the phone may help; with headphones, the pure voice.
+    noiseSuppression: speaker,
+    autoGainControl: speaker,
+    channelCount: 1,
+    ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
+  };
   try {
-    return await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: speaker,
-        noiseSuppression: false,
-        autoGainControl: false,
-        channelCount: 1,
-      },
-    });
-  } catch {
+    return await navigator.mediaDevices.getUserMedia({ audio });
+  } catch (error) {
+    if (deviceId) return openMic({ speaker });
+    const name = (error as Error)?.name;
     throw new Error(
-      'Geen toegang tot de microfoon. Sta het toe in de instellingen van je telefoon.',
+      name === 'NotAllowedError'
+        ? 'Geen toegang tot de microfoon. Sta het toe in de instellingen van je telefoon (Safari → Microfoon).'
+        : 'De microfoon kon niet aan. Is hij in gebruik door een andere app?',
     );
   }
+}
+
+export interface Mic {
+  id: string;
+  label: string;
+}
+
+/** The microphones on this phone (names show once the microphone was allowed). */
+export async function listMics(): Promise<Mic[]> {
+  try {
+    const all = await navigator.mediaDevices.enumerateDevices();
+    return all
+      .filter((d) => d.kind === 'audioinput' && d.deviceId && d.deviceId !== 'default')
+      .map((d, i) => ({ id: d.deviceId, label: d.label || `Microfoon ${i + 1}` }));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * A recorded voice made ready: the low rumble (handling, wind, the table)
+ * filtered out, and brought up to a good volume so a quiet phone microphone
+ * still sounds full.
+ */
+export function polishVoice(samples: Float32Array, rate: number): Float32Array {
+  const out = new Float32Array(samples.length);
+  const rc = 1 / (2 * Math.PI * 85);
+  const a = rc / (rc + 1 / rate);
+  let prevIn = 0;
+  let prevOut = 0;
+  for (let i = 0; i < samples.length; i++) {
+    prevOut = a * (prevOut + samples[i] - prevIn);
+    prevIn = samples[i];
+    out[i] = prevOut;
+  }
+  // Loud enough, ignoring the odd click: the level that 99.9% stays under.
+  const step = Math.max(1, Math.floor(out.length / 200_000));
+  const levels: number[] = [];
+  for (let i = 0; i < out.length; i += step) levels.push(Math.abs(out[i]));
+  levels.sort((x, y) => x - y);
+  const top = levels[Math.floor(levels.length * 0.999)] ?? 0;
+  if (top > 0.002) {
+    const gain = Math.min(8, 0.8 / top);
+    for (let i = 0; i < out.length; i++) out[i] = Math.max(-1, Math.min(1, out[i] * gain));
+  }
+  return out;
 }
 
 interface Capture {
@@ -291,7 +382,7 @@ async function capture(ctx: AudioContext, stream: MediaStream): Promise<Capture>
   };
 }
 
-export const VOICE_RATE = 22050;
+export const VOICE_RATE = 32000;
 
 export interface Session {
   /** Seconds into the song, as heard. */
@@ -307,10 +398,27 @@ export async function sing(
   music: Backing,
   guides: Backing[],
   from = 0,
+  monitor = false,
 ): Promise<Session> {
   const ctx = audioContext();
   if (ctx.state !== 'running') await ctx.resume();
   const rec = await capture(ctx, stream);
+  // Hearing yourself in the headphones, with a little room around it.
+  let monitorOff = () => {};
+  if (monitor) {
+    const src = ctx.createMediaStreamSource(stream);
+    const gain = ctx.createGain();
+    gain.gain.value = 0.9;
+    const wet = ctx.createGain();
+    wet.gain.value = 0.25;
+    src.connect(gain).connect(ctx.destination);
+    gain.connect(roomEcho(ctx)).connect(wet).connect(ctx.destination);
+    monitorOff = () => {
+      src.disconnect();
+      gain.disconnect();
+      wet.disconnect();
+    };
+  }
   const when = ctx.currentTime + 0.35;
   const startFrame = Math.round(when * ctx.sampleRate);
   const out = ctx.createGain();
@@ -345,9 +453,11 @@ export async function sing(
         aligned = new Float32Array(samples.length - skip);
         aligned.set(samples, -skip);
       }
-      const voice = resample(aligned, ctx.sampleRate, VOICE_RATE);
+      monitorOff();
+      const raw = resample(aligned, ctx.sampleRate, VOICE_RATE);
       let peak = 0;
-      for (let i = 0; i < voice.length; i += 8) peak = Math.max(peak, Math.abs(voice[i]));
+      for (let i = 0; i < raw.length; i += 8) peak = Math.max(peak, Math.abs(raw[i]));
+      const voice = polishVoice(raw, VOICE_RATE);
       return { blob: encodeWav(voice, VOICE_RATE), seconds: voice.length / VOICE_RATE, peak };
     },
   };
@@ -371,11 +481,12 @@ export async function renderMix(
       .webkitOfflineAudioContext;
   const ctx = new Offline(1, length, MIX_RATE);
   const voiceBus = ctx.createGain();
-  voiceBus.connect(ctx.destination);
+  const voiceOut = voiceChain(ctx, voiceBus);
+  voiceOut.connect(ctx.destination);
   if (echo > 0) {
     const wet = ctx.createGain();
     wet.gain.value = echo;
-    voiceBus.connect(roomEcho(ctx)).connect(wet).connect(ctx.destination);
+    voiceOut.connect(roomEcho(ctx)).connect(wet).connect(ctx.destination);
   }
   schedule(ctx, [music], 0, 0, ctx.destination);
   schedule(ctx, voices, 0, 0, voiceBus);

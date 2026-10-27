@@ -409,12 +409,14 @@ body:has(.kar-page) {
 /* ------------------------------------------------- the stage */
 
 .kar-page--stage {
+  overflow-x: clip;
   display: grid;
   min-height: calc(100vh - 140px);
   min-height: calc(100dvh - 140px);
 }
 .kar-stage {
   position: relative;
+  isolation: isolate;
   display: grid;
   align-content: center;
   gap: 18px;
@@ -551,11 +553,11 @@ body:has(.kar-page) {
   background: #ff6fb1;
 }
 
-/* the words */
+/* the words: one line in the light, word by word */
 .kar-lyrics {
   display: grid;
-  gap: 12px;
-  min-height: 15rem;
+  gap: 14px;
+  min-height: 16rem;
   align-content: center;
   padding: 10px 4px;
 }
@@ -563,47 +565,69 @@ body:has(.kar-page) {
   min-height: 0;
   gap: 8px;
 }
-.kar-lyrics--none {
+.kar-lyrics--none,
+.kar-lyrics__end {
   opacity: 0.7;
-}
-.kar-lyrics__intro,
-.kar-lyrics__soon {
   margin: 0;
-  font-size: 1.4rem;
-  letter-spacing: 0.4em;
-  color: #ffd75e;
 }
-.kar-line {
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  transition:
-    opacity 0.3s,
-    transform 0.3s;
-}
-.kar-line.is-past {
-  opacity: 0.3;
-  transform: scale(0.92);
-}
-.kar-line.is-next {
-  opacity: 0.6;
-}
-.kar-line.is-next:not(.is-mine) {
-  opacity: 0.4;
-}
-.kar-line__text {
-  font-size: 1.15rem;
+.kar-lyrics__prev,
+.kar-lyrics__next {
+  margin: 0;
+  font-size: 1.02rem;
   font-weight: 700;
   line-height: 1.3;
+  opacity: 0.38;
 }
-.kar-line.is-now .kar-line__text {
-  font-size: clamp(1.45rem, 6.5vw, 2rem);
+.kar-lyrics__prev {
+  animation: kar-fade-up 0.4s ease both;
+}
+.kar-lyrics__next {
+  opacity: 0.55;
+}
+.kar-focus {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  border-radius: 22px;
+  background: radial-gradient(ellipse at 50% 120%, color-mix(in srgb, var(--fill) 26%, transparent), transparent 70%);
+  animation: kar-rise 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.kar-focus__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 24px;
+}
+.kar-focus__text {
+  margin: 0;
+  font-size: clamp(1.55rem, 7vw, 2.3rem);
   font-weight: 900;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.kar-focus.is-theirs .kar-focus__text {
+  font-size: clamp(1.25rem, 5.5vw, 1.7rem);
+}
+.kar-focus.is-waiting .kar-focus__text {
+  color: rgba(255, 255, 255, 0.82);
+}
+.kar-word {
+  color: rgba(255, 255, 255, 0.82);
+  transition: color 0.12s;
+}
+.kar-focus.is-theirs .kar-word {
+  color: rgba(255, 255, 255, 0.5);
+}
+.kar-word.is-sung {
+  color: var(--fill);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--fill) 60%, transparent);
+}
+.kar-word.is-now {
   background: linear-gradient(90deg, var(--fill) var(--p, 0%), rgba(255, 255, 255, 0.85) var(--p, 0%));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.4));
 }
 .kar-line--a {
   --fill: var(--kar-a);
@@ -614,8 +638,20 @@ body:has(.kar-page) {
 .kar-line--both {
   --fill: var(--kar-both);
 }
-.kar-line.is-now:not(.is-mine) .kar-line__text {
-  font-size: 1.3rem;
+.kar-dots {
+  display: inline-flex;
+  gap: 6px;
+}
+.kar-dots i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px var(--fill);
+  transition: background 0.2s;
+}
+.kar-dots i.is-on {
+  background: var(--fill);
+  box-shadow: 0 0 10px var(--fill);
 }
 .kar-who {
   padding: 2px 10px;
@@ -625,6 +661,12 @@ body:has(.kar-page) {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #1b0b2a;
+}
+.kar-who--small {
+  margin-right: 6px;
+  padding: 1px 7px;
+  font-size: 0.62rem;
+  vertical-align: middle;
 }
 .kar-who--a {
   background: var(--kar-a);
@@ -660,6 +702,18 @@ body:has(.kar-page) {
   accent-color: #ff6fb1;
 }
 
+@keyframes kar-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px) scale(0.96);
+  }
+}
+@keyframes kar-fade-up {
+  from {
+    transform: translateY(18px);
+    opacity: 0.8;
+  }
+}
 @keyframes kar-blink {
   50% {
     opacity: 0.35;
@@ -690,7 +744,9 @@ body:has(.kar-page) {
   .kar-hero__beam,
   .kar-item--hot,
   .kar-rec span,
-  .kar-item--record.is-open .kar-record__disc {
+  .kar-item--record.is-open .kar-record__disc,
+  .kar-focus,
+  .kar-lyrics__prev {
     animation: none;
   }
 }
@@ -777,4 +833,70 @@ body:has(.kar-page) {
 }
 .kar-editor .kar-row > .field {
   flex: 1 1 12rem;
+}
+
+/* the stage glows along with your voice */
+.kar-stage {
+  --lvl: 0;
+}
+.kar-stage__spot {
+  position: absolute;
+  inset: -30% -20% auto;
+  height: 120%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 50% 45%,
+      rgba(255, 111, 177, calc(0.12 + var(--lvl) * 0.35)),
+      transparent calc(38% + var(--lvl) * 18%)
+    ),
+    radial-gradient(circle at 20% 10%, rgba(95, 200, 255, 0.12), transparent 40%),
+    radial-gradient(circle at 80% 10%, rgba(199, 155, 255, 0.12), transparent 40%);
+  transition: background 0.08s linear;
+}
+.kar-stage--ready .kar-stage__spot {
+  animation: kar-breathe 4s ease-in-out infinite;
+}
+.kar-options {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+.kar-select {
+  display: grid;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.kar-select select {
+  min-height: 40px;
+  max-width: 18rem;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+}
+.kar-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.kar-toggle input {
+  width: 20px;
+  height: 20px;
+  accent-color: #ff6fb1;
+}
+@keyframes kar-breathe {
+  50% {
+    opacity: 0.6;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kar-stage--ready .kar-stage__spot {
+    animation: none;
+  }
 }

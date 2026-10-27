@@ -16,6 +16,9 @@ import { putMedia, useMediaUrl } from '../../lib/media';
 import { useReducedMotion } from '../../hooks/useMotion';
 import {
   audioContext,
+  audioSession,
+  listMics,
+  type Mic as MicInput,
   decodeBlob,
   deviceDelay,
   loadAudio,
@@ -27,7 +30,7 @@ import {
   type Playback,
   type Session,
 } from './audio';
-import { lineAt, lineProgress, singerOf, untilNext } from './lyrics';
+import { momentAt, singerOf } from './lyrics';
 import { keepVoice, newTakeId, now, saveTake, tellDuet } from './karaokeData';
 
 /* ------------------------------------------------------------ the words */
@@ -40,7 +43,7 @@ function whoLabel(who: Person | 'both', profile: Profile, me: Person | 'both') {
   return nameOf(who, profile);
 }
 
-/** The words as they're sung: the line now, sweeping colour, the next ones below. */
+/** The words as they're sung: one line in the light, word by word. */
 export function LyricsView({
   song,
   time,
@@ -58,6 +61,7 @@ export function LyricsView({
   mode: KaraokeTake['mode'];
   compact?: boolean;
 }) {
+  const lines = song.lines;
   // Solo: no labels. Together: which voice. A duet: who of us.
   const label = (part: KaraokeLine['part']) =>
     mode === 'solo'
@@ -65,51 +69,85 @@ export function LyricsView({
       : mode === 'together' || !roles
         ? PART_LABEL[part]
         : whoLabel(singerOf(part, roles), profile, me);
-  const lines = song.lines;
-  const i = lineAt(lines, time);
-  const progress = lineProgress(lines, i, time, song.track.seconds);
-  const wait = untilNext(lines, time);
-  const next = lines[i + 1];
-  const nextMine = next && (me === 'both' || ['both', me].includes(singerOf(next.part, roles)));
+  const isMineLine = (part: KaraokeLine['part']) => {
+    const who = singerOf(part, roles);
+    return me === 'both' || who === 'both' || who === me;
+  };
   if (!lines.length)
     return <p className="kar-lyrics kar-lyrics--none">Zonder tekst: zing gewoon mee 🎶</p>;
-  const shown = [i - 1, i, i + 1, i + 2].filter((k) => k >= 0 && k < lines.length);
+
+  const m = momentAt(lines, time, song.track.seconds);
+  if (m.kind === 'end')
+    return (
+      <div className={`kar-lyrics${compact ? ' kar-lyrics--compact' : ''}`}>
+        <p className="kar-lyrics__end">♪ ♪ ♪</p>
+      </div>
+    );
+  const focus = lines[m.focus];
+  const prev = lines[m.focus - 1];
+  const next = lines[m.focus + 1];
+  const wait = m.kind === 'singing' ? 0 : m.wait;
+  const dots = m.kind !== 'singing' && wait <= 3.2 ? Math.max(1, Math.ceil(wait)) : 0;
+  const mine = isMineLine(focus.part);
+  const tag = label(focus.part);
+
   return (
     <div className={`kar-lyrics${compact ? ' kar-lyrics--compact' : ''}`} aria-live="off">
-      {i < 0 && (
-        <p className="kar-lyrics__intro">
-          {wait !== null && wait < 4 ? '●'.repeat(Math.ceil(wait)) : 'intro…'}
-        </p>
-      )}
-      {shown.map((k) => {
-        const line = lines[k];
-        const who = singerOf(line.part, roles);
-        const mine = me === 'both' || who === 'both' || who === me;
-        const state = k < i ? 'is-past' : k === i ? 'is-now' : 'is-next';
-        return (
-          <div
-            key={k}
-            className={`kar-line ${state} kar-line--${line.part} ${mine ? 'is-mine' : ''}`}
-          >
-            {(k === i || (k === i + 1 && i < 0)) && label(line.part) ? (
-              <span className={`kar-who kar-who--${line.part}`}>{label(line.part)}</span>
-            ) : null}
-            <span
-              className="kar-line__text"
-              style={
-                k === i
-                  ? ({ '--p': `${Math.round(progress * 100)}%` } as React.CSSProperties)
-                  : undefined
-              }
-            >
-              {line.text}
+      <p className="kar-lyrics__prev" key={`p${m.focus}`}>
+        {prev && m.kind === 'singing' ? prev.text : '\u00a0'}
+      </p>
+      <div
+        key={m.focus}
+        className={`kar-focus kar-line--${focus.part} ${mine ? 'is-mine' : 'is-theirs'} ${m.kind === 'singing' ? 'is-live' : 'is-waiting'}`}
+      >
+        <div className="kar-focus__head">
+          {tag && <span className={`kar-who kar-who--${focus.part}`}>{tag}</span>}
+          {dots > 0 && (
+            <span className="kar-dots" aria-hidden="true">
+              {[3, 2, 1].map((n) => (
+                <i key={n} className={n <= dots ? 'is-on' : ''} />
+              ))}
             </span>
-          </div>
-        );
-      })}
-      {i >= 0 && next && nextMine && wait !== null && wait < 3 && progress >= 0.6 && (
-        <p className="kar-lyrics__soon">{'●'.repeat(Math.max(1, Math.ceil(wait)))}</p>
-      )}
+          )}
+        </div>
+        <p className="kar-focus__text">
+          {m.kind === 'singing'
+            ? m.words.map((w, k) => {
+                const p = Math.max(
+                  0,
+                  Math.min(1, (time - w.start) / Math.max(0.05, w.end - w.start)),
+                );
+                return (
+                  <span
+                    key={k}
+                    className={`kar-word ${p >= 1 ? 'is-sung' : p > 0 ? 'is-now' : ''}`}
+                    style={
+                      p > 0 && p < 1
+                        ? ({ '--p': `${Math.round(p * 100)}%` } as React.CSSProperties)
+                        : undefined
+                    }
+                  >
+                    {w.text}{' '}
+                  </span>
+                );
+              })
+            : focus.text}
+        </p>
+      </div>
+      <p className={`kar-lyrics__next kar-line--${next?.part ?? 'both'}`}>
+        {next ? (
+          <>
+            {label(next.part) && next.part !== focus.part && (
+              <span className={`kar-who kar-who--small kar-who--${next.part}`}>
+                {label(next.part)}
+              </span>
+            )}
+            {next.text}
+          </>
+        ) : (
+          '\u00a0'
+        )}
+      </p>
     </div>
   );
 }
@@ -132,12 +170,19 @@ function useClock(source: { time(): number } | null) {
 
 /* ------------------------------------------------------------ singing */
 
-const SPEAKER_KEY = 'olu:karaoke-speaker:v1';
-const readSpeaker = () => {
+const prefKey = (name: string) => `olu:karaoke-${name}:v1`;
+const readPref = (name: string, fallback = '') => {
   try {
-    return localStorage.getItem(SPEAKER_KEY) === '1';
+    return localStorage.getItem(prefKey(name)) ?? fallback;
   } catch {
-    return false;
+    return fallback;
+  }
+};
+const writePref = (name: string, value: string) => {
+  try {
+    localStorage.setItem(prefKey(name), value);
+  } catch {
+    // fine
   }
 };
 
@@ -148,6 +193,7 @@ export interface Recorded {
 }
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+const BLUETOOTH = /airpods|bluetooth|hands-?free|headset|buds|beats/i;
 
 export function Stage({
   song,
@@ -169,10 +215,15 @@ export function Stage({
   onCancel: () => void;
   onRecorded: (r: Recorded) => void;
 }) {
-  const [speaker, setSpeaker] = useState(readSpeaker);
+  const [speaker, setSpeaker] = useState(() => readPref('speaker') === '1');
+  const [monitor, setMonitor] = useState(() => readPref('monitor') === '1');
+  const [mics, setMics] = useState<MicInput[]>([]);
+  const [micId, setMicId] = useState(() => readPref('mic'));
   const [phase, setPhase] = useState<'ready' | 'loading' | 'singing' | 'saving'>('ready');
   const [session, setSession] = useState<Session | null>(null);
   const [level, setLevel] = useState(0);
+  const [quiet, setQuiet] = useState(false);
+  const loudest = useRef(0);
   const stream = useRef<MediaStream | null>(null);
   const t = useClock(session);
   const singer: KaraokeVoice['who'] = mode === 'together' ? 'both' : me;
@@ -180,10 +231,14 @@ export function Stage({
   const release = () => {
     stream.current?.getTracks().forEach((tr) => tr.stop());
     stream.current = null;
+    audioSession('playback');
   };
   useEffect(() => () => release(), []);
+  useEffect(() => {
+    void listMics().then(setMics);
+  }, []);
 
-  // A little meter, so you can see the phone hears you.
+  // A meter (and the stage glowing along), so you see the phone hears you.
   useEffect(() => {
     if (!session || !stream.current) return;
     const ctx = audioContext();
@@ -192,12 +247,17 @@ export function Stage({
     const src = ctx.createMediaStreamSource(stream.current);
     src.connect(analyser);
     const data = new Uint8Array(analyser.fftSize);
+    const started = performance.now();
+    loudest.current = 0;
     let raf = 0;
     const tick = () => {
       analyser.getByteTimeDomainData(data);
       let peak = 0;
       for (const v of data) peak = Math.max(peak, Math.abs(v - 128));
-      setLevel(peak / 128);
+      const lvl = peak / 128;
+      loudest.current = Math.max(loudest.current, lvl);
+      setLevel(lvl);
+      setQuiet(performance.now() - started > 7000 && loudest.current < 0.04);
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -210,17 +270,25 @@ export function Stage({
   const start = async () => {
     setPhase('loading');
     try {
+      // On a tap: the sound clock and the phone's play-and-record mode first.
+      audioSession('play-and-record');
       audioContext();
-      const [music, mic] = await Promise.all([loadAudio(song.track.mediaId), openMic({ speaker })]);
+      const mic = await openMic({ speaker, deviceId: micId || undefined });
       stream.current = mic;
+      void listMics().then(setMics);
+      const music = await loadAudio(song.track.mediaId);
       const guides: Backing[] = [];
-      for (const v of take?.voices ?? []) {
+      for (const v of take?.voices ?? [])
         guides.push({ buffer: await loadAudio(v.mediaId), volume: v.volume, delay: v.delay });
-      }
-      const s = await sing(mic, { buffer: music, volume: speaker ? 0.7 : 0.9 }, guides);
+      const s = await sing(
+        mic,
+        { buffer: music, volume: speaker ? 0.7 : 0.9 },
+        guides,
+        0,
+        monitor && !speaker,
+      );
       setSession(s);
       setPhase('singing');
-      playSfx('chime', true);
       void s.ended.then(() => void finish(s));
     } catch (error) {
       release();
@@ -243,9 +311,13 @@ export function Stage({
   };
 
   const theirName = nameOf(me === 'you' ? 'partner' : 'you', profile);
+  const chosen = mics.find((m) => m.id === micId);
+  const btMic = chosen ? BLUETOOTH.test(chosen.label) : false;
+
   if (phase === 'ready' || phase === 'loading')
     return (
       <div className="kar-stage kar-stage--ready">
+        <div className="kar-stage__spot" aria-hidden="true" />
         <p className="kar-stage__song">
           <strong>{song.title}</strong>
           {song.artist && <span>{song.artist}</span>}
@@ -267,7 +339,7 @@ export function Stage({
             className={!speaker ? 'is-on' : ''}
             onClick={() => {
               setSpeaker(false);
-              localStorage.setItem(SPEAKER_KEY, '0');
+              writePref('speaker', '0');
             }}
           >
             <Headphones aria-hidden="true" /> Koptelefoon
@@ -279,7 +351,7 @@ export function Stage({
             className={speaker ? 'is-on' : ''}
             onClick={() => {
               setSpeaker(true);
-              localStorage.setItem(SPEAKER_KEY, '1');
+              writePref('speaker', '1');
             }}
           >
             <Volume2 aria-hidden="true" /> Speaker
@@ -290,8 +362,48 @@ export function Stage({
             ? 'Via de speaker haalt de telefoon de muziek zo goed mogelijk uit de opname. Met een koptelefoon klinkt het het mooist.'
             : mode === 'together'
               ? 'Met één koptelefoon (of een splitter) horen jullie allebei de muziek; de telefoon neemt jullie samen op.'
-              : 'In je oren de muziek, in de microfoon alleen jouw stem.'}
+              : 'In je oren de muziek, in de microfoon alleen jouw stem. Een koptelefoon met draad klinkt het best.'}
         </p>
+        <div className="kar-options">
+          {mics.length > 1 && (
+            <label className="kar-select">
+              <span>Microfoon</span>
+              <select
+                value={micId}
+                onChange={(e) => {
+                  setMicId(e.target.value);
+                  writePref('mic', e.target.value);
+                }}
+              >
+                <option value="">Automatisch</option>
+                {mics.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {!speaker && (
+            <label className="kar-toggle">
+              <input
+                type="checkbox"
+                checked={monitor}
+                onChange={(e) => {
+                  setMonitor(e.target.checked);
+                  writePref('monitor', e.target.checked ? '1' : '0');
+                }}
+              />
+              <span>Hoor jezelf in je koptelefoon</span>
+            </label>
+          )}
+        </div>
+        {btMic && (
+          <p className="kar-hint kar-hint--warn">
+            Een bluetooth-microfoon (zoals AirPods) klinkt als een telefoongesprek en maakt ook de
+            muziek dof. Kies liever de microfoon van je telefoon.
+          </p>
+        )}
         <div className="kar-row kar-row--center">
           <button type="button" className="btn btn--ghost kar-ghost" onClick={onCancel}>
             Terug
@@ -304,8 +416,13 @@ export function Stage({
       </div>
     );
 
+  const glow = Math.min(1, level * 2.2);
   return (
-    <div className="kar-stage kar-stage--live">
+    <div
+      className={`kar-stage kar-stage--live kar-stage--${mode}`}
+      style={{ '--lvl': glow.toFixed(3) } as React.CSSProperties}
+    >
+      <div className="kar-stage__spot" aria-hidden="true" />
       <div className="kar-stage__top">
         <span className="kar-rec">
           <span aria-hidden="true" /> REC
@@ -314,7 +431,7 @@ export function Stage({
           {clock(t)} / {clock(song.track.seconds)}
         </span>
         <span className="kar-level" aria-hidden="true">
-          <span style={{ transform: `scaleX(${Math.min(1, level * 2.5)})` }} />
+          <span style={{ transform: `scaleX(${glow})` }} />
         </span>
       </div>
       <LyricsView
@@ -325,6 +442,12 @@ export function Stage({
         profile={profile}
         mode={mode}
       />
+      {quiet && (
+        <p className="kar-hint kar-hint--warn" role="status">
+          We horen je heel zacht. Zing wat dichter bij de microfoon, of kies na afloop een andere
+          microfoon.
+        </p>
+      )}
       <div className="kar-progress" aria-hidden="true">
         <span style={{ width: `${Math.min(100, (t / Math.max(1, song.track.seconds)) * 100)}%` }} />
       </div>

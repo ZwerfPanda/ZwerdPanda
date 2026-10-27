@@ -43,7 +43,13 @@ describe('looking a song up', () => {
             instrumental: true,
           },
           { id: 5, trackName: 'Leeg', artistName: 'Niemand' },
-          { id: 6, trackName: 'Perfect Duet', artistName: 'Ed Sheeran & Beyoncé', duration: 259, plainLyrics: 'baby' },
+          {
+            id: 6,
+            trackName: 'Perfect Duet',
+            artistName: 'Ed Sheeran & Beyoncé',
+            duration: 259,
+            plainLyrics: 'baby',
+          },
         ]),
       );
     }) as unknown as typeof fetch;
