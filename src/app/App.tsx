@@ -49,8 +49,8 @@ const pages = {
   cinema: () => import('../features/cinema/CinemaPage').then((m) => ({ default: m.CinemaPage })),
   secret: () => import('../features/vault/VaultPage').then((m) => ({ default: m.VaultPage })),
   jaar: () => import('../features/year/YearPage').then((m) => ({ default: m.YearPage })),
-  karaoke: () =>
-    import('../features/karaoke/KaraokePage').then((m) => ({ default: m.KaraokePage })),
+  muziekkamer: () =>
+    import('../features/studio/StudioPage').then((m) => ({ default: m.StudioPage })),
   settings: () =>
     import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 };
@@ -91,7 +91,7 @@ const AgendaPage = lazy(pages.agenda);
 const CinemaPage = lazy(pages.cinema);
 const VaultPage = lazy(pages.secret);
 const YearPage = lazy(pages.jaar);
-const KaraokePage = lazy(pages.karaoke);
+const StudioPage = lazy(pages.muziekkamer);
 const SettingsPage = lazy(pages.settings);
 
 const PAGES: Record<RoutePath, () => React.ReactNode> = {
@@ -115,7 +115,7 @@ const PAGES: Record<RoutePath, () => React.ReactNode> = {
   '/cinema': () => <CinemaPage />,
   '/secret': () => <VaultPage />,
   '/jaar': () => <YearPage />,
-  '/karaoke': () => <KaraokePage />,
+  '/muziekkamer': () => <StudioPage />,
   '/settings': () => <SettingsPage />,
 };
 

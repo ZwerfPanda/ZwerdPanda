@@ -1987,3 +1987,51 @@
   font-weight: 600;
   font-size: 0.9rem;
 }
+
+/* a song waiting in the music room */
+.studio-nudge {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 22px;
+  padding: 14px 16px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #3a1d29, #6b2d43);
+  color: #fff3e6;
+  text-decoration: none;
+  box-shadow: 0 12px 28px rgba(107, 45, 67, 0.35);
+}
+.studio-nudge span:nth-child(2) {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+}
+.studio-nudge small {
+  opacity: 0.8;
+}
+.studio-nudge svg {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  color: #ffc7a6;
+}
+.studio-nudge__disc {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, #f4a6a0 0 18%, #111 19% 22%, transparent 23%),
+    repeating-radial-gradient(circle, #121212 0 1.5px, #262626 1.5px 3px);
+  animation: studio-nudge-spin 3s linear infinite;
+}
+@keyframes studio-nudge-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .studio-nudge__disc {
+    animation: none;
+  }
+}

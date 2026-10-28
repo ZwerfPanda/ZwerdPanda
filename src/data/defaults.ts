@@ -589,8 +589,9 @@ export function cloneUs(us: UsContent): UsContent {
  *   7 — skeeball and bowling duels, bingo and kwartet
  *   8 — the arcade's spaarpot (older results, added up)
  *   9 — the karaoke room
+ *  10 — the music room (songs we made for each other)
  */
-export const CONTENT_SCHEMA = 9;
+export const CONTENT_SCHEMA = 10;
 
 export function createDefaultContent(): AppContent {
   return {
@@ -628,6 +629,7 @@ export function createDefaultContent(): AppContent {
     hunt: { found: {}, reward: defaultHunt.reward },
     quiz: { custom: [], answers: [] },
     karaoke: { songs: [], takes: [] },
+    studio: { records: [], listens: [] },
     games: { matches: [], scores: [], results: [] },
     museum: defaultMuseum(),
     syncReports: {},

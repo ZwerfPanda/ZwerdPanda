@@ -28,7 +28,7 @@ export interface YearStats {
   flowers: { count: number; favorite: string | null };
   cinema: { nights: number; films: number };
   coco: number;
-  karaoke: { records: number; duets: number };
+  records: { made: number; forYou: Record<'you' | 'partner', number> };
 }
 
 const inYear = (iso: string | undefined, year: number) => !!iso && iso.startsWith(String(year));
@@ -115,10 +115,15 @@ export function yearStats(c: AppContent, year: number, now = Date.now()): YearSt
       films: c.cinema.films.filter((f) => inYear(f.createdAt, year)).length,
     },
     coco: c.pet.careDays.filter((d) => inYear(d, year)).length,
-    karaoke: {
-      records: c.karaoke.takes.filter((t) => t.mix && inYear(t.doneAt, year)).length,
-      duets: c.karaoke.takes.filter((t) => t.mix && t.mode !== 'solo' && inYear(t.doneAt, year))
-        .length,
+    records: {
+      made: c.studio.records.filter((r) => inYear(r.madeOn ?? r.createdAt, year)).length,
+      forYou: {
+        you: c.studio.records.filter((r) => r.by === 'you' && inYear(r.madeOn ?? r.createdAt, year))
+          .length,
+        partner: c.studio.records.filter(
+          (r) => r.by === 'partner' && inYear(r.madeOn ?? r.createdAt, year),
+        ).length,
+      },
     },
   };
 }

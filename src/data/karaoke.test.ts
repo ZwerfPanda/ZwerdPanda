@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createDefaultContent } from '../../data/defaults';
-import { normalizeContent } from '../../data/normalize';
-import type { AppContent } from '../../data/types';
-import { carryForward, contentMediaIds, mergeContent } from '../../sync/merge';
+import { createDefaultContent } from './defaults';
+import { normalizeContent } from './normalize';
+import type { AppContent } from './types';
+import { carryForward, contentMediaIds, mergeContent } from '../sync/merge';
 
 const song = {
   id: 'song-1',

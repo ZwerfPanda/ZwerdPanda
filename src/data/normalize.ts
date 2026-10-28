@@ -16,6 +16,9 @@ import {
 import { normalizeArchive } from './archive';
 import { TEXT_FROM_MAX, TEXT_TO_MAX, TEXTS_LIMIT, textId, textKeyOf } from './texts';
 import type {
+  OurRecord,
+  RecordListen,
+  Studio,
   Karaoke,
   KaraokeLine,
   KaraokeVoice,
@@ -1268,6 +1271,48 @@ const voiceNote = (v: unknown) =>
     ? { mediaId: v.mediaId.slice(0, 120), seconds: clampNumber(v.seconds, 0, 3600) }
     : undefined;
 
+function normalizeStudio(v: unknown): Studio {
+  if (!isObj(v)) return { records: [], listens: [] };
+  const records = list(v.records, (r, i): OurRecord | null => {
+    if (!isObj(r)) return null;
+    const audio = voiceNote(r.audio);
+    const by = person(r.by);
+    if (!audio || !by) return null;
+    const cover = isObj(r.cover) ? (normalizeMedia(r.cover) ?? undefined) : undefined;
+    return {
+      id: id(r.id, 'record', i),
+      title: str(r.title, '', 120).trim() || 'Ons liedje',
+      by,
+      for: r.for === 'both' ? 'both' : (person(r.for) ?? 'both'),
+      audio,
+      ...(cover && cover.type === 'local' && cover.kind === 'image' ? { cover } : {}),
+      sleeve: Math.round(clampNumber(r.sleeve, 0, 7)),
+      story: optStr(r.story, 4000),
+      lyrics: optStr(r.lyrics, 20_000),
+      madeOn: optDate(r.madeOn),
+      opensOn: optDate(r.opensOn),
+      replyTo: optStr(r.replyTo, 120),
+      createdAt: stamp(r.createdAt),
+    };
+  }).slice(-500);
+  const listens = list(v.listens, (l): RecordListen | null => {
+    if (!isObj(l) || typeof l.record !== 'string') return null;
+    const who = person(l.who);
+    if (!who) return null;
+    return {
+      id: `${l.record.slice(0, 120)}:${who}`,
+      record: l.record.slice(0, 120),
+      who,
+      plays: Math.round(clampNumber(l.plays, 0, 1_000_000)),
+      firstAt: optStamp(l.firstAt),
+      lastAt: optStamp(l.lastAt),
+      ...(l.heart === true ? { heart: true } : {}),
+      note: optStr(l.note, 1000),
+    };
+  }).slice(-2000);
+  return { records, listens };
+}
+
 function normalizeKaraoke(v: unknown): Karaoke {
   if (!isObj(v)) return { songs: [], takes: [] };
   const songs = list(v.songs, (s, i) => {
@@ -1410,6 +1455,7 @@ export function normalizeContent(raw: unknown): AppContent {
     texts: list(raw.texts, normalizeTextEdit).slice(-TEXTS_LIMIT),
     vault: normalizeVault(raw.vault),
     karaoke: normalizeKaraoke(raw.karaoke),
+    studio: normalizeStudio(raw.studio),
   });
 }
 

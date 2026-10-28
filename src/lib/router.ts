@@ -26,7 +26,7 @@ export type RoutePath =
   | '/cinema'
   | '/secret'
   | '/jaar'
-  | '/karaoke'
+  | '/muziekkamer'
   | '/settings';
 
 export interface Route {
@@ -55,7 +55,7 @@ const KNOWN = new Set<RoutePath>([
   '/cinema',
   '/secret',
   '/jaar',
-  '/karaoke',
+  '/muziekkamer',
   '/settings',
 ]);
 
@@ -70,7 +70,9 @@ function snapshot(): Route {
   const hash = readHash();
   if (hash !== cachedHash) {
     cachedHash = hash;
-    const [rawPath, query = ''] = hash.split('?');
+    const [asked, query = ''] = hash.split('?');
+    // The karaoke room became the music room.
+    const rawPath = asked === '/karaoke' ? '/muziekkamer' : asked;
     const path = (KNOWN.has(rawPath as RoutePath) ? rawPath : '/') as RoutePath;
     cachedRoute = { path, params: new URLSearchParams(query) };
   }

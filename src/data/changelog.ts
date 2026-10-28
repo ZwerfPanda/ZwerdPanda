@@ -23,59 +23,27 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
-    id: '2026-10-19',
+    id: '2026-10-20',
     when: 'oktober 2026',
-    title: 'Karaoke, mooier en beter',
+    title: 'De Muziekkamer 🎶',
     items: [
-      {
-        emoji: '✨',
-        title: 'Zin voor zin, woord voor woord',
-        text: 'Eén zin in beeld, de woorden lichten op terwijl je zingt, en de volgende zin telt af.',
-        path: '/karaoke',
-      },
-      {
-        emoji: '🎙️',
-        title: 'Je stem klinkt beter',
-        text: 'Scherpere opname, op volume gebracht en mooi in de mix. Kies je microfoon en hoor jezelf als je wilt.',
-        path: '/karaoke',
-      },
-    ],
-  },
-  {
-    id: '2026-10-18',
-    when: 'oktober 2026',
-    title: 'Karaoke, nog makkelijker',
-    items: [
-      {
-        emoji: '🔎',
-        title: 'Zoek je nummer',
-        text: 'Typ titel en artiest: de tekst komt vanzelf, al op tijd, en is meteen verdeeld voor een duet.',
-        path: '/karaoke',
-      },
-      {
-        emoji: '🪄',
-        title: 'De zang eruit',
-        text: 'Heb je alleen het gewone nummer? Eén tik en de app haalt de zang eruit.',
-        path: '/karaoke',
-      },
-    ],
-  },
-  {
-    id: '2026-10-17',
-    when: 'oktober 2026',
-    title: 'De Karaoke Kamer 🎤',
-    items: [
-      {
-        emoji: '🎤',
-        title: 'Zingen, samen of om de beurt',
-        text: 'Solo, samen tegelijk op één telefoon, of een duet om de beurt: de een zingt in, de ander zingt erbij.',
-        path: '/karaoke',
-      },
       {
         emoji: '💿',
-        title: 'Officiële opnames',
-        text: 'Muziek en stemmen gemixt tot één opname, met de tekst die meeloopt als je terugluistert.',
-        path: '/karaoke',
+        title: 'Onze liedjes op de plank',
+        text: 'Elk liedje dat we voor elkaar maken, als plaat op de plank: kies er een en hij draait op de platenspeler.',
+        path: '/muziekkamer',
+      },
+      {
+        emoji: '📝',
+        title: 'Het verhaal erachter',
+        text: 'Waarom je hem maakte, de tekst die meeloopt, een hartje en een berichtje terug.',
+        path: '/muziekkamer',
+      },
+      {
+        emoji: '🎁',
+        title: 'Een liedje als cadeautje',
+        text: 'Een nieuw liedje komt ingepakt binnen. Of pak hem in tot een speciale dag, zoals kerst of je verjaardag.',
+        path: '/muziekkamer',
       },
     ],
   },

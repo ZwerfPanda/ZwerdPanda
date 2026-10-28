@@ -47,7 +47,7 @@ export function CocoCompanion() {
   const { companion } = usePrefs();
   const { path } = useRoute();
   // Not in her own hutch, and not in our secret place (she gives us some privacy).
-  if (!companion || path === '/coco' || path === '/secret' || path === '/karaoke') return null;
+  if (!companion || path === '/coco' || path === '/secret' || path === '/muziekkamer') return null;
   return <Companion path={path} />;
 }
 

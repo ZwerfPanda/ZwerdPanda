@@ -15,6 +15,7 @@ import { HuntChip } from '../hunt/HuntBoard';
 import { DailyThing } from './DailyThing';
 import { WrappedButton } from '../wrapped/Wrapped';
 import { YearButton } from '../year/YearButton';
+import { StudioNudge } from '../studio/StudioNudge';
 
 export function HomePage() {
   const profile = useContent((c) => c.profile);
@@ -40,6 +41,7 @@ export function HomePage() {
 
       <div className="home__body">
         <WhatsNew />
+        <StudioNudge />
         <div className="home__together">
           <SendLove />
           <DailyQuestion />

@@ -827,8 +827,54 @@ export interface AppContent {
   texts: TextEdit[];
   /** Our secret place: everything in it is encrypted with our password. */
   vault: Vault;
-  /** The karaoke room: our songs, and what we sang. */
+  /** The karaoke room (closed): kept, so nothing sung there is lost. */
   karaoke: Karaoke;
+  /** The music room: the songs we made for each other. */
+  studio: Studio;
+}
+
+/* ---------------------------------------------------------- music room */
+
+/** A song one of us made, on a record in our music room. */
+export interface OurRecord {
+  id: ID;
+  title: string;
+  by: Person;
+  /** Made for the other, or for the two of us. */
+  for: Person | 'both';
+  audio: VoiceNote;
+  /** A photo for the sleeve; without one, a sleeve in one of our colours. */
+  cover?: MediaSource;
+  sleeve: number;
+  /** Why it was made, what it's about. */
+  story?: string;
+  /** The words, plain or on time (.lrc). */
+  lyrics?: string;
+  /** When it was made (YYYY-MM-DD). */
+  madeOn?: string;
+  /** A gift: wrapped until this day (YYYY-MM-DD). */
+  opensOn?: string;
+  /** An answer to another song. */
+  replyTo?: ID;
+  createdAt: string;
+}
+
+/** One of us listening to a record: each of us only ever changes our own. */
+export interface RecordListen {
+  /** "record:who" */
+  id: string;
+  record: ID;
+  who: Person;
+  plays: number;
+  firstAt?: string;
+  lastAt?: string;
+  heart?: boolean;
+  note?: string;
+}
+
+export interface Studio {
+  records: OurRecord[];
+  listens: RecordListen[];
 }
 
 /* -------------------------------------------------------------- karaoke */
