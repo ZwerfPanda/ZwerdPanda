@@ -6,7 +6,6 @@ import { nameOf, useMe } from '../../data/people';
 import type { ChatMessage, GameId, Person } from '../../data/types';
 import { href, navigate, useRoute, type RoutePath } from '../../lib/router';
 import { sectionFor } from '../../app/sections';
-import { toast } from '../../components/ui/feedback';
 import { playSfx } from '../../lib/audio/sfx';
 import { useReducedMotion } from '../../hooks/useMotion';
 import { formatDate, todayIso } from '../../lib/dates';
@@ -356,6 +355,89 @@ export function ChatBarButton() {
  * Wherever you are: tells the other phone where you are, hears their messages
  * (a toast when the chat is closed), and in the arcade shows the chat button.
  */
+interface Notice {
+  id: string;
+  name: string;
+  text: string;
+  count: number;
+}
+
+const noticeFor = (fresh: ChatMessage[], profile: Parameters<typeof nameOf>[1]): Notice => {
+  const last = fresh[fresh.length - 1];
+  return {
+    id: last.id,
+    name: nameOf(last.from, profile),
+    text: last.text,
+    count: fresh.length,
+  };
+};
+
+/** "💬 Shenaya: hoi!" at the top, wherever you are; tap to answer. */
+function ChatNotice({
+  notice,
+  onOpen,
+  onHeart,
+  onClose,
+}: {
+  notice: Notice | null;
+  onOpen: () => void;
+  onHeart: () => void;
+  onClose: () => void;
+}) {
+  const reduce = useReducedMotion();
+  useEffect(() => {
+    if (!notice) return;
+    const t = window.setTimeout(onClose, 8000);
+    return () => window.clearTimeout(t);
+  }, [notice?.id]);
+  return (
+    <div className="chat-notice-wrap" aria-live="polite">
+      <AnimatePresence>
+        {notice && (
+          <motion.div
+            key={notice.id}
+            className="chat-notice"
+            role="status"
+            initial={reduce ? { opacity: 0 } : { y: -80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={reduce ? { opacity: 0 } : { y: -80, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 26 }}
+          >
+            <button type="button" className="chat-notice__main" onClick={onOpen}>
+              <span className="chat-notice__icon" aria-hidden="true">
+                💬
+              </span>
+              <span className="chat-notice__body">
+                <strong>
+                  {notice.name}
+                  {notice.count > 1 && <small> · {notice.count} nieuw</small>}
+                </strong>
+                <span className="chat-notice__text">{notice.text}</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className="chat-notice__heart"
+              onClick={onHeart}
+              aria-label="Stuur een hartje terug"
+            >
+              ❤️
+            </button>
+            <button
+              type="button"
+              className="chat-notice__close"
+              onClick={onClose}
+              aria-label="Melding sluiten"
+            >
+              <X aria-hidden="true" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export function ChatHost() {
   const route = useRoute();
   const me = useMe();
@@ -369,15 +451,39 @@ export function ChatHost() {
   openRef.current = open;
 
   useEffect(() => setPlace(placeOf(route.path, game)), [route.path, game]);
-  useEffect(
-    () =>
-      installChat((m) => {
-        if (openRef.current) return;
-        playSfx('chime', true);
-        toast(`💬 ${nameOf(m.from, getContent().profile)}: ${m.text.slice(0, 80)}`);
-      }),
-    [],
-  );
+  // (what arrives live is added to our messages; the notice below picks it up)
+  useEffect(() => installChat(() => undefined), []);
+
+  // A notice for every new message from them, wherever you are in the app:
+  // live, through a sync, or waiting since the app was closed.
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const notified = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const theirs = messages.filter((m) => m.from !== me);
+    const fresh = theirs.filter((m) => !read || m.at > read);
+    if (!notified.current) {
+      notified.current = new Set(theirs.map((m) => m.id));
+      if (fresh.length && !openRef.current) setNotice(noticeFor(fresh, getContent().profile));
+      return;
+    }
+    const known = notified.current;
+    const news = fresh.filter((m) => !known.has(m.id));
+    for (const m of theirs) known.add(m.id);
+    if (!news.length || openRef.current) return;
+    playSfx('chime', true);
+    navigator.vibrate?.([60, 40, 60]);
+    setNotice(noticeFor(fresh, getContent().profile));
+  }, [messages]);
+  useEffect(() => {
+    if (open) setNotice(null);
+  }, [open]);
+
+  // the tab title counts unread messages too
+  useEffect(() => {
+    const n = unreadFor(me, messages, read);
+    const base = document.title.replace(/^\(\d+\+?\) /, '');
+    document.title = n ? `(${n > 9 ? '9+' : n}) ${base}` : base;
+  }, [messages, read, me]);
   const openChat = () => {
     opener.current = document.activeElement as HTMLElement | null;
     setOpen(true);
@@ -399,10 +505,44 @@ export function ChatHost() {
   };
 
   const unread = unreadFor(me, messages, read);
-  if (!inArcade) return null;
+  const goChat = () => {
+    setNotice(null);
+    if (inArcade) openChat();
+    else navigate('/games', { chat: '1' });
+  };
+  const noticeEl = (
+    <ChatNotice
+      notice={notice}
+      onOpen={goChat}
+      onHeart={() => {
+        sendChat('❤️');
+        playSfx('heart', true);
+        setNotice(null);
+      }}
+      onClose={() => setNotice(null)}
+    />
+  );
+  if (!inArcade)
+    return (
+      <>
+        {noticeEl}
+        {unread > 0 && (
+          <button
+            type="button"
+            className="chat-fab chat-fab--away has-unread"
+            onClick={goChat}
+            aria-label={`Chat, ${unread} nieuw`}
+          >
+            <MessageCircle aria-hidden="true" />
+            <span className="chat-fab__badge">{unread > 9 ? '9+' : unread}</span>
+          </button>
+        )}
+      </>
+    );
   const inGame = route.path === '/quiz' || !!game;
   return (
     <>
+      {noticeEl}
       {!inGame && (
         <button
           type="button"

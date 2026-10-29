@@ -4,7 +4,7 @@ import { getMe, nameOf } from '../../data/people';
 import type { ChatMessage, GameId, Person, Whereabouts } from '../../data/types';
 import { createId, nowIso } from '../../lib/id';
 import { notifyOther } from '../../lib/push';
-import { onLiveMessage, sendLiveMessage } from '../../sync/live';
+import { liveConnected, onLiveMessage, sendLiveMessage } from '../../sync/live';
 import { normalizeContent } from '../../data/normalize';
 
 /*
@@ -68,9 +68,7 @@ export function sendChat(text: string, invite?: GameId) {
   };
   addMessage(message);
   markRead(message.at);
-  sendLiveMessage({ type: 'chat', message });
-  // Not in the app right now: a notification instead.
-  if (Date.now() - live.seen > ONLINE_FOR) {
+  const push = () =>
     notifyOther(
       'news',
       {
@@ -79,10 +77,29 @@ export function sendChat(text: string, invite?: GameId) {
         url: invite ? `#/games?g=${invite}` : '#/games?chat=1',
         tag: 'chat',
       },
-      15_000,
+      3_000,
     );
+  // Not in the app (or no live line): a notification right away. In the app:
+  // their phone says "got it" when the message is on screen; if that doesn't
+  // come (closed in the background, screen off), a notification after all.
+  sendLiveMessage({ type: 'chat', message });
+  if (!liveConnected() || Date.now() - live.seen > ONLINE_FOR) {
+    push();
+    return;
   }
+  awaiting.set(
+    message.id,
+    window.setTimeout(() => {
+      awaiting.delete(message.id);
+      push();
+    }, ACK_WAIT),
+  );
 }
+
+/** Messages sent that their phone hasn't said "got it" to yet. */
+const awaiting = new Map<string, number>();
+/** How long to wait for "got it" before a notification goes out anyway. */
+export const ACK_WAIT = 5000;
 
 export function markRead(upTo = nowIso()) {
   const me = getMe();
@@ -163,7 +180,16 @@ export function installChat(onMessage: (m: ChatMessage) => void) {
       if (!parsed || parsed.from === getMe()) return;
       addMessage(parsed);
       changed({ seen: Date.now(), typingUntil: 0 });
+      // on screen: tell them it arrived (else their phone sends a notification)
+      if (document.visibilityState === 'visible') sendLiveMessage({ type: 'got', id: parsed.id });
       onMessage(parsed);
+    }),
+    onLiveMessage('got', (msg) => {
+      const id = typeof msg.id === 'string' ? msg.id : '';
+      const t = awaiting.get(id);
+      if (t !== undefined) window.clearTimeout(t);
+      awaiting.delete(id);
+      changed({ seen: Date.now() });
     }),
     onLiveMessage('typing', (msg) => {
       if (msg.who !== other(getMe())) return;

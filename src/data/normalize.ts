@@ -1417,6 +1417,9 @@ function normalizeKaraoke(v: unknown): Karaoke {
   return { songs, takes };
 }
 
+/** Room for every question, twice (one each), and our own ones. */
+export const QUIZ_ANSWER_LIMIT = 2500;
+
 function normalizeQuiz(v: unknown): Quiz {
   if (!isObj(v)) return { custom: [], answers: [] };
   return {
@@ -1445,7 +1448,7 @@ function normalizeQuiz(v: unknown): Quiz {
           : undefined,
         at: stamp(a.at),
       };
-    }).slice(0, 1000),
+    }).slice(0, QUIZ_ANSWER_LIMIT),
   };
 }
 

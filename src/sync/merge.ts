@@ -554,6 +554,13 @@ const withArchive = (archive: GamesArchive | undefined) => (archive ? { archive 
 export function carryForward(shared: AppContent, ours: AppContent, writer: number): AppContent {
   if (writer >= CONTENT_SCHEMA) return shared;
   let out = shared;
+  // Schema 13 made room for more quiz answers; an older app kept only its first 1000.
+  if (writer < 13) {
+    const known = new Set(out.quiz.answers.map((a) => a.id));
+    const missing = ours.quiz.answers.filter((a) => !known.has(a.id));
+    if (missing.length)
+      out = { ...out, quiz: { ...out.quiz, answers: [...out.quiz.answers, ...missing] } };
+  }
   // Schema 12 added Coco's hop-race and the bubble tea bar: their duels, scores and results.
   if (writer < 12) {
     const has = (game: string) => (GAMES_SINCE_12 as readonly string[]).includes(game);

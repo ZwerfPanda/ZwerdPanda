@@ -31,6 +31,9 @@ export function onLiveMessage(type: string, handler: (message: Record<string, un
   };
 }
 
+/** Whether there's a live line to the other phone at all. */
+export const liveConnected = () => engine !== null;
+
 /** Sends something small to the other phone right away (if the live line is up). */
 export function sendLiveMessage(message: Record<string, unknown> & { type: string }) {
   engine?.sendLive(message);

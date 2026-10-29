@@ -592,8 +592,9 @@ export function cloneUs(us: UsContent): UsContent {
  *  10 — the music room (songs we made for each other)
  *  11 — our chat in the arcade
  *  12 — Coco's hop-race and the bubble tea bar
+ *  13 — Wie kent wie grew: room for many more answers
  */
-export const CONTENT_SCHEMA = 12;
+export const CONTENT_SCHEMA = 13;
 
 export function createDefaultContent(): AppContent {
   return {

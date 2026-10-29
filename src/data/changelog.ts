@@ -23,6 +23,31 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-24',
+    when: 'oktober 2026',
+    title: 'Wie kent wie: de grote show 🎤',
+    items: [
+      {
+        emoji: '📝',
+        title: 'Honderden nieuwe vragen',
+        text: 'Meer dan 350 vragen in 15 categorieën: eten, reizen, Coco, liefde, gekke vragen en nog veel meer. Kies er een, of laat het lot beslissen.',
+        path: '/quiz',
+      },
+      {
+        emoji: '🎚️',
+        title: 'Nieuwe rondes',
+        text: 'Schaal: hoe pittig, hoe knuffelig, hoe laat… op 1 tot 10. En Wie van ons: wie valt het eerst in slaap?',
+        path: '/quiz',
+      },
+      {
+        emoji: '💬',
+        title: 'Een melding bij elk berichtje',
+        text: 'Waar je ook bent in de app: bovenin verschijnt het bericht, met een hartje terug. Is de app dicht, dan komt er een melding op je telefoon.',
+        path: '/games',
+      },
+    ],
+  },
+  {
     id: '2026-10-23',
     when: 'oktober 2026',
     title: 'Hoprace en Bubble Tea Bar, nog mooier 🐰🧋',

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, Check, Plus, Shuffle } from 'lucide-react';
 import { updateContent, useContent } from '../../data/store';
@@ -14,67 +14,20 @@ import { playSfx } from '../../lib/audio/sfx';
 import { useAmbience } from '../../lib/audio/ambience';
 import { ScoreBoard, WhoAreYou } from '../games/GameShell';
 import { ChatBarButton, PresencePill } from '../chat/ArcadeChat';
+import {
+  CATEGORIES,
+  SCALES,
+  STARTER_QUESTIONS,
+  THIS_OR_THAT,
+  WHO_OF_US,
+  categoryOf,
+  kindOf,
+  type Category,
+} from './questions';
 import '../games/arcade.css';
 import './quiz.css';
 
-type Category = 'food' | 'me' | 'dreams' | 'us' | 'habits' | 'own';
-
-export const CATEGORIES: Record<Category, { label: string; color: string }> = {
-  food: { label: 'Eten & drinken', color: '#ffb020' },
-  me: { label: 'Over mij', color: '#ff5fa2' },
-  dreams: { label: 'Dromen', color: '#b07bff' },
-  us: { label: 'Wij', color: '#ff8cc0' },
-  habits: { label: 'Gewoontes', color: '#5ff3ff' },
-  own: { label: 'Eigen vraag', color: '#5dff9a' },
-};
-
-/** Questions about yourself, so the other can guess. Our own can be added. */
-export const STARTER_QUESTIONS: { id: string; text: string; category: Category }[] = [
-  { id: 'q-food', text: 'Wat is mijn lievelingseten?', category: 'food' },
-  { id: 'q-colour', text: 'Wat is mijn lievelingskleur?', category: 'me' },
-  { id: 'q-trip', text: 'Waar zou ik het liefst samen op reis gaan?', category: 'dreams' },
-  { id: 'q-snack', text: 'Wat is mijn favoriete snack?', category: 'food' },
-  { id: 'q-song', text: 'Welk liedje zit altijd in mijn hoofd?', category: 'habits' },
-  { id: 'q-morning', text: 'Wat doe ik als eerste als ik wakker word?', category: 'habits' },
-  { id: 'q-dream-job', text: 'Wat is mijn droombaan?', category: 'dreams' },
-  { id: 'q-series', text: 'Wat is mijn lievelingsfilm of -serie?', category: 'habits' },
-  { id: 'q-happy', text: 'Waar word ik meteen blij van?', category: 'me' },
-  { id: 'q-memory', text: 'Wat is mijn favoriete herinnering van ons?', category: 'us' },
-  { id: 'q-animal', text: 'Welk dier zou ik zijn?', category: 'me' },
-  { id: 'q-date', text: 'Mijn ideale date is…', category: 'us' },
-  { id: 'q-never', text: 'Wat zou ik nooit eten?', category: 'food' },
-  { id: 'q-talent', text: 'Wat is mijn verborgen talent?', category: 'me' },
-  { id: 'q-proud', text: 'Waar ben ik stiekem trots op?', category: 'me' },
-  { id: 'q-grumpy', text: 'Waar word ik chagrijnig van?', category: 'me' },
-  { id: 'q-drink', text: 'Koffie, thee of matcha?', category: 'food' },
-  { id: 'q-first', text: 'Wat viel mij als eerste aan jou op?', category: 'us' },
-  { id: 'q-fear', text: 'Waar ben ik bang voor?', category: 'me' },
-  { id: 'q-sunday', text: 'Mijn perfecte zondag ziet eruit als…', category: 'dreams' },
-];
-
-/** The quick round: pick one, then guess what the other picked. */
-export const THIS_OR_THAT: { id: string; a: string; b: string }[] = [
-  { id: 'tt-sweet', a: 'Zoet', b: 'Zout' },
-  { id: 'tt-beach', a: 'Strand', b: 'Stad' },
-  { id: 'tt-morning', a: 'Ochtendmens', b: 'Avondmens' },
-  { id: 'tt-film', a: 'Film', b: 'Serie' },
-  { id: 'tt-summer', a: 'Zomer', b: 'Winter' },
-  { id: 'tt-pizza', a: 'Pizza', b: 'Sushi' },
-  { id: 'tt-call', a: 'Bellen', b: 'Appen' },
-  { id: 'tt-sleep', a: 'Uitslapen', b: 'Vroeg op' },
-  { id: 'tt-home', a: 'Thuis chillen', b: 'Uitgaan' },
-  { id: 'tt-mountains', a: 'Bergen', b: 'Zee' },
-  { id: 'tt-romcom', a: 'Romcom', b: 'Horror' },
-  { id: 'tt-dog', a: 'Hond', b: 'Kat' },
-  { id: 'tt-gift', a: 'Een cadeautje', b: 'Een lieve brief' },
-  { id: 'tt-boba', a: 'Bubble tea', b: 'Matcha latte' },
-  { id: 'tt-plan', a: 'Alles plannen', b: 'Spontaan' },
-  { id: 'tt-karaoke', a: 'Karaoke', b: 'Arcade' },
-  { id: 'tt-cuddle', a: 'Knuffelen op de bank', b: 'Samen op stap' },
-  { id: 'tt-train', a: 'Trein', b: 'Auto' },
-];
-
-const isQuick = (id: string) => id.startsWith('tt-');
+export { CATEGORIES, SCALES, STARTER_QUESTIONS, THIS_OR_THAT, WHO_OF_US };
 
 const fold = (s = '') =>
   s
@@ -93,23 +46,69 @@ const looksRight = (guess?: string, truth?: string) => {
   );
 };
 
+/** Verbs as they come before "ik" in our questions, and how they go with a name. */
+const VERB_FOR_NAME: Record<string, string> = {
+  ben: 'is',
+  heb: 'heeft',
+  word: 'wordt',
+  doe: 'doet',
+  ga: 'gaat',
+  sta: 'staat',
+  zie: 'ziet',
+  kan: 'kan',
+  kun: 'kan',
+  zou: 'zou',
+  wil: 'wil',
+  mag: 'mag',
+  moet: 'moet',
+  hou: 'houdt',
+  houd: 'houdt',
+  vind: 'vindt',
+  vond: 'vond',
+  weet: 'weet',
+  vergeet: 'vergeet',
+  smelt: 'smelt',
+  heet: 'heet',
+  eet: 'eet',
+};
+
+/** Any other verb: the stem gets a t (unless it already ends in one). */
+const withT = (stem: string) =>
+  /[td]$/.test(stem) ? (stem.endsWith('d') ? `${stem}t` : stem) : `${stem}t`;
+
+/** Words that can stand before "ik" without being its verb. */
+const NOT_VERBS = new Set([
+  'dat',
+  'als',
+  'of',
+  'voor',
+  'wat',
+  'waar',
+  'toen',
+  'omdat',
+  'want',
+  'en',
+]);
+
 /** "Waar ben ik bang voor?" → "Waar is Shenaya bang voor?" */
 export function guessWording(text: string, name: string): string {
-  const verbs: [RegExp, string][] = [
-    [/\bben ik\b/gi, `is ${name}`],
-    [/\bik ben\b/gi, `${name} is`],
-    [/\bword ik\b/gi, `wordt ${name}`],
-    [/\bdoe ik\b/gi, `doet ${name}`],
-    [/\bheb ik\b/gi, `heeft ${name}`],
-    [/\bik heb\b/gi, `${name} heeft`],
-    [/\bga ik\b/gi, `gaat ${name}`],
-    [/\bwil ik\b/gi, `wil ${name}`],
-    // Dutch: Valencio's, Shenaya's — but Robs.
-    [/\bmijn\b/gi, /[aeiouy]$/i.test(name) ? `${name}’s` : `${name}s`],
-    [/\bmij\b/gi, name],
-    [/\bik\b/gi, name],
-  ];
-  return verbs.reduce((t, [re, to]) => t.replace(re, to), text);
+  return (
+    text
+      // "word ik", "kies ik", "vind ik" → "wordt Shenaya", "kiest Shenaya", "vindt Shenaya"
+      .replace(/\b([A-Za-zÀ-ÿ]+) ik\b/g, (_all, verb: string) => {
+        const lower = verb.toLowerCase();
+        if (NOT_VERBS.has(lower)) return `${verb} ${name}`;
+        const to = VERB_FOR_NAME[lower] ?? withT(lower);
+        const cased = verb[0] === verb[0].toUpperCase() ? to[0].toUpperCase() + to.slice(1) : to;
+        return `${cased} ${name}`;
+      })
+      .replace(/\bik ben\b/gi, `${name} is`)
+      .replace(/\bik heb\b/gi, `${name} heeft`)
+      // Dutch: Valencio's, Shenaya's — but Robs.
+      .replace(/\bmijn\b/gi, /[aeiouy]$/i.test(name) ? `${name}’s` : `${name}s`)
+      .replace(/\bmij\b/gi, name)
+      .replace(/\bik\b/gi, name)
+  );
 }
 
 const answerId = (question: string, who: Person) => `${question}:${who}`;
@@ -137,31 +136,126 @@ function saveAnswer(question: string, who: Person, patch: Partial<QuizAnswer>) {
 
 /**
  * Points for how well `who` knows the other. Open questions: right 1, close ½,
- * as the other judged it. Dit-of-dat: 1 when the guess matches their pick.
+ * as the other judged it. Dit-of-dat and wie-van-ons: 1 when the guess matches
+ * their pick. Schaal: 1 spot on, ½ one off.
  */
 export function score(answers: QuizAnswer[], who: Person): number {
   const them = otherPerson(who);
   return answers
     .filter((a) => a.who === who)
-    .reduce((n, a) => {
-      if (isQuick(a.question)) {
-        const theirs = answers.find((x) => x.id === answerId(a.question, them));
-        return n + (a.guess && theirs?.self && a.guess === theirs.self ? 1 : 0);
-      }
-      return n + (a.judged === 'right' ? 1 : a.judged === 'close' ? 0.5 : 0);
-    }, 0);
+    .reduce(
+      (n, a) =>
+        n +
+        (pointsFor(
+          a,
+          answers.find((x) => x.id === answerId(a.question, them)),
+        ) ?? 0),
+      0,
+    );
 }
 
-/** How many guesses have an outcome yet (judged, or both picked in the quick round). */
+/** What one guess earned (0, ½ or 1), or null while it's still open. */
+export function pointsFor(mine: QuizAnswer, theirs?: QuizAnswer): number | null {
+  if (!mine.guess) return null;
+  const kind = kindOf(mine.question);
+  if (kind === 'open')
+    return mine.judged === 'right' ? 1 : mine.judged === 'close' ? 0.5 : mine.judged ? 0 : null;
+  if (!theirs?.self) return null;
+  if (kind === 'scale') {
+    const off = Math.abs(Number(mine.guess) - Number(theirs.self));
+    return off === 0 ? 1 : off === 1 ? 0.5 : 0;
+  }
+  return mine.guess === theirs.self ? 1 : 0;
+}
+
+/** How many guesses have an outcome yet (judged, or both picked in the quick rounds). */
 export function decided(answers: QuizAnswer[]): number {
-  return answers.filter((a) => {
-    if (!a.guess) return false;
-    if (!isQuick(a.question)) return Boolean(a.judged);
-    return Boolean(answers.find((x) => x.id === answerId(a.question, otherPerson(a.who)))?.self);
-  }).length;
+  return answers.filter(
+    (a) =>
+      pointsFor(
+        a,
+        answers.find((x) => x.id === answerId(a.question, otherPerson(a.who))),
+      ) !== null,
+  ).length;
 }
 
-type Tab = 'open' | 'quick' | 'reveal';
+/** How well we know each other per category: points out of guesses with an outcome. */
+export function byCategory(answers: QuizAnswer[]) {
+  const out = new Map<Category, { points: number; of: number }>();
+  for (const a of answers) {
+    const p = pointsFor(
+      a,
+      answers.find((x) => x.id === answerId(a.question, otherPerson(a.who))),
+    );
+    if (p === null) continue;
+    const c = categoryOf(a.question);
+    const cell = out.get(c) ?? { points: 0, of: 0 };
+    out.set(c, { points: cell.points + p, of: cell.of + 1 });
+  }
+  return [...out.entries()]
+    .map(([category, v]) => ({ category, ...v, pct: Math.round((v.points / v.of) * 100) }))
+    .sort((a, b) => b.pct - a.pct || b.of - a.of);
+}
+
+type Tab = 'open' | 'quick' | 'scale' | 'who' | 'reveal';
+
+const ROUNDS: { id: Exclude<Tab, 'reveal'>; label: string }[] = [
+  { id: 'open', label: '📝 Vragen' },
+  { id: 'quick', label: '⚡ Dit of dat' },
+  { id: 'scale', label: '🎚️ Schaal' },
+  { id: 'who', label: '👫 Wie van ons' },
+];
+
+interface AnyQuestion {
+  id: string;
+  category: Category;
+}
+
+/** The next one to do from a list: in the chosen category, a fresh pick each skip. */
+function nextOf<T extends AnyQuestion>(list: T[], category: Category | 'all', skip: number) {
+  const pool = category === 'all' ? list : list.filter((q) => q.category === category);
+  if (!pool.length) return null;
+  return pool[(Math.floor(hashUnit(`quiz-${category}`) * pool.length) + skip) % pool.length];
+}
+
+function CategoryBar({
+  list,
+  value,
+  onChange,
+}: {
+  list: AnyQuestion[];
+  value: Category | 'all';
+  onChange: (c: Category | 'all') => void;
+}) {
+  const counts = new Map<Category, number>();
+  for (const q of list) counts.set(q.category, (counts.get(q.category) ?? 0) + 1);
+  const cats = (Object.keys(CATEGORIES) as Category[]).filter((c) => counts.get(c));
+  return (
+    <div className="show-cats" role="group" aria-label="Categorie">
+      <button
+        type="button"
+        className={`show-cat ${value === 'all' ? 'is-on' : ''}`}
+        aria-pressed={value === 'all'}
+        onClick={() => onChange('all')}
+      >
+        🎲 Alles <small>{list.length}</small>
+      </button>
+      {cats.map((c) => (
+        <button
+          key={c}
+          type="button"
+          className={`show-cat ${value === c ? 'is-on' : ''}`}
+          style={{ '--c': CATEGORIES[c].color } as React.CSSProperties}
+          aria-pressed={value === c}
+          onClick={() => onChange(c)}
+        >
+          <span aria-hidden="true">{CATEGORIES[c].emoji}</span> {CATEGORIES[c].label}{' '}
+          <small>{counts.get(c)}</small>
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function QuizPage() {
   useAmbience('arcade');
@@ -198,42 +292,61 @@ function Show() {
   const myName = nameOf(me, profile);
   const theirName = nameOf(them, profile);
   const [tab, setTab] = useState<Tab>('open');
+  const [category, setCategory] = useState<Category | 'all'>('all');
   const [adding, setAdding] = useState(false);
   const [skip, setSkip] = useState(0);
 
-  const questions: (QuizQuestion & { category: Category })[] = [
-    ...STARTER_QUESTIONS.map((q) => ({ ...q, createdAt: '' })),
-    ...quiz.custom.map((q) => ({ ...q, category: 'own' as const })),
-  ];
+  const questions: (QuizQuestion & { category: Category })[] = useMemo(
+    () => [
+      ...STARTER_QUESTIONS.map((q) => ({ ...q, createdAt: '' })),
+      ...quiz.custom.map((q) => ({ ...q, category: 'own' as const })),
+    ],
+    [quiz.custom],
+  );
   const find = (q: string, who: Person) => quiz.answers.find((a) => a.id === answerId(q, who));
   const done = (q: string, who: Person) => Boolean(find(q, who)?.self && find(q, who)?.guess);
-  const open = questions.filter((q) => !done(q.id, me));
-  const next = open.length
-    ? open[(Math.floor(hashUnit('quiz') * open.length) + skip) % open.length]
-    : null;
-  const quickOpen = THIS_OR_THAT.filter((q) => !done(q.id, me));
-  const reveals = questions.filter((q) => done(q.id, me) && done(q.id, them));
-  const quickReveals = THIS_OR_THAT.filter((q) => done(q.id, me) && done(q.id, them));
+
+  const left = {
+    open: questions.filter((q) => !done(q.id, me)),
+    quick: THIS_OR_THAT.filter((q) => !done(q.id, me)),
+    scale: SCALES.filter((q) => !done(q.id, me)),
+    who: WHO_OF_US.filter((q) => !done(q.id, me)),
+  };
+  const all = questions.length + THIS_OR_THAT.length + SCALES.length + WHO_OF_US.length;
+  const doneByMe = all - left.open.length - left.quick.length - left.scale.length - left.who.length;
+
+  const both = <T extends AnyQuestion>(list: T[]) =>
+    list.filter((q) => done(q.id, me) && done(q.id, them));
+  const reveals = both(questions);
   const unjudged = reveals.filter((q) => !find(q.id, them)?.judged).length;
-  const waiting =
-    questions.filter((q) => done(q.id, me) && !done(q.id, them)).length +
-    THIS_OR_THAT.filter((q) => done(q.id, me) && !done(q.id, them)).length;
+  const waiting = [...questions, ...THIS_OR_THAT, ...SCALES, ...WHO_OF_US].filter(
+    (q) => done(q.id, me) && !done(q.id, them),
+  ).length;
 
   const points = { you: score(quiz.answers, 'you'), partner: score(quiz.answers, 'partner') };
   const outcomes = decided(quiz.answers);
   const meter = outcomes ? Math.round(((points.you + points.partner) / outcomes) * 100) : null;
   const leader =
     points.you === points.partner ? null : points.you > points.partner ? 'you' : 'partner';
+  const cats = byCategory(quiz.answers).filter((c) => c.of >= 2);
 
   const host = !quiz.answers.length
-    ? 'Welkom bij Wie kent wie? Ik ben jullie presentator, Coco! 🎤'
+    ? `Welkom bij Wie kent wie? Ik ben jullie presentator, Coco! 🎤 ${all} vragen in ${Object.keys(CATEGORIES).length - 1} categorieën.`
     : unjudged > 0
       ? `Er ${unjudged === 1 ? 'ligt 1 antwoord' : `liggen ${unjudged} antwoorden`} klaar om te onthullen! 🥁`
-      : waiting > 0
-        ? `Spannend… ${theirName} moet nog ${waiting} ${waiting === 1 ? 'vraag' : 'vragen'} doen.`
-        : leader
-          ? `${nameOf(leader, profile)} staat voor met ${points[leader]} punten! 👑`
-          : 'Gelijkspel! Wie pakt de volgende punt? ✨';
+      : cats.length >= 2 && hashUnit(`host-${outcomes}`) < 0.4
+        ? `Jullie kennen elkaar het best bij ${CATEGORIES[cats[0].category].emoji} ${CATEGORIES[cats[0].category].label} (${cats[0].pct}%)!`
+        : waiting > 0
+          ? `Spannend… ${theirName} moet nog ${waiting} ${waiting === 1 ? 'vraag' : 'vragen'} doen.`
+          : leader
+            ? `${nameOf(leader, profile)} staat voor met ${points[leader]} punten! 👑`
+            : 'Gelijkspel! Wie pakt de volgende punt? ✨';
+
+  const roundList: AnyQuestion[] = tab === 'reveal' ? [] : left[tab];
+  // a category with nothing left in this round falls back to all
+  const cat =
+    category !== 'all' && !roundList.some((q) => q.category === category) ? 'all' : category;
+  const next = tab === 'reveal' ? null : nextOf(roundList, cat, skip);
 
   return (
     <>
@@ -294,39 +407,58 @@ function Show() {
         </AnimatePresence>
       </div>
 
-      <div className="game__modes" role="tablist" aria-label="Rondes">
-        {(
-          [
-            ['open', '📝 Vragen', open.length],
-            ['quick', '⚡ Dit of dat', quickOpen.length],
-            ['reveal', '🥁 Onthullen', unjudged],
-          ] as const
-        ).map(([id, label, n]) => (
-          <button
-            key={id}
-            type="button"
-            role="tab"
-            aria-selected={tab === id}
-            className="game__mode"
-            data-sfx="none"
-            onClick={() => {
-              playSfx('coin', true);
-              setTab(id);
-            }}
-          >
-            {label}
-            {n > 0 && <span className="show-badge">{n}</span>}
-          </button>
-        ))}
+      <p className="show-progress">
+        <span className="show-progress__bar" aria-hidden="true">
+          <span style={{ width: `${(doneByMe / all) * 100}%` }} />
+        </span>
+        <span>
+          Jij deed er <strong>{doneByMe}</strong> van de {all} vragen
+        </span>
+      </p>
+
+      <div className="show-rounds" role="tablist" aria-label="Rondes">
+        {[...ROUNDS, { id: 'reveal' as const, label: '🥁 Onthullen' }].map(({ id, label }) => {
+          const n = id === 'reveal' ? unjudged : left[id].length;
+          return (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={tab === id}
+              className="game__mode"
+              data-sfx="none"
+              onClick={() => {
+                playSfx('coin', true);
+                setTab(id);
+                setSkip(0);
+              }}
+            >
+              {label}
+              {n > 0 && <span className="show-badge">{n}</span>}
+            </button>
+          );
+        })}
       </div>
+
+      {tab !== 'reveal' && roundList.length > 0 && (
+        <CategoryBar
+          list={roundList}
+          value={cat}
+          onChange={(c) => {
+            playSfx('tap', true);
+            setCategory(c);
+            setSkip(0);
+          }}
+        />
+      )}
 
       {tab === 'open' &&
         (next ? (
           <QuestionCard
             key={next.id}
-            question={next}
+            question={next as unknown as QuizQuestion}
             category={next.category}
-            number={questions.length - open.length + 1}
+            number={questions.length - left.open.length + 1}
             total={questions.length}
             me={me}
             theirName={theirName}
@@ -337,53 +469,125 @@ function Show() {
           <p className="game-panel">Je hebt alle vragen gehad! Voeg er zelf een paar toe. ✨</p>
         ))}
 
-      {tab === 'quick' &&
-        (quickOpen.length ? (
-          <QuickCard
-            key={quickOpen[0].id}
-            q={quickOpen[0]}
-            number={THIS_OR_THAT.length - quickOpen.length + 1}
+      {(tab === 'quick' || tab === 'who') &&
+        (next ? (
+          <ChoiceCard
+            key={next.id}
+            kind={tab}
+            q={next as unknown as (typeof THIS_OR_THAT)[number] | (typeof WHO_OF_US)[number]}
+            number={(tab === 'quick' ? THIS_OR_THAT : WHO_OF_US).length - roundList.length + 1}
+            total={(tab === 'quick' ? THIS_OR_THAT : WHO_OF_US).length}
             me={me}
+            myName={myName}
             theirName={theirName}
-            existing={find(quickOpen[0].id, me)}
+            existing={find(next.id, me)}
+            onSkip={() => setSkip((s) => s + 1)}
           />
         ) : (
-          <p className="game-panel">Alle dit-of-dat-vragen gedaan! ⚡ Kijk bij Onthullen.</p>
+          <p className="game-panel">Allemaal gedaan! Kijk bij Onthullen. 🥁</p>
+        ))}
+
+      {tab === 'scale' &&
+        (next ? (
+          <ScaleCard
+            key={next.id}
+            q={next as unknown as (typeof SCALES)[number]}
+            number={SCALES.length - roundList.length + 1}
+            total={SCALES.length}
+            me={me}
+            theirName={theirName}
+            existing={find(next.id, me)}
+            onSkip={() => setSkip((s) => s + 1)}
+          />
+        ) : (
+          <p className="game-panel">Alle schaalvragen gedaan! Kijk bij Onthullen. 🥁</p>
         ))}
 
       {tab === 'reveal' && (
         <section aria-label="Onthullen" className="show-reveals">
-          {reveals.length + quickReveals.length === 0 && (
+          {cats.length > 0 && (
+            <div className="show-cats-score">
+              <h2 className="show-h">🏆 Hoe goed kennen jullie elkaar?</h2>
+              <ul>
+                {cats.slice(0, 6).map((c) => (
+                  <li key={c.category}>
+                    <span>
+                      {CATEGORIES[c.category].emoji} {CATEGORIES[c.category].label}
+                    </span>
+                    <span className="show-cats-score__bar" aria-hidden="true">
+                      <span
+                        style={{
+                          width: `${c.pct}%`,
+                          background: CATEGORIES[c.category].color,
+                        }}
+                      />
+                    </span>
+                    <strong>{c.pct}%</strong>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {reveals.length +
+            both(THIS_OR_THAT).length +
+            both(SCALES).length +
+            both(WHO_OF_US).length ===
+            0 && (
             <p className="game-panel">
               Nog niks te onthullen. Zodra jullie allebei een vraag hebben gedaan, staat hij hier
               klaar.
             </p>
           )}
-          {quickReveals.length > 0 && (
-            <QuickReveals
-              items={quickReveals}
-              find={find}
-              me={me}
-              myName={myName}
-              theirName={theirName}
-            />
+          {reveals.length > 0 && (
+            <>
+              <h2 className="show-h">📝 Vragen</h2>
+              <ul className="show-list">
+                {reveals
+                  .slice()
+                  .reverse()
+                  .slice(0, 40)
+                  .map((q) => (
+                    <Reveal
+                      key={q.id}
+                      question={q}
+                      category={q.category}
+                      mine={find(q.id, me)!}
+                      theirs={find(q.id, them)!}
+                      myName={myName}
+                      theirName={theirName}
+                    />
+                  ))}
+              </ul>
+            </>
           )}
-          <ul className="show-list">
-            {reveals
-              .slice()
-              .reverse()
-              .map((q) => (
-                <Reveal
-                  key={q.id}
-                  question={q}
-                  category={q.category}
-                  mine={find(q.id, me)!}
-                  theirs={find(q.id, them)!}
-                  myName={myName}
-                  theirName={theirName}
-                />
-              ))}
-          </ul>
+          <PickReveals
+            title="⚡ Dit of dat"
+            items={both(THIS_OR_THAT).map((q) => ({ id: q.id, label: `${q.a} of ${q.b}` }))}
+            find={find}
+            me={me}
+            myName={myName}
+            theirName={theirName}
+            show={(v) => v}
+          />
+          <PickReveals
+            title="🎚️ Schaal"
+            items={both(SCALES).map((q) => ({ id: q.id, label: q.text }))}
+            find={find}
+            me={me}
+            myName={myName}
+            theirName={theirName}
+            show={(v) => `${v}/10`}
+            near
+          />
+          <PickReveals
+            title="👫 Wie van ons"
+            items={both(WHO_OF_US).map((q) => ({ id: q.id, label: q.text }))}
+            find={find}
+            me={me}
+            myName={myName}
+            theirName={theirName}
+            show={(v) => nameOf(v as Person, profile)}
+          />
         </section>
       )}
 
@@ -407,8 +611,258 @@ function CategoryChip({ category }: { category: Category }) {
       className="show-chip"
       style={{ '--c': CATEGORIES[category].color } as React.CSSProperties}
     >
-      {CATEGORIES[category].label}
+      <span aria-hidden="true">{CATEGORIES[category].emoji}</span> {CATEGORIES[category].label}
     </span>
+  );
+}
+
+/** Dit of dat, or Wie van ons: pick one, then guess what the other picked. */
+function ChoiceCard({
+  kind,
+  q,
+  number,
+  total,
+  me,
+  myName,
+  theirName,
+  existing,
+  onSkip,
+}: {
+  kind: 'quick' | 'who';
+  q: { id: string; category: Category; a?: string; b?: string; text?: string };
+  number: number;
+  total: number;
+  me: Person;
+  myName: string;
+  theirName: string;
+  existing?: QuizAnswer;
+  onSkip: () => void;
+}) {
+  const step = existing?.self ? 'guess' : 'self';
+  const them = otherPerson(me);
+  // Wie van ons is stored as you/partner, so it reads right on both phones.
+  const options =
+    kind === 'who'
+      ? [
+          { value: me as string, label: step === 'self' ? `Ik (${myName})` : myName },
+          { value: them as string, label: theirName },
+        ]
+      : [
+          { value: q.a!, label: q.a! },
+          { value: q.b!, label: q.b! },
+        ];
+  const choose = (choice: string, el: HTMLElement) => {
+    if (step === 'self') {
+      saveAnswer(q.id, me, { self: choice });
+      playSfx('pop', true);
+    } else {
+      saveAnswer(q.id, me, { guess: choice });
+      playSfx('sparkle', true);
+      celebrateFrom(el);
+    }
+  };
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={step}
+        className="show-card show-card--quick"
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 1.05 }}
+        transition={{ duration: 0.22 }}
+      >
+        <div className="show-card__top">
+          <CategoryChip category={q.category} />
+          <span className="show-card__count">
+            {Math.min(number, total)}/{total}
+          </span>
+        </div>
+        {kind === 'who' && <p className="show-card__step">{q.text}</p>}
+        <h2 className="show-card__q">
+          {step === 'self'
+            ? kind === 'who'
+              ? 'Wie van jullie, vind jij?'
+              : 'Wat kies jij?'
+            : `Wat koos ${theirName}?`}
+        </h2>
+        <div className="show-vs">
+          <button
+            type="button"
+            className="show-pick show-pick--a"
+            data-sfx="none"
+            onClick={(e) => choose(options[0].value, e.currentTarget)}
+          >
+            {options[0].label}
+          </button>
+          <span className="show-vs__or" aria-hidden="true">
+            of
+          </span>
+          <button
+            type="button"
+            className="show-pick show-pick--b"
+            data-sfx="none"
+            onClick={(e) => choose(options[1].value, e.currentTarget)}
+          >
+            {options[1].label}
+          </button>
+        </div>
+        {step === 'self' && (
+          <button type="button" className="neon-btn neon-btn--small show-skip" onClick={onSkip}>
+            <Shuffle aria-hidden="true" /> Andere vraag
+          </button>
+        )}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+/** Schaal: a number from 1 to 10 about yourself, then a guess of theirs. */
+function ScaleCard({
+  q,
+  number,
+  total,
+  me,
+  theirName,
+  existing,
+  onSkip,
+}: {
+  q: (typeof SCALES)[number];
+  number: number;
+  total: number;
+  me: Person;
+  theirName: string;
+  existing?: QuizAnswer;
+  onSkip: () => void;
+}) {
+  const step = existing?.self ? 'guess' : 'self';
+  const [value, setValue] = useState(5);
+  const save = (el: HTMLElement) => {
+    if (step === 'self') {
+      saveAnswer(q.id, me, { self: String(value) });
+      playSfx('pop', true);
+      setValue(5);
+    } else {
+      saveAnswer(q.id, me, { guess: String(value) });
+      playSfx('sparkle', true);
+      celebrateFrom(el);
+    }
+  };
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={step}
+        className="show-card show-card--scale"
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25 }}
+      >
+        <div className="show-card__top">
+          <CategoryChip category={q.category} />
+          <span className="show-card__count">
+            {Math.min(number, total)}/{total}
+          </span>
+        </div>
+        <p className="show-card__step">
+          {step === 'self' ? 'stap 1 · over jezelf' : `stap 2 · raad wat ${theirName} zei`}
+        </p>
+        <h2 className="show-card__q">
+          {step === 'self' ? q.text : guessWording(q.text, theirName)}
+        </h2>
+        <p className="show-scale__value" aria-hidden="true">
+          {value}
+        </p>
+        <input
+          type="range"
+          min={1}
+          max={10}
+          step={1}
+          value={value}
+          onChange={(e) => setValue(Number(e.target.value))}
+          className="show-scale"
+          aria-label={step === 'self' ? 'Jouw getal van 1 tot 10' : `Het getal van ${theirName}`}
+          aria-valuetext={`${value} van 10`}
+        />
+        <div className="show-scale__ends" aria-hidden="true">
+          <span>1 · {q.low}</span>
+          <span>{q.high} · 10</span>
+        </div>
+        <div className="game-actions">
+          {step === 'self' && (
+            <button type="button" className="neon-btn neon-btn--small show-skip" onClick={onSkip}>
+              <Shuffle aria-hidden="true" /> Andere vraag
+            </button>
+          )}
+          <button type="button" className="neon-btn" onClick={(e) => save(e.currentTarget)}>
+            {step === 'self' ? 'Volgende' : 'Klaar!'}
+          </button>
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+/** The quick rounds, revealed: what each of us picked, and whether the other knew. */
+function PickReveals({
+  title,
+  items,
+  find,
+  me,
+  myName,
+  theirName,
+  show,
+  near = false,
+}: {
+  title: string;
+  items: { id: string; label: string }[];
+  find: (q: string, who: Person) => QuizAnswer | undefined;
+  me: Person;
+  myName: string;
+  theirName: string;
+  show: (value: string) => string;
+  near?: boolean;
+}) {
+  const [all, setAll] = useState(false);
+  if (!items.length) return null;
+  const them = otherPerson(me);
+  const shown = all ? items : items.slice(-12);
+  const mark = (p: number | null) => (p === 1 ? '✓' : p === 0.5 && near ? '≈' : '✗');
+  return (
+    <div className="show-quick">
+      <h2 className="show-h">{title}</h2>
+      <ul className="show-quick__list">
+        {shown
+          .slice()
+          .reverse()
+          .map((q) => {
+            const mine = find(q.id, me)!;
+            const theirs = find(q.id, them)!;
+            const iKnew = pointsFor(mine, theirs);
+            const theyKnew = pointsFor(theirs, mine);
+            return (
+              <li key={q.id} className="show-quick__row">
+                <span className="show-quick__q">{q.label}</span>
+                <span className={`show-quick__who ${theyKnew ? 'is-right' : 'is-wrong'}`}>
+                  <small>{myName}</small>
+                  {show(mine.self!)} {mark(theyKnew)}
+                </span>
+                <span className={`show-quick__who ${iKnew ? 'is-right' : 'is-wrong'}`}>
+                  <small>{theirName}</small>
+                  {show(theirs.self!)} {mark(iKnew)}
+                </span>
+              </li>
+            );
+          })}
+      </ul>
+      {items.length > 12 && !all && (
+        <button type="button" className="neon-btn neon-btn--small" onClick={() => setAll(true)}>
+          Toon alle {items.length}
+        </button>
+      )}
+      <p className="game-hint">
+        ✓ betekent: de ander raadde het goed{near ? ' (≈ één ernaast)' : ''}.
+      </p>
+    </div>
   );
 }
 
@@ -495,122 +949,6 @@ function QuestionCard({
         </div>
       </motion.form>
     </AnimatePresence>
-  );
-}
-
-function QuickCard({
-  q,
-  number,
-  me,
-  theirName,
-  existing,
-}: {
-  q: (typeof THIS_OR_THAT)[number];
-  number: number;
-  me: Person;
-  theirName: string;
-  existing?: QuizAnswer;
-}) {
-  const step = existing?.self ? 'guess' : 'self';
-  const pick = (choice: string, el: HTMLElement) => {
-    if (step === 'self') {
-      saveAnswer(q.id, me, { self: choice });
-      playSfx('pop', true);
-    } else {
-      saveAnswer(q.id, me, { guess: choice });
-      playSfx('sparkle', true);
-      celebrateFrom(el);
-    }
-  };
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={step}
-        className="show-card show-card--quick"
-        initial={{ opacity: 0, scale: 0.92 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 1.05 }}
-        transition={{ duration: 0.22 }}
-      >
-        <div className="show-card__top">
-          <span className="show-chip" style={{ '--c': '#ffd75e' } as React.CSSProperties}>
-            ⚡ Dit of dat
-          </span>
-          <span className="show-card__count">
-            {number}/{THIS_OR_THAT.length}
-          </span>
-        </div>
-        <h2 className="show-card__q">
-          {step === 'self' ? 'Wat kies jij?' : `Wat koos ${theirName}?`}
-        </h2>
-        <div className="show-vs">
-          <button
-            type="button"
-            className="show-pick show-pick--a"
-            data-sfx="none"
-            onClick={(e) => pick(q.a, e.currentTarget)}
-          >
-            {q.a}
-          </button>
-          <span className="show-vs__or" aria-hidden="true">
-            of
-          </span>
-          <button
-            type="button"
-            className="show-pick show-pick--b"
-            data-sfx="none"
-            onClick={(e) => pick(q.b, e.currentTarget)}
-          >
-            {q.b}
-          </button>
-        </div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
-
-function QuickReveals({
-  items,
-  find,
-  me,
-  myName,
-  theirName,
-}: {
-  items: typeof THIS_OR_THAT;
-  find: (q: string, who: Person) => QuizAnswer | undefined;
-  me: Person;
-  myName: string;
-  theirName: string;
-}) {
-  const them = otherPerson(me);
-  return (
-    <div className="show-quick">
-      <h2 className="show-h">⚡ Dit of dat</h2>
-      <ul className="show-quick__list">
-        {items.map((q) => {
-          const mine = find(q.id, me)!;
-          const theirs = find(q.id, them)!;
-          const iKnew = mine.guess === theirs.self;
-          const theyKnew = theirs.guess === mine.self;
-          return (
-            <li key={q.id} className="show-quick__row">
-              <span className="show-quick__q">
-                {q.a} <i>of</i> {q.b}
-              </span>
-              <span className={`show-quick__who ${theyKnew ? 'is-right' : 'is-wrong'}`}>
-                <small>{myName}</small>
-                {mine.self} {theyKnew ? '✓' : '✗'}
-              </span>
-              <span className={`show-quick__who ${iKnew ? 'is-right' : 'is-wrong'}`}>
-                <small>{theirName}</small>
-                {theirs.self} {iKnew ? '✓' : '✗'}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-      <p className="game-hint">✓ betekent: de ander raadde het goed.</p>
-    </div>
   );
 }
 
