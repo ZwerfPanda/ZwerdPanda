@@ -1,0 +1,379 @@
+/* ================================================================
+   The Bubble Tea Bar: a pastel counter with a neon sign.
+   ================================================================ */
+
+.boba {
+  position: relative;
+  display: grid;
+  gap: 10px;
+  padding: 10px;
+  scroll-margin-top: calc(var(--safe-top, 0px) + 64px);
+  border-radius: 20px;
+  background: repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 0 18px,
+      transparent 18px 36px
+    ),
+    linear-gradient(180deg, #3b2253, #2a1840);
+  box-shadow:
+    0 0 0 2px rgba(255, 210, 255, 0.18),
+    0 10px 30px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.boba__sign {
+  justify-self: center;
+  padding: 4px 14px;
+  border-radius: 10px;
+  border: 2px solid #ff86bb;
+  color: #ffd1e4;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(255, 95, 162, 0.9);
+  box-shadow: 0 0 14px rgba(255, 95, 162, 0.5);
+}
+
+.boba__sign span {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: #6dffa8;
+  color: #0c2016;
+  font-family: var(--font-body, inherit);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-shadow: none;
+  vertical-align: middle;
+}
+
+.boba__counter {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  min-height: 150px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.boba__empty {
+  grid-column: 1 / -1;
+  align-self: center;
+  color: var(--ink-faint);
+  text-align: center;
+}
+
+.boba-guest {
+  position: relative;
+}
+
+.boba-guest__btn {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  padding: 8px 6px 10px;
+  border: 0;
+  border-radius: 16px;
+  background: #fff6ef;
+  color: #3a2a3a;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.08);
+  transition: transform 0.12s ease;
+}
+
+.boba-guest__btn:active {
+  transform: scale(0.96);
+}
+
+.boba-guest.is-vip .boba-guest__btn {
+  background: linear-gradient(180deg, #fff1f7, #ffe1ee);
+  box-shadow:
+    0 0 0 3px #ffd75e,
+    0 0 16px rgba(255, 215, 94, 0.6);
+}
+
+.boba-guest.is-cross .boba-guest__btn {
+  animation: boba-cross 0.6s ease-in-out infinite;
+}
+
+@keyframes boba-cross {
+  50% {
+    transform: rotate(-1.5deg);
+  }
+}
+
+.boba-guest__face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.boba-guest__coco {
+  width: 40px;
+  height: 44px;
+}
+
+.boba-guest__mood {
+  position: absolute;
+  right: -10px;
+  bottom: -2px;
+  font-size: 1rem;
+}
+
+.boba-guest__vip {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #b0325f;
+}
+
+.boba-ticket {
+  display: grid;
+  gap: 1px;
+  width: 100%;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+  font-size: 0.72rem;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.boba-ticket__tea {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 800;
+}
+
+.boba-ticket__tea i,
+.boba-opt i {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px rgba(58, 42, 58, 0.5);
+}
+
+.boba-guest__patience {
+  width: 100%;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(58, 42, 58, 0.12);
+}
+
+.boba-guest__patience span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b8b, #ffd75e, #6dd68a);
+  background-size: 300% 100%;
+  background-position: right;
+  transform-origin: left;
+  transition: transform 0.1s linear;
+}
+
+.boba-guest.is-cross .boba-guest__patience span {
+  background: #ff6b8b;
+}
+
+.boba-guest__give {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #ff5fa2;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.boba-guest__flash,
+.boba__served {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  z-index: 2;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #ffd75e;
+  color: #1b0b22;
+  font-weight: 900;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.boba__served {
+  top: 70px;
+  animation: boba-served 1.1s ease-out forwards;
+}
+
+@keyframes boba-served {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -30px);
+  }
+}
+
+.boba__work {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.boba-cup {
+  flex: none;
+  width: 56px;
+  height: auto;
+}
+
+.boba-cup.is-big {
+  width: 62px;
+}
+
+.boba__made {
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.boba__made strong {
+  color: var(--neon-gold);
+}
+
+.boba__start {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(27, 11, 34, 0.55);
+}
+
+.boba__controls {
+  display: grid;
+  gap: 6px;
+}
+
+.boba-row {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
+  gap: 6px;
+}
+
+.boba-row__label {
+  color: var(--ink-faint);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.boba-row__opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.boba-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.boba-opt.is-on {
+  border-color: #ff86bb;
+  background: #ff5fa2;
+  color: #1b0b22;
+  font-weight: 800;
+}
+
+.boba-opt:disabled,
+.boba-bin:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.boba-bin {
+  display: inline-flex;
+  justify-self: end;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink-soft);
+  font: inherit;
+  cursor: pointer;
+}
+
+.boba-bin svg {
+  width: 16px;
+  height: 16px;
+}
+
+.boba-clock {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+  min-width: 110px;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.boba-clock__bar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.boba-clock__bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #5ff3ff, #ff5fa2);
+  transform-origin: left;
+  transition: transform 0.1s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boba-guest.is-cross .boba-guest__btn,
+  .boba__served {
+    animation: none;
+  }
+}

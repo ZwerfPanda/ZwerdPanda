@@ -541,6 +541,7 @@ const GAMES_SINCE_2: readonly GameId[] = ['memory', 'hockey'];
 const MATCHES_SINCE_5: readonly MatchKind[] = ['memory', 'darts'];
 const MATCHES_SINCE_7: readonly MatchKind[] = ['skeeball', 'bowling', 'bingo', 'kwartet'];
 const GAMES_SINCE_7: readonly GameId[] = ['bingo', 'kwartet'];
+const GAMES_SINCE_12: readonly GameId[] = ['hop', 'boba'];
 
 /**
  * Content saved by an older app is missing whatever that app didn't know yet.
@@ -553,6 +554,31 @@ const withArchive = (archive: GamesArchive | undefined) => (archive ? { archive 
 export function carryForward(shared: AppContent, ours: AppContent, writer: number): AppContent {
   if (writer >= CONTENT_SCHEMA) return shared;
   let out = shared;
+  // Schema 12 added Coco's hop-race and the bubble tea bar: their duels, scores and results.
+  if (writer < 12) {
+    const has = (game: string) => (GAMES_SINCE_12 as readonly string[]).includes(game);
+    const matches = new Set(out.games.matches.map((m) => m.id));
+    const scores = new Set(out.games.scores.map((s) => s.id));
+    const results = new Set(out.games.results.map((r) => r.id));
+    out = {
+      ...out,
+      games: {
+        ...out.games,
+        matches: [
+          ...out.games.matches,
+          ...ours.games.matches.filter((m) => has(m.kind) && !matches.has(m.id)),
+        ],
+        scores: [
+          ...out.games.scores,
+          ...ours.games.scores.filter((s) => has(s.game) && !scores.has(s.id)),
+        ],
+        results: [
+          ...out.games.results,
+          ...ours.games.results.filter((r) => has(r.game) && !results.has(r.id)),
+        ],
+      },
+    };
+  }
   // Schema 11 added our chat.
   if (writer < 11) out = { ...out, chat: ours.chat };
   // Schema 10 added the music room.

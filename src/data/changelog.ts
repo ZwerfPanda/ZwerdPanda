@@ -23,6 +23,31 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-22',
+    when: 'oktober 2026',
+    title: 'Twee nieuwe kasten in de arcade 🐰🧋',
+    items: [
+      {
+        emoji: '🐰',
+        title: 'Coco’s Hoprace',
+        text: 'Coco rent door de tuin: hop over bloempotten, hekjes en plassen en eet haar wortels en aardbeien onderweg.',
+        path: '/games',
+      },
+      {
+        emoji: '🧋',
+        title: 'De Bubble Tea Bar',
+        text: 'Een dienst achter de bar: thee, topping, suiker, ijs. Soms komt er een VIP met een bekende bestelling…',
+        path: '/games',
+      },
+      {
+        emoji: '🎟️',
+        title: 'Duel om tickets',
+        text: 'Allebei een rondje op je eigen telefoon: de hoogste score wint. Ook tegen Coco of samen op één telefoon.',
+        path: '/games',
+      },
+    ],
+  },
+  {
     id: '2026-10-21',
     when: 'oktober 2026',
     title: 'Chatten in de arcade 💬',

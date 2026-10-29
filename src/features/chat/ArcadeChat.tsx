@@ -41,6 +41,8 @@ const DOING: Record<string, string> = {
   hockey: 'speelt airhockey 🏒',
   bingo: 'speelt bingo 🎱',
   kwartet: 'speelt Go Fish 🐟',
+  hop: 'rent met Coco 🐰',
+  boba: 'staat achter de Bubble Tea Bar 🧋',
   grab: 'staat bij de grijpmachine 🕹️',
   prizes: 'kijkt bij de prijzenkast 🎟️',
   quiz: 'speelt Wie kent wie 🎤',
@@ -289,7 +291,7 @@ function ChatSheet({ onClose, game }: { onClose: () => void; game: string | null
           <button
             type="button"
             className="chat-quick chat-quick--invite"
-            onClick={() => send(`Kom je ${GAME_NAMES[playable]} met me spelen? 🎮`, playable)}
+            onClick={() => send(`Zin in een potje ${GAME_NAMES[playable]}? 🎮`, playable)}
           >
             Daag uit voor {GAME_NAMES[playable]}
           </button>

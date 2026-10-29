@@ -4,12 +4,12 @@ import { startMatch, updateMatch } from './gameData';
 import { ticketsFor } from './tickets';
 
 /**
- * A duel at skeeball or bowling: each of us plays one round, whenever and on
+ * A duel at skeeball, bowling, Coco's hop-race or the bubble tea bar: each of us plays one round, whenever and on
  * whichever phone, and once both scores are in the higher one wins. That's a
  * real game against each other, so it earns tickets like the others do.
  */
 
-export type DuelKind = 'skeeball' | 'bowling';
+export type DuelKind = 'skeeball' | 'bowling' | 'hop' | 'boba';
 export type DuelScores = Partial<Record<Person, number>>;
 
 const other = (p: Person): Person => (p === 'you' ? 'partner' : 'you');

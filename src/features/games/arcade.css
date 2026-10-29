@@ -4481,3 +4481,61 @@ button.sea__cell:focus-visible {
     animation: none;
   }
 }
+
+/* ------------------------------------------- previews: Coco's hoprace and the bubble tea bar */
+
+.pv-hopper {
+  animation: pv-hopper 1.4s ease-in-out infinite;
+}
+
+@keyframes pv-hopper {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  45% {
+    transform: translate(10px, -24px);
+  }
+  70% {
+    transform: translate(16px, 0);
+  }
+}
+
+.pv-pot,
+.pv-carrot {
+  animation: pv-scroll 1.4s linear infinite;
+}
+
+@keyframes pv-scroll {
+  from {
+    transform: translateX(14px);
+  }
+  to {
+    transform: translateX(-14px);
+  }
+}
+
+.pv-pearl {
+  animation: pv-pearl 1.6s ease-in infinite;
+}
+
+@keyframes pv-pearl {
+  0% {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  40%,
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-hopper,
+  .pv-pot,
+  .pv-carrot,
+  .pv-pearl {
+    animation: none !important;
+  }
+}

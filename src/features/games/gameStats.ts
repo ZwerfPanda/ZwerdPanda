@@ -23,6 +23,8 @@ export const GAME_NAMES: Record<GameId, string> = {
   hockey: 'airhockey',
   bingo: 'bingo',
   kwartet: 'Go Fish',
+  hop: 'Coco’s hoprace',
+  boba: 'Bubble Tea Bar',
 };
 
 /** Writes down how a game ended (once per id, so a match counts once). */
@@ -116,6 +118,8 @@ export function gameBrag(
     'kwartet',
     'skeeball',
     'bowling',
+    'hop',
+    'boba',
   ] as GameId[]) {
     const h = headToHead(c.games, game, 'you', 'partner');
     if (h.a + h.b === 0) continue;
@@ -175,10 +179,18 @@ export function gameBrag(
         `Skeeball-duel: ${wins}–${losses} voor mij 🎟️`,
         `Ik won al ${wins} skeeball-duels, {pet}. Mik maar beter 😌`,
       ],
+      hop: [
+        `Hoprace: ${wins}–${losses} voor mij 🐰 Coco springt gewoon hoger bij mij.`,
+        `${wins} keer verder gehopt dan jij, {pet}. Wortels eten en gaan 🥕`,
+      ],
+      boba: [
+        `Bubble Tea Bar: ${wins}–${losses} voor mij 🧋 Ik ben gewoon de betere barista.`,
+        `${wins} diensten gewonnen achter de bar, {pet}. Fooi graag 😌`,
+      ],
     };
     options.push({ leader, text: pick(texts[game], rng), reply: pick(replies, rng) });
   }
-  for (const game of ['bowling', 'skeeball', 'darts'] as const) {
+  for (const game of ['bowling', 'skeeball', 'darts', 'hop', 'boba'] as const) {
     const a = bestScore(c, game, 'you');
     const b = bestScore(c, game, 'partner');
     if (a === null || b === null || a === b) continue;
@@ -192,7 +204,11 @@ export function gameBrag(
           ? `Mijn bowlingrecord: ${mine}. Het jouwe: ${theirs}. Just saying 🎳`
           : game === 'darts'
             ? `${mine} punten met darten, {pet}. Probeer dat maar eens te kloppen 🎯`
-            : `${mine} punten bij skeeball, {pet}. Kom maar op 🎟️`,
+            : game === 'hop'
+              ? `Mijn hoprace-record: ${mine}. Coco en ik zijn een team 🐰`
+              : game === 'boba'
+                ? `${mine} punten in één dienst achter de Bubble Tea Bar 🧋 Kom maar op.`
+                : `${mine} punten bij skeeball, {pet}. Kom maar op 🎟️`,
       reply: pick(replies, rng),
     });
   }
@@ -239,6 +255,11 @@ export function cocoGameTalk(c: AppContent, me: Person, name: string, rng: Rng):
     const mine = cocoBest(c, game);
     if (mine !== null) lines.push(`Mijn ${game}record is ${mine}. Met mijn pootjes!`);
   }
+  const hop = cocoBest(c, 'hop');
+  if (hop !== null)
+    lines.push(`Mijn eigen hoprace: ${hop} punten. Ik ben er tenslotte in geboren 🐰`);
+  const boba = cocoBest(c, 'boba');
+  if (boba !== null) lines.push(`${boba} punten achter de bar! Ik heb alleen geen duimen…`);
   if (!lines.length) return rng() < 0.5 ? 'Spelen we straks een potje in de Arcade Hall?' : null;
   return pick(lines, rng);
 }

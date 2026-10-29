@@ -670,7 +670,9 @@ export type MatchKind =
   | 'skeeball'
   | 'bowling'
   | 'bingo'
-  | 'kwartet';
+  | 'kwartet'
+  | 'hop'
+  | 'boba';
 
 /** A game we play together, turn by turn, each on our own phone. */
 export interface GameMatch {
@@ -685,7 +687,7 @@ export interface GameMatch {
   updatedAt: string;
 }
 
-export type ScoreGame = 'bowling' | 'skeeball' | 'darts';
+export type ScoreGame = 'bowling' | 'skeeball' | 'darts' | 'hop' | 'boba';
 
 export interface GameScore {
   id: ID;
@@ -706,7 +708,9 @@ export type GameId =
   | 'memory'
   | 'hockey'
   | 'bingo'
-  | 'kwartet';
+  | 'kwartet'
+  | 'hop'
+  | 'boba';
 /** Who can play: the two of us, and Coco. */
 export type Player = Person | 'coco';
 

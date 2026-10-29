@@ -25,6 +25,10 @@ const Memory = lazy(() => import('./Memory').then((m) => ({ default: m.Memory })
 const Bingo = lazy(() => import('./Bingo').then((m) => ({ default: m.Bingo })));
 const Kwartet = lazy(() => import('./Kwartet').then((m) => ({ default: m.Kwartet })));
 const Hockey = lazy(() => import('./Hockey').then((m) => ({ default: m.Hockey })));
+const HopRace = lazy(() => import('./HopRace').then((m) => ({ default: m.HopRace })));
+const BubbleTeaBar = lazy(() =>
+  import('./BubbleTeaBar').then((m) => ({ default: m.BubbleTeaBar })),
+);
 const Prizes = lazy(() => import('./Prizes').then((m) => ({ default: m.Prizes })));
 
 const GAMES = [
@@ -67,6 +71,22 @@ const GAMES = [
     blurb: 'Mik op de 100 — duel om tickets',
     tint: '#e0ebd4',
     kind: 'skeeball',
+  },
+  {
+    id: 'hop',
+    emoji: '🐰',
+    title: 'Coco’s Hoprace',
+    blurb: 'Hop over bloempotten, eet wortels — duel om tickets',
+    tint: '#e0ebd4',
+    kind: 'hop',
+  },
+  {
+    id: 'boba',
+    emoji: '🧋',
+    title: 'Bubble Tea Bar',
+    blurb: 'Maak de bestellingen op tijd — duel om tickets',
+    tint: '#f9d0e0',
+    kind: 'boba',
   },
   {
     id: 'bingo',
@@ -133,23 +153,27 @@ export function GamesPage() {
               ? Bowling
               : game === 'skeeball'
                 ? Skeeball
-                : game === 'darts'
-                  ? Darts
-                  : game === 'zeeslag'
-                    ? Zeeslag
-                    : game === 'claw'
-                      ? Claw
-                      : game === 'memory'
-                        ? Memory
-                        : game === 'hockey'
-                          ? Hockey
-                          : game === 'bingo'
-                            ? Bingo
-                            : game === 'kwartet'
-                              ? Kwartet
-                              : game === 'prizes'
-                                ? Prizes
-                                : null;
+                : game === 'hop'
+                  ? HopRace
+                  : game === 'boba'
+                    ? BubbleTeaBar
+                    : game === 'darts'
+                      ? Darts
+                      : game === 'zeeslag'
+                        ? Zeeslag
+                        : game === 'claw'
+                          ? Claw
+                          : game === 'memory'
+                            ? Memory
+                            : game === 'hockey'
+                              ? Hockey
+                              : game === 'bingo'
+                                ? Bingo
+                                : game === 'kwartet'
+                                  ? Kwartet
+                                  : game === 'prizes'
+                                    ? Prizes
+                                    : null;
     if (Game)
       return (
         <Suspense fallback={<PageLoading />}>
@@ -186,6 +210,8 @@ function Arcade() {
     `★ HIGHSCORE BOWLEN  ${you} ${best('bowling', 'you')}  ·  ${partner} ${best('bowling', 'partner')}  ·  COCO ${best('bowling', 'coco')}`,
     `★ HIGHSCORE DARTEN  ${you} ${best('darts', 'you')}  ·  ${partner} ${best('darts', 'partner')}  ·  COCO ${best('darts', 'coco')}`,
     `★ HIGHSCORE SKEEBALL  ${you} ${best('skeeball', 'you')}  ·  ${partner} ${best('skeeball', 'partner')}  ·  COCO ${best('skeeball', 'coco')}`,
+    `★ HOPRACE  ${you} ${best('hop', 'you')}  ·  ${partner} ${best('hop', 'partner')}  ·  COCO ${best('hop', 'coco')}`,
+    `★ BUBBLE TEA BAR  ${you} ${best('boba', 'you')}  ·  ${partner} ${best('boba', 'partner')}  ·  COCO ${best('boba', 'coco')}`,
     `★ JIJ TEGEN COCO  ${cocoMe.a}–${cocoMe.b}`,
     '★ 1 MUNTJE = 1 KUSJE ♥',
   ].join('          ');
@@ -358,6 +384,8 @@ const MARQUEE: Record<string, string> = {
   hangman: 'linear-gradient(90deg,#b07bff,#ff8cc0)',
   bowling: 'linear-gradient(90deg,#ff5fa2,#ffd75e)',
   skeeball: 'linear-gradient(90deg,#2bd6c1,#7bff8a)',
+  hop: 'linear-gradient(90deg,#7ab868,#ffd75e,#ff8cc0)',
+  boba: 'linear-gradient(90deg,#c3a6e6,#ff8cc0,#e9d98a)',
   zeeslag: 'linear-gradient(90deg,#1f6fd6,#2bd6c1)',
   darts: 'linear-gradient(90deg,#d8323c,#2fa64f)',
   claw: 'linear-gradient(90deg,#ff8cc0,#b07bff,#7fc8ff)',
@@ -519,6 +547,54 @@ function Preview({ id }: { id: string }) {
             />
           ))}
           <circle className="pv-skee" cx="60" cy="72" r="5" fill="#ffd3e1" />
+        </svg>
+      );
+    case 'hop':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--hop">
+          <rect width="120" height="80" fill="#ffe6c9" />
+          <rect y="62" width="120" height="18" fill="#7ab868" />
+          <g className="pv-pot">
+            <path d="M86 50h14l-2 12h-10z" fill="#d9774f" stroke="#3a2a3a" strokeWidth="1.5" />
+            <path d="M89 44q4 -8 8 0q-4 4 -8 0z" fill="#ff7aa8" />
+          </g>
+          <g className="pv-carrot">
+            <path d="M58 26l6 -2l-2 10z" fill="#f08a2e" />
+            <path d="M59 25l-2 -5M61 24l1 -5" stroke="#7cb565" strokeWidth="1.6" />
+          </g>
+          <g className="pv-hopper">
+            <ellipse cx="34" cy="54" rx="11" ry="8" fill="#26222b" />
+            <circle cx="43" cy="47" r="6.5" fill="#26222b" />
+            <ellipse cx="41" cy="38" rx="2.2" ry="6" fill="#26222b" transform="rotate(-15 41 38)" />
+            <ellipse cx="45" cy="38" rx="2.2" ry="6" fill="#26222b" transform="rotate(10 45 38)" />
+            <circle cx="45.5" cy="46" r="1.3" fill="#fff" />
+            <ellipse cx="30" cy="61" rx="4" ry="2" fill="#f7f3ee" />
+            <ellipse cx="41" cy="61" rx="3" ry="2" fill="#f7f3ee" />
+          </g>
+        </svg>
+      );
+    case 'boba':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--boba">
+          <rect x="22" y="58" width="76" height="18" rx="3" fill="#ffd1e4" />
+          <g className="pv-cup">
+            <path d="M46 20h28l-4 40h-20z" fill="#e9d98a" stroke="#fff" strokeWidth="2" />
+            {[0, 1, 2, 3, 4].map((i) => (
+              <circle
+                key={i}
+                className="pv-pearl"
+                cx={52 + i * 4}
+                cy={54 - (i % 2) * 3}
+                r="2.4"
+                fill="#3a2418"
+                style={{ animationDelay: `${i * 0.15}s` }}
+              />
+            ))}
+            <path d="M64 6l-3 40" stroke="#ff86bb" strokeWidth="4" strokeLinecap="round" />
+          </g>
+          <text x="96" y="30" fontSize="14" className="pv-q">
+            ♥
+          </text>
         </svg>
       );
     case 'zeeslag':
