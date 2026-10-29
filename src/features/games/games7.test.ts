@@ -9,11 +9,13 @@ import { ticketsEarned } from './tickets';
 import {
   FREE,
   LINES,
+  autoStamp,
   bingoLine,
   canStamp,
   cocoStamps,
   current as bingoTurn,
   draw,
+  missed,
   newBingo,
   newCard,
   pass,
@@ -143,6 +145,21 @@ describe('skeeball and bowling duels', () => {
 });
 
 describe('bingo', () => {
+  it('playing automatically: pull, stamp everything that is out, shout — a game plays itself to the end', () => {
+    let s = newBingo(['you', 'partner'], seeded(5));
+    const rng = seeded(6);
+    for (let i = 0; i < 400 && !s.winner; i++) {
+      const seat = bingoTurn(s);
+      if (s.phase === 'draw') s = draw(s, rng);
+      for (const p of s.seats) s = autoStamp(s, p);
+      for (const p of s.seats) if (!s.winner && bingoLine(s, p)) s = shout(s, p);
+      if (!s.winner) s = pass(s);
+      expect(missed(s, seat)).toEqual([]);
+    }
+    expect(s.winner).toBeDefined();
+    expect(s.drawn.length).toBeLessThanOrEqual(75);
+  });
+
   it('deals cards with five numbers per column and a free heart', () => {
     for (let n = 0; n < 30; n++) {
       const card = newCard(Math.random);

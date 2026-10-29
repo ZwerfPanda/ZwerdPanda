@@ -12,6 +12,7 @@ import { GameShell, ScoreBoard, TurnBanner, WhoAreYou, type PlayMode } from './G
 import {
   LETTERS,
   FREE,
+  autoStamp,
   ballName,
   bingoLine,
   callFor,
@@ -21,6 +22,7 @@ import {
   current,
   draw,
   letterOf,
+  missed,
   newBingo,
   newestFor,
   pass,
@@ -278,6 +280,53 @@ function ShoutButton({ ready, onShout }: { ready: boolean; onShout: () => void }
 }
 
 const ROLL_MS = 900;
+/** Playing automatically: a moment to see the ball, then the next step. */
+const AUTO_DRAW_MS = 1300;
+const AUTO_STAMP_MS = 650;
+
+const AUTO_KEY = 'olu:bingo-auto:v1';
+
+/** Automatic play, remembered on this phone (a convenience, so not synced). */
+function useAuto(): [boolean, (on: boolean) => void] {
+  const [on, setOn] = useState(() => {
+    try {
+      return localStorage.getItem(AUTO_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
+  const set = (next: boolean) => {
+    setOn(next);
+    try {
+      localStorage.setItem(AUTO_KEY, next ? '1' : '0');
+    } catch {
+      /* private mode: just for now then */
+    }
+  };
+  return [on, set];
+}
+
+function AutoToggle({ on, onChange }: { on: boolean; onChange: (on: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      className={`bingo-auto ${on ? 'is-on' : ''}`}
+      role="switch"
+      aria-checked={on}
+      onClick={() => {
+        playSfx('toggle', true);
+        onChange(!on);
+      }}
+      data-sfx="none"
+    >
+      <span className="bingo-auto__knob" aria-hidden="true" />
+      <span>
+        🤖 Automatisch spelen
+        <small>{on ? 'trekken, stempelen en BINGO gaan vanzelf' : 'uit — je doet het zelf'}</small>
+      </span>
+    </button>
+  );
+}
 
 /* ---------------------------------------------- one phone, or with Coco */
 
@@ -287,6 +336,7 @@ function HereBingo({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void }
   const seats: Player[] = vsCoco ? [me, 'coco'] : [me, otherPerson(me)];
   const [s, setS] = useState<BingoState>(() => newBingo(seats));
   const [rolling, setRolling] = useState(false);
+  const [auto, setAuto] = useAuto();
   const recorded = useRef(false);
   const box = useRef<HTMLDivElement>(null);
   const label = (p: Player) => (p === 'coco' ? 'Coco' : vsCoco ? 'Jij' : nameOf(p, profile));
@@ -329,6 +379,29 @@ function HereBingo({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void }
     return () => window.clearTimeout(t);
   }, [vsCoco, now, s, rolling]);
 
+  // Automatic play: stamp what's out (any time), shout a line, pull on our turn.
+  useEffect(() => {
+    if (!auto || s.winner || rolling) return;
+    const people = seats.filter((p) => p !== 'coco');
+    const toStamp = people.some((p) => missed(s, p).length);
+    const line = people.find((p) => bingoLine(s, p));
+    const ourPull = s.phase === 'draw' && now !== 'coco';
+    if (!toStamp && !line && !ourPull) return;
+    const t = window.setTimeout(
+      () => {
+        if (line) {
+          playSfx('star', true);
+          setS((cur) => shout(cur, line));
+        } else if (toStamp) {
+          playSfx('thunk', true);
+          setS((cur) => people.reduce((next, p) => autoStamp(next, p), cur));
+        } else pull();
+      },
+      ourPull && !toStamp && !line ? AUTO_DRAW_MS : AUTO_STAMP_MS,
+    );
+    return () => window.clearTimeout(t);
+  }, [auto, s, rolling, now]);
+
   useEffect(() => {
     if (!s.winner || recorded.current) return;
     recorded.current = true;
@@ -366,6 +439,7 @@ function HereBingo({ vsCoco, onAgain }: { vsCoco: boolean; onAgain: () => void }
         canDraw={!s.winner && s.phase === 'draw' && now !== 'coco' && !rolling}
         onDraw={pull}
       />
+      {!s.winner && <AutoToggle on={auto} onChange={setAuto} />}
       <div className={`bingo-cards ${vsCoco ? '' : 'is-two'}`}>
         {seats.map((seat) =>
           seat === 'coco' ? (
@@ -424,6 +498,7 @@ function RemoteBingo() {
   const match = useMatch('bingo');
   const s = readBingo(match?.state);
   const [rolling, setRolling] = useState(false);
+  const [auto, setAuto] = useAuto();
   const box = useRef<HTMLDivElement>(null);
   const heard = useRef<number | null>(null);
   const theirName = nameOf(them, profile);
@@ -464,6 +539,27 @@ function RemoteBingo() {
     const t = window.setTimeout(() => act(match, pass), 1200);
     return () => window.clearTimeout(t);
   }, [match?.updatedAt, mine, rolling]);
+
+  // Automatic play on my turn: stamp what's out, shout a line, pull the next ball.
+  useEffect(() => {
+    if (!auto || !match || !s || !mine || rolling) return;
+    const toStamp = missed(s, me).length > 0;
+    const line = bingoLine(s, me);
+    if (!toStamp && !line && s.phase !== 'draw') return;
+    const t = window.setTimeout(
+      () => {
+        if (line) {
+          playSfx('star', true);
+          act(match, (cur) => shout(cur, me));
+        } else if (toStamp) {
+          playSfx('thunk', true);
+          act(match, (cur) => autoStamp(cur, me));
+        } else pull();
+      },
+      toStamp || line ? AUTO_STAMP_MS : AUTO_DRAW_MS,
+    );
+    return () => window.clearTimeout(t);
+  }, [auto, match?.updatedAt, mine, rolling]);
 
   const start = () => {
     playSfx('coin', true);
@@ -521,6 +617,7 @@ function RemoteBingo() {
         canDraw={mine && s.phase === 'draw' && !rolling}
         onDraw={pull}
       />
+      {!match.winner && <AutoToggle on={auto} onChange={setAuto} />}
       <p className="bingo-them">
         {theirName}:{' '}
         {match.winner === them

@@ -23,6 +23,19 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-25',
+    when: 'oktober 2026',
+    title: 'Bingo speelt zichzelf 🤖',
+    items: [
+      {
+        emoji: '🎱',
+        title: 'Automatisch spelen',
+        text: 'Zet bij bingo de schakelaar aan: je bal wordt vanzelf getrokken, je nummers gestempeld en BINGO geroepen. Je telefoon onthoudt het.',
+        path: '/games',
+      },
+    ],
+  },
+  {
     id: '2026-10-24',
     when: 'oktober 2026',
     title: 'Wie kent wie: de grote show 🎤',

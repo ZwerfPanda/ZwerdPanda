@@ -141,6 +141,11 @@ export function newestFor(s: BingoState, seat: Player): { ball: number; cell: nu
 export const missed = (s: BingoState, seat: Player) =>
   (s.cards[seat] ?? []).map((_, i) => i).filter((i) => canStamp(s, seat, i));
 
+/** Automatic play: every number of yours that's out, stamped at once. */
+export function autoStamp(s: BingoState, seat: Player): BingoState {
+  return missed(s, seat).reduce((next, cell) => stamp(next, seat, cell), s);
+}
+
 /**
  * Coco stamps her card: she nearly always sees her number, but now and then
  * she's busy with a carrot and catches up later.
