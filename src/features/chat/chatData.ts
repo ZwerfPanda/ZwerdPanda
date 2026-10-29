@@ -113,11 +113,18 @@ export function typing() {
 let myPlace = 'elsewhere';
 let saveTimer: number | undefined;
 
-/** Our place right now: told live at once, and saved (now and then). */
+const inArcade = (place: string) => place === 'hall' || place.startsWith('game:');
+
+/**
+ * Our place right now: told live at once. Saved only around the arcade (going
+ * in, playing, leaving), so walking through the app doesn't sync each page.
+ */
 export function setPlace(place: string) {
   if (place === myPlace) return;
+  const was = myPlace;
   myPlace = place;
   sendHere();
+  if (!inArcade(place) && !inArcade(was)) return;
   window.clearTimeout(saveTimer);
   saveTimer = window.setTimeout(() => {
     const me = getMe();
