@@ -13,6 +13,7 @@ import { href } from '../../lib/router';
 import { playSfx } from '../../lib/audio/sfx';
 import { useAmbience } from '../../lib/audio/ambience';
 import { ScoreBoard, WhoAreYou } from '../games/GameShell';
+import { ChatBarButton, PresencePill } from '../chat/ArcadeChat';
 import '../games/arcade.css';
 import './quiz.css';
 
@@ -170,7 +171,9 @@ export function QuizPage() {
         <a className="game__back" href={href('/games')}>
           <ArrowLeft aria-hidden="true" /> Arcade Hall
         </a>
+        <ChatBarButton />
       </div>
+      <PresencePill game="quiz" />
       <header className="show__stage">
         <span className="show__beam show__beam--l" aria-hidden="true" />
         <span className="show__beam show__beam--r" aria-hidden="true" />

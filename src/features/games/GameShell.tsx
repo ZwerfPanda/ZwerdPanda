@@ -6,6 +6,7 @@ import { href } from '../../lib/router';
 import { playSfx } from '../../lib/audio/sfx';
 import { refreshNow } from './gameData';
 import { GoldenBadge } from './GoldenDay';
+import { ChatBarButton, PresencePill } from '../chat/ArcadeChat';
 import './arcade.css';
 
 export type PlayMode = 'remote' | 'coco' | 'local';
@@ -51,17 +52,21 @@ export function GameShell({
         <a className="game__back" href={href('/games')}>
           <ArrowLeft aria-hidden="true" /> Arcade Hall
         </a>
-        {mode === 'remote' && (
-          <button
-            type="button"
-            className="game__refresh"
-            aria-label="Kijk of de ander al gezet heeft"
-            onClick={refreshNow}
-          >
-            <RefreshCw />
-          </button>
-        )}
+        <span className="game__bar-end">
+          {mode === 'remote' && (
+            <button
+              type="button"
+              className="game__refresh"
+              aria-label="Kijk of de ander al gezet heeft"
+              onClick={refreshNow}
+            >
+              <RefreshCw />
+            </button>
+          )}
+          <ChatBarButton />
+        </span>
       </div>
+      <PresencePill game={id} />
       <h1 className="game__title">
         <span>{title}</span>
       </h1>

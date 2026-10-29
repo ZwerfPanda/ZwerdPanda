@@ -1,8 +1,9 @@
-import { CARE_DAYS_LIMIT, CHAT_LIMIT, PET_LOG_LIMIT } from '../data/normalize';
+import { ARCADE_CHAT_LIMIT, CARE_DAYS_LIMIT, CHAT_LIMIT, PET_LOG_LIMIT } from '../data/normalize';
 import { CONTENT_SCHEMA, createDefaultContent } from '../data/defaults';
 import { pickArchive } from '../data/archive';
 import type {
   AppContent,
+  Chat,
   GamesArchive,
   CocoPet,
   GameId,
@@ -292,6 +293,36 @@ export function mergeHunt(base: StarHunt, local: StarHunt, remote: StarHunt): St
   return { found, reward: mergeFields(base, local, remote).reward };
 }
 
+/**
+ * Our chat: every message either phone has (a message is never changed, only
+ * added or removed), and for "read" and "where", the latest of each of us.
+ */
+export function mergeChat(local: Chat, remote: Chat, base?: Chat): Chat {
+  const messages = base
+    ? mergeList(base.messages, local.messages, remote.messages)
+    : [
+        ...remote.messages,
+        ...local.messages.filter((m) => !remote.messages.some((r) => r.id === m.id)),
+      ];
+  const read: Chat['read'] = {};
+  const places: Chat['places'] = {};
+  for (const who of ['you', 'partner'] as const) {
+    const r = later(local.read[who], remote.read[who]);
+    if (r) read[who] = r;
+    const a = local.places[who];
+    const b = remote.places[who];
+    const p = !a ? b : !b ? a : a.at >= b.at ? a : b;
+    if (p) places[who] = p;
+  }
+  return {
+    messages: messages
+      .sort((x, y) => (x.at < y.at ? -1 : x.at > y.at ? 1 : 0))
+      .slice(-ARCADE_CHAT_LIMIT),
+    read,
+    places,
+  };
+}
+
 export function mergeContent(base: AppContent, local: AppContent, remote: AppContent): AppContent {
   return {
     version: 1,
@@ -327,6 +358,7 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
       results: mergeList(base.games.results, local.games.results, remote.games.results),
       ...withArchive(pickArchive(local.games.archive, remote.games.archive)),
     },
+    chat: mergeChat(local.chat, remote.chat, base.chat),
     studio: {
       records: mergeList(base.studio.records, local.studio.records, remote.studio.records),
       listens: mergeList(base.studio.listens, local.studio.listens, remote.studio.listens),
@@ -433,6 +465,7 @@ export function mergeFirstJoin(
       results: addPlain(local.games.results, remote.games.results),
       ...withArchive(pickArchive(local.games.archive, remote.games.archive)),
     },
+    chat: mergeChat(local.chat, remote.chat),
     studio: {
       records: addPlain(local.studio.records, remote.studio.records),
       listens: addPlain(local.studio.listens, remote.studio.listens),
@@ -520,6 +553,8 @@ const withArchive = (archive: GamesArchive | undefined) => (archive ? { archive 
 export function carryForward(shared: AppContent, ours: AppContent, writer: number): AppContent {
   if (writer >= CONTENT_SCHEMA) return shared;
   let out = shared;
+  // Schema 11 added our chat.
+  if (writer < 11) out = { ...out, chat: ours.chat };
   // Schema 10 added the music room.
   if (writer < 10) out = { ...out, studio: ours.studio };
   // Schema 9 added the karaoke room.

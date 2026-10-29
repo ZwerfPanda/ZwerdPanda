@@ -10,6 +10,7 @@ import { headToHead } from './gameStats';
 import { monthName, ticketBalance, tournament } from './tickets';
 import './arcade.css';
 import { MedalCabinet, WeekChallenge } from './Medals';
+import { PresenceBanner, PresenceDot } from '../chat/ArcadeChat';
 import { GoldenBanner, GoldenCoins, useCountUp, useGoldenNow } from './GoldenDay';
 
 const ConnectFour = lazy(() => import('./ConnectFour').then((m) => ({ default: m.ConnectFour })));
@@ -229,6 +230,8 @@ function Arcade() {
         </p>
       </header>
 
+      <PresenceBanner />
+
       <div className="hall__ticker" aria-label="Records">
         <div className="hall__ticker-track">
           <span>{ticker}</span>
@@ -392,6 +395,7 @@ function Cabinet({
       <span className="cab__marquee" style={{ background: MARQUEE[id] }}>
         {title}
       </span>
+      <PresenceDot game={id} />
       <span className="cab__screen" aria-hidden="true">
         <Preview id={id} />
         {inserting && <span className="cab__start">PLAYER 1 START</span>}

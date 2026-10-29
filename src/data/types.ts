@@ -831,6 +831,33 @@ export interface AppContent {
   karaoke: Karaoke;
   /** The music room: the songs we made for each other. */
   studio: Studio;
+  /** Our chat in the arcade (and where each of us was last). */
+  chat: Chat;
+}
+
+/* ---------------------------------------------------------------- chat */
+
+export interface ChatMessage {
+  id: ID;
+  from: Person;
+  text: string;
+  at: string;
+  /** "Come play": an invitation to this game. */
+  invite?: GameId;
+}
+
+/** Where one of us was in the app, and when. */
+export interface Whereabouts {
+  place: string;
+  at: string;
+}
+
+export interface Chat {
+  messages: ChatMessage[];
+  /** Up to when each of us has read. */
+  read: Partial<Record<Person, string>>;
+  /** Where each of us was last (the live line says where we are now). */
+  places: Partial<Record<Person, Whereabouts>>;
 }
 
 /* ---------------------------------------------------------- music room */

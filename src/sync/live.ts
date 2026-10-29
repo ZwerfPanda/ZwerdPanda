@@ -21,6 +21,21 @@ export function connectLive(next: SyncEngine | null): () => void {
   };
 }
 
+/** Other kinds of live messages (the chat, who's where) and who handles them. */
+const handlers = new Map<string, (message: Record<string, unknown>) => void>();
+
+export function onLiveMessage(type: string, handler: (message: Record<string, unknown>) => void) {
+  handlers.set(type, handler);
+  return () => {
+    if (handlers.get(type) === handler) handlers.delete(type);
+  };
+}
+
+/** Sends something small to the other phone right away (if the live line is up). */
+export function sendLiveMessage(message: Record<string, unknown> & { type: string }) {
+  engine?.sendLive(message);
+}
+
 /** Sends this match as it is now. */
 export function sendMatch(match: GameMatch) {
   engine?.sendLive({ type: 'match', match });
@@ -30,7 +45,10 @@ export function sendMatch(match: GameMatch) {
 export function receive(message: unknown) {
   if (typeof message !== 'object' || message === null) return;
   const { type, match } = message as { type?: unknown; match?: unknown };
-  if (type !== 'match') return;
+  if (type !== 'match') {
+    if (typeof type === 'string') handlers.get(type)?.(message as Record<string, unknown>);
+    return;
+  }
   const m = normalizeMatch(match);
   if (!m) return;
   const c = getContent();

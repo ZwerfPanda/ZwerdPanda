@@ -23,6 +23,31 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-21',
+    when: 'oktober 2026',
+    title: 'Chatten in de arcade 💬',
+    items: [
+      {
+        emoji: '💬',
+        title: 'Een chat in de Arcade Hall',
+        text: 'Live berichtjes, met "typt…" en "gelezen": rechtsonder in de hal, bovenin bij elk spel. Niet in de app? Dan een melding.',
+        path: '/games',
+      },
+      {
+        emoji: '🟢',
+        title: 'Zien waar de ander is',
+        text: 'Een groen lampje als de ander er is: in de hal staat welk spelletje er gespeeld wordt, met "Ga erheen", en de kast licht op met een naam.',
+        path: '/games',
+      },
+      {
+        emoji: '🎮',
+        title: 'Daag uit vanuit de chat',
+        text: 'Zit je in een spel, stuur dan "Daag uit": de ander tikt op "Doe mee" en staat meteen aan de kast.',
+        path: '/games',
+      },
+    ],
+  },
+  {
     id: '2026-10-20',
     when: 'oktober 2026',
     title: 'De Muziekkamer 🎶',

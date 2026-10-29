@@ -16,6 +16,8 @@ import {
 import { normalizeArchive } from './archive';
 import { TEXT_FROM_MAX, TEXT_TO_MAX, TEXTS_LIMIT, textId, textKeyOf } from './texts';
 import type {
+  Chat,
+  ChatMessage,
   OurRecord,
   RecordListen,
   Studio,
@@ -1271,6 +1273,37 @@ const voiceNote = (v: unknown) =>
     ? { mediaId: v.mediaId.slice(0, 120), seconds: clampNumber(v.seconds, 0, 3600) }
     : undefined;
 
+export const ARCADE_CHAT_LIMIT = 800;
+
+function normalizeChat(v: unknown): Chat {
+  if (!isObj(v)) return { messages: [], read: {}, places: {} };
+  const messages = list(v.messages, (m, i): ChatMessage | null => {
+    if (!isObj(m) || typeof m.text !== 'string') return null;
+    const from = person(m.from);
+    const text = m.text.trim().slice(0, 1000);
+    if (!from || !text) return null;
+    return {
+      id: id(m.id, 'chat', i),
+      from,
+      text,
+      at: stamp(m.at),
+      ...(GAME_IDS.includes(m.invite as GameId) ? { invite: m.invite as GameId } : {}),
+    };
+  })
+    .sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0))
+    .slice(-ARCADE_CHAT_LIMIT);
+  const read: Chat['read'] = {};
+  const places: Chat['places'] = {};
+  for (const who of ['you', 'partner'] as const) {
+    const r = isObj(v.read) ? optStamp(v.read[who]) : undefined;
+    if (r) read[who] = r;
+    const p = isObj(v.places) ? v.places[who] : undefined;
+    if (isObj(p) && typeof p.place === 'string' && optStamp(p.at))
+      places[who] = { place: p.place.slice(0, 40), at: p.at as string };
+  }
+  return { messages, read, places };
+}
+
 function normalizeStudio(v: unknown): Studio {
   if (!isObj(v)) return { records: [], listens: [] };
   const records = list(v.records, (r, i): OurRecord | null => {
@@ -1456,6 +1489,7 @@ export function normalizeContent(raw: unknown): AppContent {
     vault: normalizeVault(raw.vault),
     karaoke: normalizeKaraoke(raw.karaoke),
     studio: normalizeStudio(raw.studio),
+    chat: normalizeChat(raw.chat),
   });
 }
 
