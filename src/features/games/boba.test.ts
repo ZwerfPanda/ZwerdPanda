@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { seeded } from './hop';
 import {
   COUNTER,
+  LAST_CALL,
+  PERFECT_SHAKES,
+  RUSH,
+  shake,
+  shiftStars,
   HER_ORDER,
   SHIFT_SECONDS,
   cocoShift,
@@ -117,6 +122,79 @@ describe('Bubble Tea Bar', () => {
       expect(n).toBeGreaterThan(90);
       expect(n).toBeLessThan(500);
     }
+  });
+});
+
+describe('Bubble Tea Bar v2', () => {
+  it('rush hour brings more customers: they come in quicker after each other', () => {
+    const gaps = { before: [] as number[], during: [] as number[] };
+    for (let seed = 1; seed < 20; seed++) {
+      const rng = seeded(seed);
+      let st = newShift();
+      while (!st.over) {
+        const out = tick(st, 0.1, rng);
+        if (out.events.some((e) => e.type === 'arrive')) {
+          const gap = out.state.nextAt - out.state.t;
+          if (out.state.t >= RUSH[0] && out.state.t < RUSH[1]) gaps.during.push(gap);
+          else if (out.state.t < RUSH[0] && out.state.t > 10) gaps.before.push(gap);
+        }
+        st = { ...out.state, customers: [] };
+      }
+    }
+    const avg = (l: number[]) => l.reduce((a, b) => a + b, 0) / l.length;
+    expect(avg(gaps.during)).toBeLessThan(avg(gaps.before) * 0.7);
+  });
+
+  it('rush hour and last call are announced, and no one comes in at the very end', () => {
+    const rng = seeded(7);
+    let st = newShift();
+    const seen: string[] = [];
+    let lastArrival = 0;
+    while (!st.over) {
+      const out = tick(st, 0.1, rng);
+      for (const e of out.events) {
+        seen.push(e.type);
+        if (e.type === 'arrive') lastArrival = out.state.t;
+      }
+      st = { ...out.state, customers: [] };
+    }
+    expect(seen.filter((e) => e === 'rush')).toHaveLength(1);
+    expect(seen.filter((e) => e === 'last')).toHaveLength(1);
+    expect(lastArrival).toBeLessThan(SHIFT_SECONDS - LAST_CALL);
+  });
+
+  it('three shakes make it perfect: a bonus, counted', () => {
+    let st = tick(newShift(), 1, seeded(3)).state;
+    const c = st.customers[0];
+    st = setDrink(st, c.order);
+    for (let i = 0; i < 5; i++) st = shake(st);
+    expect(st.drink.shakes).toBe(PERFECT_SHAKES);
+    const perfect = serve(st, c.id);
+    const plain = serve(setDrink({ ...st, drink: {} }, c.order), c.id);
+    expect(perfect.state.score).toBe(plain.state.score + 4);
+    expect(perfect.state.perfect).toBe(1);
+  });
+
+  it('a hurried customer waits less and tips double', () => {
+    const base = { ...newShift(), t: 10 };
+    const calm = { id: 1, who: '🐱', order: HER_ORDER, vip: false, arrived: 10, patience: 20 };
+    const quick = { ...calm, id: 2, hurry: true };
+    const a = serve(setDrink({ ...base, customers: [calm] }, HER_ORDER), 1).state;
+    const b = serve(setDrink({ ...base, customers: [quick] }, HER_ORDER), 2).state;
+    expect(b.tips).toBe(a.tips * 2);
+    expect(b.score).toBeGreaterThan(a.score);
+  });
+
+  it('tips and the VIP are counted for the report', () => {
+    const st = {
+      ...newShift(),
+      t: 10,
+      customers: [{ id: 1, who: 'vip', order: HER_ORDER, vip: true, arrived: 10, patience: 20 }],
+    };
+    const out = serve(setDrink(st, HER_ORDER), 1).state;
+    expect(out.vipServed).toBe(1);
+    expect(out.tips).toBe(10);
+    expect([0, 109, 110, 220, 330, 999].map(shiftStars)).toEqual([0, 0, 1, 2, 3, 3]);
   });
 });
 

@@ -23,6 +23,31 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-23',
+    when: 'oktober 2026',
+    title: 'Hoprace en Bubble Tea Bar, nog mooier 🐰🧋',
+    items: [
+      {
+        emoji: '🌙',
+        title: 'Coco rent tot de sterren',
+        text: 'Van de tuin door het bloemenveld en langs de gracht tot een sterrennacht met vuurvliegjes. Pas op voor bijen en egeltjes!',
+        path: '/games',
+      },
+      {
+        emoji: '💗',
+        title: 'Knuffels, gouden wortels en sterren',
+        text: 'Een knuffel vergeeft één botsing, een gouden wortel trekt snacks aan, een ster geeft dubbele punten. Tien snacks op rij: ×2.',
+        path: '/games',
+      },
+      {
+        emoji: '🧋',
+        title: 'Een echte bubble tea-winkel',
+        text: 'Theetanks, potjes, schudden voor een perfecte beker, spitsuur, klanten met haast, een fooienpot en sterren voor je dienst.',
+        path: '/games',
+      },
+    ],
+  },
+  {
     id: '2026-10-22',
     when: 'oktober 2026',
     title: 'Twee nieuwe kasten in de arcade 🐰🧋',
