@@ -1,5 +1,6 @@
 import type { AppContent, Countdown, CountdownIcon } from '../../data/types';
 import { addMonths, daysUntil, parseIsoDate, toIsoDate } from '../../lib/dates';
+import { nextMonthiversary } from './heart';
 
 export interface Upcoming {
   id: string;
@@ -51,14 +52,45 @@ export function upcoming(content: AppContent, today: Date): Upcoming[] {
       });
     }
   }
-  const start = content.profile.startDate;
-  if (start) {
-    const next = nextOccurrence(start, true, today);
+  const { startDate: met, togetherDate: together } = content.profile;
+  // Our jubileum: from the day we became a couple (or the one date we have).
+  const jubilee = together ?? met;
+  if (jubilee) {
+    const next = nextOccurrence(jubilee, true, today);
     if (next && next.years > 0) {
       list.push({
         id: 'auto-anniversary',
         title: next.years === 1 ? 'Ons eerste jubileum' : `Ons ${ordinal(next.years)} jubileum`,
         icon: 'heart',
+        date: next.date,
+        days: next.days,
+        auto: true,
+      });
+    }
+  }
+  // The next "maandje" in the first two years together.
+  const start = together ? parseIsoDate(together) : null;
+  if (start && start.getTime() <= today.getTime()) {
+    const month = nextMonthiversary(start, today);
+    if (month.months > 0 && month.months < 24 && month.months % 12 !== 0) {
+      list.push({
+        id: 'auto-monthiversary',
+        title: `${month.months} maanden samen`,
+        icon: 'heart',
+        date: toIsoDate(addMonths(start, month.months)),
+        days: month.inDays,
+        auto: true,
+      });
+    }
+  }
+  // And, when we have both, the day we first got to know each other.
+  if (met && together) {
+    const next = nextOccurrence(met, true, today);
+    if (next && next.years > 0) {
+      list.push({
+        id: 'auto-met',
+        title: `${next.years} jaar dat we elkaar kennen`,
+        icon: 'star',
         date: next.date,
         days: next.days,
         auto: true,

@@ -12,6 +12,7 @@ import {
   cloneHer,
   defaultHer,
   defaultHunt,
+  TOGETHER_DATE,
 } from './defaults';
 import { normalizeArchive } from './archive';
 import { TEXT_FROM_MAX, TEXT_TO_MAX, TEXTS_LIMIT, textId, textKeyOf } from './texts';
@@ -229,7 +230,10 @@ function normalizeProfile(v: unknown): Profile {
     homeMessage: str(p.homeMessage, defaultProfile.homeMessage, 20_000),
     signature: str(p.signature, defaultProfile.signature, 120),
     startDate: optDate(p.startDate) ?? null,
+    // not there yet (saved before we had it): the day we told the app
+    togetherDate: 'togetherDate' in p ? (optDate(p.togetherDate) ?? null) : TOGETHER_DATE,
     counterMode: oneOf(p.counterMode, ['ymd', 'days'] as const, 'ymd'),
+    counterFrom: oneOf(p.counterFrom, ['together', 'met'] as const, 'together'),
     theme: oneOf(p.theme, THEMES, 'blush'),
     openingSong:
       typeof p.openingSong === 'string'

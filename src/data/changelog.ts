@@ -23,6 +23,25 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-10-26',
+    when: 'oktober 2026',
+    title: 'Onze twee datums 💞',
+    items: [
+      {
+        emoji: '💞',
+        title: 'Samen sinds 3 maart 2026',
+        text: 'Naast de dag dat we elkaar leerden kennen staat nu ook de dag dat we een relatie kregen. Wissel in het hart tussen de twee.',
+        path: '/',
+      },
+      {
+        emoji: '📅',
+        title: 'In de agenda en aftellers',
+        text: 'Ons jubileum en de maandjes tellen vanaf 3 maart, en de dag dat we elkaar leerden kennen komt elk jaar terug.',
+        path: '/agenda',
+      },
+    ],
+  },
+  {
     id: '2026-10-25',
     when: 'oktober 2026',
     title: 'Bingo speelt zichzelf 🤖',

@@ -33,6 +33,9 @@ const SEED = '2026-10-01T12:00:00.000Z';
 /** Seed items get `createdAt` and the sample flag stamped on below. */
 type Seed<T, Extra extends keyof T = never> = Omit<T, 'createdAt' | 'isSample' | Extra>;
 
+/** The day we became a couple (we told it ourselves). */
+export const TOGETHER_DATE = '2026-03-03';
+
 export const defaultProfile: Profile = {
   yourName: 'Valencio',
   partnerName: 'Shenaya',
@@ -43,7 +46,9 @@ export const defaultProfile: Profile = {
     'ik heb dit kleine plekje helemaal voor ons gemaakt.. voor alle momentjes die we al samen hebben, de dingen die we nog aan t uitvogelen zijn, en alles wat we nog gaan doen.\n\nt is niet perfect.. wij ook niet haha.. maar t is wel van ons. kijk rustig rond schatje, neem je tijd, en open gewoon wat je leuk lijkt ♡',
   signature: 'met heel veel liefde voor jou gemaakt.. - V',
   startDate: null,
+  togetherDate: TOGETHER_DATE,
   counterMode: 'ymd',
+  counterFrom: 'together',
   theme: 'blush',
   // Bruno Mars — Risk It All
   openingSong: 'https://open.spotify.com/track/5y2ijHECwFYWqcAHKTZgzD',
@@ -593,8 +598,9 @@ export function cloneUs(us: UsContent): UsContent {
  *  11 — our chat in the arcade
  *  12 — Coco's hop-race and the bubble tea bar
  *  13 — Wie kent wie grew: room for many more answers
+ *  14 — the day we became a couple, next to the day we met
  */
-export const CONTENT_SCHEMA = 13;
+export const CONTENT_SCHEMA = 14;
 
 export function createDefaultContent(): AppContent {
   return {

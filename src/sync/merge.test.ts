@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { createDefaultContent } from '../data/defaults';
 import type { AppContent, Memory } from '../data/types';
-import { contentMediaIds, mergeContent, mergeFirstJoin, mergeList, stableEqual } from './merge';
+import { normalizeContent } from '../data/normalize';
+import {
+  carryForward,
+  contentMediaIds,
+  mergeContent,
+  mergeFirstJoin,
+  mergeList,
+  stableEqual,
+} from './merge';
 
 const item = (id: string, text = id) => ({ id, text });
 const ids = (list: { id: string }[]) => list.map((i) => i.id);
@@ -405,5 +413,32 @@ describe('this round’s new things across two phones', () => {
     const merged = mergeContent(start, local, remote);
     expect(merged.datePlans[0].memoryId).toBe('mem-9');
     expect(merged.flowers.map((b) => b.id)).toEqual(['bouquet-1']);
+  });
+});
+
+describe('the day we became a couple', () => {
+  it('fills in 3 March 2026 on old content, but keeps a date we cleared', () => {
+    const old = createDefaultContent() as unknown as Record<string, unknown>;
+    const profile = { ...(old.profile as Record<string, unknown>) };
+    delete profile.togetherDate;
+    delete profile.counterFrom;
+    const fresh = normalizeContent({ ...old, profile });
+    expect(fresh.profile.togetherDate).toBe('2026-03-03');
+    expect(fresh.profile.counterFrom).toBe('together');
+
+    const cleared = normalizeContent({ ...old, profile: { ...profile, togetherDate: null } });
+    expect(cleared.profile.togetherDate).toBeNull();
+  });
+
+  it('an older phone that doesn’t know the date yet keeps ours when it syncs', () => {
+    const ours = createDefaultContent();
+    ours.profile.togetherDate = '2026-03-03';
+    ours.profile.counterFrom = 'met';
+    const shared = createDefaultContent();
+    shared.profile.togetherDate = null;
+    const out = carryForward(shared, ours, 13);
+    expect(out.profile.togetherDate).toBe('2026-03-03');
+    expect(out.profile.counterFrom).toBe('met');
+    expect(carryForward(shared, ours, 14)).toBe(shared);
   });
 });

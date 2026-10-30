@@ -301,6 +301,7 @@ type ProfileDraft = Pick<
   | 'signature'
 > & {
   startDate: string;
+  togetherDate: string;
 };
 
 function ProfileSection() {
@@ -314,6 +315,7 @@ function ProfileSection() {
     homeMessage: p.homeMessage,
     signature: p.signature,
     startDate: p.startDate ?? '',
+    togetherDate: p.togetherDate ?? '',
   });
   const [draft, setDraft] = useState<ProfileDraft>(() => toDraft(profile));
   const [errors, setErrors] = useState<Partial<Record<keyof ProfileDraft, string>>>({});
@@ -339,6 +341,12 @@ function ProfileSection() {
       const dateProblem = validateStartDate(draft.startDate);
       if (dateProblem) problems.startDate = dateProblem;
     }
+    if (draft.togetherDate) {
+      const dateProblem = validateStartDate(draft.togetherDate);
+      if (dateProblem) problems.togetherDate = dateProblem;
+      else if (draft.startDate && draft.togetherDate < draft.startDate)
+        problems.togetherDate = 'Samen kwam na het leren kennen — klopt deze datum?';
+    }
     setErrors(problems);
     if (Object.keys(problems).length) {
       toast('Een paar dingetjes kloppen nog niet.', { tone: 'error' });
@@ -353,6 +361,7 @@ function ProfileSection() {
       homeMessage: draft.homeMessage.trim(),
       signature: draft.signature.trim(),
       startDate: draft.startDate || null,
+      togetherDate: draft.togetherDate || null,
     });
     toast('Opgeslagen ♡');
   };
@@ -378,16 +387,30 @@ function ProfileSection() {
             autoComplete="off"
           />
         </div>
-        <TextField
-          label="Onze startdatum"
-          type="date"
-          optional
-          max={todayIso()}
-          value={draft.startDate}
-          onChange={(v) => set('startDate', v)}
-          error={errors.startDate}
-          hint="Voor de “samen sinds”-teller en de aftelling naar ons jubileum. Nooit gegokt — alleen wat we hier invullen."
-        />
+        <div className="form-row form-row--2">
+          <TextField
+            label="De dag dat we elkaar leerden kennen"
+            type="date"
+            optional
+            max={todayIso()}
+            value={draft.startDate}
+            onChange={(v) => set('startDate', v)}
+            error={errors.startDate}
+          />
+          <TextField
+            label="De dag dat we een relatie kregen"
+            type="date"
+            optional
+            max={todayIso()}
+            value={draft.togetherDate}
+            onChange={(v) => set('togetherDate', v)}
+            error={errors.togetherDate}
+          />
+        </div>
+        <p className="settings-text">
+          Voor het hart op Home (tel vanaf samen, of vanaf elkaar kennen), de maandjes en ons
+          jubileum. Nooit gegokt — alleen wat we hier invullen.
+        </p>
         <div className="form-row form-row--2">
           <TextField
             label="Naam van ons universe"

@@ -231,6 +231,6 @@ describe('older apps', () => {
     expect(out.games.results.map((r) => r.game)).toContain('hop');
     expect(out.games.scores.map((s) => s.game)).toContain('boba');
     expect(out.games.matches.map((m) => m.kind)).toContain('hop');
-    expect(carryForward(shared, ours, 12)).toBe(shared);
+    expect(carryForward(shared, ours, 14)).toBe(shared);
   });
 });

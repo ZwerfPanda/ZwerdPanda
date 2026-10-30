@@ -1,5 +1,6 @@
 .agenda-page {
   --agenda-anniversary: #e6889b;
+  --agenda-met: #c9a227;
   --agenda-birthday: #e0a12c;
   --agenda-coco: #8a6bb0;
   --agenda-date: #d0668f;
@@ -122,6 +123,9 @@
 .agenda-dot--anniversary {
   background: var(--agenda-anniversary);
 }
+.agenda-dot--met {
+  background: var(--agenda-met);
+}
 .agenda-dot--birthday {
   background: var(--agenda-birthday);
 }
@@ -182,6 +186,9 @@
 
 .agenda-row--anniversary {
   border-left-color: var(--agenda-anniversary);
+}
+.agenda-row--met {
+  border-left-color: var(--agenda-met);
 }
 .agenda-row--birthday {
   border-left-color: var(--agenda-birthday);
@@ -254,6 +261,10 @@
 .agenda-tag--anniversary {
   background: #fbe0e5;
   color: #9a3550;
+}
+.agenda-tag--met {
+  background: #fbf1cf;
+  color: #6f5710;
 }
 .agenda-tag--birthday {
   background: #fcf0cf;

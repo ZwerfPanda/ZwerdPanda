@@ -26,6 +26,7 @@ describe('countdowns', () => {
   it('adds Coco’s birthday and our anniversary by itself, soonest first', () => {
     const c = createDefaultContent();
     c.profile.startDate = '2025-12-01';
+    c.profile.togetherDate = null;
     c.countdowns = [
       {
         id: 'cd',
@@ -43,6 +44,20 @@ describe('countdowns', () => {
       'Coco wordt 1',
     ]);
     expect(list.map((u) => u.days)).toEqual([16, 40, 222]);
+  });
+
+  it('counts jubilee and months from the day we became a couple', () => {
+    const c = createDefaultContent();
+    c.profile.startDate = '2025-12-01';
+    c.countdowns = [];
+    const list = upcoming(c, day('2026-10-22'));
+    const titles = list.map((u) => u.title);
+    expect(titles).toContain('8 maanden samen');
+    expect(list.find((u) => u.id === 'auto-monthiversary')?.date).toBe('2026-11-03');
+    expect(list.find((u) => u.id === 'auto-anniversary')?.date).toBe('2027-03-03');
+    expect(list.find((u) => u.id === 'auto-anniversary')?.title).toBe('Ons eerste jubileum');
+    expect(list.find((u) => u.id === 'auto-met')?.title).toBe('1 jaar dat we elkaar kennen');
+    expect(list.find((u) => u.id === 'auto-met')?.date).toBe('2026-12-01');
   });
 
   it('reads nicely', () => {

@@ -2035,3 +2035,42 @@
     animation: none;
   }
 }
+
+/* What the heart counts from: being together, or knowing each other. */
+.counter__from {
+  position: relative;
+  display: flex;
+  justify-self: center;
+  gap: 4px;
+  width: fit-content;
+  margin: 2px auto 0;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.counter__from button {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: #fff3e6;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.counter__from button.is-on {
+  background: #fff3e6;
+  color: #5a2338;
+}
+
+.heart__fact--other {
+  font-weight: 650;
+}

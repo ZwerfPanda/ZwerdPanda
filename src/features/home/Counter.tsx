@@ -68,11 +68,24 @@ function LiveClock() {
 const nf = new Intl.NumberFormat('nl-NL');
 
 /**
- * The heart of us — "together for…", counted from the start date we enter
- * ourselves. Tap the heart and it beats; keep tapping and it opens up.
+ * The heart of us — "together for…", counted from the day we became a couple
+ * (or, switched, from the day we first got to know each other). Both dates
+ * are ours to fill in. Tap the heart and it beats; keep tapping and it opens up.
  */
 export function Counter() {
-  const { startDate, counterMode, yourName, partnerName } = useContent((c) => c.profile);
+  const {
+    startDate: metDate,
+    togetherDate,
+    counterFrom,
+    counterMode,
+    yourName,
+    partnerName,
+  } = useContent((c) => c.profile);
+  // what we count from: the chosen date, or the other one when that's all we have
+  const fromMet = counterFrom === 'met' ? Boolean(metDate) || !togetherDate : !togetherDate;
+  const startDate = fromMet ? metDate : togetherDate;
+  const otherDate = fromMet ? togetherDate : metDate;
+  const both = Boolean(metDate && togetherDate);
   const museumFound = useContent((c) => Boolean(c.museum.foundAt));
   const todayIso = useToday();
   const reduce = useReducedMotion();
@@ -130,6 +143,22 @@ export function Counter() {
   ).getTime();
   const beats = heartbeatsSince(startMs, Date.now());
   const showDays = counterMode === 'days';
+  const other = parseIsoDate(otherDate);
+  const otherDuration = other ? durationBetween(other, today) : null;
+  const otherSpoken = otherDuration
+    ? [
+        otherDuration.years ? plural(otherDuration.years, 'jaar', 'jaar') : '',
+        otherDuration.months ? plural(otherDuration.months, 'maand', 'maanden') : '',
+        !otherDuration.years ? plural(otherDuration.days, 'dag', 'dagen') : '',
+      ]
+        .filter(Boolean)
+        .join(', ')
+    : null;
+  const switchFrom = (to: 'together' | 'met') => {
+    if ((to === 'met') === fromMet) return;
+    playSfx('toggle', true);
+    updateProfile({ counterFrom: to });
+  };
   const toggle = () => updateProfile({ counterMode: showDays ? 'ymd' : 'days' });
   const ticketOut = taps >= SECRET_TAPS;
 
@@ -172,7 +201,7 @@ export function Counter() {
       <div className="heart__sky" aria-hidden="true" />
       <div className="counter__head">
         <h2 id="counter-title" className="counter__eyebrow hand">
-          together for
+          {fromMet ? 'knowing each other for' : 'together for'}
         </h2>
         <button
           type="button"
@@ -185,8 +214,29 @@ export function Counter() {
         </button>
       </div>
 
+      {both && (
+        <div className="counter__from" role="group" aria-label="Tel vanaf">
+          <button
+            type="button"
+            aria-pressed={!fromMet}
+            className={!fromMet ? 'is-on' : ''}
+            onClick={() => switchFrom('together')}
+          >
+            💞 Samen
+          </button>
+          <button
+            type="button"
+            aria-pressed={fromMet}
+            className={fromMet ? 'is-on' : ''}
+            onClick={() => switchFrom('met')}
+          >
+            ✨ Elkaar kennen
+          </button>
+        </div>
+      )}
+
       <p className="visually-hidden" aria-live="polite">
-        Samen sinds {spoken}.
+        {fromMet ? 'Elkaar kennen sinds' : 'Samen sinds'} {spoken}.
       </p>
 
       <div className="heart__stage">
@@ -257,7 +307,7 @@ export function Counter() {
             <span className="counter__num">
               <CountUp value={duration.totalDays} />
             </span>
-            <span className="counter__label">dagen samen</span>
+            <span className="counter__label">{fromMet ? 'dagen' : 'dagen samen'}</span>
           </div>
         ) : (
           units.map((u) => (
@@ -273,21 +323,31 @@ export function Counter() {
       <LiveClock />
 
       <ul className="heart__facts">
+        {otherDate && otherDuration && (
+          <li className="heart__fact--other">
+            <span className="heart__fact-icon" aria-hidden="true">
+              {fromMet ? '💞' : '✨'}
+            </span>
+            {fromMet
+              ? `Samen sinds ${formatDate(otherDate)} · ${otherSpoken}`
+              : `Elkaar leren kennen op ${formatDate(otherDate)} · ${otherSpoken} geleden`}
+          </li>
+        )}
         <li>
           <span className="heart__fact-icon" aria-hidden="true">
             ✦
           </span>
           {milestone.inDays === 1
-            ? `Morgen: ${milestone.day} dagen samen!`
-            : `Nog ${milestone.inDays} dagen tot ${milestone.day} dagen samen`}
+            ? `Morgen: ${milestone.day} dagen ${fromMet ? 'dat we elkaar kennen' : 'samen'}!`
+            : `Nog ${milestone.inDays} dagen tot ${milestone.day} dagen ${fromMet ? 'dat we elkaar kennen' : 'samen'}`}
         </li>
         <li>
           <span className="heart__fact-icon" aria-hidden="true">
             ♡
           </span>
           {monthly.inDays === 0
-            ? `Vandaag: ${plural(monthly.months, 'maand', 'maanden')} samen. Happy monthiversary!`
-            : `${plural(monthly.months, 'maand', 'maanden')} samen over ${plural(monthly.inDays, 'dag', 'dagen')}`}
+            ? `Vandaag: ${plural(monthly.months, 'maand', 'maanden')} ${fromMet ? 'dat we elkaar kennen' : 'samen. Happy monthiversary!'}`
+            : `${plural(monthly.months, 'maand', 'maanden')} ${fromMet ? 'dat we elkaar kennen' : 'samen'} over ${plural(monthly.inDays, 'dag', 'dagen')}`}
         </li>
         <li>
           <span className="heart__fact-icon" aria-hidden="true">
@@ -296,24 +356,28 @@ export function Counter() {
           {anniversary.years === 0
             ? 'Dag één ♡'
             : anniversary.days === 0
-              ? 'Happy anniversary ♡'
-              : `${anniversary.years === 1 ? 'Eerste' : `${anniversary.years}e`} jubileum over ${plural(anniversary.days, 'dag', 'dagen')}`}
+              ? fromMet
+                ? `Vandaag ${plural(anniversary.years, 'jaar', 'jaar')} dat we elkaar kennen ♡`
+                : 'Happy anniversary ♡'
+              : fromMet
+                ? `${plural(anniversary.years, 'jaar', 'jaar')} dat we elkaar kennen over ${plural(anniversary.days, 'dag', 'dagen')}`
+                : `${anniversary.years === 1 ? 'Eerste' : `${anniversary.years}e`} jubileum over ${plural(anniversary.days, 'dag', 'dagen')}`}
         </li>
         <li>
           <span className="heart__fact-icon" aria-hidden="true">
             ♥
           </span>
-          ≈ {nf.format(beats)} hartslagen samen
+          ≈ {nf.format(beats)} hartslagen {fromMet ? 'sinds we elkaar kennen' : 'samen'}
         </li>
       </ul>
 
       <p className="counter__foot heart__foot">
-        sinds {formatDate(startDate)}
+        {fromMet ? 'elkaar kennen sinds' : 'samen sinds'} {formatDate(startDate)}
         <button
           type="button"
           className="heart__edit"
           onClick={() => setDialogOpen(true)}
-          aria-label="Onze startdatum aanpassen"
+          aria-label="Onze datums aanpassen"
         >
           <Pencil aria-hidden="true" /> aanpassen
         </button>

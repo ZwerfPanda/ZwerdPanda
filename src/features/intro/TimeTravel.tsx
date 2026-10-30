@@ -24,6 +24,7 @@ const STEP_MS = 3800;
  */
 export default function TimeTravel({ onDone }: { onDone: () => void }) {
   const startDate = useContent((c) => c.profile.startDate);
+  const togetherDate = useContent((c) => c.profile.togetherDate);
   const reduce = useReducedMotion();
   const petName = usePetName();
   const [index, setIndex] = useState(0);
@@ -32,6 +33,10 @@ export default function TimeTravel({ onDone }: { onDone: () => void }) {
 
   const start = parseIsoDate(startDate);
   const total = start ? (durationBetween(start, parseIsoDate(todayIso())!)?.totalDays ?? 0) : 0;
+  const together = parseIsoDate(togetherDate);
+  const togetherDays = together
+    ? (durationBetween(together, parseIsoDate(todayIso())!)?.totalDays ?? 0)
+    : 0;
 
   const chapters: Chapter[] = [
     {
@@ -90,9 +95,12 @@ export default function TimeTravel({ onDone }: { onDone: () => void }) {
     },
     {
       key: 'heart',
-      caption: total
-        ? `${total} dagen samen. En we zijn nog maar net begonnen.`
-        : 'En we zijn nog maar net begonnen.',
+      caption:
+        togetherDays && total && togetherDays !== total
+          ? `${total} dagen sinds we elkaar leerden kennen, ${togetherDays} dagen samen. En we zijn nog maar net begonnen.`
+          : togetherDays || total
+            ? `${togetherDays || total} dagen samen. En we zijn nog maar net begonnen.`
+            : 'En we zijn nog maar net begonnen.',
       art: (
         <svg viewBox="-240 -340 480 350" className="tt-heart">
           <rect x="-240" y="-340" width="480" height="350" fill="#2a1530" />

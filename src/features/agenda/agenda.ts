@@ -9,7 +9,14 @@ import { nextOccurrence, ordinal } from '../home/countdowns';
  * only our own items can be edited from the agenda.
  */
 
-export type AgendaKind = 'anniversary' | 'birthday' | 'coco' | 'date' | 'countdown' | 'ours';
+export type AgendaKind =
+  | 'anniversary'
+  | 'met'
+  | 'birthday'
+  | 'coco'
+  | 'date'
+  | 'countdown'
+  | 'ours';
 export type AgendaIcon = CountdownIcon | 'rabbit';
 
 export interface AgendaSource {
@@ -51,14 +58,24 @@ const COUNTDOWN_ICONS = new Set<CountdownIcon>([
 export function agendaSources(content: AppContent): AgendaSource[] {
   const list: AgendaSource[] = [];
 
-  const start = content.profile.startDate;
-  if (start)
+  const { startDate: met, togetherDate: together } = content.profile;
+  const jubilee = together ?? met;
+  if (jubilee)
     list.push({
       id: 'auto-anniversary',
       title: 'Ons jubileum',
       icon: 'heart',
       kind: 'anniversary',
-      base: start,
+      base: jubilee,
+      yearly: true,
+    });
+  if (met && together)
+    list.push({
+      id: 'auto-met',
+      title: 'De dag dat we elkaar leerden kennen',
+      icon: 'star',
+      kind: 'met',
+      base: met,
       yearly: true,
     });
 
@@ -144,6 +161,10 @@ export function yearsAt(source: AgendaSource, year: number): number {
 export function entryTitle(source: AgendaSource, years: number): string {
   if (source.kind === 'anniversary')
     return years <= 0 ? 'Samen sinds vandaag ♡' : `Ons ${ordinal(years)} jubileum`;
+  if (source.kind === 'met')
+    return years <= 0
+      ? 'Vandaag leerden we elkaar kennen ✨'
+      : `${years} jaar dat we elkaar kennen ✨`;
   if (source.kind === 'coco') return years <= 0 ? 'Coco geboren 🐰' : `Coco wordt ${years} 🐰`;
   if (source.kind === 'birthday' && years > 0)
     return `${source.title.replace(' is jarig', '')} wordt ${years}`;
@@ -205,6 +226,7 @@ export function upcomingAgenda(content: AppContent, today: Date, limit = 8): Age
 
 export const KIND_LABEL: Record<AgendaKind, string> = {
   anniversary: 'Jubileum',
+  met: 'Leren kennen',
   birthday: 'Verjaardag',
   coco: 'Coco',
   date: 'Date',

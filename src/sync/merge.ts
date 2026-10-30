@@ -554,6 +554,16 @@ const withArchive = (archive: GamesArchive | undefined) => (archive ? { archive 
 export function carryForward(shared: AppContent, ours: AppContent, writer: number): AppContent {
   if (writer >= CONTENT_SCHEMA) return shared;
   let out = shared;
+  // Schema 14 added the day we became a couple (and which date the heart counts from).
+  if (writer < 14)
+    out = {
+      ...out,
+      profile: {
+        ...out.profile,
+        togetherDate: ours.profile.togetherDate,
+        counterFrom: ours.profile.counterFrom,
+      },
+    };
   // Schema 13 made room for more quiz answers; an older app kept only its first 1000.
   if (writer < 13) {
     const known = new Set(out.quiz.answers.map((a) => a.id));

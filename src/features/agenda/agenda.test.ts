@@ -61,8 +61,24 @@ describe('agenda sources', () => {
       'coco',
       'countdown',
       'date',
+      'met',
       'ours',
     ]);
+  });
+
+  it('counts the jubilee from the day we became a couple, and keeps the day we met', () => {
+    const c = world();
+    const anniv = agendaSources(c).find((s) => s.kind === 'anniversary')!;
+    expect(anniv.base).toBe('2026-03-03');
+    const met = agendaSources(c).find((s) => s.kind === 'met')!;
+    expect(met.base).toBe('2024-06-10');
+    expect(entryTitle(met, 2)).toBe('2 jaar dat we elkaar kennen ✨');
+    expect(entryTitle(met, 0)).toBe('Vandaag leerden we elkaar kennen ✨');
+
+    // Without a together date the jubilee falls back to the day we met.
+    const old = world((c) => (c.profile.togetherDate = null));
+    expect(agendaSources(old).find((s) => s.kind === 'anniversary')!.base).toBe('2024-06-10');
+    expect(agendaSources(old).some((s) => s.kind === 'met')).toBe(false);
   });
 });
 

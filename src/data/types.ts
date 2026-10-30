@@ -775,9 +775,13 @@ export interface Profile {
   homeGreeting: string;
   homeMessage: string;
   signature: string;
-  /** Relationship start date (YYYY-MM-DD). Never guessed — null until set. */
+  /** The day we first got to know each other (YYYY-MM-DD). Never guessed — null until set. */
   startDate: string | null;
+  /** The day we became a couple (YYYY-MM-DD), as we told it: 3 March 2026. */
+  togetherDate: string | null;
   counterMode: 'ymd' | 'days';
+  /** What the heart on Home counts from: being together, or knowing each other. */
+  counterFrom: 'together' | 'met';
   theme: ThemeName;
   /** The Spotify song that starts when we open the universe (empty: none). */
   openingSong: string;

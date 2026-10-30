@@ -42,7 +42,10 @@ function validate(d: Draft): Errors {
 }
 
 /** Quick picks for a sealed letter: our next anniversary, Christmas Eve… */
-function datePresets(startDate: string | null): { label: string; date: string }[] {
+function datePresets(
+  startDate: string | null,
+  togetherDate: string | null,
+): { label: string; date: string }[] {
   const today = todayIso();
   const next = (month: number, day: number) => {
     const year = Number(today.slice(0, 4));
@@ -56,12 +59,14 @@ function datePresets(startDate: string | null): { label: string; date: string }[
     return d.toISOString().slice(0, 10);
   };
   const presets: { label: string; date: string }[] = [];
-  if (startDate && isValidIsoDate(startDate)) {
+  const on = (iso: string) => next(Number(iso.slice(5, 7)), Number(iso.slice(8, 10)));
+  if (togetherDate && isValidIsoDate(togetherDate))
+    presets.push({ label: '💞 Ons jubileum', date: on(togetherDate) });
+  if (startDate && isValidIsoDate(startDate))
     presets.push({
-      label: '💞 Onze verjaardag',
-      date: next(Number(startDate.slice(5, 7)), Number(startDate.slice(8, 10))),
+      label: togetherDate ? '✨ De dag dat we elkaar leerden kennen' : '💞 Onze verjaardag',
+      date: on(startDate),
     });
-  }
   presets.push(
     { label: '🎄 Kerstavond', date: next(12, 24) },
     { label: '🎆 Oud & nieuw', date: next(12, 31) },
@@ -306,7 +311,7 @@ export function LetterForm({
               hint="Op die dag breekt het zegel en krijgt ze een seintje in de app."
             />
             <div className="chip-row" role="group" aria-label="Snel een dag kiezen">
-              {datePresets(profile.startDate).map((p) => (
+              {datePresets(profile.startDate, profile.togetherDate).map((p) => (
                 <button
                   key={p.label}
                   type="button"
