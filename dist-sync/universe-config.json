@@ -1,5 +1,0 @@
-{
-  "_help": "Optional. Fill in your Supabase Project URL and publishable (or anon public) key to share one universe between your devices. Never a secret/service_role key. Step-by-step: docs/HANDLEIDING.md",
-  "supabaseUrl": "",
-  "supabaseAnonKey": ""
-}
