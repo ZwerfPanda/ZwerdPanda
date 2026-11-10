@@ -17,6 +17,14 @@ import {
 import { normalizeArchive } from './archive';
 import { TEXT_FROM_MAX, TEXT_TO_MAX, TEXTS_LIMIT, textId, textKeyOf } from './texts';
 import type {
+  Stories,
+  Story,
+  StoryHighlight,
+  StoryReaction,
+  StorySource,
+  StorySticker,
+  StoryText,
+  StoryView,
   Chat,
   ChatMessage,
   OurRecord,
@@ -1296,6 +1304,7 @@ function normalizeChat(v: unknown): Chat {
       text,
       at: stamp(m.at),
       ...(GAME_IDS.includes(m.invite as GameId) ? { invite: m.invite as GameId } : {}),
+      ...(typeof m.story === 'string' && m.story ? { story: m.story.slice(0, 120) } : {}),
     };
   })
     .sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0))
@@ -1310,6 +1319,107 @@ function normalizeChat(v: unknown): Chat {
       places[who] = { place: p.place.slice(0, 40), at: p.at as string };
   }
   return { messages, read, places };
+}
+
+const STORY_BGS = ['sunset', 'lilac', 'ocean', 'mint', 'night', 'blush'] as const;
+const STORY_FILTERS = ['none', 'warm', 'cool', 'mono', 'vintage', 'dream'] as const;
+const STORY_FONTS = ['clean', 'hand', 'serif', 'bold'] as const;
+const STORY_SOURCES: readonly StorySource[] = [
+  'instagram',
+  'tiktok',
+  'whatsapp',
+  'snapchat',
+  'other',
+];
+/** How many stories we keep (the oldest go first; highlights keep theirs). */
+export const STORIES_LIMIT = 3000;
+const spot = (v: unknown) => clampNumber(v, 0, 1, 0.5);
+
+export function normalizeStory(v: unknown, i: number): Story | null {
+  if (!isObj(v)) return null;
+  const by = person(v.by);
+  if (!by) return null;
+  const m = normalizeMedia(v.media);
+  const media = m?.type === 'local' && m.kind ? m : undefined;
+  const texts = list(v.texts, (t): StoryText | null => {
+    if (!isObj(t)) return null;
+    const text = str(t.text, '', 300).trim();
+    if (!text) return null;
+    return {
+      text,
+      x: spot(t.x),
+      y: spot(t.y),
+      font: oneOf(t.font, STORY_FONTS, 'clean'),
+      color: typeof t.color === 'string' && /^#[0-9a-f]{6}$/i.test(t.color) ? t.color : '#ffffff',
+      boxed: bool(t.boxed),
+    };
+  }).slice(0, 6);
+  const stickers = list(v.stickers, (k): StorySticker | null => {
+    if (!isObj(k) || typeof k.emoji !== 'string' || !k.emoji.trim()) return null;
+    return {
+      emoji: k.emoji.trim().slice(0, 16),
+      x: spot(k.x),
+      y: spot(k.y),
+      size: clampNumber(k.size, 0.5, 3, 1),
+    };
+  }).slice(0, 20);
+  // A story is a photo, a clip, or at least some text.
+  if (!media && !texts.length && !stickers.length) return null;
+  const seconds = clampNumber(v.seconds, 0, 3600, 0);
+  return {
+    id: id(v.id, 'story', i),
+    by,
+    ...(media ? { media } : {}),
+    bg: oneOf(v.bg, STORY_BGS, 'sunset'),
+    filter: oneOf(v.filter, STORY_FILTERS, 'none'),
+    texts,
+    stickers,
+    ...(media?.kind === 'video' && seconds > 0 ? { seconds } : {}),
+    ...(media && STORY_SOURCES.includes(v.from as StorySource)
+      ? { from: v.from as StorySource }
+      : {}),
+    createdAt: stamp(v.createdAt),
+  };
+}
+
+function normalizeStories(v: unknown): Stories {
+  const raw = isObj(v) ? v : {};
+  const all = list(raw.items, normalizeStory).sort((a, b) =>
+    a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0,
+  );
+  const views = list(raw.views, (w, i): StoryView | null => {
+    if (!isObj(w) || typeof w.story !== 'string') return null;
+    const by = person(w.by);
+    if (!by) return null;
+    return { id: id(w.id, 'sview', i), story: w.story.slice(0, 120), by, at: stamp(w.at) };
+  }).slice(-4000);
+  const reactions = list(raw.reactions, (r, i): StoryReaction | null => {
+    if (!isObj(r) || typeof r.story !== 'string' || typeof r.emoji !== 'string') return null;
+    const by = person(r.by);
+    const emoji = r.emoji.trim().slice(0, 16);
+    if (!by || !emoji) return null;
+    return { id: id(r.id, 'sreact', i), story: r.story.slice(0, 120), by, emoji, at: stamp(r.at) };
+  }).slice(-4000);
+  const highlights = list(raw.highlights, (h, i): StoryHighlight | null => {
+    if (!isObj(h)) return null;
+    const title = str(h.title, '', 40).trim();
+    if (!title) return null;
+    return {
+      id: id(h.id, 'shl', i),
+      title,
+      emoji: optStr(h.emoji, 16)?.trim() || '💞',
+      stories: [...new Set(arr(h.stories).filter((x): x is string => typeof x === 'string'))]
+        .map((x) => x.slice(0, 120))
+        .slice(0, 200),
+      createdAt: stamp(h.createdAt),
+    };
+  }).slice(0, 60);
+  const kept = new Set(highlights.flatMap((h) => h.stories));
+  const room = Math.max(0, STORIES_LIMIT - all.filter((x) => kept.has(x.id)).length);
+  const loose = all.filter((x) => !kept.has(x.id));
+  const newest = new Set(room ? loose.slice(-room).map((x) => x.id) : []);
+  const items = all.filter((x) => kept.has(x.id) || newest.has(x.id));
+  return { items, views, reactions, highlights };
 }
 
 function normalizeStudio(v: unknown): Studio {
@@ -1501,6 +1611,7 @@ export function normalizeContent(raw: unknown): AppContent {
     karaoke: normalizeKaraoke(raw.karaoke),
     studio: normalizeStudio(raw.studio),
     chat: normalizeChat(raw.chat),
+    stories: normalizeStories(raw.stories),
   });
 }
 

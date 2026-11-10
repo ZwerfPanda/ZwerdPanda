@@ -1,4 +1,5 @@
 import {
+  Aperture,
   BookHeart,
   CalendarDays,
   Clapperboard,
@@ -178,6 +179,15 @@ export const SECTIONS: Section[] = [
     blurb: 'Expres verstopt',
     icon: Gift,
     tint: '#fbe0cd',
+  },
+  {
+    path: '/stories',
+    group: 'together',
+    label: 'Onze Stories',
+    short: 'Stories',
+    blurb: 'Foto’s, filmpjes en tekstjes van vandaag — alleen voor ons',
+    icon: Aperture,
+    tint: '#f7c6d9',
   },
   {
     path: '/muziekkamer',

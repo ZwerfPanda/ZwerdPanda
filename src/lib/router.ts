@@ -27,6 +27,7 @@ export type RoutePath =
   | '/secret'
   | '/jaar'
   | '/muziekkamer'
+  | '/stories'
   | '/settings';
 
 export interface Route {
@@ -56,6 +57,7 @@ const KNOWN = new Set<RoutePath>([
   '/secret',
   '/jaar',
   '/muziekkamer',
+  '/stories',
   '/settings',
 ]);
 

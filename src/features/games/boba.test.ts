@@ -200,7 +200,7 @@ describe('Bubble Tea Bar v2', () => {
 
 describe('older apps', () => {
   it('a phone that doesn’t know these games yet keeps them when it syncs', async () => {
-    const { createDefaultContent } = await import('../../data/defaults');
+    const { CONTENT_SCHEMA, createDefaultContent } = await import('../../data/defaults');
     const { carryForward } = await import('../../sync/merge');
     const ours = createDefaultContent();
     ours.games.results.push({
@@ -231,6 +231,6 @@ describe('older apps', () => {
     expect(out.games.results.map((r) => r.game)).toContain('hop');
     expect(out.games.scores.map((s) => s.game)).toContain('boba');
     expect(out.games.matches.map((m) => m.kind)).toContain('hop');
-    expect(carryForward(shared, ours, 14)).toBe(shared);
+    expect(carryForward(shared, ours, CONTENT_SCHEMA)).toBe(shared);
   });
 });

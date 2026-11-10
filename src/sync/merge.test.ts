@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createDefaultContent } from '../data/defaults';
+import { CONTENT_SCHEMA, createDefaultContent } from '../data/defaults';
 import type { AppContent, Memory } from '../data/types';
 import { normalizeContent } from '../data/normalize';
 import {
@@ -439,6 +439,6 @@ describe('the day we became a couple', () => {
     const out = carryForward(shared, ours, 13);
     expect(out.profile.togetherDate).toBe('2026-03-03');
     expect(out.profile.counterFrom).toBe('met');
-    expect(carryForward(shared, ours, 14)).toBe(shared);
+    expect(carryForward(shared, ours, CONTENT_SCHEMA)).toBe(shared);
   });
 });

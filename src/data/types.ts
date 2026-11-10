@@ -841,6 +841,86 @@ export interface AppContent {
   studio: Studio;
   /** Our chat in the arcade (and where each of us was last). */
   chat: Chat;
+  /** Our stories: photos, clips and little texts, like on Instagram — only for us. */
+  stories: Stories;
+}
+
+/* ------------------------------------------------------------- stories */
+
+export type StoryFilter = 'none' | 'warm' | 'cool' | 'mono' | 'vintage' | 'dream';
+/** The colour behind a story with only text (or behind a photo that doesn't fill it). */
+export type StoryBg = 'sunset' | 'lilac' | 'ocean' | 'mint' | 'night' | 'blush';
+export type StoryFont = 'clean' | 'hand' | 'serif' | 'bold';
+
+/** A line of text on a story, where it was put (0–1 of the width and height). */
+export interface StoryText {
+  text: string;
+  x: number;
+  y: number;
+  font: StoryFont;
+  color: string;
+  /** On a little coloured block, so it reads on any photo. */
+  boxed: boolean;
+}
+
+/** An emoji sticker on a story, where it was put and how big (1 is normal). */
+export interface StorySticker {
+  emoji: string;
+  x: number;
+  y: number;
+  size: number;
+}
+
+export interface Story {
+  id: ID;
+  by: Person;
+  /** A photo or a clip; without one it's a text story on a colour. */
+  media?: Extract<MediaSource, { type: 'local' }>;
+  bg: StoryBg;
+  filter: StoryFilter;
+  texts: StoryText[];
+  stickers: StorySticker[];
+  /** How long a clip is, so the bar at the top runs as long. */
+  seconds?: number;
+  /** Made outside the app and uploaded as it was (shown whole, never cropped). */
+  from?: StorySource;
+  createdAt: string;
+}
+
+/** Where an uploaded story was made. */
+export type StorySource = 'instagram' | 'tiktok' | 'whatsapp' | 'snapchat' | 'other';
+
+/** One of us saw a story (one per story and person). */
+export interface StoryView {
+  id: ID;
+  story: ID;
+  by: Person;
+  at: string;
+}
+
+/** A little emoji sent on a story. */
+export interface StoryReaction {
+  id: ID;
+  story: ID;
+  by: Person;
+  emoji: string;
+  at: string;
+}
+
+/** Stories we keep together under a name, like highlights. */
+export interface StoryHighlight {
+  id: ID;
+  title: string;
+  emoji: string;
+  stories: ID[];
+  createdAt: string;
+}
+
+export interface Stories {
+  items: Story[];
+  views: StoryView[];
+  reactions: StoryReaction[];
+  highlights: StoryHighlight[];
 }
 
 /* ---------------------------------------------------------------- chat */
@@ -852,6 +932,8 @@ export interface ChatMessage {
   at: string;
   /** "Come play": an invitation to this game. */
   invite?: GameId;
+  /** A reply to one of our stories. */
+  story?: ID;
 }
 
 /** Where one of us was in the app, and when. */

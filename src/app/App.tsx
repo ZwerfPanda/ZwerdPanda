@@ -51,6 +51,8 @@ const pages = {
   jaar: () => import('../features/year/YearPage').then((m) => ({ default: m.YearPage })),
   muziekkamer: () =>
     import('../features/studio/StudioPage').then((m) => ({ default: m.StudioPage })),
+  stories: () =>
+    import('../features/stories/StoriesPage').then((m) => ({ default: m.StoriesPage })),
   settings: () =>
     import('../features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 };
@@ -92,6 +94,7 @@ const CinemaPage = lazy(pages.cinema);
 const VaultPage = lazy(pages.secret);
 const YearPage = lazy(pages.jaar);
 const StudioPage = lazy(pages.muziekkamer);
+const StoriesPage = lazy(pages.stories);
 const SettingsPage = lazy(pages.settings);
 
 const PAGES: Record<RoutePath, () => React.ReactNode> = {
@@ -116,6 +119,7 @@ const PAGES: Record<RoutePath, () => React.ReactNode> = {
   '/secret': () => <VaultPage />,
   '/jaar': () => <YearPage />,
   '/muziekkamer': () => <StudioPage />,
+  '/stories': () => <StoriesPage />,
   '/settings': () => <SettingsPage />,
 };
 

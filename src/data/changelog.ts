@@ -23,6 +23,31 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-11-10',
+    when: 'november 2026',
+    title: 'Onze eigen stories 📸',
+    items: [
+      {
+        emoji: '📸',
+        title: 'Stories, alleen voor ons',
+        text: 'Een foto, filmpje of tekstje met stickers en filters. Een dag bovenaan, daarna voor altijd in ons archief.',
+        path: '/stories',
+      },
+      {
+        emoji: '📲',
+        title: 'Eigen stories uploaden',
+        text: 'Al gemaakt op Instagram, TikTok of WhatsApp? Upload ze, ook meerdere tegelijk en op hun eigen datum.',
+        path: '/stories',
+      },
+      {
+        emoji: '💬',
+        title: 'Reageren en highlights',
+        text: 'Stuur een emoji of berichtje op een story, zie wie hem zag, en bewaar de mooiste in highlights.',
+        path: '/stories',
+      },
+    ],
+  },
+  {
     id: '2026-10-26',
     when: 'oktober 2026',
     title: 'Onze twee datums 💞',

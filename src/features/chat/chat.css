@@ -230,6 +230,17 @@ body:has(.miniplayer) .chat-fab {
   opacity: 0.72;
 }
 
+.bubble__story {
+  justify-self: start;
+  margin-bottom: 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: inherit;
+  opacity: 0.85;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .bubble__join {
   justify-self: start;
   margin-top: 4px;

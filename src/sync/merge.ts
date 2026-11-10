@@ -397,6 +397,20 @@ export function mergeContent(base: AppContent, local: AppContent, remote: AppCon
       items: mergeList(base.vault.items, local.vault.items, remote.vault.items),
       categories: mergeList(base.vault.categories, local.vault.categories, remote.vault.categories),
     },
+    stories: {
+      items: mergeList(base.stories.items, local.stories.items, remote.stories.items),
+      views: mergeList(base.stories.views, local.stories.views, remote.stories.views),
+      reactions: mergeList(
+        base.stories.reactions,
+        local.stories.reactions,
+        remote.stories.reactions,
+      ),
+      highlights: mergeList(
+        base.stories.highlights,
+        local.stories.highlights,
+        remote.stories.highlights,
+      ),
+    },
   };
 }
 
@@ -466,6 +480,12 @@ export function mergeFirstJoin(
       ...withArchive(pickArchive(local.games.archive, remote.games.archive)),
     },
     chat: mergeChat(local.chat, remote.chat),
+    stories: {
+      items: addPlain(local.stories.items, remote.stories.items),
+      views: addPlain(local.stories.views, remote.stories.views),
+      reactions: addPlain(local.stories.reactions, remote.stories.reactions),
+      highlights: addPlain(local.stories.highlights, remote.stories.highlights),
+    },
     studio: {
       records: addPlain(local.studio.records, remote.studio.records),
       listens: addPlain(local.studio.listens, remote.studio.listens),
@@ -554,6 +574,20 @@ const withArchive = (archive: GamesArchive | undefined) => (archive ? { archive 
 export function carryForward(shared: AppContent, ours: AppContent, writer: number): AppContent {
   if (writer >= CONTENT_SCHEMA) return shared;
   let out = shared;
+  // Schema 15 added our stories (and story replies in the chat).
+  if (writer < 15) {
+    const replies = new Map(ours.chat.messages.filter((m) => m.story).map((m) => [m.id, m.story]));
+    out = {
+      ...out,
+      stories: ours.stories,
+      chat: {
+        ...out.chat,
+        messages: out.chat.messages.map((m) =>
+          !m.story && replies.has(m.id) ? { ...m, story: replies.get(m.id) } : m,
+        ),
+      },
+    };
+  }
   // Schema 14 added the day we became a couple (and which date the heart counts from).
   if (writer < 14)
     out = {
@@ -729,6 +763,7 @@ export function contentMediaIds(content: AppContent): string[] {
     add(f.video);
     add(f.poster);
   });
+  content.stories.items.forEach((s) => add(s.media));
   // Our secret place travels encrypted.
   content.vault.items.forEach((v) => {
     ids.add(v.media);

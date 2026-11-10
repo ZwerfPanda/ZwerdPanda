@@ -165,6 +165,11 @@ function Bubble({ m, mine, name }: { m: ChatMessage; mine: boolean; name: string
   const time = new Date(m.at).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
   return (
     <li className={`bubble ${mine ? 'is-mine' : 'is-theirs'} ${m.invite ? 'is-invite' : ''}`}>
+      {m.story && (
+        <a className="bubble__story" href={href('/stories', { s: m.story })}>
+          📸 {mine ? `Op ${name}’s story` : 'Op jouw story'}
+        </a>
+      )}
       <span className="bubble__text">{m.text}</span>
       {m.invite && !mine && (
         <a className="bubble__join" href={linkTo(m.invite)}>

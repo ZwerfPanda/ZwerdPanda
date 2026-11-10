@@ -599,8 +599,9 @@ export function cloneUs(us: UsContent): UsContent {
  *  12 — Coco's hop-race and the bubble tea bar
  *  13 — Wie kent wie grew: room for many more answers
  *  14 — the day we became a couple, next to the day we met
+ *  15 — our stories (and replies to them in the chat)
  */
-export const CONTENT_SCHEMA = 14;
+export const CONTENT_SCHEMA = 15;
 
 export function createDefaultContent(): AppContent {
   return {
@@ -640,6 +641,7 @@ export function createDefaultContent(): AppContent {
     karaoke: { songs: [], takes: [] },
     studio: { records: [], listens: [] },
     chat: { messages: [], read: {}, places: {} },
+    stories: { items: [], views: [], reactions: [], highlights: [] },
     games: { matches: [], scores: [], results: [] },
     museum: defaultMuseum(),
     syncReports: {},

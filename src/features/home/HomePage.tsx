@@ -16,6 +16,7 @@ import { DailyThing } from './DailyThing';
 import { WrappedButton } from '../wrapped/Wrapped';
 import { YearButton } from '../year/YearButton';
 import { StudioNudge } from '../studio/StudioNudge';
+import { HomeStories } from '../stories/HomeStories';
 
 export function HomePage() {
   const profile = useContent((c) => c.profile);
@@ -42,6 +43,7 @@ export function HomePage() {
       <div className="home__body">
         <WhatsNew />
         <StudioNudge />
+        <HomeStories />
         <div className="home__together">
           <SendLove />
           <DailyQuestion />

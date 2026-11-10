@@ -55,7 +55,7 @@ const addMessage = (m: ChatMessage) =>
       : { ...c, chat: { ...c.chat, messages: [...c.chat.messages, m].slice(-800) } },
   );
 
-export function sendChat(text: string, invite?: GameId) {
+export function sendChat(text: string, invite?: GameId, story?: string) {
   const clean = text.trim().slice(0, 1000);
   if (!clean) return;
   const me = getMe();
@@ -65,6 +65,7 @@ export function sendChat(text: string, invite?: GameId) {
     text: clean,
     at: nowIso(),
     ...(invite ? { invite } : {}),
+    ...(story ? { story } : {}),
   };
   addMessage(message);
   markRead(message.at);
@@ -72,7 +73,9 @@ export function sendChat(text: string, invite?: GameId) {
     notifyOther(
       'news',
       {
-        title: `💬 ${nameOf(me, getContent().profile)}`,
+        title: story
+          ? `💬 ${nameOf(me, getContent().profile)} reageerde op je story`
+          : `💬 ${nameOf(me, getContent().profile)}`,
         body: clean.slice(0, 140),
         url: invite ? `#/games?g=${invite}` : '#/games?chat=1',
         tag: 'chat',
