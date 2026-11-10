@@ -122,8 +122,7 @@ export class SyncEngine {
   getState = (): SyncState => this.state;
 
   /** For our own Edge Functions: who's signed in, as a token. */
-  accessToken = async (): Promise<string | null> =>
-    (await this.backend.accessToken?.()) ?? null;
+  accessToken = async (): Promise<string | null> => (await this.backend.accessToken?.()) ?? null;
 
   subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
@@ -229,9 +228,16 @@ export class SyncEngine {
       this.backend.subscribe(spaceId, () => void this.pull()),
     );
     if (this.backend.live) {
-      const line = this.backend.live(spaceId, (message) =>
-        this.liveListeners.forEach((listener) => listener(message)),
-      );
+      const line = this.backend.live(spaceId, (message) => {
+        // The other phone saved: fetch it (only when it's really newer).
+        const m = message as { type?: unknown; version?: unknown } | null;
+        if (m?.type === 'saved') {
+          if (typeof m.version !== 'number' || m.version > (this.meta?.baseVersion ?? 0))
+            void this.pull();
+          return;
+        }
+        this.liveListeners.forEach((listener) => listener(message));
+      });
       this.line = line;
       this.cleanups.push(() => {
         line.close();
@@ -240,7 +246,8 @@ export class SyncEngine {
     }
     if (this.deps.watchConnectivity)
       this.cleanups.push(this.deps.watchConnectivity(() => void this.syncNow()));
-    const interval = this.deps.pollInterval ?? 90_000;
+    // A safety net next to the "saved" notes: only a version check, so it's cheap.
+    const interval = this.deps.pollInterval ?? 60_000;
     if (interval > 0) this.pollTimer = setInterval(() => void this.pull(), interval);
 
     await this.syncNow();
@@ -348,6 +355,11 @@ export class SyncEngine {
 
   private async pullOnce() {
     const meta = this.meta!;
+    // Nothing new (the version is the one we have): no need to download it all.
+    if (this.backend.fetchVersion && meta.baseVersion > 0 && this.base) {
+      const version = await this.backend.fetchVersion(meta.spaceId);
+      if (version === meta.baseVersion) return;
+    }
     const remote = await this.backend.fetchContent(meta.spaceId);
     if (remote.version === 0) {
       meta.pending = true;
@@ -390,6 +402,8 @@ export class SyncEngine {
       if (result.saved) {
         this.base = snapshot;
         meta.baseVersion = result.version;
+        // A small note to the other phone: there's something new.
+        this.line?.send({ type: 'saved', version: result.version });
         meta.pending = this.deps.getContent() !== snapshot; // edited while saving
         this.persist();
         return;

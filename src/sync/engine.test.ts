@@ -123,9 +123,16 @@ class FakeBackend implements SyncBackend {
       owner: space.members[0]?.email ?? null,
     };
   }
+  downloads = 0;
+  async fetchVersion(spaceId: string) {
+    this.server.check();
+    this.member(spaceId);
+    return this.server.rows.get(spaceId)?.version ?? 0;
+  }
   async fetchContent(spaceId: string) {
     this.server.check();
     this.member(spaceId);
+    this.downloads++;
     const row = this.server.rows.get(spaceId);
     return row
       ? { version: row.version, content: shuffleKeys(JSON.parse(row.json)) }
@@ -334,6 +341,19 @@ describe('SyncEngine with two phones', () => {
     valencio.edit((c) => ({ ...c, profile: { ...c.profile, subtitle: 'Live from Valencio' } }));
     await wait(120);
     expect(shenaya.content.profile.subtitle).toBe('Live from Valencio');
+  });
+
+  it('only downloads the universe when there is something new', async () => {
+    const { valencio, shenaya } = await connectedPair();
+    await shenaya.engine.syncNow();
+    const before = shenaya.backend.downloads;
+    for (let i = 0; i < 5; i++) await shenaya.engine.syncNow();
+    expect(shenaya.backend.downloads).toBe(before);
+    valencio.edit((c) => ({ ...c, profile: { ...c.profile, subtitle: 'Iets nieuws' } }));
+    await valencio.engine.syncNow();
+    await shenaya.engine.syncNow();
+    expect(shenaya.backend.downloads).toBe(before + 1);
+    expect(shenaya.content.profile.subtitle).toBe('Iets nieuws');
   });
 
   it('keeps working offline and catches up afterwards', async () => {

@@ -265,6 +265,14 @@ export function createSupabaseBackend(config: SyncConfig): SyncBackend {
         : { version: 0, content: null };
     },
 
+    async fetchVersion(spaceId) {
+      const row = await call(
+        client.from('space_content').select('version').eq('space_id', spaceId).maybeSingle(),
+      );
+      const data = row as { version: number | string } | null;
+      return data ? Number(data.version) : 0;
+    },
+
     async saveContent(spaceId, expectedVersion, content) {
       const rows = await call(
         client.rpc('save_content', {
@@ -284,23 +292,11 @@ export function createSupabaseBackend(config: SyncConfig): SyncBackend {
       };
     },
 
-    subscribe(spaceId, onChange) {
-      const channel = client
-        .channel(`universe-${spaceId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'space_content',
-            filter: `space_id=eq.${spaceId}`,
-          },
-          () => onChange(),
-        )
-        .subscribe();
-      return () => {
-        void client.removeChannel(channel);
-      };
+    subscribe() {
+      // A change on the other phone arrives as a small "saved" note over the
+      // live line (see the engine). Listening to the table itself would send
+      // the whole universe along with every save, to every phone.
+      return () => undefined;
     },
 
     live(spaceId, onMessage) {

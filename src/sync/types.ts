@@ -67,6 +67,11 @@ export interface SyncBackend {
   accessToken?(): Promise<string | null>;
 
   fetchContent(spaceId: string): Promise<RemoteContent>;
+  /**
+   * Just the shared copy's version number (0: none yet): a few bytes, so a
+   * check for news doesn't download the whole universe each time.
+   */
+  fetchVersion?(spaceId: string): Promise<number>;
   saveContent(spaceId: string, expectedVersion: number, content: unknown): Promise<SaveResult>;
   /** Calls back when the shared copy changes; returns an unsubscribe function. */
   subscribe(spaceId: string, onChange: () => void): () => void;
