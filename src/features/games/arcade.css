@@ -4681,7 +4681,114 @@ button.sea__cell:focus-visible {
   }
 }
 
+@keyframes pv-pong {
+  0%,
+  10% {
+    transform: translate(0, 0) scale(1);
+  }
+  60% {
+    transform: translate(0, -44px) scale(0.6);
+  }
+  100% {
+    transform: translate(0, -36px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.pv-pong {
+  animation: pv-pong 2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.pv-mill {
+  animation: pv-spin 3s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes pv-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pv-putt {
+  animation: pv-putt 2.4s ease-out infinite;
+}
+
+@keyframes pv-putt {
+  0%,
+  15% {
+    transform: translateY(0);
+  }
+  70%,
+  100% {
+    transform: translateY(-44px);
+    opacity: 0;
+  }
+}
+
+.pv-sketch {
+  stroke-dasharray: 60;
+  animation: pv-sketch 2.6s ease-in-out infinite;
+}
+
+@keyframes pv-sketch {
+  0% {
+    stroke-dashoffset: 60;
+  }
+  60%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.pv-die {
+  animation: pv-die 2.2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes pv-die {
+  0%,
+  60%,
+  100% {
+    transform: rotate(0);
+  }
+  70% {
+    transform: rotate(90deg) translateY(-4px);
+  }
+  80% {
+    transform: rotate(180deg);
+  }
+}
+
+.pv-hop {
+  animation: pv-hop-pawn 2.2s ease-in-out infinite;
+}
+
+@keyframes pv-hop-pawn {
+  0%,
+  40% {
+    transform: translate(0, 0);
+  }
+  55% {
+    transform: translate(6px, -6px);
+  }
+  70%,
+  100% {
+    transform: translate(12px, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .pv-pong,
+  .pv-mill,
+  .pv-putt,
+  .pv-sketch,
+  .pv-die,
+  .pv-hop,
   .pv-shot,
   .pv-flip,
   .pv-line,

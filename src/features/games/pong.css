@@ -1,0 +1,118 @@
+/* Beer pong: a party room with string lights, a white table, red cups. */
+
+.pong-room {
+  position: relative;
+  width: min(100%, 400px);
+  margin: 6px auto 12px;
+  overflow: hidden;
+  border-radius: 24px;
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.12),
+    0 24px 50px -18px rgba(0, 0, 0, 0.7);
+}
+
+.pong-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 360 / 560;
+  touch-action: none;
+  cursor: grab;
+}
+
+.pong-canvas:focus-visible {
+  outline: 3px solid #ffd75e;
+  outline-offset: -3px;
+}
+
+.pong-label {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  translate: -50% 0;
+  width: max-content;
+  max-width: 92%;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(23, 10, 38, 0.8);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.pong-hint {
+  position: absolute;
+  top: 46px;
+  left: 50%;
+  translate: -50% 0;
+  width: max-content;
+  max-width: 92%;
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #fff;
+  color: #2a1240;
+  font-weight: 800;
+  font-size: 0.92rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.pong-racks {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 4px 0 2px;
+}
+
+.pong-rack {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 112px;
+  padding: 6px 12px 8px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pong-rack small {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.pong-rack__cups {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+
+.pong-rack__cups > span {
+  display: flex;
+  gap: 3px;
+}
+
+.pong-rack__cups i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+.pong-rack__cups i.is-up {
+  background: #e5263d;
+  box-shadow: inset 0 -2px 0 #8c0f20;
+}
+
+.pong-rack.is-yellow small {
+  color: #ffd75e;
+}
+
+.pong-rack.is-pink small {
+  color: #ff8cc0;
+}
+
+.pong-rack.is-caramel small {
+  color: #f6cfa5;
+}

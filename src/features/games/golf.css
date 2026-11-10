@@ -1,0 +1,195 @@
+/* Minigolf: a little park — a wooden sign, the green, a scorecard. */
+
+.golf-park {
+  width: min(100%, 400px);
+  margin: 6px auto 12px;
+}
+
+.golf-sign {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  margin: 0 auto 10px;
+  padding: 8px 16px;
+  width: fit-content;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #c99a62, #a8743f);
+  box-shadow:
+    inset 0 0 0 2px #8a5a2b,
+    0 6px 0 #6b4422;
+  color: #fffaf0;
+  text-align: center;
+}
+
+.golf-sign__hole {
+  font-family: var(--font-hand);
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.golf-sign__meta {
+  font-size: 0.8rem;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.golf-target {
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 0.86rem;
+}
+
+.golf-green {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  box-shadow: 0 22px 40px -18px rgba(0, 0, 0, 0.6);
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.golf-green:focus-visible {
+  outline: 3px solid #ffd75e;
+  outline-offset: 3px;
+}
+
+.golf-course {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.golf-sand {
+  fill: #ecd9a6;
+  stroke: #d6bd7c;
+  stroke-width: 2;
+}
+
+.golf-water {
+  fill: #4ab3e6;
+  stroke: #2d86b8;
+  stroke-width: 3;
+}
+
+.golf-ripple {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.golf-flag path {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: golf-flap 1.4s ease-in-out infinite;
+}
+
+@keyframes golf-flap {
+  50% {
+    transform: skewY(6deg) scaleX(0.92);
+  }
+}
+
+.golf-banner {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  translate: -50% 0;
+  width: max-content;
+  max-width: 92%;
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(31, 61, 24, 0.9);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.92rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+.golf-start {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 18px 16px 22px;
+  background: linear-gradient(
+    0deg,
+    rgba(20, 50, 18, 0.95),
+    rgba(20, 50, 18, 0.65) 70%,
+    transparent
+  );
+  color: #fff;
+  text-align: center;
+}
+
+.golf-start p {
+  margin: 0;
+  font-weight: 800;
+}
+
+.golf-start__small {
+  font-size: 0.8rem;
+  font-weight: 500 !important;
+  opacity: 0.9;
+}
+
+.golf-go {
+  min-height: 50px;
+  padding: 0 30px;
+  border: 0;
+  border-radius: 999px;
+  background: #fffaf0;
+  color: #2f6b22;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 900;
+  box-shadow: 0 5px 0 #a8c79a;
+  cursor: pointer;
+}
+
+.golf-card {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  margin: 10px 0 0;
+  padding: 8px;
+  border-radius: 12px;
+  background: #fffaf0;
+  color: #2f3b26;
+  list-style: none;
+}
+
+.golf-card li {
+  display: grid;
+  justify-items: center;
+  padding: 4px 0;
+  border-radius: 8px;
+}
+
+.golf-card li.is-now {
+  background: #dff3d6;
+}
+
+.golf-card small {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.golf-card strong {
+  font-size: 1.05rem;
+}
+
+.golf-coco {
+  margin: 8px 0 0;
+  text-align: center;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .golf-flag path {
+    animation: none;
+  }
+}

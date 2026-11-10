@@ -1,0 +1,363 @@
+/* Tekenen & raden: an atelier — an easel with paper, a wooden palette. */
+
+.dg-points {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 4px 0 10px;
+}
+
+.dg-points__side {
+  display: grid;
+  justify-items: center;
+  min-width: 96px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dg-points__side small {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.dg-points__side strong {
+  font-size: 1.6rem;
+  line-height: 1.1;
+}
+
+.dg-points__side.is-yellow strong {
+  color: #ffd75e;
+}
+
+.dg-points__side.is-pink strong {
+  color: #ff8cc0;
+}
+
+.dg-round {
+  font-family: var(--font-hand);
+  font-size: 1.3rem;
+  color: #fff;
+}
+
+.dg-easel,
+.dg-choose,
+.dg-guessing,
+.dg-reveal,
+.dg-handover {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(100%, 420px);
+  margin: 0 auto 14px;
+  padding: 18px 16px 20px;
+  border-radius: 24px;
+  background:
+    linear-gradient(90deg, transparent 47%, #8a5a2b 47% 53%, transparent 53%) bottom / 100% 34px
+      no-repeat,
+    linear-gradient(180deg, #f6e3c4, #e9cfa4);
+  box-shadow:
+    inset 0 0 0 4px #b98352,
+    0 22px 40px -18px rgba(0, 0, 0, 0.6);
+  color: #3b2a1f;
+}
+
+.dg-word {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.dg-word strong {
+  font-family: var(--font-hand);
+  font-size: 1.7rem;
+  color: #c2186a;
+}
+
+.dg-canvas-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  padding: 10px;
+  border-radius: 6px;
+  background: #fffdf8;
+  box-shadow:
+    0 2px 0 #d9c7a8,
+    0 10px 20px -8px rgba(0, 0, 0, 0.35);
+  transform: rotate(-0.6deg);
+}
+
+.dg-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 2px;
+  touch-action: none;
+}
+
+.dg-canvas.is-drawing {
+  cursor: crosshair;
+}
+
+.dg-replay {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(59, 42, 31, 0.75);
+  color: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dg-palette {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 40px 40px 60px 30px;
+  background: #c99a62;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.15);
+}
+
+.dg-paint {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 3px solid rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.18);
+}
+
+.dg-paint.is-on {
+  border-color: #3b2a1f;
+  transform: scale(1.15);
+}
+
+.dg-paint.is-eraser svg {
+  width: 18px;
+  height: 18px;
+  color: #3b2a1f;
+}
+
+.dg-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dg-sizes {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(59, 42, 31, 0.12);
+}
+
+.dg-sizes button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.dg-sizes button span {
+  border-radius: 50%;
+  background: #3b2a1f;
+}
+
+.dg-sizes button.is-on {
+  background: #fffdf8;
+}
+
+.dg-tool {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fffdf8;
+  color: #3b2a1f;
+  cursor: pointer;
+}
+
+.dg-tool:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.dg-tool svg {
+  width: 20px;
+  height: 20px;
+}
+
+.dg-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ff4f9a, #ffb020);
+  color: #fff;
+  font: inherit;
+  font-weight: 900;
+  box-shadow: 0 4px 0 #a8326a;
+  cursor: pointer;
+}
+
+.dg-send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.dg-send svg {
+  width: 18px;
+  height: 18px;
+}
+
+.dg-send--small {
+  min-height: 46px;
+  padding: 0 18px;
+}
+
+.dg-note {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.dg-options {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.dg-option {
+  display: grid;
+  gap: 2px;
+  padding: 14px;
+  border: 0;
+  border-radius: 16px;
+  background: #fffdf8;
+  color: #3b2a1f;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #d9c7a8;
+  text-align: center;
+}
+
+.dg-option strong {
+  font-family: var(--font-hand);
+  font-size: 1.6rem;
+}
+
+.dg-option small {
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.dg-option.is-l1 {
+  box-shadow: 0 3px 0 #3fae5a;
+}
+
+.dg-option.is-l2 {
+  box-shadow: 0 3px 0 #ffc61a;
+}
+
+.dg-option.is-l3 {
+  box-shadow: 0 3px 0 #e2462f;
+}
+
+.dg-guess {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+}
+
+.dg-guess__row {
+  display: flex;
+  gap: 8px;
+}
+
+.dg-guess input {
+  flex: 1;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 2px solid #b98352;
+  border-radius: 14px;
+  background: #fffdf8;
+  color: #3b2a1f;
+  font: inherit;
+  font-size: 1.05rem;
+}
+
+.dg-hint {
+  margin: 0;
+  font-size: 0.86rem;
+  text-align: center;
+}
+
+.dg-hint__letters {
+  font-family: ui-monospace, monospace;
+  font-weight: 800;
+  letter-spacing: 1px;
+  white-space: pre-wrap;
+}
+
+.dg-tries {
+  margin: 0;
+  font-size: 0.8rem;
+  text-align: center;
+  opacity: 0.75;
+}
+
+.dg-wait {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255, 253, 248, 0.7);
+  text-align: center;
+  font-weight: 700;
+}
+
+.dg-result {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.dg-result.is-right {
+  color: #2f8a46;
+}
+
+.dg-handover {
+  padding: 30px 18px;
+  text-align: center;
+}
+
+.dg-handover p {
+  margin: 0;
+  font-size: 1.05rem;
+}

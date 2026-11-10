@@ -34,8 +34,44 @@ const TicTacToe = lazy(() => import('./TicTacToe').then((m) => ({ default: m.Tic
 const DotsBoxes = lazy(() => import('./DotsBoxes').then((m) => ({ default: m.DotsBoxes })));
 const Lingo = lazy(() => import('./Lingo').then((m) => ({ default: m.Lingo })));
 const Hoops = lazy(() => import('./Hoops').then((m) => ({ default: m.Hoops })));
+const BeerPong = lazy(() => import('./BeerPong').then((m) => ({ default: m.BeerPong })));
+const Golf = lazy(() => import('./Golf').then((m) => ({ default: m.Golf })));
+const DrawGuess = lazy(() => import('./DrawGuess').then((m) => ({ default: m.DrawGuess })));
+const Ludo = lazy(() => import('./Ludo').then((m) => ({ default: m.Ludo })));
 
 const GAMES = [
+  {
+    id: 'pong',
+    emoji: '🍻',
+    title: 'Beer pong',
+    blurb: 'Gooi in de bekers — twee ballen per beurt',
+    tint: '#f9d0e0',
+    kind: 'pong',
+  },
+  {
+    id: 'golf',
+    emoji: '⛳',
+    title: 'Minigolf',
+    blurb: 'Zes holes met een windmolen — duel om tickets',
+    tint: '#e0ebd4',
+    kind: 'golf',
+  },
+  {
+    id: 'draw',
+    emoji: '🎨',
+    title: 'Tekenen & raden',
+    blurb: 'Teken een woord, de ander raadt',
+    tint: '#ffd8a8',
+    kind: 'draw',
+  },
+  {
+    id: 'ludo',
+    emoji: '🎲',
+    title: 'Mens erger je niet',
+    blurb: 'Geel tegen roze — en erger je niet!',
+    tint: '#fff2b8',
+    kind: 'ludo',
+  },
   {
     id: 'hoops',
     emoji: '🏀',
@@ -217,7 +253,15 @@ export function GamesPage() {
                                           ? Lingo
                                           : game === 'hoops'
                                             ? Hoops
-                                            : null;
+                                            : game === 'pong'
+                                              ? BeerPong
+                                              : game === 'golf'
+                                                ? Golf
+                                                : game === 'draw'
+                                                  ? DrawGuess
+                                                  : game === 'ludo'
+                                                    ? Ludo
+                                                    : null;
     if (Game)
       return (
         <Suspense fallback={<PageLoading />}>
@@ -441,6 +485,10 @@ const MARQUEE: Record<string, string> = {
   lingo: 'linear-gradient(90deg,#1240a8,#ffd400,#e32636)',
   dots: 'linear-gradient(90deg,#ffc93c,#ff4f9a)',
   ttt: 'linear-gradient(90deg,#7fbf6a,#ef8fa8)',
+  pong: 'linear-gradient(90deg,#e5263d,#ffd75e,#ff8cc0)',
+  golf: 'linear-gradient(90deg,#3cc46a,#fffaf0,#ff8cc0)',
+  draw: 'linear-gradient(90deg,#ff4f9a,#ffc61a,#2f7bff,#3fae5a)',
+  ludo: 'linear-gradient(90deg,#ffc61a,#e8c48e,#ff5fa2)',
 };
 
 /** One arcade machine: marquee, a little screen that plays, buttons and a coin slot. */
@@ -619,6 +667,110 @@ function Preview({ id }: { id: string }) {
             <ellipse cx="30" cy="61" rx="4" ry="2" fill="#f7f3ee" />
             <ellipse cx="41" cy="61" rx="3" ry="2" fill="#f7f3ee" />
           </g>
+        </svg>
+      );
+    case 'pong':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--pong">
+          <path d="M20 74L44 20h32l24 54z" fill="#f5efe6" />
+          {[
+            [52, 26],
+            [60, 26],
+            [68, 26],
+            [56, 33],
+            [64, 33],
+            [60, 40],
+          ].map(([x, y], i) => (
+            <g key={i}>
+              <path d={`M${x - 4} ${y}l1 7h6l1 -7z`} fill="#e5263d" />
+              <ellipse cx={x} cy={y} rx="4" ry="1.4" fill="#fff" />
+            </g>
+          ))}
+          <circle className="pv-pong" cx="60" cy="70" r="3.5" fill="#fff" />
+        </svg>
+      );
+    case 'golf':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--golf">
+          <rect x="0" y="0" width="120" height="80" fill="#4f9a3c" />
+          <rect
+            x="28"
+            y="6"
+            width="64"
+            height="70"
+            rx="8"
+            fill="#3cc46a"
+            stroke="#8a5a2b"
+            strokeWidth="3"
+          />
+          <circle cx="60" cy="20" r="4" fill="#123018" />
+          <path d="M60 20V6l9 3 -9 3" stroke="#fff" strokeWidth="1" fill="#ff5fa2" />
+          <g className="pv-mill">
+            <path
+              d="M60 40l-12 -3M60 40l3 -12M60 40l12 3M60 40l-3 12"
+              stroke="#fffaf0"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+          </g>
+          <circle className="pv-putt" cx="60" cy="66" r="3" fill="#fff" />
+        </svg>
+      );
+    case 'draw':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--draw">
+          <path d="M40 76l14 -66M80 76l-14 -66" stroke="#8a5a2b" strokeWidth="3" />
+          <rect
+            x="32"
+            y="8"
+            width="56"
+            height="46"
+            rx="2"
+            fill="#fffdf8"
+            stroke="#b98352"
+            strokeWidth="2"
+          />
+          <path
+            className="pv-sketch"
+            d="M44 40q8 -22 16 -6t16 -6"
+            fill="none"
+            stroke="#ff4f9a"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <circle cx="50" cy="22" r="4" fill="#ffc61a" />
+        </svg>
+      );
+    case 'ludo':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--ludo">
+          <rect
+            x="22"
+            y="4"
+            width="76"
+            height="72"
+            rx="8"
+            fill="#e8c48e"
+            stroke="#9b6a3a"
+            strokeWidth="2"
+          />
+          {[0, 1, 2, 3, 4].map((i) => (
+            <circle
+              key={i}
+              cx={36 + i * 12}
+              cy="40"
+              r="4"
+              fill={i === 0 ? '#ffc61a' : i === 4 ? '#ff5fa2' : '#fffaf0'}
+              stroke="#9b6a3a"
+            />
+          ))}
+          <g className="pv-die">
+            <rect x="52" y="12" width="16" height="16" rx="3" fill="#fff" />
+            <circle cx="56" cy="16" r="1.6" fill="#3b2a1f" />
+            <circle cx="60" cy="20" r="1.6" fill="#3b2a1f" />
+            <circle cx="64" cy="24" r="1.6" fill="#3b2a1f" />
+          </g>
+          <circle className="pv-hop" cx="36" cy="54" r="5" fill="#ffc61a" stroke="#b58500" />
         </svg>
       );
     case 'hoops':
