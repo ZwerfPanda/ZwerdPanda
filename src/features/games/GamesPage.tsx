@@ -30,8 +30,44 @@ const BubbleTeaBar = lazy(() =>
   import('./BubbleTeaBar').then((m) => ({ default: m.BubbleTeaBar })),
 );
 const Prizes = lazy(() => import('./Prizes').then((m) => ({ default: m.Prizes })));
+const TicTacToe = lazy(() => import('./TicTacToe').then((m) => ({ default: m.TicTacToe })));
+const DotsBoxes = lazy(() => import('./DotsBoxes').then((m) => ({ default: m.DotsBoxes })));
+const Lingo = lazy(() => import('./Lingo').then((m) => ({ default: m.Lingo })));
+const Hoops = lazy(() => import('./Hoops').then((m) => ({ default: m.Hoops })));
 
 const GAMES = [
+  {
+    id: 'hoops',
+    emoji: '🏀',
+    title: 'Basketbal',
+    blurb: '45 seconden, zoveel mogelijk punten — duel om tickets',
+    tint: '#ffd8a8',
+    kind: 'hoops',
+  },
+  {
+    id: 'lingo',
+    emoji: '🟥',
+    title: 'Lingo',
+    blurb: 'Vijf woorden, vijf letters — duel om tickets',
+    tint: '#c9e4f5',
+    kind: 'lingo',
+  },
+  {
+    id: 'dots',
+    emoji: '✏️',
+    title: 'Kamertje verhuren',
+    blurb: 'Lijntjes trekken: roze tegen geel',
+    tint: '#fff2b8',
+    kind: 'dots',
+  },
+  {
+    id: 'ttt',
+    emoji: '❌',
+    title: 'Boter kaas en eieren',
+    blurb: 'Drie op een rij — ook in de verdwijnvariant',
+    tint: '#f9d0e0',
+    kind: 'ttt',
+  },
   {
     id: 'uno',
     emoji: '🃏',
@@ -173,7 +209,15 @@ export function GamesPage() {
                                   ? Kwartet
                                   : game === 'prizes'
                                     ? Prizes
-                                    : null;
+                                    : game === 'ttt'
+                                      ? TicTacToe
+                                      : game === 'dots'
+                                        ? DotsBoxes
+                                        : game === 'lingo'
+                                          ? Lingo
+                                          : game === 'hoops'
+                                            ? Hoops
+                                            : null;
     if (Game)
       return (
         <Suspense fallback={<PageLoading />}>
@@ -393,6 +437,10 @@ const MARQUEE: Record<string, string> = {
   hockey: 'linear-gradient(90deg,#4f8bff,#ff5fa2)',
   prizes: 'linear-gradient(90deg,#ffd75e,#ff8cc0)',
   quiz: 'linear-gradient(90deg,#ffd75e,#ff9a5c)',
+  hoops: 'linear-gradient(90deg,#ff8a1a,#ff5fa2,#b03cff)',
+  lingo: 'linear-gradient(90deg,#1240a8,#ffd400,#e32636)',
+  dots: 'linear-gradient(90deg,#ffc93c,#ff4f9a)',
+  ttt: 'linear-gradient(90deg,#7fbf6a,#ef8fa8)',
 };
 
 /** One arcade machine: marquee, a little screen that plays, buttons and a coin slot. */
@@ -570,6 +618,115 @@ function Preview({ id }: { id: string }) {
             <circle cx="45.5" cy="46" r="1.3" fill="#fff" />
             <ellipse cx="30" cy="61" rx="4" ry="2" fill="#f7f3ee" />
             <ellipse cx="41" cy="61" rx="3" ry="2" fill="#f7f3ee" />
+          </g>
+        </svg>
+      );
+    case 'hoops':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--hoops">
+          <rect
+            x="34"
+            y="6"
+            width="52"
+            height="30"
+            rx="3"
+            fill="#e6f5ff"
+            stroke="#5ff3ff"
+            strokeWidth="2"
+          />
+          <rect x="50" y="16" width="20" height="14" fill="none" stroke="#ff4f6d" strokeWidth="2" />
+          <ellipse
+            cx="60"
+            cy="36"
+            rx="13"
+            ry="3.5"
+            fill="none"
+            stroke="#ff7a1a"
+            strokeWidth="2.5"
+          />
+          <path
+            d="M48 37l4 12h16l4-12M52 37l3 12M60 37v12M68 37l-3 12"
+            stroke="#fff"
+            strokeWidth="1"
+            fill="none"
+          />
+          <g className="pv-shot">
+            <circle cx="60" cy="66" r="9" fill="#e0601c" />
+            <path d="M51 66h18M60 57v18" stroke="#5a2408" strokeWidth="1.2" />
+          </g>
+        </svg>
+      );
+    case 'lingo':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--lingo">
+          <rect x="0" y="0" width="120" height="80" fill="#0a2366" />
+          {[0, 1, 2].map((r) =>
+            [0, 1, 2, 3, 4].map((c) => {
+              const right = (r === 1 && (c === 0 || c === 3)) || r === 2;
+              const near = r === 1 && c === 2;
+              return (
+                <g
+                  key={`${r}${c}`}
+                  className={r === 2 ? 'pv-flip' : ''}
+                  style={{ animationDelay: `${c * 0.15}s` }}
+                >
+                  <rect
+                    x={18 + c * 17}
+                    y={10 + r * 21}
+                    width="15"
+                    height="18"
+                    rx="2"
+                    fill={right ? '#e32636' : '#2f6fe0'}
+                  />
+                  {near && <circle cx={25.5 + c * 17} cy={19 + r * 21} r="6.5" fill="#ffd400" />}
+                </g>
+              );
+            }),
+          )}
+        </svg>
+      );
+    case 'dots':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--dots">
+          <rect x="16" y="6" width="88" height="68" rx="4" fill="#fdfcf6" />
+          <rect x="34" y="18" width="18" height="18" fill="#ffe58a" />
+          <rect x="52" y="36" width="18" height="18" fill="#ffc2dc" />
+          <path
+            d="M34 18h18v18h-18zM52 36h18v18h-18z"
+            stroke="#3b3350"
+            strokeWidth="0"
+            fill="none"
+          />
+          <path d="M34 18h18M34 18v18M52 18v18M34 36h18" stroke="#f5b800" strokeWidth="2.5" />
+          <path d="M52 54h18M70 36v18M52 36h18" stroke="#ff4f9a" strokeWidth="2.5" />
+          <path className="pv-line" d="M70 18v18" stroke="#ff4f9a" strokeWidth="2.5" />
+          {[0, 1, 2, 3].map((r) =>
+            [0, 1, 2, 3].map((c) => (
+              <circle key={`${r}${c}`} cx={34 + c * 18} cy={18 + r * 18} r="2" fill="#3b3350" />
+            )),
+          )}
+        </svg>
+      );
+    case 'ttt':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--ttt">
+          <rect x="30" y="4" width="60" height="72" rx="6" fill="#ef8fa8" />
+          <rect x="34" y="10" width="52" height="60" rx="4" fill="#fff8ef" />
+          <path
+            d="M51 14v52M69 14v52M38 30h44M38 50h44"
+            stroke="#9b6a74"
+            strokeWidth="2"
+            opacity="0.6"
+          />
+          <path d="M40 17l7 9M47 17l-7 9" stroke="#ffc93c" strokeWidth="3" strokeLinecap="round" />
+          <circle cx="60" cy="40" r="5" fill="none" stroke="#ff6fae" strokeWidth="3" />
+          <g className="pv-x">
+            <path
+              d="M73 54l7 9M80 54l-7 9"
+              stroke="#ffc93c"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
           </g>
         </svg>
       );

@@ -25,6 +25,14 @@ export const GAME_NAMES: Record<GameId, string> = {
   kwartet: 'Go Fish',
   hop: 'Coco’s hoprace',
   boba: 'Bubble Tea Bar',
+  ttt: 'boter kaas en eieren',
+  dots: 'kamertje verhuren',
+  lingo: 'lingo',
+  hoops: 'basketbal',
+  pong: 'beer pong',
+  golf: 'minigolf',
+  draw: 'tekenen & raden',
+  ludo: 'mens erger je niet',
 };
 
 /** Writes down how a game ended (once per id, so a match counts once). */
@@ -120,6 +128,14 @@ export function gameBrag(
     'bowling',
     'hop',
     'boba',
+    'ttt',
+    'dots',
+    'lingo',
+    'hoops',
+    'pong',
+    'golf',
+    'draw',
+    'ludo',
   ] as GameId[]) {
     const h = headToHead(c.games, game, 'you', 'partner');
     if (h.a + h.b === 0) continue;
@@ -187,6 +203,38 @@ export function gameBrag(
         `Bubble Tea Bar: ${wins}–${losses} voor mij 🧋 Ik ben gewoon de betere barista.`,
         `${wins} diensten gewonnen achter de bar, {pet}. Fooi graag 😌`,
       ],
+      ttt: [
+        `Boter kaas en eieren: ${wins}–${losses} voor mij ❌⭕`,
+        `Drie op een rij, {pet}. Al ${wins} keer. Ik zie het gewoon aankomen 😌`,
+      ],
+      dots: [
+        `Kamertje verhuren: ${wins}–${losses}. Al die kamertjes zijn van mij 🏠`,
+        `Ik heb ${wins} keer de meeste vakjes gekleurd, {pet}. Huur betalen graag 😏`,
+      ],
+      lingo: [
+        `Lingo: ${wins}–${losses} voor mij 🟨🟩 Woordjes zijn mijn ding.`,
+        `${wins} keer sneller het woord geraden, {pet}. Groen groen groen 💚`,
+      ],
+      hoops: [
+        `Basketbal: ${wins}–${losses} voor mij 🏀 Swish.`,
+        `${wins} keer meer punten gescoord, {pet}. Nothing but net 😎`,
+      ],
+      pong: [
+        `Beer pong: ${wins}–${losses} voor mij 🍺 Jouw bekers staan er niet meer.`,
+        `${wins} keer al jouw bekers geraakt, {pet}. Proost 🥂`,
+      ],
+      golf: [
+        `Minigolf: ${wins}–${losses} voor mij ⛳ Hole in one, schatje.`,
+        `${wins} keer minder slagen nodig dan jij, {pet} 🏌️`,
+      ],
+      draw: [
+        `Tekenen & raden: ${wins}–${losses} voor ons team… ik bedoel mij 🎨`,
+        `${wins} keer gewonnen met tekenen, {pet}. Picasso wie? 🖌️`,
+      ],
+      ludo: [
+        `Mens erger je niet: ${wins}–${losses} voor mij 🎲 Erger je maar niet 😇`,
+        `${wins} keer als eerste al mijn pionnen thuis, {pet}. Sorry niet sorry.`,
+      ],
     };
     options.push({ leader, text: pick(texts[game], rng), reply: pick(replies, rng) });
   }
@@ -243,6 +291,13 @@ export function cocoGameTalk(c: AppContent, me: Person, name: string, rng: Rng):
     'hockey',
     'bingo',
     'kwartet',
+    'ttt',
+    'dots',
+    'lingo',
+    'hoops',
+    'pong',
+    'golf',
+    'ludo',
   ] as GameId[]) {
     const h = headToHead(c.games, game, me, 'coco');
     if (h.a + h.b === 0) continue;

@@ -562,6 +562,42 @@ const MATCHES_SINCE_5: readonly MatchKind[] = ['memory', 'darts'];
 const MATCHES_SINCE_7: readonly MatchKind[] = ['skeeball', 'bowling', 'bingo', 'kwartet'];
 const GAMES_SINCE_7: readonly GameId[] = ['bingo', 'kwartet'];
 const GAMES_SINCE_12: readonly GameId[] = ['hop', 'boba'];
+const GAMES_SINCE_16: readonly GameId[] = [
+  'ttt',
+  'dots',
+  'lingo',
+  'hoops',
+  'pong',
+  'golf',
+  'draw',
+  'ludo',
+];
+
+/** What an older app dropped of these games, put back from our own copy. */
+function keepGames(out: AppContent, ours: AppContent, games: readonly GameId[]): AppContent {
+  const has = (game: string) => (games as readonly string[]).includes(game);
+  const matches = new Set(out.games.matches.map((m) => m.id));
+  const scores = new Set(out.games.scores.map((s) => s.id));
+  const results = new Set(out.games.results.map((r) => r.id));
+  return {
+    ...out,
+    games: {
+      ...out.games,
+      matches: [
+        ...out.games.matches,
+        ...ours.games.matches.filter((m) => has(m.kind) && !matches.has(m.id)),
+      ],
+      scores: [
+        ...out.games.scores,
+        ...ours.games.scores.filter((s) => has(s.game) && !scores.has(s.id)),
+      ],
+      results: [
+        ...out.games.results,
+        ...ours.games.results.filter((r) => has(r.game) && !results.has(r.id)),
+      ],
+    },
+  };
+}
 
 /**
  * Content saved by an older app is missing whatever that app didn't know yet.
@@ -574,6 +610,8 @@ const withArchive = (archive: GamesArchive | undefined) => (archive ? { archive 
 export function carryForward(shared: AppContent, ours: AppContent, writer: number): AppContent {
   if (writer >= CONTENT_SCHEMA) return shared;
   let out = shared;
+  // Schema 16 added eight arcade games: their matches, scores and results.
+  if (writer < 16) out = keepGames(out, ours, GAMES_SINCE_16);
   // Schema 15 added our stories (and story replies in the chat).
   if (writer < 15) {
     const replies = new Map(ours.chat.messages.filter((m) => m.story).map((m) => [m.id, m.story]));

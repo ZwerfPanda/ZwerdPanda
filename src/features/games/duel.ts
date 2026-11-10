@@ -9,7 +9,7 @@ import { ticketsFor } from './tickets';
  * real game against each other, so it earns tickets like the others do.
  */
 
-export type DuelKind = 'skeeball' | 'bowling' | 'hop' | 'boba';
+export type DuelKind = 'skeeball' | 'bowling' | 'hop' | 'boba' | 'lingo' | 'hoops' | 'golf';
 export type DuelScores = Partial<Record<Person, number>>;
 
 const other = (p: Person): Person => (p === 'you' ? 'partner' : 'you');
@@ -67,12 +67,20 @@ export type DuelOutcome =
   | { type: 'practice'; mine: number }
   | { type: 'settled'; winner: Person | 'draw'; scores: DuelScores; tickets: number };
 
-/** My round is done: put my score in a duel. */
-export function playDuelRound(kind: DuelKind, me: Person, score: number): DuelOutcome {
+/**
+ * My round is done: put my score in a duel. `extra` travels with a duel I
+ * start (like the words of a Lingo round, so the other gets the same ones).
+ */
+export function playDuelRound(
+  kind: DuelKind,
+  me: Person,
+  score: number,
+  extra: Record<string, unknown> = {},
+): DuelOutcome {
   const plan = planDuel(getContent().games.matches, kind, me);
   if (plan.type === 'practice') return { type: 'practice', mine: plan.mine };
   if (plan.type === 'start') {
-    startMatch(kind, { scores: { [me]: score } }, other(me), me);
+    startMatch(kind, { ...extra, scores: { [me]: score } }, other(me), me);
     return { type: 'started' };
   }
   let settled: DuelOutcome = { type: 'started' };
@@ -81,7 +89,7 @@ export function playDuelRound(kind: DuelKind, me: Person, score: number): DuelOu
     const winner = duelWinner(scores);
     if (winner)
       settled = { type: 'settled', winner, scores, tickets: duelTickets(kind, winner, me) };
-    return { ...m, state: { scores }, turn: undefined, winner };
+    return { ...m, state: { ...m.state, scores }, turn: undefined, winner };
   });
   return settled;
 }
@@ -114,7 +122,7 @@ export function foldDuels(kind: DuelKind) {
   }));
   updateMatch(plan.into, (m) => ({
     ...m,
-    state: { scores: plan.scores },
+    state: { ...m.state, scores: plan.scores },
     turn: undefined,
     winner: duelWinner(plan.scores),
   }));

@@ -1,0 +1,228 @@
+/* Kamertje verhuren: a school notebook with squared paper and a spiral. */
+
+.game--dots {
+  --dots-yellow: #f5b800;
+  --dots-yellow-soft: #ffe58a;
+  --dots-pink: #ff4f9a;
+  --dots-pink-soft: #ffc2dc;
+  --dots-caramel: #d8782f;
+  --dots-caramel-soft: #f6cfa5;
+}
+
+.dots-notebook {
+  position: relative;
+  width: min(100%, 420px);
+  margin: 8px auto 14px;
+  padding: 26px 14px 14px 30px;
+  border-radius: 10px 18px 18px 10px;
+  background: linear-gradient(90deg, transparent 21px, #ff9aa8 21px 23px, transparent 23px),
+    repeating-linear-gradient(0deg, rgba(110, 160, 220, 0.22) 0 1px, transparent 1px 18px),
+    repeating-linear-gradient(90deg, rgba(110, 160, 220, 0.22) 0 1px, transparent 1px 18px), #fdfcf6;
+  box-shadow:
+    0 2px 0 #e7e2d2,
+    0 4px 0 #f6f2e4,
+    0 6px 0 #e2dccb,
+    0 22px 40px -16px rgba(0, 0, 0, 0.55);
+  transform: rotate(0.8deg);
+}
+
+.dots-rings {
+  position: absolute;
+  top: -10px;
+  left: 30px;
+  right: 18px;
+  display: flex;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.dots-rings span {
+  width: 12px;
+  height: 24px;
+  border: 3px solid #9aa3b5;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #d9dee8, #9aa3b5);
+}
+
+.dots-paper {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: manipulation;
+}
+
+.dots-dot {
+  fill: #3b3350;
+}
+
+.dots-edge {
+  cursor: pointer;
+  outline: none;
+}
+
+.dots-edge[aria-disabled='true'] {
+  cursor: default;
+}
+
+.dots-edge__hit {
+  stroke: transparent;
+  stroke-width: 22;
+  stroke-linecap: round;
+}
+
+.dots-edge:focus-visible .dots-edge__hit {
+  stroke: rgba(92, 157, 77, 0.25);
+}
+
+.dots-edge__ghost {
+  stroke: #3b3350;
+  stroke-width: 4;
+  stroke-dasharray: 2 7;
+  stroke-linecap: round;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.dots-edge__ink {
+  stroke-width: 6.5;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.dots-edge.is-yellow .dots-edge__ink {
+  stroke: var(--dots-yellow);
+}
+
+.dots-edge.is-pink .dots-edge__ink {
+  stroke: var(--dots-pink);
+}
+
+.dots-edge.is-caramel .dots-edge__ink {
+  stroke: var(--dots-caramel);
+}
+
+.dots-edge.is-last .dots-edge__ink {
+  filter: drop-shadow(0 0 3px rgba(59, 51, 80, 0.6));
+}
+
+.dots-box rect {
+  stroke-width: 2;
+}
+
+.dots-box text {
+  font-family: var(--font-hand);
+  font-size: 28px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.dots-box.is-yellow rect {
+  fill: var(--dots-yellow-soft);
+  stroke: var(--dots-yellow);
+}
+
+.dots-box.is-yellow text {
+  fill: #a87800;
+}
+
+.dots-box.is-pink rect {
+  fill: var(--dots-pink-soft);
+  stroke: var(--dots-pink);
+}
+
+.dots-box.is-pink text {
+  fill: #c2186a;
+}
+
+.dots-box.is-caramel rect {
+  fill: var(--dots-caramel-soft);
+  stroke: var(--dots-caramel);
+}
+
+.dots-box.is-caramel text {
+  font-size: 22px;
+}
+
+.dots-tally {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 4px 0 2px;
+}
+
+.dots-tally__side {
+  display: grid;
+  justify-items: center;
+  min-width: 104px;
+  padding: 8px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 2px transparent;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.dots-tally__side strong {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.dots-tally__side small {
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.dots-tally__side.is-yellow strong {
+  color: var(--dots-yellow-soft);
+}
+
+.dots-tally__side.is-pink strong {
+  color: var(--dots-pink-soft);
+}
+
+.dots-tally__side.is-caramel strong {
+  color: var(--dots-caramel-soft);
+}
+
+.dots-tally__side.is-turn.is-yellow {
+  box-shadow: inset 0 0 0 2px var(--dots-yellow);
+  transform: translateY(-2px);
+}
+
+.dots-tally__side.is-turn.is-pink {
+  box-shadow: inset 0 0 0 2px var(--dots-pink);
+  transform: translateY(-2px);
+}
+
+.dots-tally__side.is-turn.is-caramel {
+  box-shadow: inset 0 0 0 2px var(--dots-caramel);
+  transform: translateY(-2px);
+}
+
+.dots-sizes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 0 auto 8px;
+}
+
+.dots-sizes button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dots-sizes button.is-on {
+  background: #fdfcf6;
+  color: #3b3350;
+}

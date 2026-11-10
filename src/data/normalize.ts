@@ -982,10 +982,35 @@ const MATCH_KINDS: readonly MatchKind[] = [
   'kwartet',
   'hop',
   'boba',
+  'ttt',
+  'dots',
+  'lingo',
+  'hoops',
+  'pong',
+  'golf',
+  'draw',
+  'ludo',
 ];
 /** Games where each of us plays our own round: several can be open at once. */
-export const DUEL_KINDS: readonly MatchKind[] = ['skeeball', 'bowling', 'hop', 'boba'];
-const SCORE_GAMES: readonly ScoreGame[] = ['bowling', 'skeeball', 'darts', 'hop', 'boba'];
+export const DUEL_KINDS: readonly MatchKind[] = [
+  'skeeball',
+  'bowling',
+  'hop',
+  'boba',
+  'lingo',
+  'hoops',
+  'golf',
+];
+const SCORE_GAMES: readonly ScoreGame[] = [
+  'bowling',
+  'skeeball',
+  'darts',
+  'hop',
+  'boba',
+  'lingo',
+  'hoops',
+  'golf',
+];
 
 /** One game in progress between the two of us (also as it arrives live). */
 export function normalizeMatch(m: unknown, i = 0): GameMatch | null {
@@ -1059,6 +1084,14 @@ const GAME_IDS: readonly GameId[] = [
   'kwartet',
   'hop',
   'boba',
+  'ttt',
+  'dots',
+  'lingo',
+  'hoops',
+  'pong',
+  'golf',
+  'draw',
+  'ludo',
 ];
 const PLAYERS: readonly Player[] = ['you', 'partner', 'coco'];
 

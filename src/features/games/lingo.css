@@ -1,0 +1,302 @@
+/* Lingo: the TV studio — deep blue, red squares, yellow circles. */
+
+.lingo-studio {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  width: min(100%, 440px);
+  margin: 6px auto 12px;
+  padding: 18px 14px 16px;
+  border-radius: 26px;
+  background: radial-gradient(circle at 50% -10%, rgba(120, 170, 255, 0.55), transparent 55%),
+    radial-gradient(circle at 10% 110%, rgba(255, 200, 0, 0.22), transparent 45%),
+    linear-gradient(180deg, #1240a8, #0a2366 70%);
+  box-shadow:
+    0 0 0 4px #ffd400,
+    0 0 0 8px #0a2366,
+    0 24px 50px -20px rgba(0, 0, 0, 0.7);
+  color: #fff;
+}
+
+.lingo-logo {
+  display: flex;
+  gap: 5px;
+}
+
+.lingo-logo span {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-family: var(--font-body);
+  font-size: 1.25rem;
+  font-weight: 900;
+  box-shadow:
+    inset -4px -5px 0 rgba(0, 0, 0, 0.18),
+    inset 3px 4px 0 rgba(255, 255, 255, 0.45),
+    0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.lingo-logo .is-yellow {
+  background: #ffd400;
+  color: #0a2366;
+}
+
+.lingo-logo .is-blue {
+  background: #2f7bff;
+  color: #fff;
+}
+
+.lingo-intro {
+  display: grid;
+  gap: 12px;
+  max-width: 360px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.lingo-intro p {
+  margin: 0;
+}
+
+.lingo-intro__small {
+  font-size: 0.86rem;
+  opacity: 0.8;
+}
+
+.lingo-key {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 6px;
+  font-weight: 800;
+}
+
+.lingo-key.is-right {
+  background: #e32636;
+}
+
+.lingo-key.is-near {
+  color: #ffd400;
+  box-shadow: inset 0 0 0 2px #ffd400;
+  border-radius: 999px;
+}
+
+.lingo-go {
+  justify-self: center;
+  min-height: 50px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 999px;
+  background: #ffd400;
+  color: #0a2366;
+  font: inherit;
+  font-weight: 900;
+  font-size: 1.05rem;
+  box-shadow: 0 5px 0 #b89500;
+  cursor: pointer;
+}
+
+.lingo-go:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 #b89500;
+}
+
+.lingo-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+
+.lingo-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.lingo-dots span {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.lingo-dots .is-now {
+  background: #ffd400;
+  box-shadow: 0 0 10px #ffd400;
+}
+
+.lingo-dots .is-won {
+  background: #e32636;
+}
+
+.lingo-dots .is-lost {
+  background: #0a1640;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+.lingo-score {
+  padding: 4px 12px;
+  border-radius: 10px;
+  background: #061444;
+  color: #ffd400;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  box-shadow: inset 0 0 0 2px rgba(255, 212, 0, 0.35);
+}
+
+.lingo-score.is-coco {
+  color: #ffc2dc;
+  font-size: 1rem;
+}
+
+.lingo-board {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 16px;
+  background: #061444;
+  box-shadow: inset 0 4px 14px rgba(0, 0, 0, 0.5);
+  perspective: 600px;
+}
+
+.lingo-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.lingo-tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(46px, 13vw, 58px);
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #2f6fe0, #1c4fb8);
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
+  font-family: var(--font-body);
+  font-size: clamp(1.4rem, 6vw, 1.8rem);
+  font-weight: 900;
+  color: #fff;
+}
+
+.lingo-tile.is-given .lingo-letter {
+  opacity: 0.55;
+}
+
+.lingo-row.is-typing .lingo-tile {
+  box-shadow:
+    inset 0 -3px 0 rgba(0, 0, 0, 0.25),
+    0 0 0 2px rgba(255, 212, 0, 0.6);
+}
+
+.lingo-tile.is-right {
+  background: linear-gradient(180deg, #f2394a, #c81d2c);
+}
+
+.lingo-tile.is-miss {
+  background: linear-gradient(180deg, #1f4fae, #163c8a);
+}
+
+.lingo-ring {
+  position: absolute;
+  inset: 10%;
+  border-radius: 50%;
+  background: #ffd400;
+}
+
+.lingo-tile.is-near .lingo-letter {
+  position: relative;
+  color: #0a2366;
+}
+
+.lingo-answer {
+  margin: 6px 0 0;
+  text-align: center;
+}
+
+.lingo-answer strong {
+  color: #ffd400;
+  letter-spacing: 0.1em;
+}
+
+.lingo-float {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  translate: -50% 0;
+  color: #ffd400;
+  font-size: 2rem;
+  font-weight: 900;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+.lingo-keys {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.lingo-keys__row {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.lingo-k {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  max-width: 38px;
+  min-height: 46px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0a2366;
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.lingo-k:active {
+  transform: translateY(2px);
+}
+
+.lingo-k--wide {
+  flex: 1.5;
+  max-width: 56px;
+}
+
+.lingo-k--wide svg {
+  width: 20px;
+  height: 20px;
+}
+
+.lingo-k--go {
+  background: #ffd400;
+}
+
+.lingo-k.is-right {
+  background: #e32636;
+  color: #fff;
+}
+
+.lingo-k.is-near {
+  background: #ffd400;
+  color: #0a2366;
+}
+
+.lingo-k.is-miss {
+  background: #0a1640;
+  color: rgba(255, 255, 255, 0.45);
+}

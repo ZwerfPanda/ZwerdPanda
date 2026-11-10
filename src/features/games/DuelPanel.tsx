@@ -45,7 +45,7 @@ export function useDuelRound(kind: DuelKind, mode: PlayMode) {
   const [result, setResult] = useState<string | null>(null);
   const player: Person = mode === 'local' && first !== null ? them : me;
 
-  const finish = (total: number): RoundEnd => {
+  const finish = (total: number, extra?: Record<string, unknown>): RoundEnd => {
     if (mode === 'local') {
       if (first === null) {
         addScore(kind, total, me);
@@ -76,7 +76,7 @@ export function useDuelRound(kind: DuelKind, mode: PlayMode) {
     // Apart: only when this phone knows who's playing.
     if (!getAuthor()) return { text: `Klaar! ${total} punten 🏆`, tickets: null };
     addScore(kind, total);
-    const out = playDuelRound(kind, me, total);
+    const out = playDuelRound(kind, me, total, extra);
     const theirs = nameOf(them, profile);
     if (out.type === 'started')
       return {

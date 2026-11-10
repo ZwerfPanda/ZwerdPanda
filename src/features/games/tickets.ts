@@ -24,7 +24,16 @@ export const TICKETS = {
 } as const;
 
 /** Games that take a while to play earn a little more. */
-export const LONG_GAMES: readonly GameId[] = ['kwartet', 'zeeslag', 'uno', 'bowling', 'bingo'];
+export const LONG_GAMES: readonly GameId[] = [
+  'kwartet',
+  'zeeslag',
+  'uno',
+  'bowling',
+  'bingo',
+  'ludo',
+  'golf',
+  'dots',
+];
 export const LONG_BONUS = DEFAULT_RULES.long;
 
 /**

@@ -600,8 +600,10 @@ export function cloneUs(us: UsContent): UsContent {
  *  13 — Wie kent wie grew: room for many more answers
  *  14 — the day we became a couple, next to the day we met
  *  15 — our stories (and replies to them in the chat)
+ *  16 — eight new arcade games (boter kaas en eieren, kamertje verhuren, lingo,
+ *       basketbal, beer pong, minigolf, tekenen & raden, mens erger je niet)
  */
-export const CONTENT_SCHEMA = 15;
+export const CONTENT_SCHEMA = 16;
 
 export function createDefaultContent(): AppContent {
   return {

@@ -23,6 +23,37 @@ export interface ChangeEntry {
 
 export const CHANGELOG: ChangeEntry[] = [
   {
+    id: '2026-11-11',
+    when: 'november 2026',
+    title: 'Vier nieuwe kasten in de Arcade Hall 🕹️',
+    items: [
+      {
+        emoji: '🏀',
+        title: 'Basketbal',
+        text: 'Veeg omhoog en scoor zoveel mogelijk in 45 seconden. De ring gaat bewegen, het einde telt 3 punten. Duel om tickets.',
+        path: '/games',
+      },
+      {
+        emoji: '🟥',
+        title: 'Lingo',
+        text: 'Vijf woorden van vijf letters, zoals op tv. In een duel krijgen jullie precies dezelfde woorden.',
+        path: '/games',
+      },
+      {
+        emoji: '✏️',
+        title: 'Kamertje verhuren',
+        text: 'Lijntjes trekken in een schriftje: geel tegen roze. Wie de meeste kamertjes kleurt, wint.',
+        path: '/games',
+      },
+      {
+        emoji: '❌',
+        title: 'Boter kaas en eieren',
+        text: 'Op een picknickkleed, ook in de verdwijnvariant: na drie verdwijnt je oudste stuk.',
+        path: '/games',
+      },
+    ],
+  },
+  {
     id: '2026-11-10',
     when: 'november 2026',
     title: 'Onze eigen stories 📸',

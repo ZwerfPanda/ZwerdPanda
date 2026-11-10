@@ -4608,3 +4608,84 @@ button.sea__cell:focus-visible {
     transition: none;
   }
 }
+
+/* the new machines' little screens */
+.pv-shot {
+  animation: pv-shot 2.2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes pv-shot {
+  0%,
+  15% {
+    transform: translate(0, 0) scale(1);
+  }
+  55% {
+    transform: translate(0, -46px) scale(0.6);
+  }
+  75%,
+  100% {
+    transform: translate(0, -22px) scale(0.55);
+    opacity: 0;
+  }
+}
+
+.pv-flip {
+  animation: pv-flip 2.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes pv-flip {
+  0%,
+  10% {
+    transform: scaleY(0);
+  }
+  25%,
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+.pv-line {
+  stroke-dasharray: 18;
+  animation: pv-line 2s ease-in-out infinite;
+}
+
+@keyframes pv-line {
+  0%,
+  20% {
+    stroke-dashoffset: 18;
+  }
+  50%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.pv-x {
+  animation: pv-x 2.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes pv-x {
+  0%,
+  20% {
+    transform: scale(0);
+  }
+  35%,
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-shot,
+  .pv-flip,
+  .pv-line,
+  .pv-x {
+    animation: none;
+  }
+}
