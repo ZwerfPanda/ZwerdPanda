@@ -1,17 +1,100 @@
-/* Minigolf: a little park — a wooden sign, the green, a scorecard. */
+/* Minigolf: five little worlds — a wooden sign, the green, a scorecard. */
 
 .golf-park {
   width: min(100%, 400px);
   margin: 6px auto 12px;
 }
 
-.golf-sign {
+/* --------------------------------------------------- choosing a world */
+
+.golf-worlds {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.golf-world {
   display: grid;
   justify-items: center;
   gap: 2px;
+  padding: 8px 2px 7px;
+  border: 0;
+  border-radius: 14px;
+  color: #fff;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.18),
+    0 4px 0 rgba(0, 0, 0, 0.25);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.golf-world strong {
+  font-size: 0.68rem;
+  line-height: 1.1;
+}
+
+.golf-world small {
+  font-size: 0.6rem;
+  opacity: 0.9;
+}
+
+.golf-world__emoji {
+  font-size: 1.4rem;
+  line-height: 1.2;
+}
+
+.golf-world.is-on {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 3px #fff,
+    0 6px 0 rgba(0, 0, 0, 0.3);
+}
+
+.golf-world:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.golf-world:focus-visible {
+  outline: 3px solid #ffd75e;
+  outline-offset: 2px;
+}
+
+.golf-world.is-park {
+  background: linear-gradient(160deg, #58a644, #2f7a2a);
+}
+
+.golf-world.is-beach {
+  background: linear-gradient(160deg, #2fc2b3, #e2a94f);
+}
+
+.golf-world.is-candy {
+  background: linear-gradient(160deg, #ff8cc0, #c74fd8);
+}
+
+.golf-world.is-ice {
+  background: linear-gradient(160deg, #7fd0ff, #3f7fc0);
+}
+
+.golf-world.is-space {
+  background: linear-gradient(160deg, #3a2f8f, #0d0b26);
+}
+
+/* --------------------------------------------------------- the sign */
+
+.golf-sign {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
   margin: 0 auto 10px;
-  padding: 8px 16px;
+  padding: 7px 16px 8px;
   width: fit-content;
+  max-width: 100%;
   border-radius: 10px;
   background: linear-gradient(180deg, #c99a62, #a8743f);
   box-shadow:
@@ -21,10 +104,50 @@
   text-align: center;
 }
 
+.is-beach .golf-sign {
+  background: linear-gradient(180deg, #f6efe1, #e0d2b4);
+  box-shadow:
+    inset 0 0 0 2px #b39465,
+    0 6px 0 #8f7550;
+  color: #4b3a22;
+}
+
+.is-candy .golf-sign {
+  background: repeating-linear-gradient(-45deg, #ff5fa2 0 10px, #ff8cc0 10px 20px);
+  box-shadow:
+    inset 0 0 0 2px #b8235e,
+    0 6px 0 #8a1546;
+}
+
+.is-ice .golf-sign {
+  background: linear-gradient(180deg, #e8f7ff, #b9e2fa);
+  box-shadow:
+    inset 0 0 0 2px #7fb7d9,
+    0 6px 0 #5b93b8;
+  color: #1e4a6b;
+}
+
+.is-space .golf-sign {
+  background: linear-gradient(180deg, #2b2a6b, #17164a);
+  box-shadow:
+    inset 0 0 0 2px #5ff3ff,
+    0 0 18px rgba(95, 243, 255, 0.35),
+    0 6px 0 #0d0b26;
+}
+
+.golf-sign__world {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
 .golf-sign__hole {
   font-family: var(--font-hand);
   font-size: 1.35rem;
   font-weight: 700;
+  line-height: 1.1;
 }
 
 .golf-sign__meta {
@@ -39,6 +162,8 @@
   font-size: 0.86rem;
 }
 
+/* --------------------------------------------------------- the green */
+
 .golf-green {
   position: relative;
   overflow: hidden;
@@ -46,6 +171,8 @@
   box-shadow: 0 22px 40px -18px rgba(0, 0, 0, 0.6);
   touch-action: none;
   cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .golf-green:focus-visible {
@@ -59,23 +186,131 @@
   height: auto;
 }
 
-.golf-sand {
-  fill: #ecd9a6;
-  stroke: #d6bd7c;
-  stroke-width: 2;
+.golf-decor {
+  opacity: 0.9;
 }
 
-.golf-water {
-  fill: #4ab3e6;
-  stroke: #2d86b8;
-  stroke-width: 3;
+.is-space .golf-speck {
+  animation: golf-twinkle 2.4s ease-in-out infinite;
+}
+
+.is-space .golf-speck:nth-child(3n) {
+  animation-delay: -0.8s;
+}
+
+.is-space .golf-speck:nth-child(3n + 1) {
+  animation-delay: -1.6s;
+}
+
+@keyframes golf-twinkle {
+  50% {
+    opacity: 0.25;
+  }
 }
 
 .golf-ripple {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.6);
+  stroke: rgba(255, 255, 255, 0.55);
   stroke-width: 2;
   stroke-linecap: round;
+  animation: golf-ripple 2.6s ease-in-out infinite;
+}
+
+@keyframes golf-ripple {
+  50% {
+    transform: translateX(6px);
+    opacity: 0.5;
+  }
+}
+
+.golf-bob {
+  animation: golf-bob 2.2s ease-in-out infinite;
+}
+
+@keyframes golf-bob {
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+.golf-ice {
+  fill: rgba(220, 245, 255, 0.75);
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 2;
+}
+
+.golf-slope {
+  fill: rgba(0, 0, 0, 0.1);
+}
+
+.is-candy .golf-slope {
+  fill: rgba(110, 55, 25, 0.35);
+}
+
+.golf-slope__arrow,
+.golf-boost__arrow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.golf-slope__arrow {
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-width: 4;
+  animation: golf-pulse 1.6s ease-in-out infinite;
+}
+
+.golf-boost {
+  fill: #ffd75e;
+  stroke: #ff8a1f;
+  stroke-width: 2;
+}
+
+.is-space .golf-boost {
+  fill: #5ff3ff;
+  stroke: #1b8a9c;
+}
+
+.golf-boost__arrow {
+  stroke: #fff;
+  stroke-width: 5;
+  animation: golf-pulse 0.9s ease-in-out infinite;
+}
+
+@keyframes golf-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.golf-spin {
+  animation: golf-spin 6s linear infinite;
+}
+
+.golf-spin.is-fast {
+  animation-duration: 2.2s;
+}
+
+@keyframes golf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.golf-tag {
+  fill: #fff;
+  font-weight: 800;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.45);
+  stroke-width: 2px;
+}
+
+.golf-beam {
+  animation: golf-pulse 1.2s ease-in-out infinite;
 }
 
 .golf-flag path {
@@ -108,6 +343,20 @@
   pointer-events: none;
 }
 
+.is-space .golf-banner {
+  background: rgba(23, 22, 74, 0.92);
+  box-shadow: 0 0 0 2px #5ff3ff;
+}
+
+.is-candy .golf-banner {
+  background: rgba(163, 15, 85, 0.9);
+}
+
+.is-ice .golf-banner,
+.is-beach .golf-banner {
+  background: rgba(20, 60, 95, 0.9);
+}
+
 .golf-start {
   position: absolute;
   inset: auto 0 0;
@@ -115,12 +364,7 @@
   justify-items: center;
   gap: 8px;
   padding: 18px 16px 22px;
-  background: linear-gradient(
-    0deg,
-    rgba(20, 50, 18, 0.95),
-    rgba(20, 50, 18, 0.65) 70%,
-    transparent
-  );
+  background: linear-gradient(0deg, rgba(10, 20, 15, 0.92), rgba(10, 20, 15, 0.6) 70%, transparent);
   color: #fff;
   text-align: center;
 }
@@ -150,6 +394,8 @@
   cursor: pointer;
 }
 
+/* ------------------------------------------------------ the scorecard */
+
 .golf-card {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -173,13 +419,34 @@
   background: #dff3d6;
 }
 
+.golf-card li.is-under strong {
+  color: #1f8a3a;
+}
+
+.golf-card li.is-under strong::after {
+  content: '●';
+  font-size: 0.5em;
+  vertical-align: super;
+}
+
+.golf-card li.is-over strong {
+  color: #c4372b;
+}
+
 .golf-card small {
-  font-size: 0.7rem;
-  opacity: 0.7;
+  font-size: 0.66rem;
+  opacity: 0.75;
+  white-space: nowrap;
 }
 
 .golf-card strong {
   font-size: 1.05rem;
+}
+
+.golf-card em {
+  font-size: 0.6rem;
+  font-style: normal;
+  opacity: 0.6;
 }
 
 .golf-coco {
@@ -189,7 +456,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .golf-flag path {
-    animation: none;
+  .golf-flag path,
+  .golf-spin,
+  .golf-ripple,
+  .golf-bob,
+  .golf-speck,
+  .golf-slope__arrow,
+  .golf-boost__arrow,
+  .golf-beam {
+    animation: none !important;
   }
 }

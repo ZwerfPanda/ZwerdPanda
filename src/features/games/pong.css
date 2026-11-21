@@ -72,7 +72,7 @@
   justify-items: center;
   gap: 4px;
   min-width: 112px;
-  padding: 6px 12px 8px;
+  padding: 6px 12px 6px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.08);
 }
@@ -83,26 +83,26 @@
 }
 
 .pong-rack__cups {
-  display: grid;
-  justify-items: center;
-  gap: 2px;
+  width: 64px;
+  height: 50px;
+  overflow: visible;
 }
 
-.pong-rack__cups > span {
-  display: flex;
-  gap: 3px;
+.pong-rack__cups circle {
+  fill: #e5263d;
+  stroke: #fff;
+  stroke-width: 0.012;
 }
 
-.pong-rack__cups i {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+.pong-rack {
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.pong-rack__cups i.is-up {
-  background: #e5263d;
-  box-shadow: inset 0 -2px 0 #8c0f20;
+.pong-rack.is-active {
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
 }
 
 .pong-rack.is-yellow small {
@@ -115,4 +115,65 @@
 
 .pong-rack.is-caramel small {
   color: #f6cfa5;
+}
+
+.pong-status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 8px 0 0;
+}
+
+.pong-status span {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ff6a3d, #ffb347);
+  color: #2a1240;
+  font-size: 0.8rem;
+  font-weight: 800;
+  animation: pong-glow 1.2s ease-in-out infinite;
+}
+
+@keyframes pong-glow {
+  50% {
+    box-shadow: 0 0 14px rgba(255, 140, 60, 0.8);
+  }
+}
+
+.pong-help {
+  margin: 0 auto 10px;
+  max-width: 360px;
+  font-size: 0.78rem;
+  text-align: center;
+  opacity: 0.75;
+}
+
+.pong-size {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.pong-size__quick {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pong-size__quick:focus-visible {
+  outline: 3px solid #ffd75e;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pong-status span {
+    animation: none;
+  }
 }
