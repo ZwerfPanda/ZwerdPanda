@@ -68,11 +68,16 @@ export interface Hole {
   portals?: { a: P; b: P }[];
   /** Black holes: pull the ball in; right in the middle costs a stroke. */
   wells?: { x: number; y: number; r: number; pull: number }[];
+  /** Jumps: roll up one fast enough (in the arrow's direction) and you fly. */
+  ramps?: Push[];
+  /** Gates that stay shut until you roll over the button with the same id. */
+  gates?: (Rect & { id: number })[];
+  buttons?: { x: number; y: number; id: number }[];
   mills?: Mill[];
   sliders?: Slider[];
 }
 
-export type ThemeId = 'park' | 'beach' | 'candy' | 'ice' | 'space';
+export type ThemeId = 'park' | 'beach' | 'candy' | 'ice' | 'space' | 'garden';
 
 export interface Course {
   id: string;
@@ -82,6 +87,8 @@ export interface Course {
   blurb: string;
   /** The whole course is a bit slippery (ice) or not. */
   glide?: number;
+  /** A bonus world: open once you've got this many stars elsewhere. */
+  unlock?: number;
   holes: Hole[];
 }
 
@@ -493,12 +500,100 @@ const SPACE: Hole[] = [
   },
 ];
 
+/* ----------------------------------------------- 6. Coco's garden (bonus) */
+
+const GARDEN: Hole[] = [
+  {
+    name: 'Het schansje',
+    emoji: '🛝',
+    par: 2,
+    tee: { x: 150, y: 430 },
+    cup: { x: 150, y: 90 },
+    walls: [box(50, 25, 200, 445)],
+    water: [{ x: 50, y: 195, w: 200, h: 90 }],
+    ramps: [{ x: 115, y: 300, w: 70, h: 44, ax: 0, ay: -1 }],
+  },
+  {
+    name: 'De tuinpoort',
+    emoji: '🚪',
+    par: 3,
+    tee: { x: 210, y: 430 },
+    cup: { x: 150, y: 90 },
+    walls: [box(30, 25, 240, 445), box(30, 200, 95, 16), box(175, 200, 95, 16)],
+    gates: [{ x: 125, y: 200, w: 50, h: 16, id: 0 }],
+    buttons: [{ x: 65, y: 330, id: 0 }],
+    sand: [{ x: 200, y: 40, w: 60, h: 50 }],
+  },
+  {
+    name: 'Wortelveld',
+    emoji: '🥕',
+    par: 3,
+    tee: { x: 150, y: 435 },
+    cup: { x: 150, y: 110 },
+    walls: [box(30, 25, 240, 445), box(30, 228, 240, 22)],
+    ramps: [{ x: 110, y: 268, w: 80, h: 44, ax: 0, ay: -1 }],
+    bumpers: [
+      { x: 90, y: 150, r: 13 },
+      { x: 210, y: 150, r: 13 },
+    ],
+    sand: [{ x: 40, y: 40, w: 70, h: 50 }],
+  },
+  {
+    name: 'Konijnenholen',
+    emoji: '🐇',
+    par: 3,
+    tee: { x: 70, y: 435 },
+    cup: { x: 220, y: 85 },
+    walls: [box(25, 25, 250, 445), box(140, 25, 20, 445), box(160, 200, 40, 16)],
+    portals: [{ a: { x: 70, y: 110 }, b: { x: 220, y: 420 } }],
+    gates: [{ x: 200, y: 200, w: 75, h: 16, id: 0 }],
+    buttons: [{ x: 70, y: 280, id: 0 }],
+  },
+  {
+    name: 'De tuinslang',
+    emoji: '💦',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 70 },
+    walls: [box(30, 25, 240, 445)],
+    water: [{ x: 30, y: 215, w: 240, h: 45 }],
+    ramps: [
+      { x: 45, y: 280, w: 60, h: 44, ax: 0, ay: -1 },
+      { x: 195, y: 280, w: 60, h: 44, ax: 0, ay: -1 },
+    ],
+    bumpers: [{ x: 150, y: 305, r: 18 }],
+    mills: [{ x: 150, y: 150, len: 42, speed: 1.4 }],
+  },
+  {
+    name: 'De moestuin',
+    emoji: '🏆',
+    par: 4,
+    tee: { x: 60, y: 440 },
+    cup: { x: 60, y: 62 },
+    walls: [box(25, 25, 250, 445), box(25, 330, 180, 18), box(25, 110, 170, 16)],
+    water: [{ x: 25, y: 200, w: 250, h: 50 }],
+    ramps: [{ x: 210, y: 262, w: 60, h: 46, ax: 0, ay: -1 }],
+    gates: [{ x: 195, y: 110, w: 80, h: 16, id: 0 }],
+    buttons: [{ x: 70, y: 165, id: 0 }],
+    sliders: [{ y: 380, w: 50, h: 20, from: 30, to: 270, speed: 1 }],
+  },
+];
+
 export const COURSES: Course[] = [
   { id: 'park', name: 'Het park', emoji: '🌳', theme: 'park', blurb: 'Windmolen & vijver', holes: PARK },
   { id: 'beach', name: 'Het strand', emoji: '🏖️', theme: 'beach', blurb: 'Zee, zand en een vuurtoren', holes: BEACH },
   { id: 'candy', name: 'Snoepland', emoji: '🍭', theme: 'candy', blurb: 'Gombal-bumpers & portalen', holes: CANDY },
   { id: 'ice', name: 'IJspaleis', emoji: '❄️', theme: 'ice', blurb: 'Glad! De bal glijdt ver door', glide: 0.35, holes: ICE },
   { id: 'space', name: 'De ruimte', emoji: '🪐', theme: 'space', blurb: 'Zwarte gaten en wormgaten', holes: SPACE },
+  {
+    id: 'garden',
+    name: 'Coco’s tuin',
+    emoji: '🐰',
+    theme: 'garden',
+    blurb: 'Schansen en geheime poortjes',
+    unlock: 30,
+    holes: GARDEN,
+  },
 ];
 
 /** The first course's holes (kept for older callers). */
@@ -537,6 +632,10 @@ export interface GolfState {
   over: boolean;
   /** Just came out of a portal: it only works again once you've left it. */
   warped?: number;
+  /** In the air after a jump: how long so far, and how long in all. */
+  air?: { t: number; dur: number };
+  /** Gates opened on this hole. */
+  open?: number[];
 }
 
 export type GolfEvent =
@@ -547,6 +646,9 @@ export type GolfEvent =
   | { type: 'water'; at: P }
   | { type: 'void'; at: P }
   | { type: 'out' }
+  | { type: 'jump' }
+  | { type: 'land' }
+  | { type: 'click' }
   | { type: 'sunk'; strokes: number; par: number }
   | { type: 'lip' }
   | { type: 'max' }
@@ -616,8 +718,9 @@ export function inside(h: Hole, p: P) {
 }
 
 const staticEdges = new WeakMap<Hole, [P, P][]>();
-/** All the solid edges of a hole at time t. */
-export function edgesAt(h: Hole, t: number): [P, P][] {
+const outerEdges = new WeakMap<Hole, [P, P][]>();
+/** All the solid edges of a hole at time t (gates count until they're open). */
+export function edgesAt(h: Hole, t: number, open: number[] = []): [P, P][] {
   let fixed = staticEdges.get(h);
   if (!fixed) {
     fixed = h.walls.flatMap(segs);
@@ -625,8 +728,23 @@ export function edgesAt(h: Hole, t: number): [P, P][] {
   }
   const out = [...fixed, ...bladesAt(h, t)];
   for (const s of slidersAt(h, t)) out.push(...segs(box(s.x, s.y, s.w, s.h)));
+  for (const g of h.gates ?? []) if (!open.includes(g.id)) out.push(...segs(box(g.x, g.y, g.w, g.h)));
   return out;
 }
+
+/** Only the course's edge: what a ball in the air can still hit. */
+function edgeOnly(h: Hole): [P, P][] {
+  let e = outerEdges.get(h);
+  if (!e) {
+    e = segs(h.walls[0]);
+    outerEdges.set(h, e);
+  }
+  return e;
+}
+
+/** How high a jumping ball is (0..1). */
+export const airHeight = (s: Pick<GolfState, 'air'>) =>
+  s.air ? Math.sin(Math.PI * Math.min(1, s.air.t / s.air.dur)) : 0;
 
 function bounce(b: Ball, [a, c]: [P, P]): Ball | null {
   const dx = c.x - a.x;
@@ -684,6 +802,7 @@ function penalty(next: GolfState, kind: 'water' | 'void', events: GolfEvent[], a
       ball: { ...back, vx: 0, vy: 0 },
       moving: false,
       warped: undefined,
+      air: undefined,
     },
     events: maxed(next.hole, strokes, events),
   };
@@ -700,6 +819,8 @@ export function step(s: GolfState, dt: number): { state: GolfState; events: Golf
   if (!s.moving) return { state: next, events };
   let b = { ...s.ball };
   let warped = s.warped;
+  let air = s.air ? { ...s.air } : undefined;
+  let open = s.open ?? [];
   const n = Math.max(6, Math.ceil((Math.hypot(b.vx, b.vy) * d) / 3));
   let hitWall = false;
   let pushed = false;
@@ -711,6 +832,37 @@ export function step(s: GolfState, dt: number): { state: GolfState; events: Golf
   for (let k = 0; k < n; k++) {
     const h2 = d / n;
     const t = s.t + (d * (k + 1)) / n;
+    if (air) {
+      // flying: over water, sand and hedges; only the edge stops you
+      air.t += h2;
+      const keep = Math.exp(-0.25 * h2);
+      b = { x: b.x + b.vx * h2, y: b.y + b.vy * h2, vx: b.vx * keep, vy: b.vy * keep };
+      for (const e of edgeOnly(h)) {
+        const out = bounce(b, e);
+        if (out) b = out;
+      }
+      if (air.t >= air.dur) {
+        air = undefined;
+        events.push({ type: 'land' });
+      }
+      continue;
+    }
+    for (const r of h.ramps ?? []) {
+      if (!inRect(b, r)) continue;
+      const along = (b.vx * r.ax + b.vy * r.ay) / (Math.hypot(r.ax, r.ay) || 1);
+      if (along > 140) {
+        const sp = Math.hypot(b.vx, b.vy);
+        air = { t: 0, dur: Math.max(0.3, Math.min(0.85, sp / 650)) };
+        events.push({ type: 'jump' });
+        break;
+      }
+    }
+    if (air) continue;
+    for (const bt of h.buttons ?? [])
+      if (!open.includes(bt.id) && Math.hypot(b.x - bt.x, b.y - bt.y) < 11) {
+        open = [...open, bt.id];
+        events.push({ type: 'click' });
+      }
     const sandy = (h.sand ?? []).some((r) => inRect(b, r));
     const icy = (h.ice ?? []).some((r) => inRect(b, r));
     // hills and arrow pads
@@ -738,7 +890,7 @@ export function step(s: GolfState, dt: number): { state: GolfState; events: Golf
         b.vy += (oy / dist) * f;
         leaning = true;
       }
-      if (dist < 9) return penalty({ ...next, warped }, 'void', events, { x: w.x, y: w.y });
+      if (dist < 9) return penalty({ ...next, warped, open }, 'void', events, { x: w.x, y: w.y });
     }
     const speed = Math.hypot(b.vx, b.vy);
     // rolling friction: a little drag, a little steady slowing
@@ -747,7 +899,7 @@ export function step(s: GolfState, dt: number): { state: GolfState; events: Golf
     const slow = Math.max(0, Math.min(TOP_SPEED, speed) - roll * h2) * Math.exp(-drag * h2);
     const f = speed > 0 ? slow / speed : 0;
     b = { x: b.x + b.vx * f * h2, y: b.y + b.vy * f * h2, vx: b.vx * f, vy: b.vy * f };
-    for (const e of edgesAt(h, t)) {
+    for (const e of edgesAt(h, t, open)) {
       const out = bounce(b, e);
       if (out) {
         if (Math.hypot(b.vx, b.vy) > 60) hitWall = true;
@@ -801,6 +953,7 @@ export function step(s: GolfState, dt: number): { state: GolfState; events: Golf
             moving: false,
             sunk: true,
             warped: undefined,
+            open,
           },
           events,
         };
@@ -814,13 +967,19 @@ export function step(s: GolfState, dt: number): { state: GolfState; events: Golf
       b.vy += (h.cup.y - b.y) * 6 * h2;
     }
     if ((h.water ?? []).some((r) => inRect(b, r)))
-      return penalty({ ...next, warped }, 'water', events, b);
+      return penalty({ ...next, warped, open }, 'water', events, b);
   }
-  if (!inside(h, b)) {
+  if (!air && !inside(h, b)) {
     // squeezed through a wall somehow: back where you were, no penalty
     events.push({ type: 'out' });
     return {
-      state: { ...next, ball: { ...next.lastRest, vx: 0, vy: 0 }, moving: false, warped: undefined },
+      state: {
+        ...next,
+        open,
+        ball: { ...next.lastRest, vx: 0, vy: 0 },
+        moving: false,
+        warped: undefined,
+      },
       events: maxed(next.hole, next.strokes, events),
     };
   }
@@ -829,10 +988,12 @@ export function step(s: GolfState, dt: number): { state: GolfState; events: Golf
   const rolling = s.rolling + d;
   const v = Math.hypot(b.vx, b.vy);
   // on a hill or near a black hole the ball only rests against something
-  const stopped = (v < 6 && (!leaning || hitWall || v < 1)) || rolling > 14;
+  const stopped = !air && ((v < 6 && (!leaning || hitWall || v < 1)) || rolling > 14);
   next = {
     ...next,
     rolling,
+    air,
+    open,
     warped: stopped ? undefined : warped,
     ball: stopped ? { ...b, vx: 0, vy: 0 } : b,
     moving: !stopped,
@@ -865,6 +1026,8 @@ export function nextHole(s: GolfState): { state: GolfState; events: GolfEvent[] 
       sunk: false,
       rolling: 0,
       warped: undefined,
+      air: undefined,
+      open: [],
     },
     events: [],
   };
@@ -908,3 +1071,87 @@ export function cocoGolf(rng: () => number = Math.random, course = 0): number {
 }
 
 export const isInRect = inRect;
+
+/* ------------------------------------------------------ stars & progress */
+
+/** Stars for a hole: under par 3, par 2, one over 1. */
+export function holeStars(strokes: number, par: number): number {
+  if (!strokes) return 0;
+  if (strokes === 1 || strokes < par) return 3;
+  if (strokes === par) return 2;
+  if (strokes === par + 1) return 1;
+  return 0;
+}
+
+/** Best strokes per hole, per course id. */
+export type GolfProgress = Record<string, number[]>;
+
+export const courseStars = (p: GolfProgress, c: Course) =>
+  c.holes.reduce((n, h, i) => n + holeStars(p[c.id]?.[i] ?? 0, h.par), 0);
+
+/** Stars from the always-open worlds (what unlocks the bonus ones). */
+export const totalStars = (p: GolfProgress) =>
+  COURSES.filter((c) => !c.unlock).reduce((n, c) => n + courseStars(p, c), 0);
+
+export const isOpen = (p: GolfProgress, c: Course) => !c.unlock || totalStars(p) >= c.unlock;
+
+/** Remember a finished hole if it beat the best so far. */
+export function recordHole(p: GolfProgress, course: Course, hole: number, strokes: number): GolfProgress {
+  if (!strokes) return p;
+  const row = [...(p[course.id] ?? [])];
+  const k = Math.min(MAX_STROKES, strokes);
+  if (row[hole] && row[hole] <= k) return p;
+  while (row.length < hole) row.push(0);
+  row[hole] = k;
+  return { ...p, [course.id]: row };
+}
+
+export function normalizeProgress(raw: unknown): GolfProgress {
+  const out: GolfProgress = {};
+  if (!raw || typeof raw !== 'object') return out;
+  for (const c of COURSES) {
+    const v = (raw as Record<string, unknown>)[c.id];
+    if (Array.isArray(v))
+      out[c.id] = v
+        .slice(0, c.holes.length)
+        .map((n) => (Number.isInteger(n) && n > 0 && n <= MAX_STROKES ? n : 0));
+  }
+  return out;
+}
+
+/** Balls you can play with, unlocked by stars. */
+export const BALLS = [
+  { id: 'white', name: 'Klassiek', stars: 0, fill: '#ffffff', ring: '#c9c9c9' },
+  { id: 'sun', name: 'Zonnetje', stars: 8, fill: '#ffd75e', ring: '#e0a400' },
+  { id: 'rose', name: 'Roosje', stars: 16, fill: '#ff8cc0', ring: '#d14a8a' },
+  { id: 'mint', name: 'Mintje', stars: 24, fill: '#7fe3c7', ring: '#2fae8a' },
+  { id: 'coco', name: 'Coco', stars: 34, fill: '#f1e7dc', ring: '#a58c74', emoji: '🐰' },
+  { id: 'rainbow', name: 'Regenboog', stars: 46, fill: 'rainbow', ring: '#7a4fd6' },
+  { id: 'heart', name: 'Hartje', stars: 58, fill: '#ff4f6d', ring: '#b8233e', emoji: '♥' },
+  { id: 'gold', name: 'Goud', stars: 75, fill: '#ffcf33', ring: '#b8860b', shine: true },
+] as const;
+export type BallSkin = (typeof BALLS)[number];
+
+/**
+ * Where a putt would go, for the aiming guide: the path up to just after the
+ * first bounce (or `max` units), nothing further — the rest is up to you.
+ */
+export function preview(s: GolfState, dx: number, dy: number, max = 230): P[] {
+  let st = putt({ ...s, moving: false }, dx, dy);
+  if (!st.moving) return [];
+  const pts: P[] = [{ x: st.ball.x, y: st.ball.y }];
+  let len = 0;
+  let after: number | null = null;
+  for (let i = 0; i < 240; i++) {
+    const out = step(st, 1 / 60);
+    const prev = st.ball;
+    st = out.state;
+    len += Math.hypot(st.ball.x - prev.x, st.ball.y - prev.y);
+    pts.push({ x: st.ball.x, y: st.ball.y });
+    if (out.events.some((e) => ['water', 'void', 'out', 'warp', 'jump'].includes(e.type))) break;
+    if (after === null && out.events.some((e) => e.type === 'wall' || e.type === 'bump')) after = len;
+    if (after !== null && len - after > 35) break;
+    if (len > max || !st.moving || st.sunk) break;
+  }
+  return pts;
+}

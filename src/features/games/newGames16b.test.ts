@@ -31,8 +31,13 @@ import {
   courseOf,
   golfScore,
   holePoints,
+  holeStars,
   inside,
+  isOpen,
   newGolf,
+  preview,
+  recordHole,
+  totalStars,
   nextHole,
   putt,
   step,
@@ -159,8 +164,8 @@ describe('minigolf', () => {
     expect(soft.strokes[0]).toBe(1);
   });
 
-  it('five worlds of six holes, every tee and cup on the felt', () => {
-    expect(COURSES).toHaveLength(5);
+  it('six worlds of six holes, every tee and cup on the felt', () => {
+    expect(COURSES).toHaveLength(6);
     for (const c of COURSES) {
       expect(c.holes).toHaveLength(6);
       for (const h of c.holes) {
@@ -209,6 +214,61 @@ describe('minigolf', () => {
     }
     expect(warped).toBe(true);
     expect(s.ball.x).toBeGreaterThan(160);
+  });
+
+  it('a ramp makes the ball fly over the pond', () => {
+    let s = at(5, 0);
+    let jumped = false;
+    let wet = false;
+    s = putt(s, 0, 100);
+    for (let i = 0; i < 3000 && s.moving; i++) {
+      const out = step(s, 1 / 60);
+      if (out.events.some((e) => e.type === 'jump')) jumped = true;
+      if (out.events.some((e) => e.type === 'water')) wet = true;
+      s = out.state;
+    }
+    expect(jumped).toBe(true);
+    expect(wet).toBe(false);
+    expect(s.ball.y).toBeLessThan(195);
+  });
+
+  it('a button opens its gate', () => {
+    let s = at(5, 1);
+    s = { ...s, ball: { x: 65, y: 380, vx: 0, vy: 0 } };
+    let clicked = false;
+    s = putt(s, 0, 30);
+    for (let i = 0; i < 3000 && s.moving; i++) {
+      const out = step(s, 1 / 60);
+      if (out.events.some((e) => e.type === 'click')) clicked = true;
+      s = out.state;
+    }
+    expect(clicked).toBe(true);
+    expect(s.open).toEqual([0]);
+    expect(nextHole(s).state.open).toEqual([]);
+  });
+
+  it('stars per hole, best strokes remembered, the bonus world opens with stars', () => {
+    expect(holeStars(1, 3)).toBe(3);
+    expect(holeStars(2, 3)).toBe(3);
+    expect(holeStars(3, 3)).toBe(2);
+    expect(holeStars(4, 3)).toBe(1);
+    expect(holeStars(6, 3)).toBe(0);
+    let p = recordHole({}, COURSES[0], 0, 3);
+    p = recordHole(p, COURSES[0], 0, 4);
+    expect(p.park).toEqual([3]);
+    p = recordHole(p, COURSES[0], 2, 2);
+    expect(p.park).toEqual([3, 0, 2]);
+    expect(totalStars(p)).toBe(1 + 3);
+    expect(isOpen(p, COURSES[5])).toBe(false);
+    const all = Object.fromEntries(COURSES.slice(0, 5).map((c) => [c.id, c.holes.map(() => 1)]));
+    expect(isOpen(all, COURSES[5])).toBe(true);
+  });
+
+  it('the aiming guide follows the real ball and stops after the first bounce', () => {
+    const pts = preview(newGolf(), 0, 60);
+    expect(pts.length).toBeGreaterThan(3);
+    expect(pts[pts.length - 1].y).toBeLessThan(pts[0].y);
+    expect(preview(newGolf(), 0, 1)).toEqual([]);
   });
 
   it('points: fewer strokes is more, per course', () => {

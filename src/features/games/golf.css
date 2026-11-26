@@ -9,7 +9,7 @@
 
 .golf-worlds {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   margin: 0 0 12px;
 }
@@ -34,7 +34,7 @@
 }
 
 .golf-world strong {
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   line-height: 1.1;
 }
 
@@ -423,11 +423,6 @@
   color: #1f8a3a;
 }
 
-.golf-card li.is-under strong::after {
-  content: '●';
-  font-size: 0.5em;
-  vertical-align: super;
-}
 
 .golf-card li.is-over strong {
   color: #c4372b;
@@ -466,4 +461,215 @@
   .golf-beam {
     animation: none !important;
   }
+}
+
+/* ------------------------------------------- stars, balls, Coco's garden */
+
+.golf-world.is-garden {
+  background: linear-gradient(160deg, #9be07a, #3f7a2c);
+}
+
+.golf-world.is-locked {
+  filter: grayscale(0.85) brightness(0.75);
+  cursor: not-allowed;
+}
+
+.golf-total {
+  margin: 0 0 8px;
+  text-align: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.golf-stars {
+  display: inline-flex;
+  gap: 1px;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.golf-stars i {
+  font-style: normal;
+  color: rgba(0, 0, 0, 0.18);
+}
+
+.golf-stars i.is-on {
+  color: #f5b301;
+  text-shadow: 0 0 4px rgba(255, 200, 0, 0.6);
+}
+
+.golf-total .golf-stars {
+  font-size: 1rem;
+}
+
+.golf-balls {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.golf-ballpick {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.golf-ballpick svg {
+  width: 30px;
+  height: 30px;
+}
+
+.golf-ballpick.is-on {
+  transform: scale(1.12);
+  box-shadow:
+    inset 0 0 0 3px #ffd75e,
+    0 0 12px rgba(255, 215, 94, 0.5);
+}
+
+.golf-ballpick.is-locked svg {
+  filter: grayscale(1) brightness(0.6);
+  opacity: 0.5;
+}
+
+.golf-ballpick small {
+  position: absolute;
+  bottom: -4px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #2a1240;
+  color: #ffd75e;
+  font-size: 0.6rem;
+  font-weight: 800;
+}
+
+.golf-ballpick:focus-visible {
+  outline: 3px solid #ffd75e;
+  outline-offset: 2px;
+}
+
+.golf-banner.is-big {
+  top: 38%;
+  padding: 14px 22px;
+  font-size: 1.4rem;
+  background: linear-gradient(90deg, #ff5fa2, #ffb347);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.golf-button {
+  animation: golf-pulse 1s ease-in-out infinite;
+}
+
+.golf-ramp__arrow {
+  animation: golf-pulse 1.1s ease-in-out infinite;
+}
+
+.golf-shine {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: golf-twinkle 1.6s ease-in-out infinite;
+}
+
+.is-garden .golf-sign {
+  background: linear-gradient(180deg, #7cc55a, #4f8f36);
+  box-shadow:
+    inset 0 0 0 2px #2f6b22,
+    0 6px 0 #24511a;
+}
+
+.is-garden .golf-banner {
+  background: rgba(36, 81, 26, 0.92);
+}
+
+/* playing together: a scorecard with a row each */
+.golf-duo {
+  width: 100%;
+  margin: 10px 0 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fffaf0;
+  color: #2f3b26;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.golf-duo th,
+.golf-duo td {
+  padding: 5px 2px;
+}
+
+.golf-duo thead th {
+  font-size: 0.75rem;
+  background: #f1e8d6;
+}
+
+.golf-duo thead th small {
+  display: block;
+  font-size: 0.55rem;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.golf-duo thead th.is-now {
+  background: #dff3d6;
+}
+
+.golf-duo tbody th {
+  max-width: 64px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  padding-left: 8px;
+  font-size: 0.78rem;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.golf-duo tr.is-turn {
+  background: #fff1c9;
+}
+
+.golf-duo td.is-under {
+  color: #1f8a3a;
+  font-weight: 800;
+}
+
+.golf-duo td.is-over {
+  color: #c4372b;
+}
+
+.golf-duo__total {
+  font-weight: 900;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .golf-button,
+  .golf-ramp__arrow,
+  .golf-shine {
+    animation: none !important;
+  }
+}
+
+.golf-turn {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  color: #2a1240;
+  font-weight: 900;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
 }
