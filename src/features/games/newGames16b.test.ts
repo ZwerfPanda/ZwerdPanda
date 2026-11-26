@@ -270,10 +270,17 @@ describe('minigolf', () => {
     expect(isOpen(all, COURSES[5])).toBe(true);
   });
 
-  it('the aiming guide follows the real ball and stops after the first bounce', () => {
-    const pts = preview(newGolf(), 0, 60);
+  it('the aiming guide is a straight line that stops at the first wall', () => {
+    const pts = preview(newGolf(), 20, 60);
     expect(pts.length).toBeGreaterThan(3);
     expect(pts[pts.length - 1].y).toBeLessThan(pts[0].y);
+    // straight: every dot on the line from the ball the way it's hit
+    const [o, end] = [pts[0], pts[pts.length - 1]];
+    for (const q of pts)
+      expect(Math.abs((end.x - o.x) * (q.y - o.y) - (end.y - o.y) * (q.x - o.x))).toBeLessThan(0.01);
+    // never through a wall: aimed hard at the side, it stops at the wall
+    const side = preview(newGolf(), 200, 0);
+    expect(side[side.length - 1].x).toBeGreaterThan(70);
     expect(preview(newGolf(), 0, 1)).toEqual([]);
   });
 

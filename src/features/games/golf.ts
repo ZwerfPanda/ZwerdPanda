@@ -1527,26 +1527,44 @@ export const BALLS = [
 ] as const;
 export type BallSkin = (typeof BALLS)[number];
 
+/** How far along a ray from `o` (unit direction `u`) the first solid edge is. */
+function rayToEdge(o: P, u: P, edges: [P, P][]): number {
+  let best = Infinity;
+  for (const [a, b] of edges) {
+    const ex = b.x - a.x;
+    const ey = b.y - a.y;
+    const den = u.x * ey - u.y * ex;
+    if (Math.abs(den) < 1e-9) continue;
+    const t = ((a.x - o.x) * ey - (a.y - o.y) * ex) / den;
+    const k = ((a.x - o.x) * u.y - (a.y - o.y) * u.x) / den;
+    if (t > 0 && k >= 0 && k <= 1 && t < best) best = t;
+  }
+  return best;
+}
+
 /**
- * Where a putt would go, for the aiming guide: the path up to just after the
- * first bounce (or `max` units), nothing further — the rest is up to you.
+ * The aiming guide: a straight line the way you'll hit it, as long as the
+ * ball would roll — but never past the first wall.
  */
 export function preview(s: GolfState, dx: number, dy: number, max = 230): P[] {
   let st = putt({ ...s, moving: false }, dx, dy);
   if (!st.moving) return [];
-  const pts: P[] = [{ x: st.ball.x, y: st.ball.y }];
+  const o = { x: st.ball.x, y: st.ball.y };
+  const sp = Math.hypot(st.ball.vx, st.ball.vy);
+  const u = { x: st.ball.vx / sp, y: st.ball.vy / sp };
+  // how far it would roll before it first hits something or stops
   let len = 0;
-  let after: number | null = null;
   for (let i = 0; i < 240; i++) {
     const out = step(st, 1 / 60);
     const prev = st.ball;
     st = out.state;
     len += Math.hypot(st.ball.x - prev.x, st.ball.y - prev.y);
-    pts.push({ x: st.ball.x, y: st.ball.y });
-    if (out.events.some((e) => ['water', 'void', 'out', 'warp', 'jump'].includes(e.type))) break;
-    if (after === null && out.events.some((e) => e.type === 'wall' || e.type === 'bump')) after = len;
-    if (after !== null && len - after > 35) break;
+    if (out.events.some((e) => ['wall', 'bump', 'water', 'void', 'out', 'warp', 'jump'].includes(e.type))) break;
     if (len > max || !st.moving || st.sunk) break;
   }
+  const wall = rayToEdge(o, u, edgesAt(holeOf(s), s.t, s.open ?? [])) - BALL_R;
+  const reach = Math.max(0, Math.min(len, max, wall));
+  const pts: P[] = [];
+  for (let d = 0; d <= reach; d += 3) pts.push({ x: o.x + u.x * d, y: o.y + u.y * d });
   return pts;
 }
