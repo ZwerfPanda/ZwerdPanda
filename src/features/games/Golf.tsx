@@ -30,6 +30,7 @@ import {
   courseOf,
   coursePar,
   courseStars,
+  cupAt,
   golfScore,
   holeOf,
   holePoints,
@@ -177,6 +178,82 @@ const THEMES: Record<ThemeId, Theme> = {
     specks: ['#ffffff', '#ffd75e', '#5ff3ff'],
     hazard: '🔥',
     hazardText: '🔥 In de lava! +1 slag',
+  },
+  city: {
+    bg: ['#c9b9a6', '#bfae99'],
+    felt: ['#55b97a', '#4fb173'],
+    wall: '#a64b2a',
+    wallDark: '#6e2c15',
+    wallTop: '#d07a52',
+    block: '#8a3d22',
+    blockDark: '#5a2410',
+    water: ['#3f86c9', '#285d94'],
+    sand: ['#e8d9b0', '#c9b58a'],
+    bumper: ['#2d6b3a', '#1b4224'],
+    slider: ['#ffcf33', '#b38a00'],
+    sliderEmoji: '🚲',
+    mill: '#ffffff',
+    decor: ['🌷', '🚲', '🏠', '🧀', '🦆', '🌉'],
+    specks: ['#a89580', '#d9ccbb'],
+    hazard: '🦆',
+    hazardText: '🚤 In de gracht! +1 slag',
+  },
+  fair: {
+    bg: ['#3a1f5c', '#43246a'],
+    felt: ['#c25bd6', '#b853cc'],
+    wall: '#ffcf33',
+    wallDark: '#b38a00',
+    wallTop: '#fff2b3',
+    block: '#ff5f6d',
+    blockDark: '#a8233a',
+    water: ['#5fd0ff', '#1f8fc7'],
+    sand: ['#ffe9a8', '#e5c46a'],
+    bumper: ['#ffffff', '#e5263d'],
+    slider: ['#5fd0ff', '#1f6fb0'],
+    sliderEmoji: '🚗',
+    mill: '#ffffff',
+    decor: ['🎡', '🎠', '🍿', '🎪', '🎈', '🍭'],
+    specks: ['#ffd75e', '#ff8cc0', '#5ff3ff'],
+    stripes: true,
+    hazard: '🦆',
+    hazardText: '💦 In de eendjesvijver! +1 slag',
+  },
+  volcano: {
+    bg: ['#2b1714', '#331b17'],
+    felt: ['#6b5a52', '#64544c'],
+    wall: '#ff6a1f',
+    wallDark: '#7a2a0a',
+    wallTop: '#ffb347',
+    block: '#3a2a26',
+    blockDark: '#1e1412',
+    water: ['#ff7b1f', '#c2320a'],
+    sand: ['#8f8580', '#6f6660'],
+    bumper: ['#4a3b36', '#ff6a1f'],
+    slider: ['#5a4a42', '#2e2420'],
+    sliderEmoji: '🦖',
+    mill: '#ffb347',
+    decor: ['🌋', '🔥', '🦖', '🪨', '🌴', '🦴'],
+    specks: ['#ff6a1f', '#ffb347'],
+    hazard: '🔥',
+    hazardText: '🔥 In de lava! +1 slag',
+  },
+  castle: {
+    bg: ['#5f8f4a', '#679851'],
+    felt: ['#7cc26a', '#74b963'],
+    wall: '#9aa0aa',
+    wallDark: '#5c616b',
+    wallTop: '#c9ced6',
+    block: '#8a909a',
+    blockDark: '#50555e',
+    water: ['#3a7fb5', '#245883'],
+    sand: ['#d9c79a', '#b8a575'],
+    bumper: ['#c9ced6', '#5c616b'],
+    slider: ['#7a5a3a', '#4a3520'],
+    sliderEmoji: '🐴',
+    mill: '#d9dde3',
+    decor: ['🏰', '🐉', '👑', '🛡️', '🌲', '🗡️'],
+    hazard: '🐊',
+    hazardText: '🐊 In de slotgracht! +1 slag',
   },
   garden: {
     bg: ['#6fae4a', '#79b853'],
@@ -366,7 +443,8 @@ function CourseView({
   const sinkK = fx.sunkAt !== null ? Math.min(1, (s.t - fx.sunkAt) / 0.35) : 0;
   const ballR = BALL_R * (1 - sinkK) * (1 + airHeight(s) * 0.7);
   const lift = airHeight(s) * 16;
-  const ballAt = fx.sunkAt !== null ? { x: h.cup.x, y: h.cup.y } : { x: s.ball.x, y: s.ball.y };
+  const cup = cupAt(h, s.t);
+  const ballAt = fx.sunkAt !== null ? { x: cup.x, y: cup.y } : { x: s.ball.x, y: s.ball.y };
   const sp = Math.hypot(s.ball.vx, s.ball.vy);
   const dir = sp > 1 ? { x: s.ball.vx / sp, y: s.ball.vy / sp } : { x: 0, y: -1 };
 
@@ -719,14 +797,14 @@ function CourseView({
       ))}
 
       {/* the cup and its flag */}
-      <circle cx={h.cup.x} cy={h.cup.y} r={CUP_R + 3} fill="rgba(255,255,255,0.18)" />
-      <circle cx={h.cup.x} cy={h.cup.y} r={CUP_R} fill="url(#golf-cup)" />
+      <circle cx={cup.x} cy={cup.y} r={CUP_R + 3} fill="rgba(255,255,255,0.18)" />
+      <circle cx={cup.x} cy={cup.y} r={CUP_R} fill="url(#golf-cup)" />
       {fx.sunkAt === null ? (
         <g className="golf-flag">
-          <line x1={h.cup.x + 2} y1={h.cup.y + 2} x2={h.cup.x + 14} y2={h.cup.y - 30} stroke="rgba(0,0,0,0.25)" strokeWidth="2" />
-          <line x1={h.cup.x} y1={h.cup.y} x2={h.cup.x} y2={h.cup.y - 40} stroke="#fff" strokeWidth="2" />
-          <path d={`M${h.cup.x} ${h.cup.y - 40}l24 8 -24 8z`} fill={flag} />
-          <text x={h.cup.x + 8} y={h.cup.y - 29.5} fontSize="8" fontWeight="800" fill="#2f2a26">
+          <line x1={cup.x + 2} y1={cup.y + 2} x2={cup.x + 14} y2={cup.y - 30} stroke="rgba(0,0,0,0.25)" strokeWidth="2" />
+          <line x1={cup.x} y1={cup.y} x2={cup.x} y2={cup.y - 40} stroke="#fff" strokeWidth="2" />
+          <path d={`M${cup.x} ${cup.y - 40}l24 8 -24 8z`} fill={flag} />
+          <text x={cup.x + 8} y={cup.y - 29.5} fontSize="8" fontWeight="800" fill="#2f2a26">
             {s.hole + 1}
           </text>
         </g>
@@ -740,13 +818,13 @@ function CourseView({
               return (
                 <rect
                   key={i}
-                  x={h.cup.x + Math.cos(a) * d - 2}
-                  y={h.cup.y + Math.sin(a) * d - 2 - (s.t - fx.sunkAt!) * 20}
+                  x={cup.x + Math.cos(a) * d - 2}
+                  y={cup.y + Math.sin(a) * d - 2 - (s.t - fx.sunkAt!) * 20}
                   width="4"
                   height="4"
                   rx="1"
                   fill={['#ffd75e', '#ff8cc0', '#5ff3ff', flag][i % 4]}
-                  transform={`rotate(${i * 40 + (s.t - fx.sunkAt!) * 400} ${h.cup.x + Math.cos(a) * d} ${h.cup.y + Math.sin(a) * d})`}
+                  transform={`rotate(${i * 40 + (s.t - fx.sunkAt!) * 400} ${cup.x + Math.cos(a) * d} ${cup.y + Math.sin(a) * d})`}
                 />
               );
             })}
@@ -1497,6 +1575,7 @@ export function Golf() {
 
 /** A small tip for what's new on this hole. */
 function tipFor(h: Hole): string {
+  if (h.cupMove) return 'De cup schuift heen en weer — mik op waar hij straks is 🎯';
   if (h.buttons?.length) return 'Rol over de rode knop om het poortje te openen 🔓';
   if (h.ramps?.length) return 'Neem de schans met vaart en je vliegt eroverheen 🛝';
   if (h.wells?.length) return 'Het zwarte gat trekt je bal aan — niet in het midden komen!';

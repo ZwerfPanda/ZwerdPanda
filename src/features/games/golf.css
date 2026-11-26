@@ -673,3 +673,63 @@
   font-size: 0.9rem;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
 }
+
+.golf-world.is-city {
+  background: linear-gradient(160deg, #d07a52, #3f86c9);
+}
+
+.golf-world.is-fair {
+  background: linear-gradient(160deg, #c25bd6, #ffcf33);
+}
+
+.golf-world.is-volcano {
+  background: linear-gradient(160deg, #ff6a1f, #2b1714);
+}
+
+.golf-world.is-castle {
+  background: linear-gradient(160deg, #9aa0aa, #3f5f8a);
+}
+
+.is-city .golf-sign {
+  background: linear-gradient(180deg, #c0603a, #8a3d22);
+  box-shadow:
+    inset 0 0 0 2px #6e2c15,
+    0 6px 0 #5a2410;
+}
+
+.is-fair .golf-sign {
+  background: repeating-linear-gradient(90deg, #e5263d 0 14px, #fffaf0 14px 28px);
+  box-shadow:
+    inset 0 0 0 2px #b38a00,
+    0 6px 0 #8a6a00;
+  color: #2a1240;
+  text-shadow: 0 1px 0 #fff;
+}
+
+.is-volcano .golf-sign {
+  background: linear-gradient(180deg, #4a2a20, #2b1714);
+  box-shadow:
+    inset 0 0 0 2px #ff6a1f,
+    0 0 16px rgba(255, 106, 31, 0.45),
+    0 6px 0 #1e1412;
+}
+
+.is-castle .golf-sign {
+  background: linear-gradient(180deg, #a9afb8, #7c828c);
+  box-shadow:
+    inset 0 0 0 2px #50555e,
+    0 6px 0 #3f434a;
+}
+
+.is-volcano .golf-banner {
+  background: rgba(122, 42, 10, 0.92);
+}
+
+.is-castle .golf-banner,
+.is-city .golf-banner {
+  background: rgba(40, 45, 55, 0.9);
+}
+
+.is-fair .golf-banner {
+  background: rgba(90, 30, 120, 0.92);
+}

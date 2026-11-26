@@ -73,11 +73,23 @@ export interface Hole {
   /** Gates that stay shut until you roll over the button with the same id. */
   gates?: (Rect & { id: number })[];
   buttons?: { x: number; y: number; id: number }[];
+  /** A cup that slides to and fro: (dx, dy) either way from `cup`. */
+  cupMove?: { dx: number; dy: number; speed: number };
   mills?: Mill[];
   sliders?: Slider[];
 }
 
-export type ThemeId = 'park' | 'beach' | 'candy' | 'ice' | 'space' | 'garden';
+export type ThemeId =
+  | 'park'
+  | 'beach'
+  | 'candy'
+  | 'ice'
+  | 'space'
+  | 'garden'
+  | 'city'
+  | 'fair'
+  | 'volcano'
+  | 'castle';
 
 export interface Course {
   id: string;
@@ -579,6 +591,361 @@ const GARDEN: Hole[] = [
   },
 ];
 
+/* --------------------------------------------------------- 7. Amsterdam */
+
+const CITY: Hole[] = [
+  {
+    name: 'Grachtengordel',
+    emoji: '🛶',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 80 },
+    walls: [box(30, 25, 240, 445)],
+    water: [
+      { x: 30, y: 300, w: 170, h: 40 },
+      { x: 100, y: 170, w: 170, h: 40 },
+    ],
+    bumpers: [{ x: 235, y: 255, r: 10 }],
+  },
+  {
+    name: 'Fietsbrug',
+    emoji: '🚲',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 75 },
+    walls: [box(30, 25, 240, 445)],
+    water: [
+      { x: 30, y: 200, w: 100, h: 60 },
+      { x: 170, y: 200, w: 100, h: 60 },
+    ],
+    sliders: [{ y: 140, w: 46, h: 22, from: 35, to: 265, speed: 1.5 }],
+  },
+  {
+    name: 'Vondelpark',
+    emoji: '🌳',
+    par: 3,
+    tee: { x: 60, y: 440 },
+    cup: { x: 240, y: 70 },
+    walls: [box(25, 25, 250, 445)],
+    bumpers: [
+      { x: 100, y: 350, r: 14 },
+      { x: 190, y: 320, r: 14 },
+      { x: 140, y: 250, r: 14 },
+      { x: 70, y: 200, r: 14 },
+      { x: 150, y: 130, r: 14 },
+    ],
+    sand: [{ x: 170, y: 380, w: 70, h: 40 }],
+    water: [{ x: 205, y: 220, w: 70, h: 50 }],
+  },
+  {
+    name: 'De kaaswinkel',
+    emoji: '🧀',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 95 },
+    cupMove: { dx: 70, dy: 0, speed: 1 },
+    walls: [box(40, 25, 220, 445), box(40, 250, 70, 20), box(190, 250, 70, 20)],
+    sand: [
+      { x: 45, y: 30, w: 50, h: 36 },
+      { x: 205, y: 30, w: 50, h: 36 },
+    ],
+  },
+  {
+    name: 'Tram 2',
+    emoji: '🚋',
+    par: 4,
+    tee: { x: 60, y: 440 },
+    cup: { x: 60, y: 80 },
+    walls: [box(25, 25, 250, 445), box(25, 330, 180, 18), box(95, 170, 180, 18)],
+    sliders: [
+      { y: 240, w: 110, h: 24, from: 30, to: 270, speed: 1.2 },
+      { y: 395, w: 50, h: 20, from: 30, to: 270, speed: 1.6 },
+    ],
+  },
+  {
+    name: 'De Dam',
+    emoji: '🏛️',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 60 },
+    walls: [box(25, 25, 250, 445), box(25, 230, 250, 20)],
+    portals: [
+      { a: { x: 150, y: 330 }, b: { x: 150, y: 190 } },
+      { a: { x: 60, y: 300 }, b: { x: 240, y: 420 } },
+    ],
+    mills: [{ x: 150, y: 125, len: 38, speed: 1.6 }],
+  },
+];
+
+/* ------------------------------------------------------------ 8. the fair */
+
+const FAIR: Hole[] = [
+  {
+    name: 'Flipperkast',
+    emoji: '🕹️',
+    par: 2,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 70 },
+    walls: [box(40, 25, 220, 445)],
+    bumpers: [
+      { x: 150, y: 140, r: 14 },
+      { x: 110, y: 190, r: 12 },
+      { x: 190, y: 190, r: 12 },
+      { x: 150, y: 240, r: 14 },
+      { x: 90, y: 260, r: 10 },
+      { x: 210, y: 260, r: 10 },
+    ],
+    boosts: [
+      { x: 45, y: 330, w: 40, h: 60, ax: 300, ay: -300 },
+      { x: 215, y: 330, w: 40, h: 60, ax: -300, ay: -300 },
+    ],
+  },
+  {
+    name: 'Botsauto’s',
+    emoji: '🚗',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 70 },
+    walls: [box(30, 25, 240, 445)],
+    sliders: [
+      { y: 330, w: 40, h: 30, from: 35, to: 265, speed: 1.6 },
+      { y: 230, w: 40, h: 30, from: 35, to: 265, speed: -1.3 },
+      { y: 200, w: 30, h: 40, from: 110, to: 300, speed: 1.1, vertical: true },
+    ],
+  },
+  {
+    name: 'Reuzenrad',
+    emoji: '🎡',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 70 },
+    walls: [box(30, 25, 240, 445)],
+    mills: [{ x: 150, y: 240, len: 80, speed: 0.7, blades: 6 }],
+    sand: [{ x: 35, y: 360, w: 50, h: 50 }],
+  },
+  {
+    name: 'Spiegelpaleis',
+    emoji: '🪞',
+    par: 3,
+    tee: { x: 60, y: 440 },
+    cup: { x: 150, y: 60 },
+    walls: [box(25, 25, 250, 445), box(25, 320, 170, 16), box(105, 170, 170, 16)],
+    portals: [
+      { a: { x: 240, y: 400 }, b: { x: 60, y: 260 } },
+      { a: { x: 240, y: 250 }, b: { x: 240, y: 430 } },
+      { a: { x: 60, y: 210 }, b: { x: 240, y: 100 } },
+    ],
+  },
+  {
+    name: 'De glijbaan',
+    emoji: '🛝',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 80 },
+    walls: [box(40, 25, 220, 445)],
+    slopes: [{ x: 40, y: 270, w: 220, h: 110, ax: 0, ay: 150 }],
+    water: [{ x: 40, y: 175, w: 220, h: 45 }],
+    ramps: [{ x: 120, y: 228, w: 60, h: 40, ax: 0, ay: -1 }],
+  },
+  {
+    name: 'Kop van Jut',
+    emoji: '🔔',
+    par: 4,
+    tee: { x: 80, y: 440 },
+    cup: { x: 210, y: 415 },
+    cupMove: { dx: 35, dy: 0, speed: 1.3 },
+    walls: [box(25, 25, 250, 445), box(140, 140, 20, 330)],
+    boosts: [{ x: 40, y: 220, w: 80, h: 110, ax: 0, ay: -500 }],
+    gates: [{ x: 160, y: 250, w: 115, h: 14, id: 0 }],
+    buttons: [{ x: 80, y: 170, id: 0 }],
+  },
+];
+
+/* ---------------------------------------------------- 9. volcano (bonus) */
+
+const VOLCANO: Hole[] = [
+  {
+    name: 'Lavastroom',
+    emoji: '🌊',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 80 },
+    walls: [box(30, 25, 240, 445)],
+    water: [
+      { x: 30, y: 300, w: 240, h: 30 },
+      { x: 30, y: 170, w: 240, h: 30 },
+    ],
+    ramps: [
+      { x: 120, y: 340, w: 60, h: 40, ax: 0, ay: -1 },
+      { x: 120, y: 208, w: 60, h: 40, ax: 0, ay: -1 },
+    ],
+  },
+  {
+    name: 'Magmabellen',
+    emoji: '🫧',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 70 },
+    walls: [box(30, 25, 240, 445)],
+    water: [
+      { x: 60, y: 150, w: 50, h: 50 },
+      { x: 190, y: 150, w: 50, h: 50 },
+      { x: 125, y: 260, w: 50, h: 50 },
+      { x: 50, y: 330, w: 50, h: 40 },
+      { x: 200, y: 330, w: 50, h: 40 },
+    ],
+    bumpers: [{ x: 150, y: 180, r: 12 }],
+  },
+  {
+    name: 'De krater',
+    emoji: '🌋',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 200 },
+    walls: [poly(90, 25, 210, 25, 270, 90, 270, 400, 210, 465, 90, 465, 30, 400, 30, 90)],
+    water: [
+      { x: 90, y: 130, w: 120, h: 22 },
+      { x: 90, y: 250, w: 120, h: 22 },
+      { x: 90, y: 152, w: 22, h: 98 },
+    ],
+    mills: [{ x: 232, y: 200, len: 32, speed: 1.4 }],
+  },
+  {
+    name: 'Dinopad',
+    emoji: '🦖',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 65 },
+    walls: [box(40, 25, 220, 445)],
+    sliders: [
+      { y: 320, w: 50, h: 26, from: 45, to: 255, speed: 1.1 },
+      { y: 200, w: 50, h: 26, from: 45, to: 255, speed: -1.4 },
+      { y: 120, w: 50, h: 26, from: 45, to: 255, speed: 1.8 },
+    ],
+    water: [
+      { x: 40, y: 250, w: 50, h: 40 },
+      { x: 210, y: 250, w: 50, h: 40 },
+    ],
+  },
+  {
+    name: 'Uitbarsting',
+    emoji: '💥',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 230, y: 80 },
+    walls: [box(30, 25, 240, 445)],
+    boosts: [
+      { x: 35, y: 280, w: 60, h: 60, ax: 350, ay: -200 },
+      { x: 205, y: 200, w: 60, h: 60, ax: -350, ay: -200 },
+      { x: 35, y: 110, w: 60, h: 60, ax: 350, ay: 0 },
+    ],
+    water: [{ x: 110, y: 180, w: 80, h: 110 }],
+  },
+  {
+    name: 'Hart van de vulkaan',
+    emoji: '❤️‍🔥',
+    par: 3,
+    tee: { x: 150, y: 445 },
+    cup: { x: 150, y: 70 },
+    walls: [box(25, 25, 250, 445)],
+    wells: [{ x: 150, y: 270, r: 85, pull: 800 }],
+    water: [
+      { x: 25, y: 150, w: 90, h: 30 },
+      { x: 185, y: 150, w: 90, h: 30 },
+    ],
+    ramps: [{ x: 205, y: 340, w: 60, h: 40, ax: 0, ay: -1 }],
+  },
+];
+
+/* ----------------------------------------------------- 10. castle (bonus) */
+
+const CASTLE: Hole[] = [
+  {
+    name: 'De slotgracht',
+    emoji: '🏰',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 125 },
+    walls: [
+      box(25, 25, 250, 445),
+      box(70, 60, 14, 150),
+      box(216, 60, 14, 150),
+      box(84, 60, 132, 14),
+      box(84, 196, 41, 14),
+      box(175, 196, 41, 14),
+    ],
+    water: [{ x: 40, y: 228, w: 220, h: 35 }],
+    ramps: [{ x: 120, y: 278, w: 60, h: 42, ax: 0, ay: -1 }],
+  },
+  {
+    name: 'Het valhek',
+    emoji: '⛓️',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 80 },
+    walls: [box(30, 25, 240, 445), box(30, 220, 95, 20), box(175, 220, 95, 20)],
+    gates: [{ x: 125, y: 220, w: 50, h: 20, id: 0 }],
+    buttons: [{ x: 60, y: 300, id: 0 }],
+    bumpers: [
+      { x: 95, y: 330, r: 11 },
+      { x: 60, y: 365, r: 11 },
+    ],
+    sliders: [{ y: 268, w: 44, h: 24, from: 35, to: 265, speed: 1.2 }],
+  },
+  {
+    name: 'De ridderzaal',
+    emoji: '⚔️',
+    par: 3,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 60 },
+    walls: [box(40, 25, 220, 445)],
+    mills: [
+      { x: 105, y: 300, len: 45, speed: 2, blades: 2 },
+      { x: 195, y: 300, len: 45, speed: -2, blades: 2 },
+      { x: 150, y: 165, len: 55, speed: 1.3, blades: 3 },
+    ],
+  },
+  {
+    name: 'De draak',
+    emoji: '🐉',
+    par: 4,
+    tee: { x: 60, y: 440 },
+    cup: { x: 240, y: 70 },
+    walls: [box(25, 25, 250, 445), box(25, 300, 190, 18), box(85, 150, 190, 18)],
+    boosts: [{ x: 120, y: 190, w: 60, h: 100, ax: -400, ay: 0 }],
+    sliders: [{ y: 390, w: 40, h: 40, from: 30, to: 270, speed: 1.5 }],
+  },
+  {
+    name: 'De geheime gang',
+    emoji: '🕯️',
+    par: 4,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 60 },
+    walls: [box(25, 25, 250, 445), box(25, 240, 250, 18), box(25, 120, 170, 16)],
+    portals: [{ a: { x: 240, y: 300 }, b: { x: 60, y: 205 } }],
+    gates: [{ x: 195, y: 120, w: 80, h: 16, id: 0 }],
+    buttons: [{ x: 60, y: 160, id: 0 }],
+    bumpers: [{ x: 150, y: 330, r: 14 }],
+  },
+  {
+    name: 'De troonzaal',
+    emoji: '👑',
+    par: 4,
+    tee: { x: 150, y: 440 },
+    cup: { x: 150, y: 70 },
+    cupMove: { dx: 80, dy: 0, speed: 0.8 },
+    walls: [box(25, 25, 250, 445)],
+    gates: [{ x: 25, y: 130, w: 250, h: 14, id: 0 }],
+    buttons: [{ x: 50, y: 300, id: 0 }],
+    water: [{ x: 100, y: 290, w: 100, h: 40 }],
+    bumpers: [
+      { x: 80, y: 200, r: 12 },
+      { x: 220, y: 200, r: 12 },
+      { x: 150, y: 230, r: 14 },
+    ],
+  },
+];
+
 export const COURSES: Course[] = [
   { id: 'park', name: 'Het park', emoji: '🌳', theme: 'park', blurb: 'Windmolen & vijver', holes: PARK },
   { id: 'beach', name: 'Het strand', emoji: '🏖️', theme: 'beach', blurb: 'Zee, zand en een vuurtoren', holes: BEACH },
@@ -594,7 +961,34 @@ export const COURSES: Course[] = [
     unlock: 30,
     holes: GARDEN,
   },
+  { id: 'city', name: 'Amsterdam', emoji: '🚲', theme: 'city', blurb: 'Grachten, fietsen en een schuivende cup', holes: CITY },
+  { id: 'fair', name: 'De kermis', emoji: '🎡', theme: 'fair', blurb: 'Flipperkast, botsauto’s en een spiegelpaleis', holes: FAIR },
+  {
+    id: 'volcano',
+    name: 'De vulkaan',
+    emoji: '🌋',
+    theme: 'volcano',
+    blurb: 'Over de lava springen',
+    unlock: 55,
+    holes: VOLCANO,
+  },
+  {
+    id: 'castle',
+    name: 'Het kasteel',
+    emoji: '🏰',
+    theme: 'castle',
+    blurb: 'Slotgracht, valhek en een draak',
+    unlock: 80,
+    holes: CASTLE,
+  },
 ];
+
+/** Where the cup is right now (some slide). */
+export function cupAt(h: Hole, t: number): P {
+  if (!h.cupMove) return h.cup;
+  const k = Math.sin(t * h.cupMove.speed);
+  return { x: h.cup.x + h.cupMove.dx * k, y: h.cup.y + h.cupMove.dy * k };
+}
 
 /** The first course's holes (kept for older callers). */
 export const HOLES = PARK;
@@ -940,7 +1334,8 @@ export function step(s: GolfState, dt: number): { state: GolfState; events: Golf
       }
     }
     // the cup: slow enough falls in, too fast rolls over the lip
-    const toCup = Math.hypot(b.x - h.cup.x, b.y - h.cup.y);
+    const cup = cupAt(h, t);
+    const toCup = Math.hypot(b.x - cup.x, b.y - cup.y);
     const v = Math.hypot(b.vx, b.vy);
     if (toCup < CUP_R - 2) {
       if (v < 330) {
@@ -949,7 +1344,7 @@ export function step(s: GolfState, dt: number): { state: GolfState; events: Golf
         return {
           state: {
             ...next,
-            ball: { x: h.cup.x, y: h.cup.y, vx: 0, vy: 0 },
+            ball: { x: cup.x, y: cup.y, vx: 0, vy: 0 },
             moving: false,
             sunk: true,
             warped: undefined,
@@ -959,12 +1354,12 @@ export function step(s: GolfState, dt: number): { state: GolfState; events: Golf
         };
       }
       // a fast ball over the hole bends a little
-      b = { ...b, vx: b.vx * 0.86 + (h.cup.x - b.x) * 2, vy: b.vy * 0.86 + (h.cup.y - b.y) * 2 };
+      b = { ...b, vx: b.vx * 0.86 + (cup.x - b.x) * 2, vy: b.vy * 0.86 + (cup.y - b.y) * 2 };
       add('lip');
     } else if (toCup < CUP_R + 8 && v < 120) {
       // a slow ball near the cup is drawn in a little (the edge slopes)
-      b.vx += (h.cup.x - b.x) * 6 * h2;
-      b.vy += (h.cup.y - b.y) * 6 * h2;
+      b.vx += (cup.x - b.x) * 6 * h2;
+      b.vy += (cup.y - b.y) * 6 * h2;
     }
     if ((h.water ?? []).some((r) => inRect(b, r)))
       return penalty({ ...next, warped, open }, 'water', events, b);

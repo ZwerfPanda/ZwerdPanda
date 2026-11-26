@@ -164,13 +164,19 @@ describe('minigolf', () => {
     expect(soft.strokes[0]).toBe(1);
   });
 
-  it('six worlds of six holes, every tee and cup on the felt', () => {
-    expect(COURSES).toHaveLength(6);
+  it('ten worlds of six holes, every tee and cup on the felt', () => {
+    expect(COURSES).toHaveLength(10);
     for (const c of COURSES) {
       expect(c.holes).toHaveLength(6);
       for (const h of c.holes) {
         expect(inside(h, h.tee), `${c.name}: ${h.name} tee`).toBe(true);
         expect(inside(h, h.cup), `${c.name}: ${h.name} cup`).toBe(true);
+        if (h.cupMove)
+          for (const k of [-1, 1])
+            expect(
+              inside(h, { x: h.cup.x + h.cupMove.dx * k, y: h.cup.y + h.cupMove.dy * k }),
+              `${c.name}: ${h.name} cup slides off the felt`,
+            ).toBe(true);
       }
     }
     expect(newGolf(3).ball).toMatchObject(COURSES[3].holes[0].tee);
@@ -260,7 +266,7 @@ describe('minigolf', () => {
     expect(p.park).toEqual([3, 0, 2]);
     expect(totalStars(p)).toBe(1 + 3);
     expect(isOpen(p, COURSES[5])).toBe(false);
-    const all = Object.fromEntries(COURSES.slice(0, 5).map((c) => [c.id, c.holes.map(() => 1)]));
+    const all = Object.fromEntries(COURSES.filter((c) => !c.unlock).map((c) => [c.id, c.holes.map(() => 1)]));
     expect(isOpen(all, COURSES[5])).toBe(true);
   });
 
