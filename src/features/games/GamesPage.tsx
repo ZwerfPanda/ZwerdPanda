@@ -38,8 +38,17 @@ const BeerPong = lazy(() => import('./BeerPong').then((m) => ({ default: m.BeerP
 const Golf = lazy(() => import('./Golf').then((m) => ({ default: m.Golf })));
 const DrawGuess = lazy(() => import('./DrawGuess').then((m) => ({ default: m.DrawGuess })));
 const Ludo = lazy(() => import('./Ludo').then((m) => ({ default: m.Ludo })));
+const Lava = lazy(() => import('./Lava').then((m) => ({ default: m.Lava })));
 
 const GAMES = [
+  {
+    id: 'lava',
+    emoji: '🌋',
+    title: 'De vloer is lava',
+    blurb: 'Spring omhoog voor de lava je pakt — samen tegelijk!',
+    tint: '#ffd0b0',
+    kind: 'lava',
+  },
   {
     id: 'pong',
     emoji: '🍻',
@@ -52,7 +61,7 @@ const GAMES = [
     id: 'golf',
     emoji: '⛳',
     title: 'Minigolf',
-    blurb: 'Vijf werelden, 30 holes — duel om tickets',
+    blurb: 'Tien werelden, 60 holes en een geheim level',
     tint: '#e0ebd4',
     kind: 'golf',
   },
@@ -261,7 +270,9 @@ export function GamesPage() {
                                                   ? DrawGuess
                                                   : game === 'ludo'
                                                     ? Ludo
-                                                    : null;
+                                                    : game === 'lava'
+                                                      ? Lava
+                                                      : null;
     if (Game)
       return (
         <Suspense fallback={<PageLoading />}>
@@ -487,6 +498,7 @@ const MARQUEE: Record<string, string> = {
   ttt: 'linear-gradient(90deg,#7fbf6a,#ef8fa8)',
   pong: 'linear-gradient(90deg,#e5263d,#ffd75e,#ff8cc0)',
   golf: 'linear-gradient(90deg,#3cc46a,#fffaf0,#ff8cc0)',
+  lava: 'linear-gradient(90deg,#ffd23f,#ff6a1f,#a3160a)',
   draw: 'linear-gradient(90deg,#ff4f9a,#ffc61a,#2f7bff,#3fae5a)',
   ludo: 'linear-gradient(90deg,#ffc61a,#e8c48e,#ff5fa2)',
 };
@@ -687,6 +699,28 @@ function Preview({ id }: { id: string }) {
             </g>
           ))}
           <circle className="pv-pong" cx="60" cy="70" r="3.5" fill="#fff" />
+        </svg>
+      );
+    case 'lava':
+      return (
+        <svg viewBox="0 0 120 80" className="pv pv--lava">
+          <rect x="0" y="0" width="120" height="80" fill="#2a1a18" />
+          <rect x="14" y="44" width="34" height="6" rx="3" fill="#8a7466" />
+          <rect x="14" y="43" width="34" height="3" rx="1.5" fill="#74d34f" />
+          <rect x="66" y="24" width="30" height="6" rx="3" fill="#e8b877" />
+          <rect x="40" y="10" width="26" height="6" rx="3" fill="#7ff6ff" opacity="0.85" />
+          <g className="pv-hop">
+            <circle cx="31" cy="34" r="6" fill="#ffc61a" />
+            <circle cx="29" cy="33" r="1.2" fill="#2a1a2e" />
+            <circle cx="33" cy="33" r="1.2" fill="#2a1a2e" />
+          </g>
+          <g className="pv-hop pv-hop--two">
+            <circle cx="81" cy="14" r="6" fill="#ff5fa2" />
+            <circle cx="79" cy="13" r="1.2" fill="#2a1a2e" />
+            <circle cx="83" cy="13" r="1.2" fill="#2a1a2e" />
+          </g>
+          <path className="pv-lava" d="M0 66q10 -5 20 0t20 0t20 0t20 0t20 0t20 0V80H0Z" fill="#ff6a1f" />
+          <path className="pv-lava" d="M0 70q10 -4 20 0t20 0t20 0t20 0t20 0t20 0V80H0Z" fill="#e8340f" />
         </svg>
       );
     case 'golf':

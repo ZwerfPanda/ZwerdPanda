@@ -139,7 +139,7 @@ export function DuelPanel({
 
   // The other just settled a duel while we're here.
   const last = matches
-    .filter((m) => m.kind === kind && m.winner)
+    .filter((m) => m.kind === kind && m.winner && !m.state.duo)
     .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))[0];
   const seen = useRef(last?.id);
   useEffect(() => {

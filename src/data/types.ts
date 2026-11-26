@@ -679,6 +679,7 @@ export type MatchKind =
   | 'hoops'
   | 'pong'
   | 'golf'
+  | 'lava'
   | 'draw'
   | 'ludo';
 
@@ -703,7 +704,8 @@ export type ScoreGame =
   | 'boba'
   | 'lingo'
   | 'hoops'
-  | 'golf';
+  | 'golf'
+  | 'lava';
 
 export interface GameScore {
   id: ID;
@@ -733,6 +735,7 @@ export type GameId =
   | 'hoops'
   | 'pong'
   | 'golf'
+  | 'lava'
   | 'draw'
   | 'ludo';
 /** Who can play: the two of us, and Coco. */

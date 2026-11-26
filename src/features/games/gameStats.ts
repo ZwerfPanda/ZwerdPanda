@@ -31,6 +31,7 @@ export const GAME_NAMES: Record<GameId, string> = {
   hoops: 'basketbal',
   pong: 'beer pong',
   golf: 'minigolf',
+  lava: 'de vloer is lava',
   draw: 'tekenen & raden',
   ludo: 'mens erger je niet',
 };
@@ -134,6 +135,7 @@ export function gameBrag(
     'hoops',
     'pong',
     'golf',
+    'lava',
     'draw',
     'ludo',
   ] as GameId[]) {
@@ -227,6 +229,10 @@ export function gameBrag(
         `Minigolf: ${wins}–${losses} voor mij ⛳ Hole in one, schatje.`,
         `${wins} keer minder slagen nodig dan jij, {pet} 🏌️`,
       ],
+      lava: [
+        `De vloer is lava: ${wins}–${losses} voor mij 🌋 Ik spring gewoon hoger.`,
+        `${wins} keer langer uit de lava gebleven dan jij, {pet} 🔥`,
+      ],
       draw: [
         `Tekenen & raden: ${wins}–${losses} voor ons team… ik bedoel mij 🎨`,
         `${wins} keer gewonnen met tekenen, {pet}. Picasso wie? 🖌️`,
@@ -297,6 +303,7 @@ export function cocoGameTalk(c: AppContent, me: Person, name: string, rng: Rng):
     'hoops',
     'pong',
     'golf',
+    'lava',
     'ludo',
   ] as GameId[]) {
     const h = headToHead(c.games, game, me, 'coco');

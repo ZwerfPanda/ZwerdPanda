@@ -9,7 +9,7 @@ import { ticketsFor } from './tickets';
  * real game against each other, so it earns tickets like the others do.
  */
 
-export type DuelKind = 'skeeball' | 'bowling' | 'hop' | 'boba' | 'lingo' | 'hoops' | 'golf';
+export type DuelKind = 'skeeball' | 'bowling' | 'hop' | 'boba' | 'lingo' | 'hoops' | 'golf' | 'lava';
 export type DuelScores = Partial<Record<Person, number>>;
 
 const other = (p: Person): Person => (p === 'you' ? 'partner' : 'you');
@@ -36,7 +36,7 @@ export const duelWinner = (s: DuelScores): Person | 'draw' | undefined =>
 /** Open duels of this game, the oldest first. */
 export const openDuels = (matches: GameMatch[], kind: DuelKind) =>
   matches
-    .filter((m) => m.kind === kind && !m.winner)
+    .filter((m) => m.kind === kind && !m.winner && !m.state.duo)
     .sort((a, b) => (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0));
 
 export type DuelPlan =

@@ -4796,3 +4796,35 @@ button.sea__cell:focus-visible {
     animation: none;
   }
 }
+
+/* De vloer is lava, in the little screen */
+.pv-hop {
+  animation: pv-hop 0.9s ease-in-out infinite;
+}
+
+.pv-hop--two {
+  animation-delay: -0.45s;
+}
+
+@keyframes pv-hop {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.pv-lava {
+  animation: pv-lava 3s ease-in-out infinite alternate;
+}
+
+@keyframes pv-lava {
+  to {
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-hop,
+  .pv-lava {
+    animation: none;
+  }
+}
