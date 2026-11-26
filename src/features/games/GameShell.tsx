@@ -9,9 +9,10 @@ import { GoldenBadge } from './GoldenDay';
 import { ChatBarButton, PresencePill } from '../chat/ArcadeChat';
 import './arcade.css';
 
-export type PlayMode = 'remote' | 'coco' | 'local';
+export type PlayMode = 'remote' | 'coco' | 'local' | 'live';
 
 const MODE_LABEL: Record<PlayMode, string> = {
+  live: '📱↔📱 Live samen',
   remote: '📱↔📱 Samen',
   coco: '🐰 Tegen Coco',
   local: '📱 Op één telefoon',

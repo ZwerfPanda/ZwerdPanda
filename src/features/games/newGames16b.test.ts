@@ -282,6 +282,32 @@ describe('minigolf', () => {
     expect(isOpen({}, secret)).toBe(false);
   });
 
+  it('a putt replayed on the other phone rolls exactly the same (live play)', () => {
+    const DT = 1 / 120;
+    const settle = (s: GolfState) => {
+      for (let i = 0; i < 4000 && s.moving; i++) s = step(s, DT).state;
+      return s;
+    };
+    // the windmill hole: where the blades are matters
+    let mine = at(0, 2);
+    const shots: { dx: number; dy: number; t: number }[] = [];
+    for (const [dx, dy, wait] of [
+      [4, 70, 37],
+      [-10, 40, 81],
+      [3, 25, 12],
+    ]) {
+      for (let i = 0; i < wait; i++) mine = step(mine, DT).state;
+      shots.push({ dx, dy, t: mine.t });
+      mine = settle(putt(mine, dx, dy));
+      if (mine.sunk) break;
+    }
+    let theirs = at(0, 2);
+    for (const sh of shots) theirs = settle(putt({ ...theirs, t: sh.t }, sh.dx, sh.dy));
+    expect(theirs.ball).toEqual(mine.ball);
+    expect(theirs.strokes[theirs.hole]).toBe(mine.strokes[mine.hole]);
+    expect(theirs.sunk).toBe(mine.sunk);
+  });
+
   it('the aiming guide is a straight line that stops at the first wall', () => {
     const pts = preview(newGolf(), 20, 60);
     expect(pts.length).toBeGreaterThan(3);

@@ -6,11 +6,11 @@ import type { Person } from '../../data/types';
 import { playSfx } from '../../lib/audio/sfx';
 import { celebrateFrom } from '../../components/ui/feedback';
 import { useReducedMotion } from '../../hooks/useMotion';
-import { GameShell, ScoreBoard, type PlayMode } from './GameShell';
+import { GameShell, ScoreBoard, WhoAreYou, type PlayMode } from './GameShell';
 import { DUEL_LABELS, DuelPanel, useDuelRound } from './DuelPanel';
 import { TicketStrip } from './TicketStrip';
 import { RoundCard } from './RoundCard';
-import { addScore, useBest } from './gameData';
+import { addScore, startMatch, updateMatch, useBest } from './gameData';
 import { recordResult } from './gameStats';
 import { duelScores, planDuel } from './duel';
 import {
@@ -464,7 +464,7 @@ function CourseView({
   const open = s.open ?? [];
   const len = aim ? Math.min(PULL, Math.hypot(aim.dx, aim.dy)) : 0;
   const k = len / PULL;
-  const sinkK = fx.sunkAt !== null ? Math.min(1, (s.t - fx.sunkAt) / 0.35) : 0;
+  const sinkK = fx.sunkAt !== null ? Math.max(0, Math.min(1, (s.t - fx.sunkAt) / 0.35)) : 0;
   const ballR = BALL_R * (1 - sinkK) * (1 + airHeight(s) * 0.7);
   const lift = airHeight(s) * 16;
   const cup = cupAt(h, s.t);
@@ -1026,7 +1026,7 @@ export function Golf() {
   const best = useBest('golf');
   const reduce = useReducedMotion();
   const progress = useProgress();
-  const [mode, setMode] = useState<PlayMode>('remote');
+  const [mode, setMode] = useState<PlayMode>('live');
   const duel = useDuelRound('golf', mode);
   const [phase, setPhase] = useState<'ready' | 'play' | 'done'>('ready');
   const [, setFrame] = useState(0);
@@ -1336,8 +1336,13 @@ export function Golf() {
         setMode(m);
         restart();
       }}
-      modes={['remote', 'local', 'coco']}
-      labels={{ ...DUEL_LABELS, local: '💛💗 Samen, om de beurt' }}
+      modes={['live', 'remote', 'local', 'coco']}
+      labels={{
+        ...DUEL_LABELS,
+        live: '📱↔📱 Live samen',
+        remote: '⚔️ Duel (apart)',
+        local: '💛💗 Eén telefoon',
+      }}
       score={
         <ScoreBoard
           label="records"
@@ -1349,6 +1354,12 @@ export function Golf() {
         />
       }
     >
+      {mode === 'live' ? (
+        <WhoAreYou>
+          <GolfLive progress={progress} />
+        </WhoAreYou>
+      ) : (
+        <>
       {together ? (
         <p className="duel-panel">
           Samen op één telefoon: om de beurt per hole, net als echt minigolf. Wie heeft na 6 holes de meeste punten? 💛💗
@@ -1647,6 +1658,8 @@ export function Golf() {
           Nog een rondje ⛳
         </button>
       )}
+        </>
+      )}
     </GameShell>
   );
 }
@@ -1666,4 +1679,497 @@ function tipFor(h: Hole): string {
   if (h.water?.length) return 'Ga om het water heen — erin kost een slag';
   if (h.sand?.length) return 'Zand remt je bal flink af';
   return 'Sleep naar achteren en laat los';
+}
+
+/* ------------------------------------------------ live, on two phones */
+
+/** Fixed steps, so both phones roll the very same ball. */
+const LIVE_DT = 1 / 120;
+
+interface LiveShot {
+  dx: number;
+  dy: number;
+  t: number;
+}
+
+interface LiveRun {
+  by: Person;
+  hole: number;
+  shots: LiveShot[];
+  skin: string;
+}
+
+interface LiveGame {
+  course: string;
+  hole: number;
+  /** Who putts first on every hole. */
+  order: [Person, Person];
+  strokes: Record<Person, number[]>;
+  /** The hole being played right now (every putt, as it's made). */
+  live: LiveRun | null;
+  /** The hole just finished (so the other can watch its last putt). */
+  last: LiveRun | null;
+}
+
+function readRun(v: unknown): LiveRun | null {
+  const r = v as Partial<LiveRun> | null;
+  if (!r || (r.by !== 'you' && r.by !== 'partner') || !Array.isArray(r.shots)) return null;
+  return {
+    by: r.by,
+    hole: Number.isInteger(r.hole) ? (r.hole as number) : 0,
+    shots: r.shots.filter(
+      (x): x is LiveShot =>
+        !!x && [x.dx, x.dy, x.t].every((n) => typeof n === 'number' && Number.isFinite(n)),
+    ),
+    skin: typeof r.skin === 'string' ? r.skin : 'white',
+  };
+}
+
+function readLive(raw: Record<string, unknown>): LiveGame {
+  const nums = (v: unknown) =>
+    Array.isArray(v) ? v.map((n) => (Number.isInteger(n) && n > 0 ? Math.min(MAX_STROKES, n) : 0)) : [];
+  const st = (raw.strokes ?? {}) as Record<string, unknown>;
+  const order = Array.isArray(raw.order) && raw.order[0] === 'partner' ? ['partner', 'you'] : ['you', 'partner'];
+  return {
+    course: typeof raw.course === 'string' ? raw.course : 'park',
+    hole: Number.isInteger(raw.hole) ? (raw.hole as number) : 0,
+    order: order as [Person, Person],
+    strokes: { you: nums(st.you), partner: nums(st.partner) },
+    live: readRun(raw.live),
+    last: readRun(raw.last),
+  };
+}
+
+/** A fresh ball on the tee of this hole. */
+function atHole(course: number, hole: number): GolfState {
+  let s = newGolf(course);
+  for (let i = 0; i < hole; i++) s = nextHole({ ...s, sunk: true }).state;
+  return { ...s, strokes: s.strokes.map(() => 0) };
+}
+
+interface Replay {
+  id: string;
+  run: LiveRun;
+  done: number;
+  state: GolfState;
+  /** When it finished rolling (it stays on screen a moment). */
+  endAt: number | null;
+}
+
+function GolfLive({ progress }: { progress: ReturnType<typeof useProgress> }) {
+  const me = useMe();
+  const them = otherPerson(me);
+  const profile = useContent((c) => c.profile);
+  const matches = useContent((c) => c.games.matches);
+  const reduce = useReducedMotion();
+  const match = matches
+    .filter((m) => m.kind === 'golf' && m.state.duo)
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
+  const st = match ? readLive(match.state) : null;
+  const [picked, setPicked] = useState(0);
+  const courseNo = st ? courseIndex(st.course) : picked;
+  const course = COURSES[courseNo];
+  const playing = Boolean(match && !match.winner);
+  const mine = Boolean(playing && match!.turn === me);
+  const [, setFrame] = useState(0);
+  const [banner, setBanner] = useState<{ id: number; text: string } | null>(null);
+  const [aim, setAim] = useState<{ dx: number; dy: number } | null>(null);
+  const [path, setPath] = useState<P[]>([]);
+  const press = useRef<{ x: number; y: number } | null>(null);
+  const svgBox = useRef<HTMLDivElement>(null);
+  const stage = useRef<HTMLDivElement>(null);
+  const mineState = useRef<GolfState>(atHole(courseNo, st?.hole ?? 0));
+  const mineKey = useRef('');
+  const fx = useRef<Fx>(freshFx());
+  const replay = useRef<Replay | null>(null);
+  const watched = useRef(new Set<string>());
+  const shown = useRef('');
+  const busy = useRef(false);
+  const live = useRef({ match, st, mine, me });
+  live.current = { match, st, mine, me };
+
+  const say = (text: string) => setBanner({ id: performance.now(), text });
+  useEffect(() => {
+    if (!banner) return;
+    const t = window.setTimeout(() => setBanner(null), 1800);
+    return () => window.clearTimeout(t);
+  }, [banner]);
+
+  // my turn on a new hole: a fresh ball on the tee
+  const key = match && st ? `${match.id}:${st.hole}:${match.turn ?? 'end'}` : 'none';
+  if (mine && key !== mineKey.current) {
+    mineKey.current = key;
+    mineState.current = atHole(courseNo, st!.hole);
+    busy.current = false;
+    fx.current = freshFx();
+  }
+
+  // the other's putts: watch each one roll, the same as on their phone
+  useEffect(() => {
+    if (!match || !st) return;
+    // when a match is first seen, don't replay what happened long ago
+    const fresh = Date.now() - new Date(match.updatedAt).getTime() < 60_000;
+    for (const run of [st.last, st.live]) {
+      if (!run || run.by !== them) continue;
+      const id = `${match.id}:${run.hole}`;
+      if (watched.current.has(id)) continue;
+      if (replay.current?.id === id) {
+        replay.current.run = run;
+        continue;
+      }
+      if (!fresh && run === st.last) {
+        watched.current.add(id);
+        continue;
+      }
+      if (replay.current) continue;
+      replay.current = { id, run, done: 0, state: atHole(courseNo, run.hole), endAt: null };
+      fx.current = freshFx();
+    }
+  }, [match?.updatedAt, match?.id]);
+
+  const finishHole = (s: GolfState) => {
+    const { match: m0, st: g0 } = live.current;
+    if (!m0 || !g0) return;
+    const k = Math.min(MAX_STROKES, s.strokes[s.hole] ?? MAX_STROKES);
+    progress.holeDone(me, s);
+    updateMatch(m0.id, (m) => {
+      const g = readLive(m.state);
+      if (m.winner || m.turn !== me || g.hole !== s.hole) return m;
+      const strokes = { ...g.strokes, [me]: [...g.strokes[me]] };
+      strokes[me][g.hole] = k;
+      const run = g.live && g.live.by === me ? g.live : null;
+      const base = { ...m.state, strokes, live: null, last: run };
+      if (me === g.order[0]) return { ...m, state: base, turn: g.order[1] };
+      const holes = COURSES[courseIndex(g.course)].holes.length;
+      if (g.hole + 1 < holes) return { ...m, state: { ...base, hole: g.hole + 1 }, turn: g.order[0] };
+      const c = courseIndex(g.course);
+      const a = golfScore({ strokes: strokes.you, course: c });
+      const b = golfScore({ strokes: strokes.partner, course: c });
+      return { ...m, state: base, turn: undefined, winner: a === b ? 'draw' : a > b ? 'you' : 'partner' };
+    });
+  };
+
+  const sounds = (events: GolfEvent[], s: GolfState, f: Fx, ownBall: boolean) => {
+    for (const e of events) {
+      if (e.type === 'wall') playSfx('clunk', true);
+      else if (e.type === 'bump') playSfx('boing', true);
+      else if (e.type === 'boost' || e.type === 'jump') playSfx('whoosh', true);
+      else if (e.type === 'click') playSfx('unlock', true);
+      else if (e.type === 'warp') {
+        playSfx('sparkle', true);
+        f.warpAt = s.t;
+        f.trail = [];
+      } else if (e.type === 'water' || e.type === 'void') {
+        playSfx(e.type === 'water' ? 'splash' : 'whirr', true);
+        f.splash = { ...e.at, at: s.t };
+        f.trail = [];
+        if (ownBall) say(THEMES[courseOf(s).theme].hazardText);
+      } else if (e.type === 'sunk') {
+        f.sunkAt = s.t;
+        f.trail = [];
+        playSfx(e.strokes === 1 ? 'star' : 'success', true);
+        const who = ownBall ? 'Jij' : nameOf(them, profile);
+        say(`${who}: ${holeWord(e.strokes, e.par)}`);
+        if (e.strokes === 1) celebrateFrom(svgBox.current);
+      }
+    }
+  };
+  const soundsRef = useRef(sounds);
+  soundsRef.current = sounds;
+  const finishRef = useRef(finishHole);
+  finishRef.current = finishHole;
+
+  useEffect(() => {
+    let raf = 0;
+    let last = performance.now();
+    let acc = 0;
+    const loop = (now: number) => {
+      const dt = Math.max(0, Math.min(0.05, (now - last) / 1000));
+      last = now;
+      acc += dt;
+      const f = fx.current;
+      const rp = replay.current;
+      while (acc >= LIVE_DT) {
+        acc -= LIVE_DT;
+        if (rp) {
+          let s = rp.state;
+          if (!s.moving && !s.sunk && rp.done < rp.run.shots.length) {
+            const shot = rp.run.shots[rp.done++];
+            s = putt({ ...s, t: shot.t }, shot.dx, shot.dy);
+            f.trail = [];
+          }
+          const out = step(s, LIVE_DT);
+          if (out.state.moving) {
+            f.roll += Math.hypot(out.state.ball.x - s.ball.x, out.state.ball.y - s.ball.y);
+            if (Math.random() < 0.5) {
+              f.trail.push({ x: out.state.ball.x, y: out.state.ball.y });
+              if (f.trail.length > 12) f.trail.shift();
+            }
+          }
+          rp.state = out.state;
+          if (out.events.length) soundsRef.current(out.events, out.state, f, false);
+          const { st: g } = live.current;
+          const finished = g?.last?.by === rp.run.by && g.last.hole === rp.run.hole;
+          if (!out.state.moving && rp.done >= rp.run.shots.length && (out.state.sunk || finished)) {
+            if (rp.endAt === null) rp.endAt = now;
+            else if (now - rp.endAt > 1300) {
+              watched.current.add(rp.id);
+              replay.current = null;
+              fx.current = freshFx();
+              break;
+            }
+          }
+        } else if (live.current.mine) {
+          const s0 = mineState.current;
+          const out = step(s0, LIVE_DT);
+          mineState.current = out.state;
+          if (out.state.moving) {
+            f.roll += Math.hypot(out.state.ball.x - s0.ball.x, out.state.ball.y - s0.ball.y);
+            if (Math.random() < 0.5) {
+              f.trail.push({ x: out.state.ball.x, y: out.state.ball.y });
+              if (f.trail.length > 12) f.trail.shift();
+            }
+          } else if (f.trail.length) f.trail.shift();
+          if (out.events.length) soundsRef.current(out.events, out.state, f, true);
+          if (!busy.current && out.events.some((e) => e.type === 'sunk' || e.type === 'max')) {
+            busy.current = true;
+            const done = out.state;
+            window.setTimeout(() => finishRef.current(done), reduce ? 400 : 1500);
+          }
+        }
+      }
+      setFrame((n) => (n + 1) % 1_000_000);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const local = (e: React.PointerEvent) => {
+    const r = svgBox.current!.getBoundingClientRect();
+    return { x: ((e.clientX - r.left) / r.width) * W, y: ((e.clientY - r.top) / r.height) * H };
+  };
+
+  const begin = () => {
+    startMatch(
+      'golf',
+      {
+        duo: true,
+        course: course.id,
+        hole: 0,
+        order: [me, them],
+        strokes: { you: [], partner: [] },
+        live: null,
+        last: null,
+      },
+      me,
+      me,
+    );
+    watched.current = new Set();
+    replay.current = null;
+    playSfx('pop', true);
+  };
+
+  const shoot = (dx: number, dy: number) => {
+    const { match: m0, st: g0 } = live.current;
+    if (!m0 || !g0 || busy.current) return;
+    const s = mineState.current;
+    const next = putt(s, dx, dy);
+    if (next === s || !next.moving) return;
+    const shot = { dx: Math.round(dx * 100) / 100, dy: Math.round(dy * 100) / 100, t: s.t };
+    // (rounded, so both phones putt exactly the same ball)
+    mineState.current = putt(s, shot.dx, shot.dy);
+    fx.current.trail = [];
+    playSfx('tap', true);
+    const skin = progress.skinOf(me).id;
+    updateMatch(m0.id, (m) => {
+      const g = readLive(m.state);
+      const before = g.live && g.live.by === me && g.live.hole === g.hole ? g.live.shots : [];
+      return { ...m, state: { ...m.state, live: { by: me, hole: g.hole, shots: [...before, shot], skin } } };
+    });
+  };
+
+  // what's on screen: their ball rolling, my ball, or the tee
+  const rp = replay.current;
+  const viewId = rp ? rp.id : mine ? `mine:${mineKey.current}` : `idle:${key}`;
+  if (viewId !== shown.current) {
+    shown.current = viewId;
+    fx.current = freshFx();
+  }
+  const s = rp ? rp.state : mine ? mineState.current : atHole(courseNo, st?.hole ?? 0);
+  const ballOwner: Person = rp ? rp.run.by : mine ? me : (match?.turn as Person) ?? me;
+  const skin = rp
+    ? (BALLS.find((b) => b.id === rp.run.skin) ?? BALLS[0])
+    : progress.skinOf(mine ? me : ballOwner);
+  const h = holeOf(s);
+  const canPutt = mine && !rp && !busy.current && !s.moving && !s.sunk;
+  const myProgress = progress.all[me];
+  const sc = (p: Person) => golfScore({ strokes: st?.strokes[p] ?? [], course: courseNo });
+  const order: Person[] = st ? st.order : [me, them];
+
+  return (
+    <div className={`golf-park is-${course.theme}`} ref={stage}>
+      {!playing && (
+        <>
+          <p className="duel-panel">
+            Elk op je eigen telefoon, om de beurt per hole. Je ziet de bal van de ander live over jouw scherm rollen 📱↔📱
+          </p>
+          <div className="golf-worlds" role="radiogroup" aria-label="Kies een wereld">
+            {COURSES.map((c, i) => {
+              const open = isOpen(myProgress, c);
+              if (c.secret && !open) return null;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={courseNo === i}
+                  aria-disabled={!open}
+                  className={`golf-world is-${c.theme}${courseNo === i ? ' is-on' : ''}${open ? '' : ' is-locked'}`}
+                  onClick={() => (open ? setPicked(i) : playSfx('error', true))}
+                >
+                  <span className="golf-world__emoji" aria-hidden="true">
+                    {open ? c.emoji : '🔒'}
+                  </span>
+                  <strong>{c.name}</strong>
+                  <small>{open ? `par ${coursePar(c)}` : `${c.unlock} ★ nodig`}</small>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+      {playing && (
+        <p
+          className="golf-turn"
+          style={{ background: COLORS[rp ? rp.run.by : (match!.turn as Person)] }}
+          aria-live="polite"
+        >
+          {rp
+            ? `👀 ${nameOf(rp.run.by, profile)} is aan het putten…`
+            : mine
+              ? '⛳ Jouw beurt!'
+              : `⏳ ${nameOf(them, profile)} is aan de beurt`}
+        </p>
+      )}
+      <div className="golf-sign">
+        <span className="golf-sign__world">
+          {course.emoji} {course.name}
+        </span>
+        <span className="golf-sign__hole">
+          {h.emoji} Hole {s.hole + 1}/{course.holes.length} · {h.name}
+        </span>
+        <span className="golf-sign__meta">
+          par {h.par} · slag {s.strokes[s.hole] ?? 0}
+        </span>
+      </div>
+      <div
+        className="golf-green"
+        ref={svgBox}
+        role="application"
+        tabIndex={0}
+        aria-label={`Minigolf live, hole ${s.hole + 1}${canPutt ? ': sleep naar achteren en laat los' : ''}`}
+        onPointerDown={(e) => {
+          if (!canPutt) return;
+          (e.target as Element).setPointerCapture?.(e.pointerId);
+          press.current = local(e);
+          setAim({ dx: 0, dy: 0 });
+          setPath([]);
+        }}
+        onPointerMove={(e) => {
+          if (!press.current) return;
+          const p = local(e);
+          const a = { dx: p.x - press.current.x, dy: p.y - press.current.y };
+          setAim(a);
+          setPath(preview(mineState.current, a.dx, a.dy));
+        }}
+        onPointerUp={(e) => {
+          const from = press.current;
+          press.current = null;
+          setAim(null);
+          setPath([]);
+          if (!from || !canPutt) return;
+          const p = local(e);
+          shoot(p.x - from.x, p.y - from.y);
+        }}
+        onPointerCancel={() => {
+          press.current = null;
+          setAim(null);
+          setPath([]);
+        }}
+      >
+        <CourseView s={s} aim={canPutt ? aim : null} path={path} flag={COLORS[ballOwner]} fx={fx.current} skin={skin} />
+        <AnimatePresence>
+          {banner && (
+            <motion.p
+              key={banner.id}
+              className="golf-banner"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+            >
+              {banner.text}
+            </motion.p>
+          )}
+        </AnimatePresence>
+        {!playing && (
+          <div className="golf-start">
+            {match?.winner && (
+              <p>
+                {match.winner === 'draw'
+                  ? `Gelijkspel! ${sc('you')}–${sc('partner')} 💛💗`
+                  : match.winner === me
+                    ? `Jij wint ${sc(me)}–${sc(them)}! 🏆`
+                    : `${nameOf(them, profile)} wint ${sc(them)}–${sc(me)} 🏌️`}
+              </p>
+            )}
+            <p>
+              {course.emoji} {course.name} · {course.blurb}
+            </p>
+            <button type="button" className="golf-go" onClick={begin}>
+              {match?.winner ? 'Nog een potje 📱↔📱' : 'Start samen 📱↔📱'}
+            </button>
+          </div>
+        )}
+      </div>
+      {st && (
+        <table className="golf-duo" aria-label="Scorekaart">
+          <thead>
+            <tr>
+              <th />
+              {course.holes.map((hole, i) => (
+                <th key={hole.name} className={i === st.hole && playing ? 'is-now' : ''}>
+                  {i + 1}
+                  <small>par {hole.par}</small>
+                </th>
+              ))}
+              <th>pt</th>
+            </tr>
+          </thead>
+          <tbody>
+            {order.map((p) => (
+              <tr key={p} className={playing && match!.turn === p ? 'is-turn' : ''}>
+                <th style={{ color: COLORS[p] }}>{nameOf(p, profile)}</th>
+                {course.holes.map((hole, i) => {
+                  const k = st.strokes[p][i] ?? 0;
+                  const tone = !k ? '' : k < hole.par ? 'is-under' : k > hole.par ? 'is-over' : 'is-par';
+                  return (
+                    <td key={hole.name} className={tone}>
+                      {k || '·'}
+                    </td>
+                  );
+                })}
+                <td className="golf-duo__total">{sc(p)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {playing && (
+        <button type="button" className="golf-restart" onClick={begin}>
+          Opnieuw beginnen
+        </button>
+      )}
+    </div>
+  );
 }
