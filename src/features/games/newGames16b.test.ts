@@ -164,10 +164,10 @@ describe('minigolf', () => {
     expect(soft.strokes[0]).toBe(1);
   });
 
-  it('ten worlds of six holes, every tee and cup on the felt', () => {
-    expect(COURSES).toHaveLength(10);
+  it('ten worlds of six holes and one secret level, every tee and cup on the felt', () => {
+    expect(COURSES).toHaveLength(11);
     for (const c of COURSES) {
-      expect(c.holes).toHaveLength(6);
+      expect(c.holes).toHaveLength(c.secret ? 1 : 6);
       for (const h of c.holes) {
         expect(inside(h, h.tee), `${c.name}: ${h.name} tee`).toBe(true);
         expect(inside(h, h.cup), `${c.name}: ${h.name} cup`).toBe(true);
@@ -268,6 +268,18 @@ describe('minigolf', () => {
     expect(isOpen(p, COURSES[5])).toBe(false);
     const all = Object.fromEntries(COURSES.filter((c) => !c.unlock).map((c) => [c.id, c.holes.map(() => 1)]));
     expect(isOpen(all, COURSES[5])).toBe(true);
+  });
+
+  it('the secret level opens only three stars short of all of them', () => {
+    const secret = COURSES.find((c) => c.secret)!;
+    const full = Object.fromEntries(COURSES.filter((c) => !c.secret).map((c) => [c.id, c.holes.map(() => 1)]));
+    expect(isOpen(full, secret)).toBe(true);
+    // three stars short: still open
+    const minus3 = { ...full, park: [1, 1, 1, 1, 3, 4] }; // par 3 in 3: 2 stars, in 4: 1 star
+    expect(isOpen(minus3, secret)).toBe(true);
+    const minus4 = { ...full, park: [1, 1, 1, 1, 4, 4] };
+    expect(isOpen(minus4, secret)).toBe(false);
+    expect(isOpen({}, secret)).toBe(false);
   });
 
   it('the aiming guide is a straight line that stops at the first wall', () => {

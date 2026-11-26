@@ -31,6 +31,11 @@ import {
   coursePar,
   courseStars,
   cupAt,
+  allStars,
+  MAX_STARS,
+  SECRET_SHORT,
+  HOLES_PER_COURSE,
+  ownsBall,
   golfScore,
   holeOf,
   holePoints,
@@ -254,6 +259,25 @@ const THEMES: Record<ThemeId, Theme> = {
     decor: ['🏰', '🐉', '👑', '🛡️', '🌲', '🗡️'],
     hazard: '🐊',
     hazardText: '🐊 In de slotgracht! +1 slag',
+  },
+  secret: {
+    bg: ['#140a2e', '#1a0d3a'],
+    felt: ['#2a1b5c', '#311f6b'],
+    wall: '#ffd75e',
+    wallDark: '#b8860b',
+    wallTop: '#fff6c9',
+    block: '#4a2f9c',
+    blockDark: '#ffd75e',
+    water: ['#ff5fa2', '#7a2fd6'],
+    sand: ['#ffe9a8', '#e5c46a'],
+    bumper: ['#5ff3ff', '#1b8a9c'],
+    slider: ['#ffd75e', '#b8860b'],
+    sliderEmoji: '⭐',
+    mill: '#ffd75e',
+    decor: ['✨', '🌈', '💎', '👑', '🦄', '💫'],
+    specks: ['#ffd75e', '#ff8cc0', '#5ff3ff', '#ffffff'],
+    hazard: '🌈',
+    hazardText: '🌈 In de regenboog-lava! +1 slag',
   },
   garden: {
     bg: ['#6fae4a', '#79b853'],
@@ -541,8 +565,19 @@ function CourseView({
           strokeDashoffset="10"
         />
       )}
-      {course.theme === 'space' && (
+      {(course.theme === 'space' || course.theme === 'secret') && (
         <path d={pathOf(outer)} fill="none" stroke={t.wall} strokeWidth="14" opacity="0.25" filter="url(#golf-soft)" />
+      )}
+      {course.theme === 'secret' && (
+        <path
+          className="golf-rainbow-edge"
+          d={pathOf(outer)}
+          fill="none"
+          stroke="url(#golf-rainbow)"
+          strokeWidth="4"
+          strokeLinejoin="round"
+          strokeDasharray="14 8"
+        />
       )}
 
       {/* zones on the felt */}
@@ -959,9 +994,8 @@ function useProgress() {
     });
   };
   const skinOf = (who: Person): BallSkin => {
-    const stars = totalStars(all[who]);
     const want = BALLS.find((b) => b.id === skins[who]);
-    return want && stars >= want.stars ? want : BALLS[0];
+    return want && ownsBall(all[who], want) ? want : BALLS[0];
   };
   const pickSkin = (who: Person, id: string) => {
     save(skinKey(who), id);
@@ -1044,9 +1078,14 @@ export function Golf() {
   const choose = (i: number) => {
     if (!isOpen(myProgress, COURSES[i])) {
       playSfx('error', true);
-      say(`🔒 Nog ${(COURSES[i].unlock ?? 0) - totalStars(myProgress)} ⭐ nodig`);
+      say(
+        COURSES[i].secret
+          ? `🤫 Iets geheims… haal alle sterren op ${SECRET_SHORT} na`
+          : `🔒 Nog ${(COURSES[i].unlock ?? 0) - totalStars(myProgress)} ⭐ nodig`,
+      );
       return;
     }
+    if (COURSES[i].secret) playSfx('sparkle', true);
     setPicked(i);
     try {
       localStorage.setItem(PICK_KEY, COURSES[i].id);
@@ -1111,7 +1150,11 @@ export function Golf() {
           `${holeWord(e.strokes, e.par)} · +${holePoints(e.strokes, e.par)} ${'★'.repeat(stars)}`,
           e.strokes === 1,
         );
-        if (e.strokes === 1 || stars === 3) celebrateFrom(svgBox.current);
+        if (e.strokes === 1 || stars === 3 || courseOf(s).secret) celebrateFrom(svgBox.current);
+        if (courseOf(s).secret) {
+          window.setTimeout(() => celebrateFrom(svgBox.current), 500);
+          window.setTimeout(() => say('🌈 Je hebt het geheime level uitgespeeld! ✦ Sterrenstof-bal vrijgespeeld', true), 900);
+        }
         busy.current = true;
         window.setTimeout(() => advance(), reduce ? 400 : e.strokes === 1 ? 2400 : 1600);
       } else if (e.type === 'max') {
@@ -1323,6 +1366,29 @@ export function Golf() {
               {COURSES.map((c, i) => {
                 const open = isOpen(myProgress, c) || lockedCourse === i;
                 const locked = (lockedCourse !== null && lockedCourse !== i) || !open;
+                if (c.secret)
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={courseNo === i}
+                      aria-disabled={locked}
+                      aria-label={open ? `Geheim level: ${c.name}` : 'Geheim level, nog op slot'}
+                      className={`golf-world golf-secret${open ? ' is-open' : ''}${courseNo === i ? ' is-on' : ''}`}
+                      onClick={() => lockedCourse === null && choose(i)}
+                    >
+                      <span className="golf-world__emoji" aria-hidden="true">
+                        {open ? '🌈' : '❓'}
+                      </span>
+                      <strong>{open ? `✨ ${c.name} ✨` : '???'}</strong>
+                      <small>
+                        {open
+                          ? `Geheim level · par ${c.holes[0].par}`
+                          : `Geheim · nog ${Math.max(0, MAX_STARS - SECRET_SHORT - allStars(myProgress))} ⭐`}
+                      </small>
+                    </button>
+                  );
                 return (
                   <button
                     key={c.id}
@@ -1346,7 +1412,9 @@ export function Golf() {
             </div>
             <div className="golf-balls" role="radiogroup" aria-label="Kies je bal">
               {BALLS.map((b) => {
-                const own = totalStars(progress.all[player]) >= b.stars;
+                const own = ownsBall(progress.all[player], b);
+                const isSecret = 'secret' in b && b.secret;
+                if (isSecret && !own) return null;
                 const on = progress.skinOf(player).id === b.id;
                 return (
                   <button
@@ -1556,7 +1624,17 @@ export function Golf() {
           title={`${course.emoji} ${course.name} uitgespeeld!`}
           score={score}
           record={record}
-          stars={score >= PAR_POINTS + 20 ? 3 : score >= PAR_POINTS - 40 ? 2 : score >= PAR_POINTS - 100 ? 1 : 0}
+          stars={
+            course.holes.length !== HOLES_PER_COURSE
+              ? holeStars(s.strokes[0] ?? 0, course.holes[0].par)
+              : score >= PAR_POINTS + 20
+                ? 3
+                : score >= PAR_POINTS - 40
+                  ? 2
+                  : score >= PAR_POINTS - 100
+                    ? 1
+                    : 0
+          }
           stats={[
             { label: 'Slagen', value: `${totalStrokes(s)} (par ${coursePar(course)})` },
             { label: 'Sterren', value: `${myStars(me).reduce((n, k) => n + k, 0)} / ${course.holes.length * 3}` },

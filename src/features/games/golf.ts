@@ -73,6 +73,8 @@ export interface Hole {
   /** Gates that stay shut until you roll over the button with the same id. */
   gates?: (Rect & { id: number })[];
   buttons?: { x: number; y: number; id: number }[];
+  /** Walls too high to jump over: a ball in the air still bounces off them. */
+  tallWalls?: boolean;
   /** A cup that slides to and fro: (dx, dy) either way from `cup`. */
   cupMove?: { dx: number; dy: number; speed: number };
   mills?: Mill[];
@@ -89,7 +91,8 @@ export type ThemeId =
   | 'city'
   | 'fair'
   | 'volcano'
-  | 'castle';
+  | 'castle'
+  | 'secret';
 
 export interface Course {
   id: string;
@@ -101,6 +104,8 @@ export interface Course {
   glide?: number;
   /** A bonus world: open once you've got this many stars elsewhere. */
   unlock?: number;
+  /** The secret level: open only with every star but three. */
+  secret?: boolean;
   holes: Hole[];
 }
 
@@ -946,6 +951,44 @@ const CASTLE: Hole[] = [
   },
 ];
 
+/* ------------------------------------------------- ✨ the secret level */
+
+const SECRET: Hole[] = [
+  {
+    name: 'De Sterrentroon',
+    emoji: '🌈',
+    par: 5,
+    tee: { x: 50, y: 445 },
+    cup: { x: 150, y: 62 },
+    cupMove: { dx: 70, dy: 0, speed: 1.2 },
+    walls: [
+      box(20, 20, 260, 450),
+      box(20, 350, 200, 16),
+      box(80, 200, 200, 16),
+      box(20, 110, 180, 14),
+    ],
+    tallWalls: true,
+    // the bottom: bounce past the gems to the jump
+    bumpers: [
+      { x: 130, y: 420, r: 11 },
+      { x: 180, y: 392, r: 11 },
+      { x: 60, y: 72, r: 10 },
+      { x: 240, y: 72, r: 10 },
+    ],
+    // the middle: jump the rainbow lava (not too hard!), ride the arrows left
+    water: [{ x: 20, y: 268, w: 260, h: 30 }],
+    ramps: [{ x: 225, y: 305, w: 50, h: 40, ax: 0, ay: -1 }],
+    boosts: [{ x: 95, y: 222, w: 110, h: 42, ax: -420, ay: 0 }],
+    mills: [{ x: 248, y: 50, len: 24, speed: 2.2, blades: 3 }],
+    // the top: press the button, past the black hole, through the gate
+    buttons: [{ x: 50, y: 160, id: 0 }],
+    gates: [{ x: 200, y: 110, w: 80, h: 14, id: 0 }],
+    wells: [{ x: 150, y: 165, r: 42, pull: 600 }],
+    // and a secret shortcut, for those who look closely
+    portals: [{ a: { x: 36, y: 380 }, b: { x: 245, y: 165 } }],
+  },
+];
+
 export const COURSES: Course[] = [
   { id: 'park', name: 'Het park', emoji: '🌳', theme: 'park', blurb: 'Windmolen & vijver', holes: PARK },
   { id: 'beach', name: 'Het strand', emoji: '🏖️', theme: 'beach', blurb: 'Zee, zand en een vuurtoren', holes: BEACH },
@@ -980,6 +1023,15 @@ export const COURSES: Course[] = [
     blurb: 'Slotgracht, valhek en een draak',
     unlock: 80,
     holes: CASTLE,
+  },
+  {
+    id: 'secret',
+    name: 'De Sterrentroon',
+    emoji: '🌈',
+    theme: 'secret',
+    blurb: 'Het geheime level — alles tegelijk',
+    secret: true,
+    holes: SECRET,
   },
 ];
 
@@ -1231,7 +1283,7 @@ export function step(s: GolfState, dt: number): { state: GolfState; events: Golf
       air.t += h2;
       const keep = Math.exp(-0.25 * h2);
       b = { x: b.x + b.vx * h2, y: b.y + b.vy * h2, vx: b.vx * keep, vy: b.vy * keep };
-      for (const e of edgeOnly(h)) {
+      for (const e of h.tallWalls ? edgesAt(h, t, open) : edgeOnly(h)) {
         const out = bounce(b, e);
         if (out) b = out;
       }
@@ -1486,9 +1538,21 @@ export const courseStars = (p: GolfProgress, c: Course) =>
 
 /** Stars from the always-open worlds (what unlocks the bonus ones). */
 export const totalStars = (p: GolfProgress) =>
-  COURSES.filter((c) => !c.unlock).reduce((n, c) => n + courseStars(p, c), 0);
+  COURSES.filter((c) => !c.unlock && !c.secret).reduce((n, c) => n + courseStars(p, c), 0);
 
-export const isOpen = (p: GolfProgress, c: Course) => !c.unlock || totalStars(p) >= c.unlock;
+/** Every star there is, outside the secret level (and what that adds up to). */
+export const allStars = (p: GolfProgress) =>
+  COURSES.filter((c) => !c.secret).reduce((n, c) => n + courseStars(p, c), 0);
+export const MAX_STARS = COURSES.filter((c) => !c.secret).reduce((n, c) => n + c.holes.length * 3, 0);
+/** The secret level opens when you're at most this many stars short. */
+export const SECRET_SHORT = 3;
+
+export const isOpen = (p: GolfProgress, c: Course) =>
+  c.secret ? allStars(p) >= MAX_STARS - SECRET_SHORT : !c.unlock || totalStars(p) >= c.unlock;
+
+/** You've put the ball in on the secret level at least once. */
+export const secretDone = (p: GolfProgress) =>
+  COURSES.filter((c) => c.secret).some((c) => (p[c.id] ?? []).some((k) => k > 0));
 
 /** Remember a finished hole if it beat the best so far. */
 export function recordHole(p: GolfProgress, course: Course, hole: number, strokes: number): GolfProgress {
@@ -1524,8 +1588,13 @@ export const BALLS = [
   { id: 'rainbow', name: 'Regenboog', stars: 46, fill: 'rainbow', ring: '#7a4fd6' },
   { id: 'heart', name: 'Hartje', stars: 58, fill: '#ff4f6d', ring: '#b8233e', emoji: '♥' },
   { id: 'gold', name: 'Goud', stars: 75, fill: '#ffcf33', ring: '#b8860b', shine: true },
+  { id: 'stardust', name: 'Sterrenstof', stars: 0, fill: 'rainbow', ring: '#ffd75e', shine: true, emoji: '✦', secret: true },
 ] as const;
 export type BallSkin = (typeof BALLS)[number];
+
+/** Whether you can play with this ball yet. */
+export const ownsBall = (p: GolfProgress, b: BallSkin) =>
+  'secret' in b && b.secret ? secretDone(p) : totalStars(p) >= b.stars;
 
 /** How far along a ray from `o` (unit direction `u`) the first solid edge is. */
 function rayToEdge(o: P, u: P, edges: [P, P][]): number {
