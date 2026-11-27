@@ -116,16 +116,23 @@ export function refreshNow() {
   void getSyncEngine()?.syncNow();
 }
 
-export function addScore(game: ScoreGame, score: number, as?: Player) {
+export function addScore(game: ScoreGame, score: number, as?: Player, tickets = 0) {
   const who = as ?? getAuthor();
   if (!who) return;
+  const entry = {
+    id: createId('score'),
+    game,
+    who,
+    score,
+    at: nowIso(),
+    ...(tickets > 0 && who !== 'coco' ? { tickets: Math.round(tickets) } : {}),
+  };
   updateContent((c) => ({
     ...c,
+    // (scores with tickets in them are kept: they're money in the bank)
     games: {
       ...c.games,
-      scores: [...c.games.scores, { id: createId('score'), game, who, score, at: nowIso() }].slice(
-        -500,
-      ),
+      scores: [...c.games.scores, entry].filter((s, i, all) => s.tickets || i >= all.length - 500),
     },
   }));
 }

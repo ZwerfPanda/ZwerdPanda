@@ -215,6 +215,7 @@ export function ticketsEarned(c: AppContent, who: Person): number {
   const settings = ticketSettings(c);
   // Only potjes against each other earn tickets — playing Coco doesn't count.
   let total = settings.adjust[who] + arcadeTally(c).tickets[who];
+  total += pickedUpTickets(c, who);
   // Wie kent wie is a game show about each other, so it counts too.
   for (const a of c.quiz.answers)
     if (a.who === who && a.self && a.guess) {
@@ -222,6 +223,19 @@ export function ticketsEarned(c: AppContent, who: Person): number {
       total += isGolden(a.at) ? r.quiz * r.golden : r.quiz;
     }
   return Math.max(0, total);
+}
+
+/** At most this many picked-up tickets count per day (so it stays a bonus). */
+export const PICKUP_DAILY_CAP = 10;
+
+/** 🎟️ picked up in the lava game: per day, up to the cap. */
+export function pickedUpTickets(c: Pick<AppContent, 'games'>, who: Person): number {
+  const days = new Map<string, number>();
+  for (const s of c.games.scores)
+    if (s.who === who && s.tickets) days.set(s.at.slice(0, 10), (days.get(s.at.slice(0, 10)) ?? 0) + s.tickets);
+  let n = 0;
+  for (const v of days.values()) n += Math.min(PICKUP_DAILY_CAP, v);
+  return n;
 }
 
 /** Tickets spent on prizes from the prize counter. */

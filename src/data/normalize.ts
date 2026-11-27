@@ -988,6 +988,7 @@ const MATCH_KINDS: readonly MatchKind[] = [
   'hoops',
   'pong',
   'golf',
+  'lava',
   'draw',
   'ludo',
 ];
@@ -1000,7 +1001,10 @@ export const DUEL_KINDS: readonly MatchKind[] = [
   'lingo',
   'hoops',
   'golf',
+  'lava',
 ];
+/** Tickets found in one round of the lava game, at most. */
+export const LAVA_TICKETS_PER_ROUND = 5;
 const SCORE_GAMES: readonly ScoreGame[] = [
   'bowling',
   'skeeball',
@@ -1010,6 +1014,7 @@ const SCORE_GAMES: readonly ScoreGame[] = [
   'lingo',
   'hoops',
   'golf',
+  'lava',
 ];
 
 /** One game in progress between the two of us (also as it arrives live). */
@@ -1047,8 +1052,11 @@ function normalizeGames(v: unknown): Games {
         who,
         score: Math.round(score),
         at: stamp(s.at),
+        ...(Number.isInteger(s.tickets) && (s.tickets as number) > 0
+          ? { tickets: Math.min(LAVA_TICKETS_PER_ROUND, s.tickets as number) }
+          : {}),
       };
-    }).slice(-500),
+    }).filter((s, i, all) => s.tickets || i >= all.length - 500),
     results: list(v.results, (r, i) => {
       if (!isObj(r) || !GAME_IDS.includes(r.game as GameId)) return null;
       const players = arr(r.players).filter((p): p is Player => PLAYERS.includes(p as Player));
@@ -1090,6 +1098,7 @@ const GAME_IDS: readonly GameId[] = [
   'hoops',
   'pong',
   'golf',
+  'lava',
   'draw',
   'ludo',
 ];

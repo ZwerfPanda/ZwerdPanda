@@ -713,6 +713,8 @@ export interface GameScore {
   who: Player;
   score: number;
   at: string;
+  /** Tickets picked up during the round (the lava game has them on its platforms). */
+  tickets?: number;
 }
 
 export type GameId =

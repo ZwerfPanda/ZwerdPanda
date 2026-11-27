@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { JUMP, R, cocoSteer, meters, newWorld, score, solid, step, type Plat, type World } from './lava';
+import { JUMP, R, cocoSteer, frozen, lavaSpeed, meters, newWorld, score, solid, step, type Plat, type World } from './lava';
+import { pickedUpTickets, PICKUP_DAILY_CAP } from './tickets';
+import { normalizeContent } from '../../data/normalize';
 
 const run = (w: World, secs: number, steer?: (w: World) => void) => {
   for (let i = 0; i < secs * 60 && !w.over; i++) {
@@ -72,4 +74,68 @@ describe('de vloer is lava', () => {
     expect(meters(w.players[0].best)).toBeGreaterThan(60);
     expect(score(w.players[0])).toBeGreaterThanOrEqual(meters(w.players[0].best));
   });
+
+  it('power-ups: a shield saves you from the lava once, ice stops it, a rocket flies', () => {
+    const w = newWorld(5, ['you']);
+    const p = w.players[0];
+    w.plats = [];
+    w.items = [
+      { id: 1, x: p.x, y: p.y, kind: 'shield', taken: false },
+      { id: 2, x: p.x, y: p.y, kind: 'freeze', taken: false },
+    ];
+    const ev = step(w, 1 / 60);
+    expect(ev.filter((e) => e.type === 'item')).toHaveLength(2);
+    expect(p.shield).toBe(true);
+    expect(frozen(w)).toBe(true);
+    expect(lavaSpeed(w)).toBe(0);
+    // into the lava: the bubble pops and throws you back up
+    w.frozenUntil = 0;
+    Object.assign(p, { y: w.lava + R * 0.4, vy: -300 });
+    const saved = step(w, 1 / 60);
+    expect(saved.some((e) => e.type === 'saved')).toBe(true);
+    expect(p.alive).toBe(true);
+    expect(p.shield).toBe(false);
+    expect(p.vy).toBeGreaterThan(JUMP);
+    // a rocket keeps going up whatever happens
+    Object.assign(p, { power: 'rocket', powerUntil: w.t + 1, vy: -500 });
+    step(w, 1 / 60);
+    expect(p.vy).toBeGreaterThan(900);
+  });
+
+  it('every so often there is a ticket, and picking it up counts', () => {
+    const w = newWorld(9, ['you']);
+    let tickets = 0;
+    run(w, 240, (ww) => {
+      ww.players[0].input = cocoSteer(ww, 0);
+      tickets = ww.players[0].tickets;
+    });
+    expect(tickets + w.items.filter((i) => i.kind === 'ticket').length).toBeGreaterThan(0);
+  });
+
+  it('picked-up tickets count up to a daily cap, and survive a reload', () => {
+    const day = (d: string, n: number, who: 'you' | 'partner' = 'you') => ({
+      id: `s${d}${n}${who}`,
+      game: 'lava' as const,
+      who,
+      score: 50,
+      at: `${d}T12:00:00.000Z`,
+      tickets: n,
+    });
+    const games = {
+      matches: [],
+      results: [],
+scores: [
+        day('2026-11-01', 4),
+        day('2026-11-01', 5),
+        { ...day('2026-11-01', 5), id: 'another' },
+        day('2026-11-02', 2),
+        day('2026-11-02', 3, 'partner'),
+      ],
+    };
+    expect(pickedUpTickets({ games }, 'you')).toBe(PICKUP_DAILY_CAP + 2);
+    expect(pickedUpTickets({ games }, 'partner')).toBe(3);
+    const loaded = normalizeContent({ games });
+    expect(loaded.games.scores.filter((s) => s.game === 'lava' && s.tickets)).toHaveLength(5);
+  });
 });
+
